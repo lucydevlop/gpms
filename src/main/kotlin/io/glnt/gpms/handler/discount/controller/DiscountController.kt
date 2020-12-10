@@ -1,4 +1,4 @@
-package io.glnt.gpms.handler.discount
+package io.glnt.gpms.io.glnt.gpms.handler.discount.controller
 
 import io.glnt.gpms.common.configs.ApiConfig.API_VERSION
 import org.springframework.web.bind.annotation.CrossOrigin
