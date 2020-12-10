@@ -29,7 +29,7 @@ class ParkinglotController {
     fun getParkinglotFeature(@RequestBody request: reqSearchParkinglotFeature): ResponseEntity<CommonResult> {
         logger.debug("list parkinglot = $request")
         val result = parkinglotService.getParkinglotFeature(request)
-        logger.debug("ResultCode.SUCCESS.getCode :  ${ResultCode.SUCCESS.getCode()} result.code: ${result.code}")
+
         return when(result.code) {
             ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
             ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
