@@ -8,6 +8,5 @@ enum class UserRole : GrantedAuthority {
     SHOP,
     CEO,
     LOADER;
-
     override fun getAuthority(): String = name
 }

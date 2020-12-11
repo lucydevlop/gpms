@@ -1,7 +1,7 @@
 package io.glnt.gpms.handler.discount.service
 
 import io.glnt.gpms.common.api.CommonResult
-import io.glnt.gpms.io.glnt.gpms.handler.discount.model.reqSearchDiscount
+import io.glnt.gpms.handler.discount.model.reqSearchDiscount
 import io.glnt.gpms.model.repository.CorpTicketRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired

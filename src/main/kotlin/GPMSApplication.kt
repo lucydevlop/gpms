@@ -6,7 +6,9 @@ package io.glnt.gpms
 import io.github.jhipster.config.JHipsterConstants
 import io.glnt.gpms.common.configs.ApplicationProperties
 import io.glnt.gpms.common.utils.DefaultProfileUtil
+import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -18,12 +20,14 @@ import javax.annotation.PostConstruct
 
 @SpringBootApplication
 @EnableConfigurationProperties(LiquibaseProperties::class, ApplicationProperties::class)
-class GPMSApplication(private val env: Environment) {
+class GPMSApplication(private val env: Environment, val parkinglotService: ParkinglotService) {
     private val log = LoggerFactory.getLogger(GPMSApplication::class.java)
 
     @PostConstruct
     fun initApplication() {
         val activeProfiles = env.activeProfiles
+        parkinglotService.getParkSiteInfo()
+
         if (activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT) && activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_PRODUCTION)) {
             log.error("You have misconfigured your application! It should not run " + "with both the 'dev' and 'prod' profiles at the same time.")
         }

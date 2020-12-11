@@ -1,4 +1,4 @@
-package io.glnt.gpms.io.glnt.gpms.handler.discount.controller
+package io.glnt.gpms.handler.discount.controller
 
 import io.glnt.gpms.common.configs.ApiConfig.API_VERSION
 import io.glnt.gpms.exception.CustomException
