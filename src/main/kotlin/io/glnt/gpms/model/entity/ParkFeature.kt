@@ -26,6 +26,9 @@ data class ParkFeature(
     @Column(name = "feature_id", nullable = false)
     var featureId: String,
 
+    @Column(name = "feature_name")
+    var featureName: String? = null,
+
     @Column(name = "flag", nullable = false)
     var flag: String = "0",
 

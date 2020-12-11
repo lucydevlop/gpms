@@ -24,7 +24,7 @@ logging:
     thesis: INFO
 
 image:
-  filepath: /home/ubuntu/servers/glnt/gpms/park/save
+  filepath: /Users/lucy/project/glnt/park
 
 tmap:
   send: on

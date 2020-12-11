@@ -1,5 +1,7 @@
 package io.glnt.gmps
 
+import io.glnt.gpms.handler.parkinglot.model.reqAddParkIn
+import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.vertx.core.Vertx
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.unit.junit.Timeout
@@ -9,6 +11,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.springframework.beans.factory.annotation.Autowired
+import java.io.File
+import java.util.*
 
 @RunWith(VertxUnitRunner::class)
 class ParkinglotUnitTest {
@@ -18,6 +23,9 @@ class ParkinglotUnitTest {
 
     lateinit var vertx: Vertx
     lateinit var jwt: JWTAuth
+
+    @Autowired
+    private lateinit var parkinglotService: ParkinglotService
 
 //    @Before
 //    fun setup(context: TestContext) {
@@ -32,4 +40,19 @@ class ParkinglotUnitTest {
 //    fun get_parksFeatureTest() {
 //        withTestApplication()
 //    }
+
+    @Test
+    fun test_parkIn() {
+//        val test = reqAddParkIn(vehicleNo = "11가1234")
+//        parkinglotService.parkIn(request = test)
+    }
+
+    @Test
+    fun test_fileConvert() {
+        val filePath = "/Users/lucy/project/glnt/parking/gpms/67다8183.jpg"
+        val bytes = File(filePath).readBytes()
+        val base64 = Base64.getEncoder().encodeToString(bytes)
+
+        println("Base64ImageString = $base64")
+    }
 }
