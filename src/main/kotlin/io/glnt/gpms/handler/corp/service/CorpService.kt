@@ -1,7 +1,7 @@
-package io.glnt.gpms.io.glnt.gpms.handler.corp.service
+package io.glnt.gpms.handler.corp.service
 
 import io.glnt.gpms.common.api.CommonResult
-import io.glnt.gpms.io.glnt.gpms.handler.corp.model.reqSearchCorp
+import io.glnt.gpms.handler.corp.model.reqSearchCorp
 import io.glnt.gpms.model.repository.CorpRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired

@@ -1,13 +1,13 @@
-package io.glnt.gpms.io.glnt.gpms.handler.corp.controller
+package io.glnt.gpms.handler.corp.controller
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.parkinglot.controller.ParkinglotController
-import io.glnt.gpms.io.glnt.gpms.handler.corp.model.reqSearchCorp
-import io.glnt.gpms.io.glnt.gpms.handler.corp.service.CorpService
-import io.glnt.gpms.io.glnt.gpms.handler.discount.model.reqSearchDiscount
+import io.glnt.gpms.handler.corp.model.reqSearchCorp
+import io.glnt.gpms.handler.corp.service.CorpService
+import io.glnt.gpms.handler.discount.model.reqSearchDiscount
 import io.glnt.gpms.handler.discount.service.DiscountService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
