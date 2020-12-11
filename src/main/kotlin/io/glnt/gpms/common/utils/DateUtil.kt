@@ -46,6 +46,11 @@ object DateUtil {
         return sdf.format(Date())
     }
 
+    fun stringToNowDateTimeMS() : String {
+        val sdf = SimpleDateFormat("yyyyMMddHHmmssSSS")
+        return sdf.format(Date())
+    }
+
     fun stringToLocalDateTime(dateString: String="") : LocalDateTime {
         return LocalDateTime.parse(dateString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
     }
