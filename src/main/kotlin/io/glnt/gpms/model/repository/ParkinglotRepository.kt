@@ -4,6 +4,7 @@ import io.glnt.gpms.model.entity.Facility
 import io.glnt.gpms.model.entity.ParkFeature
 import io.glnt.gpms.model.entity.ParkSiteInfo
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -21,5 +22,6 @@ interface ParkFeatureRepository: JpaRepository<ParkFeature, Long> {
 @Repository
 interface ParkFacilityRepository: JpaRepository<Facility, Long> {
     fun findByFacilitiesId(facilitiesId: String): Facility?
+    @Query("SELECT v from Facility v where v.gateSvrKey = :gateSvrKey and ( v.category != 'LPR' or (v.category = 'LPR' and v.imagePath is not null))")
     fun findByGateSvrKey(gateSvrKey: String): List<Facility>?
 }
