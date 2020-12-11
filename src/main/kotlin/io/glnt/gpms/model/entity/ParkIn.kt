@@ -40,15 +40,19 @@ data class ParkIn(
     @Column(name = "devicenum", nullable = true)
     var devicenum: Int? = null,
 
+    @Column(name = "in_date", nullable = true)
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var inDate: LocalDateTime? = null,
+
     @Column(name = "date", nullable = true)
     @DateTimeFormat(pattern="yyyy-MM-dd")
     var date: LocalDate? = LocalDate.now(),
 
     @Column(name = "hour", nullable = true)
-    var hour: String? = DateUtil.nowTime.substring(0, 1),
+    var hour: String? = null,
 
     @Column(name = "min", nullable = true)
-    var min: String? = DateUtil.nowTime.substring(3,4),
+    var min: String? = null,
 
     @Column(name = "image", nullable = true)
     var image: String? = null,
