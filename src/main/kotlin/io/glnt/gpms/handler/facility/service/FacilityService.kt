@@ -62,6 +62,10 @@ class FacilityService {
             logger.error("set display color error {} ", e.message)
             return CommonResult.error("parkinglot display setting failed ")
         }
+    }
+
+    fun sendPaystation(data: Any) {
+        //todo 정산기 api 연계 개발
 
     }
 }

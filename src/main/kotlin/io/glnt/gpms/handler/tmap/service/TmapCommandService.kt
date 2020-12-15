@@ -1,5 +1,7 @@
 package io.glnt.gpms.handler.tmap.service
 
+import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.handler.facility.model.reqParkingSiteInfo
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
@@ -23,7 +25,7 @@ class TmapCommandService {
     @Autowired
     private lateinit var parkinglotService: ParkinglotService
 
-    fun getRequestCommand(request: reqApiTmapCommon) : Any {
+    fun getRequestCommand(request: reqApiTmapCommon) {
         // db insert
         tmapCommandRepository.save(
             TmapCommand(sn = null,
@@ -32,12 +34,39 @@ class TmapCommandService {
                         responseId = request.responseId?.run { request.requestId },
                         eventDateTime = request.commandDateTime?.run { request.eventDateTime },
                         contents = request.contents.toString()))
-        return request.contents
+        when(request.type) {
+            "parkingsiteinfo" -> {
+                commandParkingSiteInfo()
+            }
+            "facilitiesRegistResponse" -> {}
+            "facilitiesCommand" -> {
+                commandFacilities(request)
+            }
+            else -> {}
+        }
+    }
+
+    fun commandParkingSiteInfo() {
+        val contents = reqParkingSiteInfo(
+            parkingSiteName = parkinglotService.parkSite.sitename,
+            lotNumberAddress = "--",
+            roadNameAddress = parkinglotService.parkSite.address!!,
+            detailsAddress = "**",
+            telephoneNumber = parkinglotService.parkSite.tel!!,
+            saupno = parkinglotService.parkSite.saupno!!,
+            businessName = parkinglotService.parkSite.ceoname!!
+        )
+        val data = reqApiTmapCommon(
+            type="ParkingInfo", parkingSiteId = parkinglotService.parkSite.siteid,
+            requestId = DateUtil.stringToNowDateTime(), eventDateTime = DateUtil.stringToNowDateTime(),
+            contents = contents )
+
+        facilityService.sendPaystation(data)
     }
 
     /* request 'facilitiesCommand' */
     fun commandFacilities(request: reqApiTmapCommon) {
-        val contents : reqCommandFacilities = getRequestCommand(request) as reqCommandFacilities
+        val contents : reqCommandFacilities = request.contents as reqCommandFacilities
         // todo facilityid check
         contents.BLOCK?.let { it ->
             when(it) {
