@@ -93,4 +93,5 @@ dependencies {
     // http
     implementation "com.squareup.okhttp3:okhttp:4.9.0"
     implementation "com.alibaba:fastjson:1.2.74"
+    compile group: 'com.mashape.unirest', name: 'unirest-java', version: '1.4.9'
 }

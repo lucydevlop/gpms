@@ -1,4 +1,4 @@
-package io.glnt.gpms.handler.parkinglot.model
+package io.glnt.gpms.handler.vehicle.model
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import java.time.LocalDateTime
@@ -22,5 +22,6 @@ data class reqAddParkIn(
     var groupNum: Int? = null,  //삭제 처리 예정(gate Id로 대체)
     var fileName: String? = null,
     var fileUploadId: String? = null,
-    var fileFullPath: String? = null
+    var fileFullPath: String? = null,
+    var recognitionResult: String? = null
 )

@@ -36,8 +36,8 @@ data class Facility (
     @Column(name = "flag_use", nullable = true)
     var flagUse: Int? = 1,
 
-    @Column(name = "gate_id", nullable = true)
-    var gateId: String? = null,
+    @Column(name = "gate_id", nullable = false)
+    var gateId: String,
 
     @Column(name = "udp_gateid", nullable = true)
     var udpGateid: String? = null,
@@ -70,5 +70,14 @@ data class Facility (
 
     @Column(name = "gate_svr_key")
     var gateSvrKey: String? = null
+//    ,
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "gate_id", nullable = false)
+//    var gateInfo: Gate
+
 ) : Auditable(), Serializable {
+
+//    @OneToOne
+//    @JoinColumn(name = "gate_id", referencedColumnName="gate_id", insertable = false, updatable = false)
+//    var gate: Gate? = null
 }

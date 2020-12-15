@@ -28,6 +28,10 @@ image:
 
 tmap:
   send: on
+  url:
+
+gateway:
+  url: http://
 
 
 
