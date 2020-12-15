@@ -4,7 +4,6 @@ import io.glnt.gpms.common.configs.ApiConfig.API_VERSION
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
-import io.glnt.gpms.handler.parkinglot.model.reqAddParkIn
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.parkinglot.model.reqAddParkinglotFeature
@@ -24,6 +23,13 @@ class ParkinglotController {
 
     @Autowired
     private lateinit var parkinglotService: ParkinglotService
+
+    @RequestMapping(value= ["/create"], method = [RequestMethod.POST])
+    fun createParkinglot() {
+        logger.debug("parkinglot createParkinglot  = ")
+        parkinglotService.createParkinglot()
+
+    }
 
     @RequestMapping(value = ["/facility/list"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
@@ -64,12 +70,7 @@ class ParkinglotController {
         }
     }
 
-    @RequestMapping(value = ["/parkin"], method = [RequestMethod.POST])
-    @Throws(CustomException::class)
-    fun parkIn(@RequestBody request: reqAddParkIn) {
-        parkinglotService.parkIn(request)
 
-    }
 
 //    @RequestMapping(value = ["/add"], method = [RequestMethod.POST])
 //    @Throws(CustomException::class)

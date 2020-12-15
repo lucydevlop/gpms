@@ -1,13 +1,11 @@
 package io.glnt.gmps
 
-import io.glnt.gpms.handler.parkinglot.model.reqAddParkIn
+import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.vertx.core.Vertx
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.unit.junit.Timeout
-import io.vertx.ext.unit.TestContext
 import io.vertx.ext.unit.junit.VertxUnitRunner
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -54,5 +52,15 @@ class ParkinglotUnitTest {
         val base64 = Base64.getEncoder().encodeToString(bytes)
 
         println("Base64ImageString = $base64")
+    }
+
+    @Test
+    fun test_carNoisValidation() {
+        DataCheckUtil.isValidCarNumber("서울67다8183")
+//        val p: Pattern = Pattern.compile("([0-9]{2,3})([가-힣]{1})([0-9]{4})")
+////        val m: Matcher = p.matcher("17기1111")
+////        val m: Matcher = p.matcher("67다8183")
+//        val m: Matcher = p.matcher("67라8183")
+//        assertTrue(m.matches())
     }
 }
