@@ -1,9 +1,11 @@
 package io.glnt.gpms.common.utils
 
 import io.glnt.gpms.common.utils.DateUtil
+import okhttp3.internal.format
 import java.lang.Exception
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import kotlin.random.Random
 
 object DataCheckUtil {
     var strIdx: Int = 65
@@ -34,5 +36,11 @@ object DataCheckUtil {
         val key = parkId+"_"+DateUtil.stringToNowDateTime()+"_"+strIdx.toChar()
         strIdx++
         return key
+    }
+
+    fun generateSessionId(pre: String): String {
+        val r = Random
+        return pre+DateUtil.stringToNowDateTime()+
+                format("%03d", r.nextInt(1, 999))
     }
 }
