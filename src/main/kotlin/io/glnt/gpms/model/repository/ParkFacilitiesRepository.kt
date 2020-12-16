@@ -9,5 +9,6 @@ import org.springframework.stereotype.Repository
 @Repository
 interface DisplayColorRepository: JpaRepository<DisplayColor, Long> {
     fun findByPositionAndType(position: DisplayPosition, type: DisplayType): DisplayColor?
+    fun findByPositionIn(positions: List<DisplayPosition>): List<DisplayColor>
 }
 

@@ -35,9 +35,10 @@ class TmapCommandService {
                         eventDateTime = request.commandDateTime?.run { request.eventDateTime },
                         contents = request.contents.toString()))
         when(request.type) {
-            "parkingsiteinfo" -> {
-                commandParkingSiteInfo()
-            }
+            "parkingsiteinfo" ->
+                { commandParkingSiteInfo() }
+            "dspcolorinfo" ->
+                { facilityService.fetchDisplayColor() }
             "facilitiesRegistResponse" -> {}
             "facilitiesCommand" -> {
                 commandFacilities(request)
