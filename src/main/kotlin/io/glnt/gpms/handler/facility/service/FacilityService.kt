@@ -18,6 +18,9 @@ import java.lang.RuntimeException
 class FacilityService {
     companion object : KLogging()
 
+    /* static */
+    lateinit var displayColors: List<DisplayColor>
+
     @Value("\${gateway.url}")
     lateinit var url: String
 
@@ -61,6 +64,13 @@ class FacilityService {
         } catch (e: RuntimeException) {
             logger.error("set display color error {} ", e.message)
             return CommonResult.error("parkinglot display setting failed ")
+        }
+    }
+
+    fun fetchDisplayColor() {
+        val positions: List<DisplayPosition> = listOf(DisplayPosition.IN, DisplayPosition.OUT)
+        displayColorRepository.findByPositionIn(positions).let {
+            displayColors = it
         }
     }
 

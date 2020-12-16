@@ -146,7 +146,7 @@ class ParkinglotService {
 
 
 
-    fun getParkSiteInfo() {
+    fun fetchParkSiteInfo() {
         parkSiteInfoRepository.findTopByOrderBySiteid()?.let {
             parkSite = it
         }
