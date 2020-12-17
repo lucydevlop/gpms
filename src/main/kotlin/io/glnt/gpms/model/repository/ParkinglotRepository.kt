@@ -31,5 +31,6 @@ interface ParkFacilityRepository: JpaRepository<Facility, Long> {
 @Repository
 interface ParkGateRepository: JpaRepository<Gate, Long> {
     fun findByFlagUse(flagUse: Int): List<Gate>
+    fun findByGateId(gateId: String): Gate?
 
 }

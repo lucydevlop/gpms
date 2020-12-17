@@ -1,5 +1,6 @@
 package io.glnt.gpms.handler.product.service
 
+import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.model.repository.ProductTicketRepository
 import mu.KLogging
@@ -18,8 +19,11 @@ class ProductService {
         return productTicketRepository.findByVehicleNoAndValidDateGreaterThanEqualAndRegDateLessThanEqualAndFlagIsNullOrFlag(vehicleNo, LocalDateTime.now(), LocalDateTime.now(), 0)
     }
 
-    fun getValidProduct() {
-
+    fun calcRemainDayProduct(vehicleNo: String): Int {
+        getValidProductByVehicleNo(vehicleNo)?.let { it ->
+            return DateUtil.diffDays(LocalDateTime.now(), it.validDate!!)
+        }
+        return -1
     }
 
 }
