@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 object DateUtil {
@@ -74,5 +75,9 @@ object DateUtil {
 
     fun getAddMinutes(date: LocalDateTime, amount: Long): LocalDateTime {
         return date.plusMinutes(amount)
+    }
+
+    fun diffDays(date1: LocalDateTime, date2: LocalDateTime) : Int {
+        return ChronoUnit.DAYS.between(date1, date2).toInt()
     }
 }

@@ -11,10 +11,7 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.common.utils.FileUtils
-import io.glnt.gpms.model.entity.Facility
-import io.glnt.gpms.model.entity.ParkSiteInfo
-import io.glnt.gpms.model.entity.ParkFeature
-import io.glnt.gpms.model.entity.ParkIn
+import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.repository.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -57,7 +54,7 @@ class ParkinglotService {
             val gateList : ArrayList<gateLists> = ArrayList()
             val facilitiesList: ArrayList<facilitiesLists> = ArrayList()
             val gateData = parkGateRepository.findByFlagUse(1)
-            gateData!!.forEach { gate ->
+            gateData.forEach { gate ->
                 val facilities = parkFacilityRepository.findByGateIdAndFlagUse(gate.gateId!!, 1)!!
                 val FacilitiesId = facilities.map { it.dtFacilitiesId.toString() }.toTypedArray()
                 facilities.map {
@@ -160,6 +157,15 @@ class ParkinglotService {
         return parkFacilityRepository.findByFacilitiesId(facilityId) ?: run {
             null
         }
+    }
+
+    fun getGateInfoByFacilityId(facilityId: String) : Gate? {
+        parkFacilityRepository.findByFacilitiesId(facilityId)?.let {
+            parkGateRepository.findByGateId(it.gateId)?.let {
+                return it
+            }
+        }
+        return null
     }
 
 

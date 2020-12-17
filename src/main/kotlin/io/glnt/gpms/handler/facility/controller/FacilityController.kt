@@ -4,6 +4,7 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.handler.facility.model.reqSetDisplayColor
+import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,6 +26,18 @@ class FacilityController {
     fun setDisplayColor(@RequestBody request: ArrayList<reqSetDisplayColor>) : ResponseEntity<CommonResult> {
         logger.debug("parkinglot facility display color : $request")
         val result = facilityService.setDisplayColor(request)
+
+        return when(result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    @RequestMapping(value= ["/display/message"], method = [RequestMethod.POST])
+    fun setDisplayMessage(@RequestBody request: ArrayList<reqSetDisplayMessage>) : ResponseEntity<CommonResult> {
+        logger.debug("parkinglot facility display message : $request")
+        val result = facilityService.setDisplayMessage(request)
 
         return when(result.code) {
             ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
