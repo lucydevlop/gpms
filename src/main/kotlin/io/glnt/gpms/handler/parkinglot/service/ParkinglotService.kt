@@ -168,6 +168,35 @@ class ParkinglotService {
         return null
     }
 
+    fun getGateInfoByUdpGateId(udpGateId: String) : Gate? {
+        parkGateRepository.findByUdpGateid(udpGateId)?.let {
+            return it
+        }
+        return null
+    }
+
+    fun saveParkSiteInfo(data: ParkSiteInfo): Boolean {
+        try {
+            data.flagMessage = 1
+            parkSiteInfoRepository.save(data)
+            fetchParkSiteInfo()
+        } catch (e: RuntimeException) {
+            logger.error { "save tb_parksite error ${e.message}" }
+            return false
+        }
+        return true
+    }
+
+    fun saveGate(data: Gate): Boolean {
+        try {
+            parkGateRepository.save(data)
+        } catch (e: RuntimeException) {
+            logger.error { "save gate error ${e.message}" }
+            return false
+        }
+        return true
+    }
+
 
 //    fun JsonArray<*>.writeJSON(pathName: String, filename: String) {
 //        val fullOutDir = File(outDir, pathName)

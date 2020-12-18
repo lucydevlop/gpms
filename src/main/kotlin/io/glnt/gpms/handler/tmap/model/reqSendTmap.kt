@@ -45,6 +45,11 @@ data class reqFacilitiesRegist(
     var fileUploadId: String
 )
 
+data class reqProfileSetupResponse(
+    var result: String,
+    var errorMsg: String? = null
+)
+
 
 data class parkinglotMap(
     var floor: ArrayList<floorMap> = ArrayList(),
