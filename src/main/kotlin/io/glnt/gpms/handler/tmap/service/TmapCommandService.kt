@@ -151,7 +151,7 @@ class TmapCommandService {
             contents.messageList!!.forEach { message ->
                 val new = reqSetDisplayMessage(
                     messageClass = DisplayMessageClass.IN,
-                    messageType = when (message.messageType) {
+                    messageType = when (message.messageType) { 
                         "NONMEMBER" -> DisplayMessageType.NONMEMBER
                         "VIP" -> DisplayMessageType.VIP
                         "MEMBER" -> DisplayMessageType.MEMBER
