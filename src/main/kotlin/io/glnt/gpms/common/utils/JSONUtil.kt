@@ -1,8 +1,18 @@
 package io.glnt.gpms.common.utils
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.springframework.boot.configurationprocessor.json.JSONArray
 import org.springframework.boot.configurationprocessor.json.JSONException
 import org.springframework.boot.configurationprocessor.json.JSONObject
+import java.io.InputStream
 import java.time.LocalDateTime
 import java.util.*
 
@@ -16,6 +26,8 @@ object JSONUtil {
             getJsValue(obj)
         }
     }
+
+
 
     fun getJsMap(map: Map<*, *>): Any {
         val buf = StringBuffer()
@@ -64,9 +76,9 @@ object JSONUtil {
 
     fun getJsValue(objValue: Any?): Any {
         val buf = StringBuffer()
-        buf.append("'")
+        buf.append("\"")
         buf.append(getJsString(objValue))
-        buf.append("'")
+        buf.append("\"")
         return buf
     }
 
@@ -203,9 +215,4 @@ object JSONUtil {
     fun generateRandomBasedUUID(): String {
         return UUID.randomUUID().toString()
     }
-
-
-
-
-
 }
