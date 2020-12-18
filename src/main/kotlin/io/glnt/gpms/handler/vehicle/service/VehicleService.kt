@@ -134,7 +134,7 @@ class VehicleService {
             // 전광판 메세지 구성은 아래와 같이 진행한다.
             // 'pcc' 인 경우 MEMBER -> MEMBER 로 아닌 경우 MEMBER -> NONMEMBER 로 정의
             if (gate!!.takeAction != "PCC") {
-                var displayMessage = when (parkingtype) {
+                val displayMessage = when (parkingtype) {
                     "일반차량" -> makeParkInPhrase("NONMEMBER", vehicleNo, vehicleNo)
                     "미인식차량" -> makeParkInPhrase("FAILNUMBER", vehicleNo, vehicleNo)
                     "정기차량" -> {

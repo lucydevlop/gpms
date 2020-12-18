@@ -145,4 +145,11 @@ class TmapSendService {
 
         }
     }
+
+    fun sendProfileSetupResponse(data: Any, requestId: String) {
+        restAPIManager.sendPostRequest(
+            url,
+            setTmapRequest("profileSetupResponse", requestId, data)
+        )
+    }
 }

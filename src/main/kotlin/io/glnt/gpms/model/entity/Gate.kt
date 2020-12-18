@@ -32,7 +32,10 @@ data class Gate(
     var takeAction: String? = "GATE",
 
     @Column(name = "seasonTicketTakeAction", nullable = false)
-    var seasonTicketTakeAction: String? = "OFF",
+    var seasonTicketTakeAction: String? = "GATE",
+
+    @Column(name = "whiteListTakeAction", nullable = false)
+    var whiteListTakeAction: String? = "OFF",
 
     @Column(name = "flag_use", nullable = false)
     var flagUse: Int? = 1,
