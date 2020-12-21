@@ -45,13 +45,19 @@ data class reqFacilitiesRegist(
     var fileUploadId: String
 )
 
-data class reqProfileSetupResponse(
+//data class reqProfileSetupResponse(
+//    var result: String,
+//    var errorMsg: String? = null
+//)
+
+data class reqSendResultResponse(
     var result: String,
     var errorMsg: String? = null
 )
 
 data class reqSendVehicleListSearch(
-    var vehicleNumber: String
+    var vehicleNumber: String,
+    var facilityId: String?
 )
 
 

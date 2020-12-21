@@ -16,7 +16,7 @@ import javax.persistence.MappedSuperclass
 open class Auditable {
     @CreatedBy
     @Column(name = "create_by" ,nullable = false, updatable = false)
-    var createdBy: String? = null
+    var createdBy: String? = "gpms"
 
     @CreatedDate
     @Column(name = "create_date" ,nullable = false, updatable = false)
@@ -25,7 +25,7 @@ open class Auditable {
 
     @LastModifiedBy
     @Column(name = "update_by", nullable = false)
-    var updateBy: String? = null
+    var updateBy: String? = "gpms" //null
 
     @LastModifiedDate
     @Column(name = "update_date", nullable = false)

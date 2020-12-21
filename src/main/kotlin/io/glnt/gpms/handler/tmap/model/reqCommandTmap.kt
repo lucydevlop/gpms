@@ -58,3 +58,11 @@ data class vehicleSearchList(
     var inVehicleImageId: String? = null,
     var parkingLocation: String? = null
 )
+
+data class reqInOutVehicleInformationSetup(
+    var sessionId: String,
+    var vehicleNumber: String,
+    var inVehicleDateTime: String,
+    var setupOption: SetupOption,
+    var informationType: String
+)

@@ -11,6 +11,7 @@ import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.tmap.model.reqSendVehicleListSearch
 import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.handler.vehicle.service.VehicleService
+import io.glnt.gpms.model.entity.VehicleListSearch
 import io.glnt.gpms.model.entity.DisplayColor
 import io.glnt.gpms.model.entity.DisplayMessage
 import io.glnt.gpms.model.enums.DisplayMessageClass
@@ -18,6 +19,7 @@ import io.glnt.gpms.model.enums.DisplayPosition
 import io.glnt.gpms.model.enums.DisplayType
 import io.glnt.gpms.model.repository.DisplayColorRepository
 import io.glnt.gpms.model.repository.DisplayMessageRepository
+import io.glnt.gpms.model.repository.VehicleListSearchRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -55,6 +57,9 @@ class FacilityService {
 
     @Autowired
     private lateinit var parkinglotService: ParkinglotService
+
+    @Autowired
+    private lateinit var vehicleListSearchRepository: VehicleListSearchRepository
 
     fun openGate(facilityId: String) {
         logger.debug { "openGate request ${facilityId}" }
@@ -178,11 +183,11 @@ class FacilityService {
 
     @Throws(CustomException::class)
     fun searchCarNumber(request: reqSendVehicleListSearch): CommonResult? {
-        if (tmapSend.equals("on")) {
-            tmapSendService.sendVehicleListSearch(
-                request,
-                DataCheckUtil.generateRequestId(parkinglotService.parkSiteId())
-            )
+        if (tmapSend == "on") {
+            // table db insert
+            val requestId = DataCheckUtil.generateRequestId(parkinglotService.parkSiteId())
+            vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = request.facilityId))
+            tmapSendService.sendVehicleListSearch(request, requestId)
         } else {
             return vehicleService.searchParkInByVehicleNo(request.vehicleNumber)
         }
