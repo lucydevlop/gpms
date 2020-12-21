@@ -52,8 +52,8 @@ object DateUtil {
         return sdf.format(Date())
     }
 
-    fun stringToLocalDateTime(dateString: String="") : LocalDateTime {
-        return LocalDateTime.parse(dateString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+    fun stringToLocalDateTime(dateString: String="", pettern: String="yyyyMMddHHmmss") : LocalDateTime {
+        return LocalDateTime.parse(dateString, DateTimeFormatter.ofPattern(pettern))
     }
 
     fun stringToLocalDate(dateString: String="") : LocalDate {

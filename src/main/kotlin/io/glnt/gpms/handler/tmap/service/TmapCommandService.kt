@@ -10,14 +10,11 @@ import io.glnt.gpms.handler.facility.model.reqParkingSiteInfo
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
-import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
-import io.glnt.gpms.handler.tmap.model.reqCommandFacilities
-import io.glnt.gpms.handler.tmap.model.reqCommandProfileSetup
-import io.glnt.gpms.handler.tmap.model.reqProfileSetupResponse
+import io.glnt.gpms.handler.product.model.reqCreateProduct
+import io.glnt.gpms.handler.product.service.ProductService
+import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.model.entity.TmapCommand
-import io.glnt.gpms.model.enums.DisplayMessageClass
-import io.glnt.gpms.model.enums.DisplayMessageType
-import io.glnt.gpms.model.enums.DisplayType
+import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.TmapCommandRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,6 +38,9 @@ class TmapCommandService {
 
     @Autowired
     private lateinit var tmapSendService: TmapSendService
+
+    @Autowired
+    private lateinit var productService: ProductService
 
     fun getRequestCommand(request: reqApiTmapCommon) {
         request.contents = JSONUtil.getJsObject(request.contents)
@@ -71,6 +71,9 @@ class TmapCommandService {
             }
             "facilitiesCommand" -> {
                 commandFacilities(request)
+            }
+            "gateTakeActionSetup" -> {
+                commandGateTakeActionSetup(request)
             }
             else -> {}
         }
@@ -169,6 +172,43 @@ class TmapCommandService {
             }
         }
         tmapSendService.sendProfileSetupResponse(reqProfileSetupResponse(result = "SUCCESS"), request.requestId!!)
+    }
+
+    fun commandGateTakeActionSetup(request: reqApiTmapCommon) {
+        val contents = readValue(request.contents.toString(), reqCommandGateTakeActionSetup::class.java)
+
+        contents.gateList.forEach { gate ->
+            when(gate.setupOption) {
+                SetupOption.ADD -> {
+                    gate.vehicleList.forEach { vehicle ->
+                        if (!productService.createProduct(
+                            reqCreateProduct(
+                                vehicleNo = vehicle.vehicleNumber, userId = vehicle.messageType,
+                                startDate = DateUtil.stringToLocalDateTime(vehicle.startDateTime),
+                                endDate = DateUtil.stringToLocalDateTime(vehicle.endDateTime),
+                                gateId = mutableSetOf(parkinglotService.getGateInfoByUdpGateId(gate.gateId)!!.gateId),
+                                ticktType = when(gate.takeActionType) {
+                                    "whiteList" -> TicketType.WHITELIST
+                                    "seasonTicket" -> TicketType.SEASONTICKET
+                                    else -> TicketType.ETC
+
+                                }
+                            )
+                        )) {
+                            logger.error{ "createProduct is failed"}
+                        }
+                    }
+                }
+                SetupOption.UPDATE -> {
+                }
+                else -> {
+
+                }
+            }
+
+        }
+
+
     }
 
     fun <T : Any> readValue(any: String, valueType: Class<T>): T {

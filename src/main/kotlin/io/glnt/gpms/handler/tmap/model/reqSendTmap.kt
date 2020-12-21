@@ -50,6 +50,10 @@ data class reqProfileSetupResponse(
     var errorMsg: String? = null
 )
 
+data class reqSendVehicleListSearch(
+    var vehicleNumber: String
+)
+
 
 data class parkinglotMap(
     var floor: ArrayList<floorMap> = ArrayList(),

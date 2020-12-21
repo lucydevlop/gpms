@@ -13,6 +13,7 @@ data class reqAddParkIn(
     /* 차량이미지 File (base64) */
     var base64Str: String? = null,
     var originFileName: String? = null,
+    var uuid: String,
 
 
     /* 연계 필요한 항목들 정의 */

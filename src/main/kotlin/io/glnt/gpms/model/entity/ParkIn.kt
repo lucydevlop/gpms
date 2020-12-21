@@ -86,8 +86,10 @@ data class ParkIn(
     var fileuploadid: String? = null,
 
     @Column(name = "invehicleRequestId", nullable = true)
-    var invehicleRequestId: String? = null
+    var invehicleRequestId: String? = null,
 
+    @Column(name = "uuid", nullable = true)
+    var uuid: String? = null
 ): Auditable(), Serializable {
 
 }

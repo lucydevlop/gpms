@@ -22,7 +22,7 @@ data class Gate(
     var gateName: String? = "GATE",
 
     @Column(name = "gate_id", nullable = false)
-    var gateId: String? = "GATE",
+    var gateId: String = "GATE",
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gate_type", nullable = false)

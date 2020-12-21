@@ -152,4 +152,11 @@ class TmapSendService {
             setTmapRequest("profileSetupResponse", requestId, data)
         )
     }
+
+    fun sendVehicleListSearch(data: Any, requestId: String) {
+        restAPIManager.sendPostRequest(
+            url,
+            setTmapRequest("vehicleListSearch", requestId, data)
+        )
+    }
 }
