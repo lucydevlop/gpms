@@ -9,14 +9,19 @@ import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
+import io.glnt.gpms.handler.tmap.model.reqInOutVehicleInformationSetup
+import io.glnt.gpms.handler.tmap.model.reqSendResultResponse
 import io.glnt.gpms.handler.tmap.model.reqTmapInVehicle
 import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.handler.vehicle.model.reqAddParkIn
 import io.glnt.gpms.model.entity.DisplayMessage
 import io.glnt.gpms.model.entity.ParkIn
+import io.glnt.gpms.model.entity.ParkOut
 import io.glnt.gpms.model.enums.DisplayMessageType
+import io.glnt.gpms.model.enums.SetupOption
 import io.glnt.gpms.model.repository.ParkFacilityRepository
 import io.glnt.gpms.model.repository.ParkInRepository
+import io.glnt.gpms.model.repository.ParkOutRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -24,6 +29,7 @@ import org.springframework.stereotype.Service
 import java.io.File
 import java.lang.RuntimeException
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Service
 class VehicleService {
@@ -52,6 +58,9 @@ class VehicleService {
 
     @Autowired
     private lateinit var parkInRepository: ParkInRepository
+
+    @Autowired
+    private lateinit var parkOutRepository: ParkOutRepository
 
     fun parkIn(request: reqAddParkIn) : CommonResult = with(request){
         logger.debug("parkIn service {}", request)
@@ -102,7 +111,7 @@ class VehicleService {
                 userSn = 0,
                 vehicleNo = vehicleNo,
                 image = "$fileFullPath/$fileName",
-                flag = 1,
+                flag = 0,
                 validate = validDate,
                 resultcode = resultcode.toInt(),
                 requestid = requestId,
@@ -245,6 +254,84 @@ class VehicleService {
             if (it.isNullOrEmpty()) return CommonResult.notfound("$vehicleNo park in data not found")
             return CommonResult.data(it)
         }
-        return CommonResult.notfound("$vehicleNo park in data not found")
+        return CommonResult.notfound("$vehicleNo park-in data not found")
+    }
+
+    fun modifyInOutVehicleByTmap(request: reqInOutVehicleInformationSetup, requestId: String) {
+        logger.info{ "modifyInOutVehicle $request" }
+        try {
+            val inVehicle = parkInRepository.findByUdpssid(request.sessionId)
+            when(request.setupOption) {
+                SetupOption.ADD -> {
+                    if (request.informationType.equals("inVehicle")) {
+                        if (inVehicle != null) {
+                            inVehicle.parkcartype = "일반차량"
+                            inVehicle.vehicleNo = request.vehicleNumber
+                            inVehicle.inDate = DateUtil.stringToLocalDateTime(request.inVehicleDateTime)
+                            inVehicle.requestid = requestId
+                            inVehicle.udpssid = request.sessionId
+                            parkInRepository.save(inVehicle)
+                        } else {
+                            parkInRepository.save(ParkIn(
+                                sn = null, parkcartype = "일반차량",
+                                vehicleNo = request.vehicleNumber,
+                                gateId = "GATE001",
+                                requestid = requestId,
+                                outSn = -100,
+                                udpssid = request.sessionId,
+                                inDate = DateUtil.stringToLocalDateTime(request.inVehicleDateTime)))
+                        }
+                    } else {
+                        // out
+                        if (inVehicle != null) {
+                            val outDate = parkOutRepository.findBySn(inVehicle.outSn!!)?.let { outVehicle ->
+                                outVehicle.parkcartype = "일반차량"
+                                outVehicle.vehicleNo = request.vehicleNumber
+                                outVehicle.requestid = requestId
+                                outVehicle.outDate = LocalDateTime.now()
+                                outVehicle.parktime = DateUtil.diffMins(DateUtil.stringToLocalDateTime(request.inVehicleDateTime), LocalDateTime.now())
+                                parkOutRepository.save(outVehicle)
+                            } ?: run {
+                                parkOutRepository.save(ParkOut(
+                                    sn = null, parkcartype = "일반차량",
+                                    vehicleNo = request.vehicleNumber,
+                                    gateId = "GATE001",
+                                    requestid = requestId, outVehicle = 1,
+                                    outDate = LocalDateTime.now(),
+                                    parktime = DateUtil.diffMins(DateUtil.stringToLocalDateTime(request.inVehicleDateTime), LocalDateTime.now())
+                                ))
+                            }
+                            inVehicle.outSn = outDate.sn
+                            inVehicle.udpssid = request.sessionId
+                            parkInRepository.save(inVehicle)
+                        }
+                    }
+                }
+                SetupOption.UPDATE -> {
+                    if (inVehicle != null) {
+                        inVehicle.vehicleNo = request.vehicleNumber
+                        inVehicle.inDate = DateUtil.stringToLocalDateTime(request.inVehicleDateTime)
+                        inVehicle.requestid = requestId
+                        inVehicle.udpssid = request.sessionId
+                        parkInRepository.save(inVehicle)
+                    }
+                }
+                SetupOption.DELETE -> {
+                    if (inVehicle != null) {
+                        inVehicle.delYn = "Y"
+                        inVehicle.requestid = requestId
+                        inVehicle.udpssid = request.sessionId
+                        parkInRepository.save(inVehicle)
+                    }
+                }
+                else -> {
+                    tmapSendService.sendInOutVehicleInformationSetupResponse(reqSendResultResponse(result = "FAIL"), DataCheckUtil.generateRequestId(parkinglotService.parkSiteId()))
+                }
+            }
+        }catch (e: RuntimeException) {
+            logger.error { "modifyInOutVehicleByTmap failed ${e.message}" }
+            tmapSendService.sendInOutVehicleInformationSetupResponse(reqSendResultResponse(result = "FAIL"), DataCheckUtil.generateRequestId(parkinglotService.parkSiteId()))
+        }
+        tmapSendService.sendInOutVehicleInformationSetupResponse(reqSendResultResponse(result = "SUCCESS"), DataCheckUtil.generateRequestId(parkinglotService.parkSiteId()))
     }
 }

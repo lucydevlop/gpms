@@ -159,4 +159,18 @@ class TmapSendService {
             setTmapRequest("vehicleListSearch", requestId, data)
         )
     }
+
+    fun sendGateTakeActionSetupResponse(data: Any, requestId: String) {
+        restAPIManager.sendPostRequest(
+            url,
+            setTmapRequest("gateTakeActionSetupResponse", requestId, data)
+        )
+    }
+
+    fun sendInOutVehicleInformationSetupResponse(data: Any, requestId: String) {
+        restAPIManager.sendPostRequest(
+            url,
+            setTmapRequest("inOutVehicleInformationSetupResponse", requestId, data)
+        )
+    }
 }

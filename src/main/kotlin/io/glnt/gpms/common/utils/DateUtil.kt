@@ -80,4 +80,8 @@ object DateUtil {
     fun diffDays(date1: LocalDateTime, date2: LocalDateTime) : Int {
         return ChronoUnit.DAYS.between(date1, date2).toInt()
     }
+
+    fun diffMins(date1: LocalDateTime, date2: LocalDateTime) : Int {
+        return ChronoUnit.MINUTES.between(date1, date2).toInt()
+    }
 }

@@ -13,12 +13,14 @@ import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.model.reqCreateProduct
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.tmap.model.*
+import io.glnt.gpms.handler.vehicle.service.VehicleService
 import io.glnt.gpms.model.entity.TmapCommand
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.TmapCommandRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.lang.RuntimeException
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -41,6 +43,9 @@ class TmapCommandService {
 
     @Autowired
     private lateinit var productService: ProductService
+
+    @Autowired
+    private lateinit var vehicleService: VehicleService
 
     fun getRequestCommand(request: reqApiTmapCommon) {
         request.contents = JSONUtil.getJsObject(request.contents)
@@ -74,6 +79,12 @@ class TmapCommandService {
             }
             "gateTakeActionSetup" -> {
                 commandGateTakeActionSetup(request)
+            }
+            "vehicleListSearchResponse" -> {
+                commandVehicleListSearch(request)
+            }
+            "inOutVehicleInformationSetup" -> {
+                commandInOutVehicleInformationSetup(request)
             }
             else -> {}
         }
@@ -130,7 +141,7 @@ class TmapCommandService {
         contents.facilitiesStatusNotiCycle?.let {  parkinglotService.parkSite.facilitiesStatusNotiCycle = contents.facilitiesStatusNotiCycle!!.toInt() }
         contents.parkingSpotStatusnotiCycle?.let {  parkinglotService.parkSite.parkingSpotStatusNotiCycle = contents.parkingSpotStatusnotiCycle!!.toInt() }
         if (!parkinglotService.saveParkSiteInfo(parkinglotService.parkSite)) {
-            tmapSendService.sendProfileSetupResponse(reqProfileSetupResponse(result = "FAIL"), request.requestId!!)
+            tmapSendService.sendProfileSetupResponse(reqSendResultResponse(result = "FAIL"), request.requestId!!)
         }
 
         // gate update
@@ -141,7 +152,7 @@ class TmapCommandService {
                 it.whiteListTakeAction = gate.whiteListTakeAction
                 if (!parkinglotService.saveGate(it)) {
                     tmapSendService.sendProfileSetupResponse(
-                        reqProfileSetupResponse(result = "FAIL"),
+                        reqSendResultResponse(result = "FAIL"),
                         request.requestId!!
                     )
                 }
@@ -168,48 +179,71 @@ class TmapCommandService {
                 messages.add(new)
             }
             if (facilityService.setDisplayMessage(messages).code == ResultCode.VALIDATE_FAILED.getCode()){
-                tmapSendService.sendProfileSetupResponse(reqProfileSetupResponse(result = "FAIL"), request.requestId!!)
+                tmapSendService.sendProfileSetupResponse(reqSendResultResponse(result = "FAIL"), request.requestId!!)
             }
         }
-        tmapSendService.sendProfileSetupResponse(reqProfileSetupResponse(result = "SUCCESS"), request.requestId!!)
+        tmapSendService.sendProfileSetupResponse(reqSendResultResponse(result = "SUCCESS"), request.requestId!!)
     }
 
     fun commandGateTakeActionSetup(request: reqApiTmapCommon) {
         val contents = readValue(request.contents.toString(), reqCommandGateTakeActionSetup::class.java)
 
-        contents.gateList.forEach { gate ->
-            when(gate.setupOption) {
-                SetupOption.ADD -> {
-                    gate.vehicleList.forEach { vehicle ->
-                        if (!productService.createProduct(
-                            reqCreateProduct(
-                                vehicleNo = vehicle.vehicleNumber, userId = vehicle.messageType,
-                                startDate = DateUtil.stringToLocalDateTime(vehicle.startDateTime),
-                                endDate = DateUtil.stringToLocalDateTime(vehicle.endDateTime),
-                                gateId = mutableSetOf(parkinglotService.getGateInfoByUdpGateId(gate.gateId)!!.gateId),
-                                ticktType = when(gate.takeActionType) {
-                                    "whiteList" -> TicketType.WHITELIST
-                                    "seasonTicket" -> TicketType.SEASONTICKET
-                                    else -> TicketType.ETC
-
-                                }
-                            )
-                        )) {
-                            logger.error{ "createProduct is failed"}
+        try {
+            contents.gateList.forEach { gate ->
+                val ticketType = when (gate.takeActionType) {
+                    "whiteList" -> TicketType.WHITELIST
+                    "seasonTicket" -> TicketType.SEASONTICKET
+                    else -> TicketType.ETC
+                }
+                when (gate.setupOption) {
+                    SetupOption.ADD -> {
+                        gate.vehicleList.forEach { vehicle ->
+                            if (!productService.createProduct(
+                                    reqCreateProduct(
+                                        vehicleNo = vehicle.vehicleNumber, userId = vehicle.messageType,
+                                        startDate = DateUtil.stringToLocalDateTime(vehicle.startDateTime),
+                                        endDate = DateUtil.stringToLocalDateTime(vehicle.endDateTime),
+                                        gateId = mutableSetOf(parkinglotService.getGateInfoByUdpGateId(gate.gateId)!!.gateId),
+                                        ticktType = ticketType
+                                    )
+                                )
+                            ) {
+                                logger.error { "createProduct is failed" }
+                            }
                         }
                     }
-                }
-                SetupOption.UPDATE -> {
-                }
-                else -> {
+                    SetupOption.UPDATE -> {
+                    }
+                    else -> {
 
+                    }
                 }
+
             }
+        } catch (e: RuntimeException) {
+            logger.error { "createProduct is success" }
+            tmapSendService.sendGateTakeActionSetupResponse(
+                reqSendResultResponse(result = "SUCCESS"),
+                request.requestId!!
+            )
+        }
+    }
 
+    fun commandVehicleListSearch(request: reqApiTmapCommon) {
+        val contents = readValue(request.contents.toString(), reqCommandVehicleListSearchResponse::class.java)
+
+        if (contents.vehicleList.isNullOrEmpty()) {
+            //
+            // todo 출차 전광판에 에러 표기
         }
 
-
     }
+
+    fun commandInOutVehicleInformationSetup(request: reqApiTmapCommon) {
+        val content = readValue(request.contents.toString(), reqInOutVehicleInformationSetup::class.java)
+        vehicleService.modifyInOutVehicleByTmap(content, request.requestId!!)
+    }
+
 
     fun <T : Any> readValue(any: String, valueType: Class<T>): T {
         val factory = JsonFactory()

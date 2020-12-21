@@ -1,6 +1,7 @@
 package io.glnt.gpms.handler.product.service
 
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.product.model.reqCreateProduct
 import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.model.repository.ProductTicketRepository
@@ -29,6 +30,7 @@ class ProductService {
         return -1
     }
 
+    @Throws(CustomException::class)
     fun createProduct(request: reqCreateProduct): Boolean {
         logger.info { "createProduct request $request" }
         try {

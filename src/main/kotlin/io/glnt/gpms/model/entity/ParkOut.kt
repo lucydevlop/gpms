@@ -2,7 +2,7 @@ package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.model.entity.Auditable
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
 import java.time.LocalDate
@@ -10,10 +10,10 @@ import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
-@Table(schema = "glnt_parking", name="tb_parkin")
+@Table(schema = "glnt_parking", name="tb_parkout")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class ParkIn(
+data class ParkOut(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "sn", unique = true, nullable = false)
@@ -24,9 +24,6 @@ data class ParkIn(
 
     @Column(name = "groupnum", nullable = true)
     var groupnum: Int? = 1,
-
-    @Column(name = "gate_id")
-    var gateId: String? = null,
 
     @Column(name = "parkcartype", nullable = true)
     var parkcartype: String? = "일반차량",
@@ -39,10 +36,6 @@ data class ParkIn(
 
     @Column(name = "devicenum", nullable = true)
     var devicenum: Int? = null,
-
-    @Column(name = "in_date", nullable = true)
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    var inDate: LocalDateTime? = null,
 
     @Column(name = "date", nullable = true)
     @DateTimeFormat(pattern="yyyy-MM-dd")
@@ -60,24 +53,27 @@ data class ParkIn(
     @Column(name = "flag", nullable = true)
     var flag: Int? = 0,
 
+    @Column(name = "parktime", nullable = true)
+    var parktime: Int? = 0,
+
+    @Column(name = "parkfee", nullable = true)
+    var parkfee: Int? = 0,
+
+    @Column(name = "payfee", nullable = true)
+    var payfee: Int? = 0,
+
+    @Column(name = "discountfee", nullable = true)
+    var discountfee: Int? = 0,
+
+    @Column(name = "discountType", nullable = true)
+    var discountType: Int? = 0,
+
     @Column(name = "validate", nullable = true)
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var validate: LocalDateTime? = null,
 
-    @Column(name = "out_sn", nullable = true)
-    var outSn: Long? = 0,
-
-    @Column(name = "back_sn", nullable = true)
-    var backSn: Int? = 0,
-
-    @Column(name = "add_sn", nullable = true)
-    var addSn: Int? = 0,
-
     @Column(name = "resultcode", nullable = true)
-    var resultcode: Int? = null,
-
-    @Column(name = "udpssid", nullable = true)
-    var udpssid: String? = null,
+    var resultcode: Int? = 0,
 
     @Column(name = "requestid", nullable = true)
     var requestid: String? = null,
@@ -85,11 +81,33 @@ data class ParkIn(
     @Column(name = "fileuploadid", nullable = true)
     var fileuploadid: String? = null,
 
-    @Column(name = "invehicleRequestId", nullable = true)
-    var invehicleRequestId: String? = null,
+    @Column(name = "cardtransactionid", nullable = true)
+    var cardtransactionid: String? = null,
+
+    @Column(name = "chargingId", nullable = true)
+    var chargingId: String? = null,
+
+    @Column(name = "outVehicle", nullable = true)
+    var outVehicle: Int? = 0,
+
+    @Column(name = "approveDatetime", nullable = true)
+    var approveDatetime: String? = null,
+
+    @Column(name = "paystation", nullable = true)
+    var paystation: String? = null,
+
+    @Column(name = "cardNumber", nullable = true)
+    var cardNumber: String? = null,
 
     @Column(name = "uuid", nullable = true)
     var uuid: String? = null,
+
+    @Column(name = "gate_id")
+    var gateId: String? = null,
+
+    @Column(name = "out_date", nullable = true)
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var outDate: LocalDateTime? = null,
 
     @Column(name = "del_yn", nullable = true)
     var delYn: String? = "N"
