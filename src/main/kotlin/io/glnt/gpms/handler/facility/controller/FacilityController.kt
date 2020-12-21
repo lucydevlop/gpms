@@ -6,11 +6,13 @@ import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.handler.facility.model.reqSetDisplayColor
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
+import io.glnt.gpms.handler.tmap.model.reqSendVehicleListSearch
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import javax.websocket.server.PathParam
 
 @RestController
 @RequestMapping(
@@ -40,6 +42,18 @@ class FacilityController {
         val result = facilityService.setDisplayMessage(request)
 
         return when(result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    @RequestMapping(value = ["/paystation/search"])
+    fun searchCarNumber(@RequestBody request: reqSendVehicleListSearch) : ResponseEntity<CommonResult> {
+        logger.debug("parkinglot facility paystation search param : $request")
+
+        val result = facilityService.searchCarNumber(request)
+        return when(result!!.code) {
             ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
             ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
             else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)

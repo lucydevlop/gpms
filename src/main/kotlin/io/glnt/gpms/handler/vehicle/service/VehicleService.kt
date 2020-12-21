@@ -57,7 +57,7 @@ class VehicleService {
         logger.debug("parkIn service {}", request)
         try {
             // todo gate up(option check)
-            var gate = parkinglotService.getGateInfoByFacilityId(facilitiesId)
+            val gate = parkinglotService.getGateInfoByFacilityId(facilitiesId)
 
             // image 파일 저장
             if (base64Str != null) {
@@ -109,7 +109,8 @@ class VehicleService {
                 fileuploadid = fileUploadId,
                 hour = DateUtil.nowTimeDetail.substring(0,2),
                 min = DateUtil.nowTimeDetail.substring(3,5),
-                inDate = inDate
+                inDate = inDate,
+                uuid = uuid
             )
             parkInRepository.save(newData)
 
@@ -236,5 +237,14 @@ class VehicleService {
             else -> facilityService.displayMessagesOut.filter { it.messageType == type }
                 .sortedBy { it.order }
         }
+    }
+
+    fun searchParkInByVehicleNo(vehicleNo: String) : CommonResult {
+        logger.info("VehicleService searchParkInByVehicleNo search param : $vehicleNo")
+        parkInRepository.findByVehicleNoEndsWithAndOutSn(vehicleNo, 0)?.let {
+            if (it.isNullOrEmpty()) return CommonResult.notfound("$vehicleNo park in data not found")
+            return CommonResult.data(it)
+        }
+        return CommonResult.notfound("$vehicleNo park in data not found")
     }
 }

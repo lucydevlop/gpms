@@ -45,6 +45,20 @@ enum class DisplayMessageCode(val code: String, val desc: String) {
     REMAINDAYS("REMAINDAYS", "정기권남은일자"),
     FAIL("FAIL", "실패"),
 }
+
+enum class SetupOption {
+    ADD, UPDATE, DELETE, OVERWRITE
+}
+
+enum class TicketType(val code: String, val desc: String) {
+    SEASONTICKET("SEASONTICKET", "정기권"),
+    WHITELIST("WHITELIST", "화이트리스트"),
+    VISITTICKET("VISITTICKET", "방문권"),
+    TIMETICKET("TIMETICKET", "시간권"),
+    DAYTICKET("DAYTICKET", "일일권"),
+    ETC("ETC", "기타"),
+}
+
 //enum class parkCarType {
 //    "일반차량", "정기권차량", "미인식차량"
 //}

@@ -1,10 +1,16 @@
 package io.glnt.gpms.handler.facility.service
 
 import io.glnt.gpms.common.api.CommonResult
+import io.glnt.gpms.common.utils.DataCheckUtil
+import io.glnt.gpms.exception.CustomException
 
 import io.glnt.gpms.handler.facility.model.reqDisplayMessage
 import io.glnt.gpms.handler.facility.model.reqSetDisplayColor
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
+import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.tmap.model.reqSendVehicleListSearch
+import io.glnt.gpms.handler.tmap.service.TmapSendService
+import io.glnt.gpms.handler.vehicle.service.VehicleService
 import io.glnt.gpms.model.entity.DisplayColor
 import io.glnt.gpms.model.entity.DisplayMessage
 import io.glnt.gpms.model.enums.DisplayMessageClass
@@ -32,11 +38,23 @@ class FacilityService {
     @Value("\${gateway.url}")
     lateinit var url: String
 
+    @Value("\${tmap.send}")
+    lateinit var tmapSend: String
+
     @Autowired
     private lateinit var displayColorRepository: DisplayColorRepository
 
     @Autowired
     private lateinit var displayMessageRepository: DisplayMessageRepository
+
+    @Autowired
+    private lateinit var tmapSendService: TmapSendService
+
+    @Autowired
+    private lateinit var vehicleService: VehicleService
+
+    @Autowired
+    private lateinit var parkinglotService: ParkinglotService
 
     fun openGate(facilityId: String) {
         logger.debug { "openGate request ${facilityId}" }
@@ -158,4 +176,16 @@ class FacilityService {
         //todo 정산기 api 연계 개발
     }
 
+    @Throws(CustomException::class)
+    fun searchCarNumber(request: reqSendVehicleListSearch): CommonResult? {
+        if (tmapSend.equals("on")) {
+            tmapSendService.sendVehicleListSearch(
+                request,
+                DataCheckUtil.generateRequestId(parkinglotService.parkSiteId())
+            )
+        } else {
+            return vehicleService.searchParkInByVehicleNo(request.vehicleNumber)
+        }
+        return null
+    }
 }
