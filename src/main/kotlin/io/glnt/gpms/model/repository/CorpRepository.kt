@@ -6,5 +6,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface CorpRepository: JpaRepository<Corp, Long> {
+    fun findBySn(sn: Long): Corp?
     fun findByCorpId(corpId: String) : Corp?
+    fun findByCorpNameAndCeoName(corpName: String, ceoName: String) : Corp?
 }

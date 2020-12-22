@@ -7,6 +7,11 @@ import io.glnt.gpms.model.enums.DisplayType
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 
+data class reqSendDisplay(
+    var facilityId: String,
+    var messages: ArrayList<reqDisplayMessage>
+)
+
 data class reqDisplayMessage(
     var color: String,
     var text: String,
