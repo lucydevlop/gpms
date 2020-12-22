@@ -4,12 +4,17 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.auth.model.reqLogin
 import io.glnt.gpms.handler.auth.model.reqRegister
+import io.glnt.gpms.handler.auth.model.reqUserRegister
 import io.glnt.gpms.handler.auth.model.resLogin
+import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.model.entity.Corp
 import io.glnt.gpms.model.entity.SiteUser
 import io.glnt.gpms.model.enums.UserRole
+import io.glnt.gpms.model.repository.CorpRepository
 import io.glnt.gpms.model.repository.UserRepository
 import io.glnt.gpms.security.jwt.JwtTokenProvider
 import mu.KLogging
+import okhttp3.internal.format
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -18,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 
 @Service
 class AuthService {
@@ -35,10 +41,14 @@ class AuthService {
     @Autowired
     private lateinit var userRepository: UserRepository
 
+    @Autowired
+    private lateinit var corpRepository: CorpRepository
+
+    @Autowired
+    private lateinit var parkinglotService: ParkinglotService
+
     fun adminLogin(request: reqLogin) : CommonResult = with(request) {
         try {
-//			val token = UsernamePasswordAuthenticationToken(request.email, request.password)
-//			authenticationManager.authenticate(token)
             val authentication = authenticationManager.authenticate(
                 UsernamePasswordAuthenticationToken(id, password)
             )
@@ -47,12 +57,15 @@ class AuthService {
 
             val admin = searchUserId(id) ?: return CommonResult.notfound("User not found")
 
-            if (!(admin.role == UserRole.ADMIN || admin.role == UserRole.SUPER_ADMIN)) {
+            if (!isAdmin(admin.role!!)) {
                 return CommonResult.unauthorized()
             }
 
+            // login_date update
+            admin.loginDate = LocalDateTime.now()
+            userRepository.save(admin)
+
             return CommonResult.data(resLogin(token = tokenProvider.createToken(authentication), userInfo = admin))
-//			return LoginResponse(tokenProvider.createToken(request.email, role), userinfo)
         } catch (exception: AuthenticationException) {
             logger.error{ "Invalid username or password id ${id}"}
             return CommonResult.unprocessable()
@@ -85,4 +98,68 @@ class AuthService {
         }
     }
 
+    fun userLogin(request: reqLogin) : CommonResult = with(request) {
+        try {
+            val authentication = authenticationManager.authenticate(
+                UsernamePasswordAuthenticationToken(id, password)
+            )
+
+            SecurityContextHolder.getContext().authentication = authentication
+
+            val user = searchUserId(id) ?: return CommonResult.notfound("User not found")
+
+            if (isAdmin(user.role!!) || (user.corpSn == null || user.corpSn!! < 1)) {
+                return CommonResult.unauthorized()
+            }
+
+            // login_date update
+            user.loginDate = LocalDateTime.now()
+            userRepository.save(user)
+
+            return CommonResult.data(resLogin(token = tokenProvider.createToken(authentication), userInfo = user, corpInfo =  corpRepository.findBySn(user.corpSn!!)))
+        } catch (exception: AuthenticationException) {
+            logger.error{ "Invalid username or password id ${id}"}
+            return CommonResult.unprocessable()
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun userRegister(request: reqUserRegister) : CommonResult = with(request) {
+        try {
+            corpRepository.findByCorpNameAndCeoName(corpName, userName)?.let {
+                logger.error { "${corpName} store is already in use" }
+                return CommonResult.exist(request,"store is already in use")
+            }
+            var corp = corpRepository.save(Corp( 
+                sn = null, corpName = corpName, form = form!!, resident = resident!!,
+                dong = dong, ho = ho, ceoName = userName, tel = userPhone, corpId = null
+            ))
+            corp.corpId = parkinglotService.parkSite.siteid+"_"+ format("%05d", corp.sn!!)
+            corp = corpRepository.save(corp)
+            return CommonResult.data(userRepository.save(
+                SiteUser(
+                    idx = null,
+                    id = corp.corpId!!,
+                    password = passwordEncoder.encode(password),
+                    userName = userName,
+                    userPhone = userPhone,
+                    corpSn = corp.sn,
+                    role = userRole!!)))
+        } catch (e: CustomException) {
+            logger.error { "admin register error $request ${e.message}" }
+            return CommonResult.error("admin register error")
+        }
+    }
+
+    fun isAdmin(role: UserRole) : Boolean {
+        return when(role) {
+            UserRole.SUPER_ADMIN -> true
+            UserRole.ADMIN -> true
+            else -> false
+        }
+    }
+
+//    fun generateUserId(): String {
+//        return parkinglotService.parkSite.siteid+"_"+ format("%04d", SiteUser.idx)
+//    }
 }

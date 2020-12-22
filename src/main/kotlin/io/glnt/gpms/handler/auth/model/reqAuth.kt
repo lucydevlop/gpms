@@ -16,3 +16,15 @@ data class reqRegister(
     var userPhone: String?,
     @Enumerated(EnumType.STRING) var userRole: UserRole?
 )
+
+data class reqUserRegister(
+    var password: String,
+    var userName: String,
+    var userPhone: String?,
+    var corpName: String,
+    var form: Int? = 1,
+    var resident: Int? = 1,
+    var dong: String?,
+    var ho: String?,
+    @Enumerated(EnumType.STRING) var userRole: UserRole?
+)

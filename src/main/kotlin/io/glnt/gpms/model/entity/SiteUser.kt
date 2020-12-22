@@ -50,9 +50,12 @@ data class SiteUser(
     @Column(name = "role", unique = false, nullable = false)
     var role: UserRole? = UserRole.ADMIN,
 
+    @Column(name = "login_date")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var loginDate: LocalDateTime? = null,
+
     @Column(name = "corp_sn")
     var corpSn: Long? = null
 ): Auditable(), Serializable {
 
 }
-
