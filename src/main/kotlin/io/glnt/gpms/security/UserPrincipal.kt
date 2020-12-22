@@ -1,6 +1,7 @@
 package io.glnt.gpms.security
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import io.glnt.gpms.model.entity.SiteUser
 import io.glnt.gpms.model.entity.User
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -13,7 +14,7 @@ class UserPrincipal(
     @JsonIgnore
     val id: String,
 
-    val name: String,
+    val userName: String,
 
     val phone: String,
 
@@ -23,20 +24,20 @@ class UserPrincipal(
     private val authorities: MutableCollection<out GrantedAuthority>
 ) : UserDetails {
 
-    constructor(user: User): this(
-        idx = user.idx,
-        id = user.adminId,
-        name = user.adminName,
-        phone = user.adminPhone,
-        password = user.adminPw,
-        authorities = Collections.singletonList(SimpleGrantedAuthority(user.role.name))
+    constructor(user: SiteUser): this(
+        idx = user.idx!!,
+        id = user.id,
+        userName = user.userName,
+        phone = user.userPhone!!,
+        password = user.password,
+        authorities = Collections.singletonList(SimpleGrantedAuthority(user.role!!.name))
     )
 
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> = authorities
 
     override fun isEnabled(): Boolean = true
 
-    override fun getUsername(): String = username
+    override fun getUsername(): String = userName
 
     override fun getPassword(): String = password
 

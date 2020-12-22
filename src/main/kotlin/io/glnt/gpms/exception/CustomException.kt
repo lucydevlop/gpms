@@ -1,17 +1,18 @@
 package io.glnt.gpms.exception
 
+import io.glnt.gpms.common.api.ResultCode
 import org.springframework.http.HttpStatus
 
 class CustomException(
-    override val message: String,
-    val status: HttpStatus
-) : RuntimeException(message)
+    val msg: String,
+    val code: ResultCode
+) : RuntimeException(msg)
 
 class ResourceNotFoundException (
-    override val message: String
-) : RuntimeException(message)
+    val msg: String
+) : RuntimeException(msg)
 
 class AlreadyExistsException(
-    override val message: String,
+    val msg: String,
     val status: HttpStatus
 ) : Exception()
