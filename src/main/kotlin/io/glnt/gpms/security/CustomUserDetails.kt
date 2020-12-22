@@ -20,8 +20,8 @@ class CustomUserDetails : UserDetailsService {
     override fun loadUserByUsername(username: String): UserDetails {
 
         logger.info{ "loadUserByUsername username: " + username }
-        userRepository.findUsersByAdminId(username)?.let { profile ->
-            logger.info{ "loadUserByUsername find email: " + profile.adminId }
+        userRepository.findUsersById(username)?.let { profile ->
+            logger.info{ "loadUserByUsername find id: " + profile.id }
             return UserPrincipal(profile)
 //            return org.springframework.security.core.userdetails.User
 //                .withUsername(profile.id.toString())

@@ -56,7 +56,7 @@ class CommonResult {
             return CommonResult().also {
                 it.msg = error
                 it.data = data
-                it.code = 409
+                it.code = ResultCode.CONFLICT.getCode()
             }
         }
 
@@ -64,6 +64,20 @@ class CommonResult {
             return CommonResult().also {
                 it.msg = error.message
                 it.code = code
+            }
+        }
+
+        fun unauthorized() : CommonResult {
+            return CommonResult().also {
+                it.msg = "Invalid User login"
+                it.code = ResultCode.UNAUTHORIZED.getCode()
+            }
+        }
+
+        fun unprocessable() : CommonResult {
+            return CommonResult().also {
+                it.msg = "Invalid username or password"
+                it.code = ResultCode.UNPROCESSABLE_ENTITY.getCode()
             }
         }
     }
