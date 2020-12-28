@@ -1,11 +1,11 @@
-package io.glnt.gpms.handler.auth.service
+package io.glnt.gpms.handler.user.service
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.auth.model.reqLogin
-import io.glnt.gpms.handler.auth.model.reqRegister
-import io.glnt.gpms.handler.auth.model.reqUserRegister
-import io.glnt.gpms.handler.auth.model.resLogin
+import io.glnt.gpms.handler.user.model.reqLogin
+import io.glnt.gpms.handler.user.model.reqRegister
+import io.glnt.gpms.handler.user.model.reqUserRegister
+import io.glnt.gpms.handler.user.model.resLogin
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.model.entity.Corp
 import io.glnt.gpms.model.entity.SiteUser
@@ -20,7 +20,6 @@ import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -156,6 +155,16 @@ class AuthService {
             UserRole.SUPER_ADMIN -> true
             UserRole.ADMIN -> true
             else -> false
+        }
+    }
+
+    fun getUser(userId: String): CommonResult {
+        try {
+            val user = searchUserId(userId) ?: return CommonResult.notfound("User not found")
+            return CommonResult.data(resLogin(userInfo = user))
+        } catch (e: RuntimeException) {
+            logger.error{"search user $userId error ${e.message}"}
+            return CommonResult.unprocessable()
         }
     }
 
