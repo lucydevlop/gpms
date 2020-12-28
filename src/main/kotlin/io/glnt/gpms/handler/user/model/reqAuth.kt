@@ -1,4 +1,4 @@
-package io.glnt.gpms.handler.auth.model
+package io.glnt.gpms.handler.user.model
 
 import io.glnt.gpms.model.enums.UserRole
 import javax.persistence.EnumType

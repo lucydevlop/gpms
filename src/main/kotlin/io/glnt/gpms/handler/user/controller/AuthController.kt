@@ -1,14 +1,13 @@
-package io.glnt.gpms.handler.auth.controller
+package io.glnt.gpms.handler.user.controller
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.auth.model.reqLogin
-import io.glnt.gpms.handler.auth.model.reqRegister
-import io.glnt.gpms.handler.auth.model.reqUserRegister
-import io.glnt.gpms.handler.corp.model.reqSearchCorp
-import io.glnt.gpms.handler.auth.service.AuthService
+import io.glnt.gpms.handler.user.model.reqLogin
+import io.glnt.gpms.handler.user.model.reqRegister
+import io.glnt.gpms.handler.user.model.reqUserRegister
+import io.glnt.gpms.handler.user.service.AuthService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus

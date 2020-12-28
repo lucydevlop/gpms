@@ -36,7 +36,7 @@ class JwtTokenProvider {
         val expiredIn = Date(issuedAt.time + expirationTime)
 
         return Jwts.builder()
-            .setSubject(userPrincipal.id.toString())
+            .setSubject(userPrincipal.idx.toString())
             .setIssuedAt(issuedAt)
             .setExpiration(expiredIn)
             .signWith(SignatureAlgorithm.HS512, secretKey)
