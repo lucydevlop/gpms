@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository
 @Repository
 interface UserRepository : JpaRepository<SiteUser, Long> {
     fun findUsersById(id: String) : SiteUser?
+    fun findUserByIdx(idx: Long) : SiteUser?
 }
 
 //@Repository

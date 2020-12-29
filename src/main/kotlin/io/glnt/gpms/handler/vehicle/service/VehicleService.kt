@@ -334,4 +334,10 @@ class VehicleService {
         }
         tmapSendService.sendInOutVehicleInformationSetupResponse(reqSendResultResponse(result = "SUCCESS"), DataCheckUtil.generateRequestId(parkinglotService.parkSiteId()))
     }
+
+    fun parkOut() {
+
+    }
+
+
 }
