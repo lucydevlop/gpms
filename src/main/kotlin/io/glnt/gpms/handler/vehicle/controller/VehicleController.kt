@@ -32,6 +32,16 @@ class VehicleController {
         }
     }
 
+    @RequestMapping(value = ["/parkout"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun parkOut(@RequestBody request: reqAddParkIn) : ResponseEntity<CommonResult> {
+        val result = vehicleService.parkIn(request)
+        return when(result.code){
+            ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        }
+    }
+
 
 
     companion object : KLogging()

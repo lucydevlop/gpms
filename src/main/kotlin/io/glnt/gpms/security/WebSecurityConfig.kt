@@ -7,6 +7,7 @@ import io.glnt.gpms.security.jwt.JwtTokenProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.BeanIds
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
@@ -39,6 +40,7 @@ class WebSecurityConfig : WebSecurityConfigurerAdapter() {
         sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
         authorizeRequests()
+            .antMatchers(HttpMethod.OPTIONS).permitAll()
             .antMatchers("/$API_VERSION/auth/**").permitAll()
             .antMatchers("/$API_VERSION/parkinglot/**").permitAll()
             .antMatchers("/$API_VERSION/corp/**").permitAll()

@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping(path=["/${ApiConfig.API_VERSION}/auth"])
@@ -71,6 +72,21 @@ class AuthController {
     fun userRegister(@RequestBody request: reqUserRegister) : ResponseEntity<CommonResult> {
         logger.debug("generate store Id")
         val result = authService.userRegister(request)
+
+        return when(result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.UNAUTHORIZED.getCode() -> ResponseEntity(result, HttpStatus.UNAUTHORIZED)
+            ResultCode.UNPROCESSABLE_ENTITY.getCode() -> ResponseEntity(result, HttpStatus.UNPROCESSABLE_ENTITY)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+
+        }
+    }
+
+    @RequestMapping(value = ["/tokens"], method = [RequestMethod.GET])
+    @Throws(CustomException::class)
+    fun token(servlet: HttpServletRequest) : ResponseEntity<CommonResult> {
+        logger.debug("get token")
+        val result = authService.getToken(servlet)
 
         return when(result.code) {
             ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)

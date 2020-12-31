@@ -23,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
+import javax.servlet.http.HttpServletRequest
 
 @Service
 class AuthService {
@@ -45,6 +46,9 @@ class AuthService {
 
     @Autowired
     private lateinit var parkinglotService: ParkinglotService
+
+    @Autowired
+    private lateinit var jwtTokenProvider: JwtTokenProvider
 
     fun adminLogin(request: reqLogin) : CommonResult = with(request) {
         try {
@@ -73,6 +77,10 @@ class AuthService {
 
     fun searchUserId(id: String): SiteUser? {
         return userRepository.findUsersById(id)
+    }
+
+    fun searchUserByIdx(idx: Long): SiteUser? {
+        return userRepository.findUserByIdx(idx)
     }
 
     @Throws(CustomException::class)
@@ -164,6 +172,19 @@ class AuthService {
             return CommonResult.data(resLogin(userInfo = user))
         } catch (e: RuntimeException) {
             logger.error{"search user $userId error ${e.message}"}
+            return CommonResult.unprocessable()
+        }
+    }
+
+    fun getToken(servlet: HttpServletRequest) : CommonResult {
+        var idx = 0L
+        try {
+            val token = jwtTokenProvider.resolveTokenOrNull(servlet)
+            idx = jwtTokenProvider.userIdFromJwt(token!!)
+            val user = searchUserByIdx(idx) ?: return CommonResult.notfound("User not found")
+            return CommonResult.data(resLogin(userInfo = user))
+        } catch (e: RuntimeException) {
+            logger.error{"search user $idx error ${e.message}"}
             return CommonResult.unprocessable()
         }
     }
