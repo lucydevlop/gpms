@@ -84,4 +84,12 @@ object DateUtil {
     fun diffMins(date1: LocalDateTime, date2: LocalDateTime) : Int {
         return ChronoUnit.MINUTES.between(date1, date2).toInt()
     }
+
+    fun beginTimeToLocalDateTime(date: String) : LocalDateTime {
+        return LocalDateTime.parse(("$date 00:00:00").toString(), DateTimeFormatter.ofPattern(DATE_TIME_PATTERN))
+    }
+
+    fun lastTimeToLocalDateTime(date: String) : LocalDateTime {
+        return LocalDateTime.parse(("$date 23:59:59").toString(), DateTimeFormatter.ofPattern(DATE_TIME_PATTERN))
+    }
 }

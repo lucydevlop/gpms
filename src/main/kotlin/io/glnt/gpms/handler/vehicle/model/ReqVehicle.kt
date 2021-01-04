@@ -1,13 +1,18 @@
 package io.glnt.gpms.handler.vehicle.model
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import io.glnt.gpms.common.api.PaginationQuery
+import io.glnt.gpms.model.enums.DisplayMessageClass
+import java.time.LocalDate
 import java.time.LocalDateTime
+import javax.persistence.EnumType
+import javax.persistence.Enumerated
 
 data class reqAddParkIn(
     /* 입차 차량 연계 시 필수 param */
     var vehicleNo: String,
     var facilitiesId: String,
-    @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT" )
+    @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd HH:mm:ss")
     var inDate: LocalDateTime,
     var resultcode: String,
     /* 차량이미지 File (base64) */
@@ -25,4 +30,13 @@ data class reqAddParkIn(
     var fileUploadId: String? = null,
     var fileFullPath: String? = null,
     var recognitionResult: String? = null
+)
+
+data class reqSearchParkin(
+    var vehicleNo: String? = null,
+    @Enumerated(EnumType.STRING) var type: DisplayMessageClass,
+    @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd") var fromDate: LocalDate? = null,
+    @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd") var toDate: LocalDate? = null,
+    var pageSize: Long? = 10,
+    var page: Int? = 1
 )
