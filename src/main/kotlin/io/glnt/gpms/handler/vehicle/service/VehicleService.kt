@@ -1,11 +1,11 @@
 package io.glnt.gpms.handler.vehicle.service
 
 import io.glnt.gpms.common.api.CommonResult
+import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.Base64Util
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.facility.model.reqDisplayMessage
-import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
@@ -13,10 +13,13 @@ import io.glnt.gpms.handler.tmap.model.reqInOutVehicleInformationSetup
 import io.glnt.gpms.handler.tmap.model.reqSendResultResponse
 import io.glnt.gpms.handler.tmap.model.reqTmapInVehicle
 import io.glnt.gpms.handler.tmap.service.TmapSendService
+import io.glnt.gpms.handler.vehicle.model.ResParkInList
 import io.glnt.gpms.handler.vehicle.model.reqAddParkIn
+import io.glnt.gpms.handler.vehicle.model.reqSearchParkin
 import io.glnt.gpms.model.entity.DisplayMessage
 import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.entity.ParkOut
+import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayMessageType
 import io.glnt.gpms.model.enums.SetupOption
 import io.glnt.gpms.model.repository.ParkFacilityRepository
@@ -25,11 +28,15 @@ import io.glnt.gpms.model.repository.ParkOutRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.io.File
-import java.lang.RuntimeException
 import java.time.LocalDate
 import java.time.LocalDateTime
+import javax.persistence.criteria.Predicate
 
 @Service
 class VehicleService {
@@ -77,7 +84,10 @@ class VehicleService {
                         mkdirs()
                     }
                 }
-                fileName = parkinglotService.parkSiteId()+"_"+parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid+"_"+ DateUtil.nowTimeDetail.substring(9,12)+vehicleNo+".jpg"
+                fileName = parkinglotService.parkSiteId()+"_"+parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid+"_"+ DateUtil.nowTimeDetail.substring(
+                    9,
+                    12
+                )+vehicleNo+".jpg"
                 fileUploadId = DateUtil.stringToNowDateTimeMS()+"_F"
                 val imageByteArray = Base64Util.decodeAsBytes(base64Str!!)
                 if (imageByteArray != null) {
@@ -96,10 +106,21 @@ class VehicleService {
                     validDate = it.validDate
                 }
                 recognitionResult = "RECOGNITION"
+
+                // todo 기 입차 여부 확인 및 update
+                val parkins = searchParkInByVehicleNo(vehicleNo)
+                if (parkins.code == ResultCode.SUCCESS) {
+                    val lists = parkins.data as? List<*>?
+                    lists!!.checkItemsAre<ParkIn>()?.forEach {
+                        it.outSn = -1
+                        parkInRepository.save(it)
+                    }
+                }
             } else {
                 parkingtype = "미인식차량"
                 recognitionResult = "NOTRECOGNITION"
             }
+
             requestId = DataCheckUtil.generateRequestId(parkinglotService.parkSiteId())
 
             //todo 입차 정보 DB insert
@@ -116,25 +137,13 @@ class VehicleService {
                 resultcode = resultcode.toInt(),
                 requestid = requestId,
                 fileuploadid = fileUploadId,
-                hour = DateUtil.nowTimeDetail.substring(0,2),
-                min = DateUtil.nowTimeDetail.substring(3,5),
+                hour = DateUtil.nowTimeDetail.substring(0, 2),
+                min = DateUtil.nowTimeDetail.substring(3, 5),
                 inDate = inDate,
-                uuid = uuid
+                uuid = uuid,
+                udpssid = if (gate!!.takeAction == "PCC") "11111" else "00000"
             )
             parkInRepository.save(newData)
-
-            if (tmapSend.equals("on")) {
-                //todo tmap 전송
-                val data = reqTmapInVehicle(
-                    gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
-                    inVehicleType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.lprType.toString().toLowerCase(),
-                    vehicleNumber = vehicleNo,
-                    recognitionType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.category,
-                    recognitorResult = recognitionResult!!,
-                    fileUploadId = fileUploadId!!
-                )
-                tmapSendService.sendInVehicle(data, requestId!!, fileName)
-            }
 
             // todo 시설 I/F
             // PCC 가 아닌경우애만 아래 모듈 실행
@@ -143,7 +152,9 @@ class VehicleService {
             // 2. 전광판
             // 전광판 메세지 구성은 아래와 같이 진행한다.
             // 'pcc' 인 경우 MEMBER -> MEMBER 로 아닌 경우 MEMBER -> NONMEMBER 로 정의
-            if (gate!!.takeAction != "PCC") {
+            if (gate.takeAction != "PCC") {
+                // open gate
+                facilityService.openGate(gate.gateId, "GATE")
                 val displayMessage = when (parkingtype) {
                     "일반차량" -> makeParkInPhrase("NONMEMBER", vehicleNo, vehicleNo)
                     "미인식차량" -> makeParkInPhrase("FAILNUMBER", vehicleNo, vehicleNo)
@@ -156,9 +167,35 @@ class VehicleService {
                     }
                     else -> makeParkInPhrase("FAILNUMBER", vehicleNo, vehicleNo)
                 }
+                if (tmapSend.equals("on")) {
+                    //todo tmap 전송
+                    val data = reqTmapInVehicle(
+                        gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
+                        inVehicleType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.lprType.toString()
+                            .toLowerCase(),
+                        vehicleNumber = vehicleNo,
+                        recognitionType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.category,
+                        recognitorResult = recognitionResult!!,
+                        fileUploadId = fileUploadId!!
+                    )
+                    tmapSendService.sendInVehicle(data, requestId!!, fileName)
+                }
                 facilityService.sendDisplayMessage(displayMessage, gate.gateId)
+            } else {
+                if (tmapSend.equals("on")) {
+                    //todo tmap 전송
+                    val data = reqTmapInVehicle(
+                        gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
+                        inVehicleType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.lprType.toString()
+                            .toLowerCase(),
+                        vehicleNumber = vehicleNo,
+                        recognitionType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.category,
+                        recognitorResult = recognitionResult!!,
+                        fileUploadId = fileUploadId!!
+                    )
+                    tmapSendService.sendInVehicleRequest(data, requestId!!, fileName)
+                }
             }
-
             CommonResult.created()
 
         } catch (e: RuntimeException) {
@@ -271,14 +308,17 @@ class VehicleService {
                             inVehicle.udpssid = request.sessionId
                             parkInRepository.save(inVehicle)
                         } else {
-                            parkInRepository.save(ParkIn(
-                                sn = null, parkcartype = "일반차량",
-                                vehicleNo = request.vehicleNumber,
-                                gateId = "GATE001",
-                                requestid = requestId,
-                                outSn = -100,
-                                udpssid = request.sessionId,
-                                inDate = DateUtil.stringToLocalDateTime(request.inVehicleDateTime)))
+                            parkInRepository.save(
+                                ParkIn(
+                                    sn = null, parkcartype = "일반차량",
+                                    vehicleNo = request.vehicleNumber,
+                                    gateId = "GATE001",
+                                    requestid = requestId,
+                                    outSn = -100,
+                                    udpssid = request.sessionId,
+                                    inDate = DateUtil.stringToLocalDateTime(request.inVehicleDateTime)
+                                )
+                            )
                         }
                     } else {
                         // out
@@ -288,17 +328,25 @@ class VehicleService {
                                 outVehicle.vehicleNo = request.vehicleNumber
                                 outVehicle.requestid = requestId
                                 outVehicle.outDate = LocalDateTime.now()
-                                outVehicle.parktime = DateUtil.diffMins(DateUtil.stringToLocalDateTime(request.inVehicleDateTime), LocalDateTime.now())
+                                outVehicle.parktime = DateUtil.diffMins(
+                                    DateUtil.stringToLocalDateTime(request.inVehicleDateTime),
+                                    LocalDateTime.now()
+                                )
                                 parkOutRepository.save(outVehicle)
                             } ?: run {
-                                parkOutRepository.save(ParkOut(
-                                    sn = null, parkcartype = "일반차량",
-                                    vehicleNo = request.vehicleNumber,
-                                    gateId = "GATE001",
-                                    requestid = requestId, outVehicle = 1,
-                                    outDate = LocalDateTime.now(),
-                                    parktime = DateUtil.diffMins(DateUtil.stringToLocalDateTime(request.inVehicleDateTime), LocalDateTime.now())
-                                ))
+                                parkOutRepository.save(
+                                    ParkOut(
+                                        sn = null, parkcartype = "일반차량",
+                                        vehicleNo = request.vehicleNumber,
+                                        gateId = "GATE001",
+                                        requestid = requestId, outVehicle = 1,
+                                        outDate = LocalDateTime.now(),
+                                        parktime = DateUtil.diffMins(
+                                            DateUtil.stringToLocalDateTime(request.inVehicleDateTime),
+                                            LocalDateTime.now()
+                                        )
+                                    )
+                                )
                             }
                             inVehicle.outSn = outDate.sn
                             inVehicle.udpssid = request.sessionId
@@ -324,19 +372,130 @@ class VehicleService {
                     }
                 }
                 else -> {
-                    tmapSendService.sendInOutVehicleInformationSetupResponse(reqSendResultResponse(result = "FAIL"), DataCheckUtil.generateRequestId(parkinglotService.parkSiteId()))
+                    tmapSendService.sendInOutVehicleInformationSetupResponse(
+                        reqSendResultResponse(result = "FAIL"), DataCheckUtil.generateRequestId(
+                            parkinglotService.parkSiteId()
+                        )
+                    )
                 }
             }
         }catch (e: RuntimeException) {
             logger.error { "modifyInOutVehicleByTmap failed ${e.message}" }
-            tmapSendService.sendInOutVehicleInformationSetupResponse(reqSendResultResponse(result = "FAIL"), DataCheckUtil.generateRequestId(parkinglotService.parkSiteId()))
+            tmapSendService.sendInOutVehicleInformationSetupResponse(
+                reqSendResultResponse(result = "FAIL"), DataCheckUtil.generateRequestId(
+                    parkinglotService.parkSiteId()
+                )
+            )
         }
-        tmapSendService.sendInOutVehicleInformationSetupResponse(reqSendResultResponse(result = "SUCCESS"), DataCheckUtil.generateRequestId(parkinglotService.parkSiteId()))
+        tmapSendService.sendInOutVehicleInformationSetupResponse(
+            reqSendResultResponse(result = "SUCCESS"), DataCheckUtil.generateRequestId(
+                parkinglotService.parkSiteId()
+            )
+        )
     }
 
     fun parkOut() {
 
     }
 
+    @Transactional(readOnly = true)
+    fun getAllParkLists(request: reqSearchParkin): ArrayList<ResParkInList>? {
+        val pageable: Pageable = PageRequest.of(request.page!!, request.pageSize!!.toInt())
+        val results = ArrayList<ResParkInList>()
+        when (request.type) {
+            DisplayMessageClass.IN -> {
+                parkInRepository.findAll(findAllParkInSpecification(request))?.let { list ->
+                    list.forEach {
+                        val result = ResParkInList(
+                            parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
+                            inGateId = it.gateId, inDate = it.inDate!!
+                        )
+                        if (it.outSn!! > 0L || it.outSn != null) {
+                            parkOutRepository.findBySn(it.outSn!!)?.let { out ->
+                                result.parkoutSn = out.sn
+                                result.outDate = out.outDate
+                                result.outGateId = out.gateId
+                                result.parktime = out.parktime
+                                result.parkfee = out.parkfee
+                                result.payfee = out.payfee
+                                result.discountfee = out.discountfee
+                            }
+                        }
+                        results.add(result)
+                    }
+                }
+            }
+            DisplayMessageClass.OUT -> {
+                parkOutRepository.findAll(findAllParkOutSpecification(request), pageable)
+
+            }
+            else -> return null
+        }
+        return results
+    }
+
+    private fun findAllParkInSpecification(request: reqSearchParkin): Specification<ParkIn> {
+        val spec = Specification<ParkIn> { root, query, criteriaBuilder ->
+            val clues = mutableListOf<Predicate>()
+
+            if(request.vehicleNo != null) {
+                val likeValue = "%" + request.vehicleNo + "%"
+                clues.add(
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("vehicleNo")), likeValue)
+                )
+            }
+            if (request.fromDate != null && request.toDate != null) {
+                clues.add(
+                    criteriaBuilder.between(
+                        root.get("inDate"),
+                        DateUtil.beginTimeToLocalDateTime(request.fromDate.toString()),
+                        DateUtil.beginTimeToLocalDateTime(request.toDate.toString())
+                    )
+                )
+            }
+
+//            if(request.assignId != null) {
+//                clues.add(criteriaBuilder.equal(root.get<String>("assign"), request.assignId))
+//            }
+
+            criteriaBuilder.and(*clues.toTypedArray())
+        }
+        return spec
+    }
+
+    private fun findAllParkOutSpecification(request: reqSearchParkin): Specification<ParkOut> {
+
+        val spec = Specification<ParkOut> { root, query, criteriaBuilder ->
+            val clues = mutableListOf<Predicate>()
+
+            if(request.vehicleNo != null) {
+                val likeValue = "%" + request.vehicleNo + "%"
+                clues.add(
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("vehicleNo")), likeValue)
+                )
+            }
+            if (request.fromDate != null && request.toDate != null) {
+                clues.add(
+                    criteriaBuilder.between(
+                        root.get("outDate"),
+                        DateUtil.beginTimeToLocalDateTime(request.fromDate.toString()),
+                        DateUtil.beginTimeToLocalDateTime(request.toDate.toString())
+                    )
+                )
+            }
+//            if(request.assignId != null) {
+//                clues.add(criteriaBuilder.equal(root.get<String>("assign"), request.assignId))
+//            }
+
+            criteriaBuilder.and(*clues.toTypedArray())
+        }
+        return spec
+    }
 
 }
+
+@Suppress("UNCHECKED_CAST")
+inline fun <reified T : Any> List<*>.checkItemsAre() =
+    if (all { it is T })
+        this as List<T>
+    else null

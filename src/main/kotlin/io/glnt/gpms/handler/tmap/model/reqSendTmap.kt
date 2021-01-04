@@ -19,7 +19,7 @@ data class reqTmapFacilitiesList (
 data class reqTmapInVehicle(
     var gateId: String,
     var sessionId: String? = null,
-    var inVehicleType: String,
+    var inVehicleType: String? = null,
     var vehicleNumber: String,
     var recognitionType: String,
     var recognitorResult: String,
