@@ -26,6 +26,7 @@ interface ParkFacilityRepository: JpaRepository<Facility, Long> {
     @Query("SELECT v from Facility v where v.gateSvrKey = :gateSvrKey and ( v.category != 'LPR' or (v.category = 'LPR' and v.imagePath is not null))")
     fun findByGateSvrKey(gateSvrKey: String): List<Facility>?
     fun findByGateIdAndFlagUse(gateId: String, flagUse: Int): List<Facility>?
+    fun findByGateIdAndCategory(gateId: String, category: String): List<Facility>?
 }
 
 @Repository

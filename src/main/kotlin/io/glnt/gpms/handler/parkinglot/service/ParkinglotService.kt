@@ -168,6 +168,13 @@ class ParkinglotService {
         return null
     }
 
+    fun getFacilityByGateAndCategory(gate: String, category: String) : List<Facility>? {
+        parkFacilityRepository.findByGateIdAndCategory(gate, category)?.let {
+            return it
+        }
+        return null
+    }
+
     fun getGateInfoByUdpGateId(udpGateId: String) : Gate? {
         parkGateRepository.findByUdpGateid(udpGateId)?.let {
             return it

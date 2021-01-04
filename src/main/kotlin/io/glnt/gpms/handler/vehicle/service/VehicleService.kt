@@ -156,8 +156,7 @@ class VehicleService {
                     }
                     else -> makeParkInPhrase("FAILNUMBER", vehicleNo, vehicleNo)
                 }
-                facilityService.sendDisplayMessage(displayMessage)
-
+                facilityService.sendDisplayMessage(displayMessage, gate.gateId)
             }
 
             CommonResult.created()
