@@ -2,9 +2,11 @@ package io.glnt.gpms.handler.facility.service
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.utils.DataCheckUtil
+import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
 
 import io.glnt.gpms.handler.facility.model.reqDisplayMessage
+import io.glnt.gpms.handler.facility.model.reqSendDisplay
 import io.glnt.gpms.handler.facility.model.reqSetDisplayColor
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
@@ -57,6 +59,9 @@ class FacilityService {
 
     @Autowired
     private lateinit var parkinglotService: ParkinglotService
+
+    @Autowired
+    private lateinit var restAPIManager: RestAPIManagerUtil
 
     @Autowired
     private lateinit var vehicleListSearchRepository: VehicleListSearchRepository
@@ -173,8 +178,15 @@ class FacilityService {
         }
     }
 
-    fun sendDisplayMessage(data: Any) {
-
+    fun sendDisplayMessage(data: Any, gate: String) {
+        parkinglotService.getFacilityByGateAndCategory(gate, "DISPLAY")?.let { its ->
+            its.forEach {
+                restAPIManager.sendPostRequest(
+                    url,
+                    reqSendDisplay(it.facilitiesId!!, data as ArrayList<reqDisplayMessage>)
+                )
+            }
+        }
     }
 
     fun sendPaystation(data: Any) {
