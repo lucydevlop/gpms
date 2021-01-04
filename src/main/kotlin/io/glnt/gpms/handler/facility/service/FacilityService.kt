@@ -66,22 +66,30 @@ class FacilityService {
     @Autowired
     private lateinit var vehicleListSearchRepository: VehicleListSearchRepository
 
-    fun openGate(facilityId: String) {
-        logger.debug { "openGate request ${facilityId}" }
+    fun openGate(id: String, type: String) {
+        logger.debug { "openGate request ${type} ${id}" }
         try {
-
+            when (type) {
+                "GATE" -> {
+                    parkinglotService.getFacilityByGateAndCategory(id, "BREAKER")?.let { its ->
+                        its.forEach {
+                            restAPIManager.sendPostRequest(
+                                "$url/v1/breaker/${it.facilitiesId}/open",
+                                null
+                            )
+                        }
+                    }
+                }
+                else -> {
+                    restAPIManager.sendPostRequest(
+                        "$url/v1/breaker/${id}/open",
+                        null
+                    )
+                }
+            }
         } catch (e: RuntimeException) {
-            logger.error {  "openGate ${facilityId} error ${e.message}"}
+            logger.error {  "openGate ${type} ${id} error ${e.message}"}
         }
-    }
-
-    fun displayInGate(facilityId: String, messages: ArrayList<reqDisplayMessage>) {
-//        val data = reqDisplayMessage(
-//            line1 = DisplayLine(color = displayColorRepository.findByPositionAndType(DisplayPosition.IN, DisplayType.NORMAL1)!!.colorCode,
-//                text = line1),
-//            line2 = DisplayLine(color = displayColorRepository.findByPositionAndType(DisplayPosition.OUT, DisplayType.NORMAL2)!!.colorCode,
-//                text = line2)
-//        )
     }
 
     fun displayOutGate(facilityId: String, line1: String, line2: String) {

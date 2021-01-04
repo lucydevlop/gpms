@@ -117,7 +117,7 @@ class TmapCommandService {
             when(it) {
                 "OPEN" -> {
                     // gate
-                    facilityService.openGate(contents.facilitiesId)
+                    facilityService.openGate(contents.facilitiesId, "FACILITY")
                     // display
                     val facility = parkinglotService.getFacility(contents.facilitiesId)
                     facilityService.displayOutGate(facility!!.gateId, "감사합니다", "안녕히가세요")

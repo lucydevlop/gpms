@@ -1,6 +1,7 @@
 package io.glnt.gpms.handler.vehicle.service
 
 import io.glnt.gpms.common.api.CommonResult
+import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.Base64Util
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
@@ -96,10 +97,21 @@ class VehicleService {
                     validDate = it.validDate
                 }
                 recognitionResult = "RECOGNITION"
+
+                // todo 기 입차 여부 확인 및 update
+                val parkins = searchParkInByVehicleNo(vehicleNo)
+                if (parkins.code == ResultCode.SUCCESS) {
+                    val lists = parkins.data as? List<*>?
+                    lists!!.checkItemsAre<ParkIn>()?.forEach {
+                        it.outSn = -1
+                        parkInRepository.save(it)
+                    }
+                }
             } else {
                 parkingtype = "미인식차량"
                 recognitionResult = "NOTRECOGNITION"
             }
+
             requestId = DataCheckUtil.generateRequestId(parkinglotService.parkSiteId())
 
             //todo 입차 정보 DB insert
@@ -119,22 +131,10 @@ class VehicleService {
                 hour = DateUtil.nowTimeDetail.substring(0,2),
                 min = DateUtil.nowTimeDetail.substring(3,5),
                 inDate = inDate,
-                uuid = uuid
+                uuid = uuid,
+                udpssid = if (gate!!.takeAction == "PCC") "11111" else "00000"
             )
             parkInRepository.save(newData)
-
-            if (tmapSend.equals("on")) {
-                //todo tmap 전송
-                val data = reqTmapInVehicle(
-                    gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
-                    inVehicleType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.lprType.toString().toLowerCase(),
-                    vehicleNumber = vehicleNo,
-                    recognitionType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.category,
-                    recognitorResult = recognitionResult!!,
-                    fileUploadId = fileUploadId!!
-                )
-                tmapSendService.sendInVehicle(data, requestId!!, fileName)
-            }
 
             // todo 시설 I/F
             // PCC 가 아닌경우애만 아래 모듈 실행
@@ -143,7 +143,9 @@ class VehicleService {
             // 2. 전광판
             // 전광판 메세지 구성은 아래와 같이 진행한다.
             // 'pcc' 인 경우 MEMBER -> MEMBER 로 아닌 경우 MEMBER -> NONMEMBER 로 정의
-            if (gate!!.takeAction != "PCC") {
+            if (gate.takeAction != "PCC") {
+                // open gate
+                facilityService.openGate(gate.gateId, "GATE")
                 val displayMessage = when (parkingtype) {
                     "일반차량" -> makeParkInPhrase("NONMEMBER", vehicleNo, vehicleNo)
                     "미인식차량" -> makeParkInPhrase("FAILNUMBER", vehicleNo, vehicleNo)
@@ -156,9 +158,33 @@ class VehicleService {
                     }
                     else -> makeParkInPhrase("FAILNUMBER", vehicleNo, vehicleNo)
                 }
+                if (tmapSend.equals("on")) {
+                    //todo tmap 전송
+                    val data = reqTmapInVehicle(
+                        gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
+                        inVehicleType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.lprType.toString().toLowerCase(),
+                        vehicleNumber = vehicleNo,
+                        recognitionType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.category,
+                        recognitorResult = recognitionResult!!,
+                        fileUploadId = fileUploadId!!
+                    )
+                    tmapSendService.sendInVehicle(data, requestId!!, fileName)
+                }
                 facilityService.sendDisplayMessage(displayMessage, gate.gateId)
+            } else {
+                if (tmapSend.equals("on")) {
+                    //todo tmap 전송
+                    val data = reqTmapInVehicle(
+                        gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
+                        inVehicleType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.lprType.toString().toLowerCase(),
+                        vehicleNumber = vehicleNo,
+                        recognitionType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.category,
+                        recognitorResult = recognitionResult!!,
+                        fileUploadId = fileUploadId!!
+                    )
+                    tmapSendService.sendInVehicleRequest(data, requestId!!, fileName)
+                }
             }
-
             CommonResult.created()
 
         } catch (e: RuntimeException) {
@@ -338,5 +364,10 @@ class VehicleService {
 
     }
 
-
 }
+
+@Suppress("UNCHECKED_CAST")
+inline fun <reified T : Any> List<*>.checkItemsAre() =
+    if (all { it is T })
+        this as List<T>
+    else null
