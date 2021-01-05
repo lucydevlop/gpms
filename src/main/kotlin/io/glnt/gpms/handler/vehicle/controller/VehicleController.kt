@@ -46,7 +46,7 @@ class VehicleController {
         }
     }
 
-    @RequestMapping(value = ["/parkin/list"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/inout/list"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun getAllParkInLists(@RequestBody request: reqSearchParkin) : ResponseEntity<PaginationResult<ResParkInList>> {
         return when (val result = vehicleService.getAllParkLists(request)) {

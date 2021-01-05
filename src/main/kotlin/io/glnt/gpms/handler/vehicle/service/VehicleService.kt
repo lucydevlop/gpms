@@ -407,11 +407,13 @@ class VehicleService {
                 parkInRepository.findAll(findAllParkInSpecification(request))?.let { list ->
                     list.forEach {
                         val result = ResParkInList(
+                            type = DisplayMessageClass.IN,
                             parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
                             inGateId = it.gateId, inDate = it.inDate!!
                         )
                         if (it.outSn!! > 0L || it.outSn != null) {
                             parkOutRepository.findBySn(it.outSn!!)?.let { out ->
+                                result.type = DisplayMessageClass.OUT
                                 result.parkoutSn = out.sn
                                 result.outDate = out.outDate
                                 result.outGateId = out.gateId
