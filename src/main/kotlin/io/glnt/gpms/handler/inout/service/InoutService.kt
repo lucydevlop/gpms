@@ -1,4 +1,4 @@
-package io.glnt.gpms.handler.vehicle.service
+package io.glnt.gpms.handler.inout.service
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
@@ -6,25 +6,27 @@ import io.glnt.gpms.common.utils.Base64Util
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.facility.model.reqDisplayMessage
+import io.glnt.gpms.handler.facility.model.reqPayStation
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
-import io.glnt.gpms.handler.tmap.model.reqInOutVehicleInformationSetup
-import io.glnt.gpms.handler.tmap.model.reqSendResultResponse
-import io.glnt.gpms.handler.tmap.model.reqTmapInVehicle
 import io.glnt.gpms.handler.tmap.service.TmapSendService
-import io.glnt.gpms.handler.vehicle.model.ResParkInList
-import io.glnt.gpms.handler.vehicle.model.reqAddParkIn
-import io.glnt.gpms.handler.vehicle.model.reqSearchParkin
+import io.glnt.gpms.handler.inout.model.ResParkInList
+import io.glnt.gpms.handler.inout.model.reqAddParkIn
+import io.glnt.gpms.handler.inout.model.reqAddParkOut
+import io.glnt.gpms.handler.inout.model.reqSearchParkin
+import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.model.entity.DisplayMessage
 import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.entity.ParkOut
+import io.glnt.gpms.model.entity.VehicleListSearch
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayMessageType
 import io.glnt.gpms.model.enums.SetupOption
 import io.glnt.gpms.model.repository.ParkFacilityRepository
 import io.glnt.gpms.model.repository.ParkInRepository
 import io.glnt.gpms.model.repository.ParkOutRepository
+import io.glnt.gpms.model.repository.VehicleListSearchRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -39,7 +41,7 @@ import java.time.LocalDateTime
 import javax.persistence.criteria.Predicate
 
 @Service
-class VehicleService {
+class InoutService {
     companion object : KLogging()
 
     @Value("\${image.filepath}")
@@ -69,6 +71,10 @@ class VehicleService {
     @Autowired
     private lateinit var parkOutRepository: ParkOutRepository
 
+    @Autowired
+    private lateinit var vehicleListSearchRepository: VehicleListSearchRepository
+
+
     fun parkIn(request: reqAddParkIn) : CommonResult = with(request){
         logger.debug("parkIn service {}", request)
         try {
@@ -77,22 +83,8 @@ class VehicleService {
 
             // image 파일 저장
             if (base64Str != null) {
-                // folder check
-                fileFullPath = "$imagePath/"+ LocalDate.now()
-                File(fileFullPath!!).apply {
-                    if (!exists()) {
-                        mkdirs()
-                    }
-                }
-                fileName = parkinglotService.parkSiteId()+"_"+parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid+"_"+ DateUtil.nowTimeDetail.substring(
-                    9,
-                    12
-                )+vehicleNo+".jpg"
-                fileUploadId = DateUtil.stringToNowDateTimeMS()+"_F"
-                val imageByteArray = Base64Util.decodeAsBytes(base64Str!!)
-                if (imageByteArray != null) {
-                    File("$fileFullPath/$fileName").writeBytes(imageByteArray)
-                }
+                fileFullPath = saveImage(base64Str!!, vehicleNo, facilitiesId)
+                fileName = fileFullPath!!.substring(fileFullPath!!.lastIndexOf("/")+1)
             }
 
             //차량번호 패턴 체크
@@ -131,7 +123,7 @@ class VehicleService {
                 parkcartype = parkingtype,
                 userSn = 0,
                 vehicleNo = vehicleNo,
-                image = "$fileFullPath/$fileName",
+                image = "$fileFullPath",
                 flag = 0,
                 validate = validDate,
                 resultcode = resultcode.toInt(),
@@ -156,16 +148,16 @@ class VehicleService {
                 // open gate
                 facilityService.openGate(gate.gateId, "GATE")
                 val displayMessage = when (parkingtype) {
-                    "일반차량" -> makeParkInPhrase("NONMEMBER", vehicleNo, vehicleNo)
-                    "미인식차량" -> makeParkInPhrase("FAILNUMBER", vehicleNo, vehicleNo)
+                    "일반차량" -> makeParkPhrase("NONMEMBER", vehicleNo, vehicleNo, "IN")
+                    "미인식차량" -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, "IN")
                     "정기차량" -> {
                         val days = productService.calcRemainDayProduct(vehicleNo)
                         if (days in 1..7)
-                            makeParkInPhrase("VIP", vehicleNo, "잔여 0${days}일")
+                            makeParkPhrase("VIP", vehicleNo, "잔여 0${days}일", "IN")
                         else
-                            makeParkInPhrase("VIP", vehicleNo, vehicleNo)
+                            makeParkPhrase("VIP", vehicleNo, vehicleNo, "IN")
                     }
-                    else -> makeParkInPhrase("FAILNUMBER", vehicleNo, vehicleNo)
+                    else -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, "IN")
                 }
                 if (tmapSend.equals("on")) {
                     //todo tmap 전송
@@ -204,63 +196,21 @@ class VehicleService {
         }
     }
 
-    fun makeParkOutPhrase(parkingtype: String, vehicleNo: String, text: String? = null) {
-        val messages = ArrayList<reqDisplayMessage>()
-//        when(parkingtype) {
-//            "일반차량" -> {
-//                val lists = filterDisplayMessage("IN", DisplayMessageType.NONMEMBER)
-//                lists.forEach { list ->
-//                    val message = reqDisplayMessage(
-//                        order = list.order, line = list.lineNumber,
-//                        color = list.displayColor!!.colorCode,
-//                        text = if (list.messageDesc == "-") text!! else list.messageDesc,
-//                    )
-//                    messages.add(message)
-//                }
-//            }
-//            "정기차량" -> {
-//                val diff = productService.calcRemainDayProduct(vehicleNo)
-//                if (diff >=0 && diff < 8) {
-//                    // 만기도래 별도 처리
-//                    var message = reqDisplayMessage(
-//                        order = 1, line = 1,
-//                        text = "정기권차량", color = "C1"
-//                    )
-//                    messages.add(message)
-//                    message = reqDisplayMessage(
-//                        order = 1, line = 1,
-//                        text = "정기권차량", color = "C1"
-//                    )
-//
-//
-//                }
-////                else {
-////                    val lists = facilityService.displayMessages.filter { it.messageType == DisplayMessageType.VIP }
-////                        .sortedBy { it.order }
-////                    lists.forEach { list ->
-////                        val message = reqDisplayMessage(
-////                           order = list.order, line = list.lineNumber,
-////                           text = list.messageDesc, color = list.displayColor!!.colorCode
-////                        )
-////                        messages.add(message)
-////                    }
-////                }
-//            }
-//        }
-    }
 
-    fun makeParkInPhrase(parkingtype: String, vehicleNo: String, text: String? = null): ArrayList<reqDisplayMessage> {
+
+    fun makeParkPhrase(parkingtype: String, vehicleNo: String, text: String? = null, type: String): ArrayList<reqDisplayMessage> {
         val messages = ArrayList<reqDisplayMessage>()
         val lists = when(parkingtype) {
             /* 정기차량 */
-            "VIP" -> filterDisplayMessage("IN", DisplayMessageType.VIP)
+            "VIP" -> filterDisplayMessage(type, DisplayMessageType.VIP)
             /* 티맵회원 */
-            "MEMBER" -> filterDisplayMessage("IN", DisplayMessageType.MEMBER)
+            "MEMBER" -> filterDisplayMessage(type, DisplayMessageType.MEMBER)
             /* 일반차량 */
-            "NONMEMBER" -> filterDisplayMessage("IN", DisplayMessageType.NONMEMBER)
+            "NONMEMBER" -> filterDisplayMessage(type, DisplayMessageType.NONMEMBER)
             /* 번호인식실패 */
-            "FAILNUMBER" -> filterDisplayMessage("IN", DisplayMessageType.FAILNUMBER)
-            else -> filterDisplayMessage("IN", DisplayMessageType.FAILNUMBER)
+            "FAILNUMBER" -> filterDisplayMessage(type, DisplayMessageType.FAILNUMBER)
+            "CALL" -> filterDisplayMessage(type, DisplayMessageType.CALL)
+            else -> filterDisplayMessage(type, DisplayMessageType.FAILNUMBER)
         }
         lists.forEach { list ->
             val message = reqDisplayMessage(
@@ -394,7 +344,165 @@ class VehicleService {
         )
     }
 
-    fun parkOut() {
+    fun saveImage(base64Str: String, vehicleNo: String, facilitiesId: String) : String {
+        val fileFullPath: String = "$imagePath/"+ LocalDate.now()
+        File(fileFullPath).apply {
+            if (!exists()) {
+                mkdirs()
+            }
+        }
+        val fileName = parkinglotService.parkSiteId()+"_"+parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid+"_"+ DateUtil.nowTimeDetail.substring(
+            9,
+            12
+        )+vehicleNo+".jpg"
+        val imageByteArray = Base64Util.decodeAsBytes(base64Str!!)
+        if (imageByteArray != null) {
+            File("$fileFullPath/$fileName").writeBytes(imageByteArray)
+        }
+        return "$fileFullPath/$fileName"
+    }
+
+    @Transactional(readOnly = true)
+    fun parkOut(request: reqAddParkOut) : CommonResult = with(request){
+        logger.debug("parkOut service {}", request)
+        try {
+            val gate = parkinglotService.getGateInfoByFacilityId(facilitiesId)
+
+            // image 파일 저장
+            if (base64Str != null) {
+                fileFullPath = saveImage(base64Str!!, vehicleNo, facilitiesId)
+                fileName = fileFullPath!!.substring(fileFullPath!!.lastIndexOf("/")+1)
+
+                fileUploadId = DateUtil.stringToNowDateTimeMS()+"_F"
+            }
+
+            //차량번호 패턴 체크
+            if (DataCheckUtil.isValidCarNumber(vehicleNo)) {
+                parkingtype = "일반차량"
+                //todo 정기권 차량 여부 확인
+                productService.getValidProductByVehicleNo(vehicleNo)?.let {
+                    parkingtype = "정기차량"
+                    validDate = it.validDate
+                }
+                recognitionResult = "RECOGNITION"
+
+            } else {
+                parkingtype = "미인식차량"
+                recognitionResult = "NOTRECOGNITION"
+            }
+
+            // 전광판 메세지 출력, gate open
+            val displayMessage = when (parkingtype) {
+                "일반차량" -> makeParkPhrase("NONMEMBER", vehicleNo, vehicleNo, "OUT")
+                "미인식차량" -> makeParkPhrase("CALL", vehicleNo, vehicleNo, "OUT")
+                "정기차량" -> {
+                    facilityService.openGate(gate!!.gateId, "GATE")
+                    val days = productService.calcRemainDayProduct(vehicleNo)
+                    if (days in 1..7)
+                        makeParkPhrase("VIP", vehicleNo, "잔여 0${days}일", "OUT")
+                    else
+                        makeParkPhrase("VIP", vehicleNo, vehicleNo, "OUT")
+                }
+                else -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, "OUT")
+            }
+            facilityService.sendDisplayMessage(displayMessage, gate!!.gateId)
+
+            requestId = DataCheckUtil.generateRequestId(parkinglotService.parkSiteId())
+
+            // 출차 정보 DB insert
+            val newData = ParkOut(
+                sn = null,
+//                gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.gateInfo.gateId,
+                gateId = gate.gateId, //parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.gateId,
+                parkcartype = parkingtype,
+                userSn = 0,
+                vehicleNo = vehicleNo,
+                image = "$fileFullPath",
+                flag = 0,
+                validate = validDate,
+                resultcode = resultcode.toInt(),
+                requestid = requestId,
+                fileuploadid = fileUploadId,
+                hour = DateUtil.nowTimeDetail.substring(0, 2),
+                min = DateUtil.nowTimeDetail.substring(3, 5),
+                outDate = outDate,
+                uuid = uuid
+            )
+            parkOutRepository.save(newData)
+            parkOutRepository.flush()
+
+            // tmap 연동
+            if (tmapSend.equals("on")) {
+                when (parkingtype) {
+                    "정기차량" -> tmapSendService.sendOutVehicle(
+                        reqOutVehicle(
+                            gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
+                            seasonTicketYn = "Y",
+                            vehicleNumber = vehicleNo,
+                            recognitionType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.category,
+                            recognitorResult = recognitionResult!!,
+                            fileUploadId = fileUploadId!! ),
+                        requestId!!, fileName)
+                    "일반차량" -> {
+                        tmapSendService.sendAdjustmentRequest(
+                            reqAdjustmentRequest(
+                                gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
+                                paymentMachineType = "exit",
+                                vehicleNumber = vehicleNo,
+                                recognitionType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.category,
+                                facilitiesId = parkFacilityRepository.findByGateIdAndCategory(gate.gateId, "PAYSTATION")?.get(0)!!.facilitiesId!!,
+                                fileuploadId = fileUploadId!!
+                            ),
+                            requestId!!
+                        )
+                        vehicleListSearchRepository.save(VehicleListSearch(requestId, parkFacilityRepository.findByGateIdAndCategory(gate.gateId, "PAYSTATION")?.get(0)!!.facilitiesId!!))
+                    }
+                }
+            }
+
+            //todo 정산기 출차 전송
+            when (parkingtype) {
+                "미인식차량" -> {
+                    facilityService.sendPaystation(
+                        reqPayStation(paymentMachineType = "EXIT",
+                            vehicleNumber = vehicleNo,
+                            facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
+                            recognitionType = "NOTRECOGNITION",
+                            recognitionResult = recognitionResult!!,
+                            paymentAmount = "0",
+                            vehicleIntime = DateUtil.nowDateTimeHm ),
+                        gate = gate.gateId,
+                        requestId = requestId!!,
+                        type = "adjustmentRequest")
+                }
+                "정기차량" -> {
+                    facilityService.sendPaystation(
+                        reqPayStation(paymentMachineType = "SEASON",
+                            vehicleNumber = vehicleNo,
+                            facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
+                            recognitionType = "SEASON",
+                            recognitionResult = recognitionResult!!,
+                            paymentAmount = "0",
+                            parktime = "0",
+                            vehicleIntime = DateUtil.nowDateTimeHm ),
+                        gate = gate.gateId,
+                        requestId = requestId!!,
+                        type = "adjustmentRequest")
+                }
+            }
+
+            // park-in update
+            parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", outDate)?.let { it ->
+                it.outSn = newData.sn
+                parkInRepository.save(it)
+                parkInRepository.flush()
+            }
+
+            CommonResult.created()
+        } catch (e: RuntimeException) {
+            logger.error { "parkout add failed ${e.message}" }
+            return CommonResult.error("parkout add failed ")
+        }
 
     }
 
@@ -456,10 +564,6 @@ class VehicleService {
                 )
             }
 
-//            if(request.assignId != null) {
-//                clues.add(criteriaBuilder.equal(root.get<String>("assign"), request.assignId))
-//            }
-
             criteriaBuilder.and(*clues.toTypedArray())
         }
         return spec
@@ -485,13 +589,55 @@ class VehicleService {
                     )
                 )
             }
-//            if(request.assignId != null) {
-//                clues.add(criteriaBuilder.equal(root.get<String>("assign"), request.assignId))
-//            }
 
             criteriaBuilder.and(*clues.toTypedArray())
         }
         return spec
+    }
+
+    fun makeParkOutPhrase(parkingtype: String, vehicleNo: String, text: String? = null) {
+        val messages = ArrayList<reqDisplayMessage>()
+//        when(parkingtype) {
+//            "일반차량" -> {
+//                val lists = filterDisplayMessage("IN", DisplayMessageType.NONMEMBER)
+//                lists.forEach { list ->
+//                    val message = reqDisplayMessage(
+//                        order = list.order, line = list.lineNumber,
+//                        color = list.displayColor!!.colorCode,
+//                        text = if (list.messageDesc == "-") text!! else list.messageDesc,
+//                    )
+//                    messages.add(message)
+//                }
+//            }
+//            "정기차량" -> {
+//                val diff = productService.calcRemainDayProduct(vehicleNo)
+//                if (diff >=0 && diff < 8) {
+//                    // 만기도래 별도 처리
+//                    var message = reqDisplayMessage(
+//                        order = 1, line = 1,
+//                        text = "정기권차량", color = "C1"
+//                    )
+//                    messages.add(message)
+//                    message = reqDisplayMessage(
+//                        order = 1, line = 1,
+//                        text = "정기권차량", color = "C1"
+//                    )
+//
+//
+//                }
+////                else {
+////                    val lists = facilityService.displayMessages.filter { it.messageType == DisplayMessageType.VIP }
+////                        .sortedBy { it.order }
+////                    lists.forEach { list ->
+////                        val message = reqDisplayMessage(
+////                           order = list.order, line = list.lineNumber,
+////                           text = list.messageDesc, color = list.displayColor!!.colorCode
+////                        )
+////                        messages.add(message)
+////                    }
+////                }
+//            }
+//        }
     }
 
 }

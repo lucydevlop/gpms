@@ -27,6 +27,7 @@ interface ParkFacilityRepository: JpaRepository<Facility, Long> {
     fun findByGateSvrKey(gateSvrKey: String): List<Facility>?
     fun findByGateIdAndFlagUse(gateId: String, flagUse: Int): List<Facility>?
     fun findByGateIdAndCategory(gateId: String, category: String): List<Facility>?
+    fun findByCategory(category: String): List<Facility>?
 }
 
 @Repository

@@ -45,10 +45,24 @@ data class reqFacilitiesRegist(
     var fileUploadId: String
 )
 
-//data class reqProfileSetupResponse(
-//    var result: String,
-//    var errorMsg: String? = null
-//)
+data class reqOutVehicle(
+    var gateId: String,
+    var seasonTicketYn: String,
+    var vehicleNumber: String,
+    var recognitionType: String,
+    var recognitorResult: String,
+    var fileUploadId: String
+
+)
+
+data class reqAdjustmentRequest(
+    var vehicleNumber: String,
+    var paymentMachineType: String,
+    var gateId: String,
+    var facilitiesId: String,
+    var recognitionType: String,
+    var fileuploadId: String
+)
 
 data class reqSendResultResponse(
     var result: String,

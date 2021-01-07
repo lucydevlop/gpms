@@ -109,19 +109,19 @@ class TmapSendService {
     fun sendInVehicleRequest(request: reqTmapInVehicle, requestId: String, fileName: String?) = with(request) {
         logger.debug { "sendInVehicle request ${request}" }
         try {
-            val data = reqTmapInVehicle(
-                gateId = gateId,
-//                sessionId = DataCheckUtil.generateSessionId("S"),
-//                inVehicleType = inVehicleType,
-                vehicleNumber = vehicleNumber,
-                recognitionType = recognitionType,
-                recognitorResult = recognitorResult,
-                fileUploadId = fileUploadId
-            )
+//            val data = reqTmapInVehicle(
+//                gateId = gateId,
+////                sessionId = DataCheckUtil.generateSessionId("S"),
+////                inVehicleType = inVehicleType,
+//                vehicleNumber = vehicleNumber,
+//                recognitionType = recognitionType,
+//                recognitorResult = recognitorResult,
+//                fileUploadId = fileUploadId
+//            )
 //            val httpResponse: HttpResponse<JsonNode?>? =
             restAPIManager.sendPostRequest(
                 url,
-                setTmapRequest("inVehicleRequest", requestId, data)
+                setTmapRequest("inVehicleRequest", requestId, request)
             )
 
             val fileUpload = reqTmapFileUpload(
@@ -144,15 +144,48 @@ class TmapSendService {
         }
     }
 
+    fun sendOutVehicle(request: reqOutVehicle, requestId: String, fileName: String?) = with(request) {
+        logger.debug { "sendInVehicle request ${request}" }
+        try {
+            restAPIManager.sendPostRequest(
+                url,
+                setTmapRequest("outVehicle", requestId, request)
+            )
+
+            val fileUpload = reqTmapFileUpload(
+                type = "fileUpload",
+                parkingSiteId = parkinglotService.parkSiteId()!!,
+                eventType = "inVehicle",
+                requestId = requestId,
+                fileUploadId = fileUploadId,
+                fileName = fileName!!,
+                fileUploadDateTime = DateUtil.stringToNowDateTime()
+            )
+            sendFileUpload(fileUpload)
+
+        } catch (e: RuntimeException) {
+            logger.error { "sendOutVehicle error ${e.message}" }
+        }
+    }
+
+    fun sendAdjustmentRequest(request: reqAdjustmentRequest, requestId: String) = with(request) {
+        logger.debug { "sendAdjustmentRequest request ${request}" }
+        try {
+            restAPIManager.sendPostRequest(
+                url,
+                setTmapRequest("adjustmentRequest", requestId, request)
+            )
+
+        }catch (e: RuntimeException) {
+            logger.error { "sendAdjustmentRequest error ${e.message}" }
+        }
+    }
+
     fun sendFileUpload(request: reqTmapFileUpload) = with(request) {
         logger.debug { "sendFileUpload request ${request}" }
         parkingSiteId = parkinglotService.parkSiteId()!!
         try {
-            restAPIManager.sendPostRequest(
-                "$url/patient/getPatientInfo",
-                request
-            )
-
+            restAPIManager.sendPostRequest(url, request)
         } catch (e: RuntimeException) {
             logger.error { "sendInVehicle error ${e.message}" }
         }

@@ -17,6 +17,12 @@ object DateUtil {
             return sdf.format(Date())
         }
 
+    val nowDateTimeHm: String
+        get() {
+            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm")
+            return sdf.format(Date())
+        }
+
     val nowDate: String
         get() {
             val sdf = SimpleDateFormat("yyyy-MM-dd")

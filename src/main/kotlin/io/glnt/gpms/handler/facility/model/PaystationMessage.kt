@@ -10,3 +10,14 @@ data class reqParkingSiteInfo(
     var businessName: String
 )
 
+data class reqPayStation(
+    var paymentMachineType: String,
+    var vehicleNumber: String,
+    var facilitiesId: String,
+    var recognitionType: String,
+    var recognitionResult: String,
+    var paymentAmount: String,
+    var parktime: String? = null,
+    var vehicleIntime: String
+)
+

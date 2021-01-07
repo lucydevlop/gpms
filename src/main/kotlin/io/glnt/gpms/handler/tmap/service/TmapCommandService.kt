@@ -13,7 +13,7 @@ import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.model.reqCreateProduct
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.tmap.model.*
-import io.glnt.gpms.handler.vehicle.service.VehicleService
+import io.glnt.gpms.handler.inout.service.VehicleService
 import io.glnt.gpms.model.entity.TmapCommand
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.TmapCommandRepository
@@ -21,7 +21,6 @@ import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.lang.RuntimeException
-import java.util.*
 import kotlin.collections.ArrayList
 
 
@@ -100,13 +99,12 @@ class TmapCommandService {
             saupno = parkinglotService.parkSite.saupno!!,
             businessName = parkinglotService.parkSite.ceoname!!
         )
-        val data = reqApiTmapCommon(
-            type = "ParkingInfo", parkingSiteId = parkinglotService.parkSite.siteid,
-            requestId = DateUtil.stringToNowDateTime(), eventDateTime = DateUtil.stringToNowDateTime(),
-            contents = contents
-        )
 
-        facilityService.sendPaystation(data)
+        parkinglotService.getFacilityByCategory("PAYSTATION")?.let { its ->
+            its.forEach { it ->
+                facilityService.sendPaystation(contents, it.gateId, DateUtil.stringToNowDateTime(), "ParkingInfo")
+            }
+        }
     }
 
     /* request 'facilitiesCommand' */

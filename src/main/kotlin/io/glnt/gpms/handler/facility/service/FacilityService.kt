@@ -2,6 +2,7 @@ package io.glnt.gpms.handler.facility.service
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.utils.DataCheckUtil
+import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
 
@@ -12,13 +13,13 @@ import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.tmap.model.reqSendVehicleListSearch
 import io.glnt.gpms.handler.tmap.service.TmapSendService
-import io.glnt.gpms.handler.vehicle.service.VehicleService
+import io.glnt.gpms.handler.inout.service.VehicleService
+import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
 import io.glnt.gpms.model.entity.VehicleListSearch
 import io.glnt.gpms.model.entity.DisplayColor
 import io.glnt.gpms.model.entity.DisplayMessage
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayPosition
-import io.glnt.gpms.model.enums.DisplayType
 import io.glnt.gpms.model.repository.DisplayColorRepository
 import io.glnt.gpms.model.repository.DisplayMessageRepository
 import io.glnt.gpms.model.repository.VehicleListSearchRepository
@@ -73,17 +74,15 @@ class FacilityService {
                 "GATE" -> {
                     parkinglotService.getFacilityByGateAndCategory(id, "BREAKER")?.let { its ->
                         its.forEach {
-                            restAPIManager.sendPostRequest(
-                                "$url/v1/breaker/${it.facilitiesId}/open",
-                                null
+                            restAPIManager.sendGetRequest(
+                                "$url/breaker/${it.facilitiesId}/open"
                             )
                         }
                     }
                 }
                 else -> {
-                    restAPIManager.sendPostRequest(
-                        "$url/v1/breaker/${id}/open",
-                        null
+                    restAPIManager.sendGetRequest(
+                        "$url/breaker/${id}/open"
                     )
                 }
             }
@@ -190,15 +189,24 @@ class FacilityService {
         parkinglotService.getFacilityByGateAndCategory(gate, "DISPLAY")?.let { its ->
             its.forEach {
                 restAPIManager.sendPostRequest(
-                    url,
+                    "$url/display/show",
                     reqSendDisplay(it.facilitiesId!!, data as ArrayList<reqDisplayMessage>)
                 )
             }
         }
     }
 
-    fun sendPaystation(data: Any) {
+    fun sendPaystation(data: Any, gate: String, requestId: String, type: String) {
         //todo 정산기 api 연계 개발
+        parkinglotService.getFacilityByGateAndCategory(gate, "PAYSTATION")?.let { its ->
+            its.forEach {
+                restAPIManager.sendPostRequest(
+                    url,
+                    setPaystationRequest(type, requestId, data)
+                )
+            }
+        }
+
     }
 
     @Throws(CustomException::class)
@@ -212,5 +220,15 @@ class FacilityService {
             return vehicleService.searchParkInByVehicleNo(request.vehicleNumber)
         }
         return null
+    }
+
+    fun setPaystationRequest(type: String, requestId: String?, contents: Any) : reqApiTmapCommon {
+        return reqApiTmapCommon(
+            type = type,
+            parkingSiteId = parkinglotService.parkSiteId()!!,
+            requestId = requestId?.let { requestId },
+            eventDateTime = DateUtil.stringToNowDateTime(),
+            contents = contents
+        )
     }
 }

@@ -1,8 +1,7 @@
-package io.glnt.gpms.handler.vehicle.model
+package io.glnt.gpms.handler.inout.model
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.enums.DisplayMessageClass
-import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDateTime
 
 data class ResParkInList(
