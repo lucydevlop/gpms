@@ -76,8 +76,8 @@ class ParkinglotService {
 
             return CommonResult.created("parkinglot feature add success")
         } catch (e: RuntimeException) {
-            logger.error("addParkinglotFeature error {} ", e.message)
-            return CommonResult.error("parkinglot feature db add failed ")
+            logger.error("createParkinglot error {} ", e.message)
+            return CommonResult.error("Parkinglot db creatae failed ")
         }
     }
 

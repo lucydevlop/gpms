@@ -134,6 +134,7 @@ class InoutService {
                 udpssid = if (gate!!.takeAction == "PCC") "11111" else "00000"
             )
             parkInRepository.save(newData)
+            parkInRepository.flush()
 
             // todo 시설 I/F
             // PCC 가 아닌경우애만 아래 모듈 실행
@@ -191,7 +192,7 @@ class InoutService {
             CommonResult.created()
 
         } catch (e: RuntimeException) {
-            ParkinglotService.logger.error("addParkinglotFeature error {} ", e.message)
+            logger.error("parkIn error {} ", e.message)
             return CommonResult.error("parkinglot feature db add failed ")
         }
     }
@@ -234,7 +235,7 @@ class InoutService {
 
     fun searchParkInByVehicleNo(vehicleNo: String) : CommonResult {
         logger.info("VehicleService searchParkInByVehicleNo search param : $vehicleNo")
-        parkInRepository.findByVehicleNoEndsWithAndOutSn(vehicleNo, 0)?.let {
+        parkInRepository.findByVehicleNoEndsWithAndOutSn(vehicleNo, 0L)?.let {
             if (it.isNullOrEmpty()) return CommonResult.notfound("$vehicleNo park in data not found")
             return CommonResult.data(it)
         }
