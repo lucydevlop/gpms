@@ -62,3 +62,13 @@ data class reqSearchParkin(
     var pageSize: Long? = 10,
     var page: Int? = 1
 )
+
+data class reqUpdatePayment(
+    var approveDateTime: String? = null,
+    var cardNumber: String? = null,
+    var parkcarType: String? = null,
+    var cardtransactionId: String? = null,
+    var paymentAmount: Int? = null,
+    var parkTicketAmount: Int? = null,
+    var sn: Long
+)

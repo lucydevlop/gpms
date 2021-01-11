@@ -5,16 +5,13 @@ import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.facility.model.*
+import io.glnt.gpms.handler.inout.model.reqUpdatePayment
 
-import io.glnt.gpms.handler.facility.model.reqDisplayMessage
-import io.glnt.gpms.handler.facility.model.reqSendDisplay
-import io.glnt.gpms.handler.facility.model.reqSetDisplayColor
-import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
+import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
-import io.glnt.gpms.handler.tmap.model.reqSendVehicleListSearch
+import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
-import io.glnt.gpms.handler.inout.service.VehicleService
-import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
 import io.glnt.gpms.model.entity.VehicleListSearch
 import io.glnt.gpms.model.entity.DisplayColor
 import io.glnt.gpms.model.entity.DisplayMessage
@@ -56,7 +53,7 @@ class FacilityService {
     private lateinit var tmapSendService: TmapSendService
 
     @Autowired
-    private lateinit var vehicleService: VehicleService
+    private lateinit var inoutService: InoutService
 
     @Autowired
     private lateinit var parkinglotService: ParkinglotService
@@ -201,8 +198,8 @@ class FacilityService {
         parkinglotService.getFacilityByGateAndCategory(gate, "PAYSTATION")?.let { its ->
             its.forEach {
                 restAPIManager.sendPostRequest(
-                    url,
-                    setPaystationRequest(type, requestId, data)
+                    "$url/parkinglot/paystation",
+                    reqPaystation(facilityId = it.facilitiesId!!, data = setPaystationRequest(type, requestId, data))
                 )
             }
         }
@@ -213,11 +210,62 @@ class FacilityService {
     fun searchCarNumber(request: reqSendVehicleListSearch): CommonResult? {
         if (tmapSend == "on") {
             // table db insert
-            val requestId = DataCheckUtil.generateRequestId(parkinglotService.parkSiteId())
+            val requestId = DataCheckUtil.generateRequestId()
             vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = request.facilityId))
-            tmapSendService.sendVehicleListSearch(request, requestId)
+            tmapSendService.sendTmapInterface(request, requestId, "vehicleListSearch")
         } else {
-            return vehicleService.searchParkInByVehicleNo(request.vehicleNumber)
+            return inoutService.searchParkInByVehicleNo(request.vehicleNumber)
+        }
+        return null
+    }
+
+    @Throws(CustomException::class)
+    fun sendPayment(request: reqApiTmapCommon, facilitiesId: String): CommonResult? {
+        logger.info { "sendPayment request $request" }
+        try{
+            var fileName: String? = null
+            var fileUploadId: String? = null
+            val contents : reqPayStationData = request.contents as reqPayStationData
+            // park_out update
+            inoutService.updatePayment(reqUpdatePayment(parkTicketAmount = contents.parkTicketAmount!!.toInt(),
+                    paymentAmount = contents.cardAmount!!.toInt(),
+                    sn = request.requestId!!.toLong(),
+                    cardtransactionId = contents.transactionId!!,
+                    cardNumber = contents.cardNumber,
+                    approveDateTime = contents.approveDatetime))?.let { it ->
+                // gate open
+                openGate(it.gateId!!, "GATE")
+                // todo tmap-payment
+                tmapSendService.sendTmapInterface(
+                    reqSendPayment(vehicleNumber = it.vehicleNo!!,
+                        chargingId = it.chargingId!!,
+                        paymentMachineType = "EXIT",
+                        transactionId = it.cardtransactionid!!,
+                        paymentType = "CARD",
+                        paymentAmount = it.payfee!!),
+                    DataCheckUtil.generateRequestId(),
+                    "payment"
+                )
+                fileName = it.image!!
+                fileUploadId = it.fileuploadid
+            }
+            val requestId = DataCheckUtil.generateRequestId()
+            // todo tmap-outvehicle
+            tmapSendService.sendOutVehicle(
+                reqOutVehicle(
+                    gateId = parkinglotService.getGateInfoByFacilityId(facilitiesId)!!.udpGateid!!,
+                    seasonTicketYn = "N",
+                    vehicleNumber = contents.vehicleNumber,
+                    recognitionType = "LPR",
+                    recognitorResult = "RECOGNITION",
+                    fileUploadId = fileUploadId!! ),
+                requestId,
+                fileName = fileName)
+
+
+        }catch (e: RuntimeException) {
+            logger.error("sendPayment {} ", e.message)
+            return CommonResult.error("sendPayment failed ")
         }
         return null
     }

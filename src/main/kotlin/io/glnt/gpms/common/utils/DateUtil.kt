@@ -91,6 +91,10 @@ object DateUtil {
         return ChronoUnit.MINUTES.between(date1, date2).toInt()
     }
 
+    fun diffSecs(date1: LocalDateTime, date2: LocalDateTime) : Int {
+        return ChronoUnit.SECONDS.between(date1, date2).toInt()
+    }
+
     fun beginTimeToLocalDateTime(date: String) : LocalDateTime {
         return LocalDateTime.parse(("$date 00:00:00").toString(), DateTimeFormatter.ofPattern(DATE_TIME_PATTERN))
     }

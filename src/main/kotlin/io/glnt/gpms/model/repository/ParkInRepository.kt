@@ -22,4 +22,5 @@ interface ParkOutRepository: JpaRepository<ParkOut, Long> {
     fun findBySn(sn: Long): ParkOut?
     fun findByVehicleNoEndsWith(vehicleNo: String) : List<ParkOut>?
     fun findAll(specification: Specification<ParkOut>, pageable: Pageable): List<ParkOut>?
+    fun findByRequestid(requestId: String): ParkOut?
 }

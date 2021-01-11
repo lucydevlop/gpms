@@ -41,3 +41,4 @@ data class reqSetDisplayMessage(
     var order: Int,
     var line: Int
 )
+

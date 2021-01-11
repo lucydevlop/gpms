@@ -9,11 +9,11 @@ import io.glnt.gpms.common.utils.JSONUtil
 import io.glnt.gpms.handler.facility.model.reqParkingSiteInfo
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
+import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.model.reqCreateProduct
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.tmap.model.*
-import io.glnt.gpms.handler.inout.service.VehicleService
 import io.glnt.gpms.model.entity.TmapCommand
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.TmapCommandRepository
@@ -44,7 +44,7 @@ class TmapCommandService {
     private lateinit var productService: ProductService
 
     @Autowired
-    private lateinit var vehicleService: VehicleService
+    private lateinit var inoutService: InoutService
 
     fun getRequestCommand(request: reqApiTmapCommon) {
         request.contents = JSONUtil.getJsObject(request.contents)
@@ -62,31 +62,22 @@ class TmapCommandService {
         val data = JSONUtil.getJsObject(request.contents)
 
         when(request.type) {
-            "parkingsiteinfo" -> {
-                commandParkingSiteInfo()
-            }
-            "dspcolorinfo" -> {
-                facilityService.fetchDisplayColor()
-            }
-            "profileSetup" -> {
-                commandProfileSetup(request)
-            }
-            "facilitiesRegistResponse" -> {
-            }
-            "facilitiesCommand" -> {
-                commandFacilities(request)
-            }
-            "gateTakeActionSetup" -> {
-                commandGateTakeActionSetup(request)
-            }
-            "vehicleListSearchResponse" -> {
-                commandVehicleListSearch(request)
-            }
-            "inOutVehicleInformationSetup" -> {
-                commandInOutVehicleInformationSetup(request)
-            }
+            "parkingsiteinfo" -> { commandParkingSiteInfo() }
+            "dspcolorinfo" -> { facilityService.fetchDisplayColor() }
+            "profileSetup" -> { commandProfileSetup(request) }
+            "facilitiesRegistResponse" -> { }
+            "facilitiesCommand" -> { commandFacilities(request) }
+            "gateTakeActionSetup" -> { commandGateTakeActionSetup(request) }
+            "vehicleListSearchResponse" -> { commandVehicleListSearch(request) }
+            "inOutVehicleInformationSetup" -> { commandInOutVehicleInformationSetup(request) }
+            "adjustmentRequestResponse" -> { commandAdjustmentRequestResponse(request) }
             else -> {}
         }
+    }
+
+    fun commandAdjustmentRequestResponse(request: reqApiTmapCommon) {
+        val contents : reqAdjustmentRequestResponse = request.contents as reqAdjustmentRequestResponse
+        inoutService.adjustmentRequestResponse(contents, request.responseId!!)
     }
 
     fun commandParkingSiteInfo() {
@@ -139,7 +130,7 @@ class TmapCommandService {
         contents.facilitiesStatusNotiCycle?.let {  parkinglotService.parkSite.facilitiesStatusNotiCycle = contents.facilitiesStatusNotiCycle!!.toInt() }
         contents.parkingSpotStatusnotiCycle?.let {  parkinglotService.parkSite.parkingSpotStatusNotiCycle = contents.parkingSpotStatusnotiCycle!!.toInt() }
         if (!parkinglotService.saveParkSiteInfo(parkinglotService.parkSite)) {
-            tmapSendService.sendProfileSetupResponse(reqSendResultResponse(result = "FAIL"), request.requestId!!)
+            tmapSendService.sendTmapInterface(reqSendResultResponse(result = "FAIL"), request.requestId!!, "profileSetupResponse")
         }
 
         // gate update
@@ -149,9 +140,10 @@ class TmapCommandService {
                 it.seasonTicketTakeAction = gate.seasonTicketTakeAction
                 it.whiteListTakeAction = gate.whiteListTakeAction
                 if (!parkinglotService.saveGate(it)) {
-                    tmapSendService.sendProfileSetupResponse(
+                    tmapSendService.sendTmapInterface(
                         reqSendResultResponse(result = "FAIL"),
-                        request.requestId!!
+                        request.requestId!!,
+                        "profileSetupResponse"
                     )
                 }
             }
@@ -177,10 +169,10 @@ class TmapCommandService {
                 messages.add(new)
             }
             if (facilityService.setDisplayMessage(messages).code == ResultCode.VALIDATE_FAILED.getCode()){
-                tmapSendService.sendProfileSetupResponse(reqSendResultResponse(result = "FAIL"), request.requestId!!)
+                tmapSendService.sendTmapInterface(reqSendResultResponse(result = "FAIL"), request.requestId!!, "profileSetupResponse")
             }
         }
-        tmapSendService.sendProfileSetupResponse(reqSendResultResponse(result = "SUCCESS"), request.requestId!!)
+        tmapSendService.sendTmapInterface(reqSendResultResponse(result = "SUCCESS"), request.requestId!!, "profileSetupResponse")
     }
 
     fun commandGateTakeActionSetup(request: reqApiTmapCommon) {
@@ -220,9 +212,10 @@ class TmapCommandService {
             }
         } catch (e: RuntimeException) {
             logger.error { "createProduct is success" }
-            tmapSendService.sendGateTakeActionSetupResponse(
+            tmapSendService.sendTmapInterface(
                 reqSendResultResponse(result = "SUCCESS"),
-                request.requestId!!
+                request.requestId!!,
+                "gateTakeActionSetupResponse"
             )
         }
     }
@@ -239,7 +232,7 @@ class TmapCommandService {
 
     fun commandInOutVehicleInformationSetup(request: reqApiTmapCommon) {
         val content = readValue(request.contents.toString(), reqInOutVehicleInformationSetup::class.java)
-        vehicleService.modifyInOutVehicleByTmap(content, request.requestId!!)
+        inoutService.modifyInOutVehicleByTmap(content, request.requestId!!)
     }
 
 

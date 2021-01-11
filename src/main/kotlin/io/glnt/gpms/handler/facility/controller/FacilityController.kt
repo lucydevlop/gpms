@@ -3,9 +3,11 @@ package io.glnt.gpms.handler.facility.controller
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
+import io.glnt.gpms.handler.facility.model.reqPayStationData
 import io.glnt.gpms.handler.facility.model.reqSetDisplayColor
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
+import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
 import io.glnt.gpms.handler.tmap.model.reqSendVehicleListSearch
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -53,6 +55,18 @@ class FacilityController {
         logger.debug("parkinglot facility paystation search param : $request")
 
         val result = facilityService.searchCarNumber(request)
+        return when(result!!.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    @RequestMapping(value = ["/paystation/payment/{facilitiesId}"])
+    fun payment(@RequestBody request: reqApiTmapCommon, @PathVariable("facilitiesId") facilitiesId: String) : ResponseEntity<CommonResult> {
+        logger.debug("parkinglot facility paystation search param : $request")
+
+        val result = facilityService.sendPayment(request, facilitiesId)
         return when(result!!.code) {
             ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
             ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)

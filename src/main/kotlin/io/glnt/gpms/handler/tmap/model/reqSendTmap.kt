@@ -74,6 +74,28 @@ data class reqSendVehicleListSearch(
     var facilityId: String?
 )
 
+data class reqSendPayment(
+    var gateId: String? = null,
+    var facilitiesId: String? = null,
+    var vehicleNumber: String,
+    var chargingId: String,
+    var paymentMachineType: String,
+    var transactionId: String,
+    var paymentType: String,
+    var paymentAmount: Int,
+    var businessOwnerName: String? = null,
+    var cardCompanyName: String? = null,
+    var cardNumber: String? = null,
+    var cardApprovalNumber: String? = null,
+    var tributaryDiscountList: ArrayList<tributaryDiscountItem>? = null
+)
+
+data class tributaryDiscountItem(
+    var tributaryDiscountTicketId: String? = null,
+    var tributaryDiscountTicketName: String? = null,
+    var tributaryDiscountTicketApplyDateTime: String? = null,
+    var discountAmount: Int? = null
+)
 
 data class parkinglotMap(
     var floor: ArrayList<floorMap> = ArrayList(),

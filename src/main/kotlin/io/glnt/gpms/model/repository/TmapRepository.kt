@@ -12,6 +12,7 @@ interface TmapCommandRepository: JpaRepository<TmapCommand, Long> {
 
 @Repository
 interface VehicleListSearchRepository: JpaRepository<VehicleListSearch, String> {
+    fun findByRequestId(requestId: String): VehicleListSearch?
 
 }
 
