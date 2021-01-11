@@ -1,20 +1,21 @@
 package io.glnt.gpms.handler.facility.service
 
+import com.fasterxml.jackson.core.JsonFactory
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.glnt.gpms.common.api.CommonResult
-import io.glnt.gpms.common.utils.DataCheckUtil
-import io.glnt.gpms.common.utils.DateUtil
-import io.glnt.gpms.common.utils.RestAPIManagerUtil
+import io.glnt.gpms.common.utils.*
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.facility.model.*
 import io.glnt.gpms.handler.inout.model.reqUpdatePayment
-
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
-import io.glnt.gpms.model.entity.VehicleListSearch
+import io.glnt.gpms.io.glnt.gpms.common.utils.JacksonUtil
 import io.glnt.gpms.model.entity.DisplayColor
 import io.glnt.gpms.model.entity.DisplayMessage
+import io.glnt.gpms.model.entity.VehicleListSearch
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayPosition
 import io.glnt.gpms.model.repository.DisplayColorRepository
@@ -24,7 +25,6 @@ import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.lang.RuntimeException
 
 @Service
 class FacilityService {
@@ -106,9 +106,12 @@ class FacilityService {
                     displayColorRepository.save(displayColor)
                 } ?: run {
                     displayColorRepository.save(
-                        DisplayColor( sn = null,
-                                      position = it.position!!, type = it.type!!,
-                                      colorCode = it.colorCode, colorDesc = it.colorDesc ))
+                        DisplayColor(
+                            sn = null,
+                            position = it.position!!, type = it.type!!,
+                            colorCode = it.colorCode, colorDesc = it.colorDesc
+                        )
+                    )
                 }
             }
             return CommonResult.created("parkinglot display setting success")
@@ -122,16 +125,27 @@ class FacilityService {
     fun setDisplayMessage(request: ArrayList<reqSetDisplayMessage>): CommonResult = with(request) {
         try {
             request.forEach { it ->
-                displayMessageRepository.findByMessageClassAndMessageTypeAndOrder(it.messageClass!!, it.messageType!!, it.order)?.let { displayMessage ->
+                displayMessageRepository.findByMessageClassAndMessageTypeAndOrder(
+                    it.messageClass!!,
+                    it.messageType!!,
+                    it.order
+                )?.let { displayMessage ->
                     displayMessage.colorType = it.colorType
                     displayMessage.messageDesc = it.messageDesc
                     displayMessage.lineNumber = it.line
                     displayMessageRepository.save(displayMessage)
                 } ?: run {
                     displayMessageRepository.save(
-                        DisplayMessage( sn = null,
-                            messageClass = it.messageClass!!, messageType = it.messageType!!,
-                            colorType = it.colorType, order = it.order, messageDesc = it.messageDesc, lineNumber = it.line ))
+                        DisplayMessage(
+                            sn = null,
+                            messageClass = it.messageClass!!,
+                            messageType = it.messageType!!,
+                            colorType = it.colorType,
+                            order = it.order,
+                            messageDesc = it.messageDesc,
+                            lineNumber = it.line
+                        )
+                    )
                 }
             }
             // static upload
@@ -210,7 +224,7 @@ class FacilityService {
     fun searchCarNumber(request: reqSendVehicleListSearch): CommonResult? {
         if (tmapSend == "on") {
             // table db insert
-            val requestId = DataCheckUtil.generateRequestId()
+            val requestId = parkinglotService.generateRequestId()
             vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = request.facilityId))
             tmapSendService.sendTmapInterface(request, requestId, "vehicleListSearch")
         } else {
@@ -225,31 +239,39 @@ class FacilityService {
         try{
             var fileName: String? = null
             var fileUploadId: String? = null
-            val contents : reqPayStationData = request.contents as reqPayStationData
+//            val contents = JSONUtil.getJSONObject(request.contents.toString()) as reqPayStationData
+            val data = JSONUtil.getJsObject(request.contents)
+            val contents = readValue(data.toString(), reqPayStationData::class.java) as reqPayStationData
             // park_out update
-            inoutService.updatePayment(reqUpdatePayment(parkTicketAmount = contents.parkTicketAmount!!.toInt(),
+            inoutService.updatePayment(
+                reqUpdatePayment(
+                    parkTicketAmount = contents.parkTicketAmount!!.toInt(),
                     paymentAmount = contents.cardAmount!!.toInt(),
                     sn = request.requestId!!.toLong(),
                     cardtransactionId = contents.transactionId!!,
                     cardNumber = contents.cardNumber,
-                    approveDateTime = contents.approveDatetime))?.let { it ->
+                    approveDateTime = contents.approveDatetime
+                )
+            )?.let { it ->
                 // gate open
                 openGate(it.gateId!!, "GATE")
                 // todo tmap-payment
                 tmapSendService.sendTmapInterface(
-                    reqSendPayment(vehicleNumber = it.vehicleNo!!,
+                    reqSendPayment(
+                        vehicleNumber = it.vehicleNo!!,
                         chargingId = it.chargingId!!,
                         paymentMachineType = "EXIT",
                         transactionId = it.cardtransactionid!!,
                         paymentType = "CARD",
-                        paymentAmount = it.payfee!!),
-                    DataCheckUtil.generateRequestId(),
+                        paymentAmount = it.payfee!!
+                    ),
+                    parkinglotService.generateRequestId(),
                     "payment"
                 )
                 fileName = it.image!!
                 fileUploadId = it.fileuploadid
             }
-            val requestId = DataCheckUtil.generateRequestId()
+            val requestId = parkinglotService.generateRequestId()
             // todo tmap-outvehicle
             tmapSendService.sendOutVehicle(
                 reqOutVehicle(
@@ -258,9 +280,11 @@ class FacilityService {
                     vehicleNumber = contents.vehicleNumber,
                     recognitionType = "LPR",
                     recognitorResult = "RECOGNITION",
-                    fileUploadId = fileUploadId!! ),
+                    fileUploadId = fileUploadId!!
+                ),
                 requestId,
-                fileName = fileName)
+                fileName = fileName
+            )
 
 
         }catch (e: RuntimeException) {
@@ -278,5 +302,11 @@ class FacilityService {
             eventDateTime = DateUtil.stringToNowDateTime(),
             contents = contents
         )
+    }
+
+    fun <T : Any> readValue(any: String, valueType: Class<T>): T {
+        val factory = JsonFactory()
+        factory.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
+        return jacksonObjectMapper().readValue(any, valueType)
     }
 }

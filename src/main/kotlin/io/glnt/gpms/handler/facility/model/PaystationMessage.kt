@@ -13,12 +13,12 @@ data class reqParkingSiteInfo(
 data class reqPayStationData(
     var paymentMachineType: String,
     var vehicleNumber: String,
-    var facilitiesId: String,
-    var recognitionType: String,
-    var recognitionResult: String,
+    var facilitiesId: String? = null,
+    var recognitionType: String? = null,
+    var recognitionResult: String? = null,
     var paymentAmount: String,
     var parktime: String? = null,
-    var vehicleIntime: String,
+    var vehicleIntime: String? = null,
     var adjustmentDateTime: String? = null,
     var paymentType: String? = null,
     var transactionId: String? = null,
@@ -26,7 +26,8 @@ data class reqPayStationData(
     var parkTicketAmount: String? = null,
     var cardNumber: String? = null,
     var approveDatetime: String? = null,
-    var cardCorp: String? = null
+    var cardCorp: String? = null,
+    var chargingId: String? = null
 )
 
 data class reqPayData(
