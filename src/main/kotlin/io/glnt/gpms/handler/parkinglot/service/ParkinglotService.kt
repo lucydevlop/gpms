@@ -67,7 +67,7 @@ class ParkinglotService {
             FileUtils.writeDatesToJsonFile(request, "/Users/lucy/project/glnt/parking/gpms/test.json")
 
             // tmap request 'facilitiesRegistRequest'
-            val requestId = DataCheckUtil.generateRequestId()
+            val requestId = generateRequestId()
             val fileUploadId = DateUtil.stringToNowDateTimeMS()+"_F"
             // send_event
             tmapSendService.sendFacilitiesRegist(reqFacilitiesRegist(fileUploadId = fileUploadId), requestId, "/Users/lucy/project/glnt/parking/gpms/test.json")
@@ -202,6 +202,10 @@ class ParkinglotService {
             return false
         }
         return true
+    }
+
+    fun generateRequestId() : String {
+        return DataCheckUtil.generateRequestId(parkSiteId()!!)
     }
 
 

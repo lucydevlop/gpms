@@ -6,6 +6,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer
 
 @Configuration
 class EnvironmentConfig {
+
     companion object {
         @Bean
         fun propertySourcesPlaceholderConfigurer(): PropertySourcesPlaceholderConfigurer? {

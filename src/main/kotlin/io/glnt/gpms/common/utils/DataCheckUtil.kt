@@ -1,5 +1,6 @@
 package io.glnt.gpms.common.utils
 
+import io.glnt.gpms.common.configs.EnvironmentConfig
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import okhttp3.internal.format
@@ -10,8 +11,6 @@ import java.util.regex.Pattern
 import kotlin.random.Random
 
 object DataCheckUtil {
-    @Autowired
-    lateinit var parkinglotService: ParkinglotService
 
     var strIdx: Int = 65
 
@@ -36,9 +35,9 @@ object DataCheckUtil {
         }
     }
 
-    fun generateRequestId(): String {
+    fun generateRequestId(parkSiteId: String): String {
         if (strIdx > 97) strIdx = 65
-        val key = parkinglotService.parkSiteId()+"_"+DateUtil.stringToNowDateTime()+"_"+strIdx.toChar()
+        val key = parkSiteId+"_"+DateUtil.stringToNowDateTime()+"_"+strIdx.toChar()
         strIdx++
         return key
     }

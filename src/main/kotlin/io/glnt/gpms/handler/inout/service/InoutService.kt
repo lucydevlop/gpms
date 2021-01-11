@@ -110,7 +110,7 @@ class InoutService {
                 recognitionResult = "NOTRECOGNITION"
             }
 
-            requestId = DataCheckUtil.generateRequestId()
+            requestId = parkinglotService.generateRequestId()
 
             //todo UUID 확인 후 Update
             // 입차 정보 DB insert
@@ -321,7 +321,7 @@ class InoutService {
                 }
                 else -> {
                     tmapSendService.sendTmapInterface(
-                        reqSendResultResponse(result = "FAIL"), DataCheckUtil.generateRequestId(),
+                        reqSendResultResponse(result = "FAIL"), parkinglotService.generateRequestId(),
                         "inOutVehicleInformationSetupResponse"
                     )
                 }
@@ -329,12 +329,12 @@ class InoutService {
         }catch (e: RuntimeException) {
             logger.error { "modifyInOutVehicleByTmap failed ${e.message}" }
             tmapSendService.sendTmapInterface(
-                reqSendResultResponse(result = "FAIL"), DataCheckUtil.generateRequestId(),
+                reqSendResultResponse(result = "FAIL"), parkinglotService.generateRequestId(),
                 "inOutVehicleInformationSetupResponse"
             )
         }
         tmapSendService.sendTmapInterface(
-            reqSendResultResponse(result = "SUCCESS"), DataCheckUtil.generateRequestId(),
+            reqSendResultResponse(result = "SUCCESS"), parkinglotService.generateRequestId(),
             "inOutVehicleInformationSetupResponse"
         )
     }
@@ -397,7 +397,7 @@ class InoutService {
                 facilityService.openGate(gate.gateId, "GATE")
 
 //            requestId = DataCheckUtil.generateRequestId(parkinglotService.parkSiteId())
-            requestId = DataCheckUtil.generateRequestId()
+            requestId = parkinglotService.generateRequestId()
 
             // 출차 정보 DB insert
             val newData = ParkOut(

@@ -1,9 +1,13 @@
 package io.glnt.gpms.common.utils
 
 import io.github.jhipster.config.JHipsterConstants
+import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 
 class DefaultProfileUtil {
+
+    private lateinit var parkinglotService: ParkinglotService
 
     private constructor()
 
