@@ -17,6 +17,12 @@ object DateUtil {
             return sdf.format(Date())
         }
 
+    val nowDateTimeHm: String
+        get() {
+            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm")
+            return sdf.format(Date())
+        }
+
     val nowDate: String
         get() {
             val sdf = SimpleDateFormat("yyyy-MM-dd")
@@ -83,6 +89,10 @@ object DateUtil {
 
     fun diffMins(date1: LocalDateTime, date2: LocalDateTime) : Int {
         return ChronoUnit.MINUTES.between(date1, date2).toInt()
+    }
+
+    fun diffSecs(date1: LocalDateTime, date2: LocalDateTime) : Int {
+        return ChronoUnit.SECONDS.between(date1, date2).toInt()
     }
 
     fun beginTimeToLocalDateTime(date: String) : LocalDateTime {

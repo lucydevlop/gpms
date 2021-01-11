@@ -66,3 +66,42 @@ data class reqInOutVehicleInformationSetup(
     var setupOption: SetupOption,
     var informationType: String
 )
+
+data class reqAdjustmentRequestResponse(
+    var result: String,
+    var errorMsg: String? = null,
+    var inVehicleDateTime: String,
+    var chargingStartDateTime: String,
+    var chargingRequestDateTime: String,
+    var chargingId: String,
+    var chargingTimes: String? = null,
+    var sessionId: String? = null,
+    var beforehandPaymentAmount: Int? = null,
+    var parkingAmount: Int,
+    var chargingAmount: Int,
+    var adjustmentAmount: Int,
+    var basicsChargeCalculationYn: String? = null,
+    var outVehicleAllowYn: String,
+    var allowYnReason: String,
+    var parkingTicketApplyList: ArrayList<parkingTicketApplyList>? = null,
+    var discountList: ArrayList<discountList>? = null,
+    var holidayList: ArrayList<holidayList>? = null
+)
+
+data class parkingTicketApplyList(
+    var parkingTicketType: String? = null,
+    var applyStartDateTime: String? = null,
+    var applyEndDateTime: String? = null
+)
+
+data class discountList(
+    var discountType: String? = null,
+    var discountDescription: String? = null,
+    var discountUnit: String? = null,
+    var discountAmount: String? = null
+)
+
+data class holidayList(
+    var holidayDate: String? = null,
+    var holidayName: String? = null
+)

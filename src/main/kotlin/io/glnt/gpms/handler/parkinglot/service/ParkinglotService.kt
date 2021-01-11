@@ -1,11 +1,8 @@
 package io.glnt.gpms.handler.parkinglot.service
 
 import io.glnt.gpms.common.api.CommonResult
-import io.glnt.gpms.common.utils.Base64Util
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.model.reqAddParkinglotFeature
-import io.glnt.gpms.handler.product.service.ProductService
-import io.glnt.gpms.handler.vehicle.model.reqAddParkIn
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.tmap.model.*
@@ -17,9 +14,7 @@ import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
-import java.io.File
 import java.lang.RuntimeException
-import java.time.LocalDate
 import kotlin.collections.ArrayList
 
 @Service
@@ -141,8 +136,6 @@ class ParkinglotService {
         }
     }
 
-
-
     fun fetchParkSiteInfo() {
         parkSiteInfoRepository.findTopByOrderBySiteid()?.let {
             parkSite = it
@@ -170,6 +163,13 @@ class ParkinglotService {
 
     fun getFacilityByGateAndCategory(gate: String, category: String) : List<Facility>? {
         parkFacilityRepository.findByGateIdAndCategory(gate, category)?.let {
+            return it
+        }
+        return null
+    }
+
+    fun getFacilityByCategory(category: String) : List<Facility>? {
+        parkFacilityRepository.findByCategory(category)?.let {
             return it
         }
         return null

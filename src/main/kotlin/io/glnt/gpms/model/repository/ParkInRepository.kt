@@ -14,6 +14,7 @@ interface ParkInRepository: JpaRepository<ParkIn, Long> {
     fun findByVehicleNoEndsWithAndOutSn(vehicleNo: String, outSn: Int) : List<ParkIn>?
     fun findByUdpssid(udpssid: String): ParkIn?
     fun findAll(specification: Specification<ParkIn>): List<ParkIn>?
+    fun findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo: String, outSn: Long, delYn: String, inDate: LocalDateTime ) : ParkIn?
 }
 
 @Repository
@@ -21,4 +22,5 @@ interface ParkOutRepository: JpaRepository<ParkOut, Long> {
     fun findBySn(sn: Long): ParkOut?
     fun findByVehicleNoEndsWith(vehicleNo: String) : List<ParkOut>?
     fun findAll(specification: Specification<ParkOut>, pageable: Pageable): List<ParkOut>?
+    fun findByRequestid(requestId: String): ParkOut?
 }
