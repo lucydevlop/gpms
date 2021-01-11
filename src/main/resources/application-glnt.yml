@@ -1,0 +1,37 @@
+spring:
+  profiles:
+    active: glnt
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MariaDB103Dialect
+
+  datasource:
+    username: glnt-user
+    password: glnt123!@#
+    driver-class-name: org.mariadb.jdbc.Driver
+    jdbc-url: jdbc:mariadb://test-db.cwvvhmqatlkn.ap-northeast-2.rds.amazonaws.com:3306/glnt_parking?useSSL=false
+
+logging:
+  level:
+    ROOT: INFO
+    io.github.jhipster: INFO
+    thesis: INFO
+
+image:
+  filepath: C://park//save
+
+tmap:
+  send: on
+  url: http://127.0.0.1:10000/api/v1/manage/devices/events
+
+gateway:
+  url: http://192.168.20.30:9999/v1
+
+
+
