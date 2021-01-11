@@ -88,17 +88,15 @@ class InoutService {
 
             //차량번호 패턴 체크
             if (DataCheckUtil.isValidCarNumber(vehicleNo)) {
-                //todo 출차 정보 확인 후 update
-
                 parkingtype = "일반차량"
-                //todo 정기권 차량 여부 확인
+                // 정기권 차량 여부 확인
                 productService.getValidProductByVehicleNo(vehicleNo)?.let {
                     parkingtype = "정기차량"
                     validDate = it.validDate
                 }
                 recognitionResult = "RECOGNITION"
 
-                // todo 기 입차 여부 확인 및 update
+                // 기 입차 여부 확인 및 update
                 val parkins = searchParkInByVehicleNo(vehicleNo)
                 if (parkins.code == ResultCode.SUCCESS) {
                     val lists = parkins.data as? List<*>?
@@ -114,7 +112,8 @@ class InoutService {
 
             requestId = DataCheckUtil.generateRequestId()
 
-            //todo 입차 정보 DB insert
+            //todo UUID 확인 후 Update
+            // 입차 정보 DB insert
             val newData = ParkIn(
                 sn = null,
 //                gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.gateInfo.gateId,
@@ -362,6 +361,11 @@ class InoutService {
     fun parkOut(request: reqAddParkOut) : CommonResult = with(request){
         logger.debug("parkOut service {}", request)
         try {
+            // todo uuid 확인 후 skip
+            parkOutRepository.findByUuid(uuid)?.let {
+                logger.error{ "park out uuid $uuid exists "}
+                return CommonResult.exist(request, "park out uuid exists")
+            }
             val gate = parkinglotService.getGateInfoByFacilityId(facilitiesId)
 
             // image 파일 저장

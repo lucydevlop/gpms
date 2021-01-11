@@ -42,6 +42,7 @@ class InoutController {
         val result = inoutService.parkOut(request)
         return when(result.code){
             ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
+            ResultCode.CONFLICT.getCode() -> ResponseEntity(result, HttpStatus.CONFLICT)
             else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
         }
     }
