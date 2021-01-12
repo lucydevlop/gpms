@@ -81,6 +81,20 @@ class ParkinglotService {
         }
     }
 
+    fun getParkinglot() : CommonResult {
+        logger.info { "getParkinglot fetch " }
+        try {
+            parkSiteInfoRepository.findTopByOrderBySiteid()?.let { it ->
+                return CommonResult.data(it)
+            } ?: run {
+                return CommonResult.notfound("parkinglot site info")
+            }
+        }catch (e: RuntimeException) {
+            logger.error { "getParkinglot error ${e.message}" }
+            return CommonResult.error("parkinglot fetch failed ")
+        }
+    }
+
     fun addParkinglotFeature(request: reqAddParkinglotFeature): CommonResult = with(request) {
         logger.debug("addParkinglotFeature service {}", request)
         try {

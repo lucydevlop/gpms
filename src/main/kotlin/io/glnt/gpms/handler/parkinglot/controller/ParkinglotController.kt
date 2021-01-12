@@ -31,6 +31,17 @@ class ParkinglotController {
 
     }
 
+    @RequestMapping(method = [RequestMethod.GET])
+    fun getParkinglot() : ResponseEntity<CommonResult> {
+        logger.debug { "parkinglot search" }
+        val result = parkinglotService.getParkinglot()
+        return when (result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        }
+    }
+
     @RequestMapping(value = ["/facility/list"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun getParkinglotfacilities(@RequestBody request: reqSearchParkinglotFeature): ResponseEntity<CommonResult> {
