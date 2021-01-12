@@ -7,6 +7,7 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.JSONUtil
 import io.glnt.gpms.handler.facility.model.reqParkingSiteInfo
+import io.glnt.gpms.handler.facility.model.reqPayStationData
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.service.InoutService
@@ -59,7 +60,6 @@ class TmapCommandService {
                 contents = request.contents.toString()
             )
         )
-        val data = JSONUtil.getJsObject(request.contents)
 
         when(request.type) {
             "parkingsiteinfo" -> { commandParkingSiteInfo() }
@@ -98,9 +98,17 @@ class TmapCommandService {
         }
     }
 
+    fun <T : Any> readValue(any: String, valueType: Class<T>): T {
+        val data = JSONUtil.getJSONObject(any)
+        val factory = JsonFactory()
+        factory.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
+        return jacksonObjectMapper().readValue(data.toString(), valueType)
+    }
+
     /* request 'facilitiesCommand' */
     fun commandFacilities(request: reqApiTmapCommon) {
-        val contents : reqCommandFacilities = request.contents as reqCommandFacilities
+        val contents = readValue(request.contents.toString(), reqCommandFacilities::class.java)
+
         // todo facilityid check
         contents.BLOCK?.let { it ->
             when(it) {
@@ -231,14 +239,8 @@ class TmapCommandService {
     }
 
     fun commandInOutVehicleInformationSetup(request: reqApiTmapCommon) {
-        val content = readValue(request.contents.toString(), reqInOutVehicleInformationSetup::class.java)
+        val contents = readValue(request.contents.toString(), reqInOutVehicleInformationSetup::class.java)
         inoutService.modifyInOutVehicleByTmap(content, request.requestId!!)
     }
 
-
-    fun <T : Any> readValue(any: String, valueType: Class<T>): T {
-        val factory = JsonFactory()
-        factory.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
-        return jacksonObjectMapper().readValue(any, valueType)
-    }
 }
