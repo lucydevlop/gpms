@@ -7,7 +7,7 @@ data class reqApiTmapCommon (
     var responseId: String? = null,
     var eventDateTime: String? = null,
     var commandDateTime: String? = null,
-    var contents: Any
+    var contents: Any? = null
 )
 
 data class reqTmapFacilitiesList (

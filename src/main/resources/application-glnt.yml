@@ -17,6 +17,9 @@ spring:
     driver-class-name: org.mariadb.jdbc.Driver
     jdbc-url: jdbc:mariadb://test-db.cwvvhmqatlkn.ap-northeast-2.rds.amazonaws.com:3306/glnt_parking?useSSL=false
 
+server:
+  port: 11000
+
 logging:
   level:
     ROOT: INFO
@@ -27,7 +30,7 @@ image:
   filepath: C://park//save
 
 tmap:
-  send: on
+  send: "ON"
   url: http://127.0.0.1:10000/api/v1/manage/devices/events
 
 gateway:

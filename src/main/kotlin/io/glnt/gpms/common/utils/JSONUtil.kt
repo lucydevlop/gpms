@@ -67,8 +67,10 @@ object JSONUtil {
 
     fun getJsValue(objValue: Any?): Any {
         val buf = StringBuffer()
+//        buf.append("'")
         buf.append("\"")
         buf.append(getJsString(objValue))
+//        buf.append("'")
         buf.append("\"")
         return buf
     }
