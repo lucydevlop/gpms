@@ -240,7 +240,7 @@ class TmapCommandService {
 
     fun commandInOutVehicleInformationSetup(request: reqApiTmapCommon) {
         val contents = readValue(request.contents.toString(), reqInOutVehicleInformationSetup::class.java)
-        inoutService.modifyInOutVehicleByTmap(content, request.requestId!!)
+        inoutService.modifyInOutVehicleByTmap(contents, request.requestId!!)
     }
 
 }
