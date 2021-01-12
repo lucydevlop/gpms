@@ -47,6 +47,7 @@ class WebSecurityConfig : WebSecurityConfigurerAdapter() {
             .antMatchers("/$API_VERSION/facility/**").permitAll()
             .antMatchers("/$API_VERSION/manage/**").permitAll()
             .antMatchers("/$API_VERSION/inout/**").permitAll()
+            .antMatchers("/api/**").permitAll()
 //            .antMatchers("/$API_VERSION/$CORE_PATH/**").permitAll()
 //			.antMatchers("/$API_VERSION/$SHOP_PATH/**").permitAll()
             .anyRequest().authenticated()

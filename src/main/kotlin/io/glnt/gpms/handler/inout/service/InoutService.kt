@@ -84,6 +84,7 @@ class InoutService {
                 fileFullPath = saveImage(base64Str!!, vehicleNo, facilitiesId)
 //                fileName = fileFullPath!!.substring(fileFullPath!!.lastIndexOf("/")+1)
                 fileName = DataCheckUtil.getFileName(fileFullPath!!)
+                fileUploadId = DateUtil.stringToNowDateTimeMS()+"_F"
             }
 
             //차량번호 패턴 체크
@@ -143,6 +144,7 @@ class InoutService {
             // 2. 전광판
             // 전광판 메세지 구성은 아래와 같이 진행한다.
             // 'pcc' 인 경우 MEMBER -> MEMBER 로 아닌 경우 MEMBER -> NONMEMBER 로 정의
+
             if (gate.takeAction != "PCC") {
                 // open gate
                 facilityService.openGate(gate.gateId, "GATE")
@@ -161,14 +163,14 @@ class InoutService {
 //                    }
 //                    else -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, "IN")
 //                }
-                if (tmapSend.equals("on")) {
+                /*
+                if (tmapSend.equals("ON")) {
                     //todo tmap 전송
                     val data = reqTmapInVehicle(
-                        gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
-                        inVehicleType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.lprType.toString()
-                            .toLowerCase(),
+                        gateId = facility!!.udpGateid!!,
+                        inVehicleType = facility.lprType.toString().toLowerCase(),
                         vehicleNumber = vehicleNo,
-                        recognitionType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.category,
+                        recognitionType = facility.category,
                         recognitorResult = recognitionResult!!,
                         fileUploadId = fileUploadId!!
                     )
@@ -188,7 +190,23 @@ class InoutService {
                     )
                     tmapSendService.sendInVehicleRequest(data, requestId!!, fileName)
                 }
+               */
             }
+
+            if (tmapSend.equals("ON")) {
+                //todo tmap 전송
+                val facility = parkFacilityRepository.findByFacilitiesId(facilitiesId)
+                val data = reqTmapInVehicle(
+                    gateId = facility!!.udpGateid!!,
+                    inVehicleType = facility.lprType.toString().toLowerCase(),
+                    vehicleNumber = vehicleNo,
+                    recognitionType = facility.category,
+                    recognitorResult = recognitionResult!!,
+                    fileUploadId = fileUploadId!!
+                )
+                tmapSendService.sendInVehicle(data, requestId!!, fileName)
+            }
+
             CommonResult.created()
 
         } catch (e: RuntimeException) {

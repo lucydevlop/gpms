@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping(
-    path = ["/${ApiConfig.API_VERSION}/manage/devices"]
+    path = ["/api/${ApiConfig.API_VERSION}/manage/devices"]
 )
 @CrossOrigin(origins = arrayOf("*"), allowedHeaders = arrayOf("*"))
 class TmapController {

@@ -69,7 +69,7 @@ class TmapSendService {
     }
 
     fun sendInVehicle(request: reqTmapInVehicle, requestId: String, fileName: String?) = with(request) {
-        logger.debug { "sendInVehicle request ${request}" }
+        logger.info { "sendInVehicle request $request" }
         try {
             val data = reqTmapInVehicle(
                 gateId = gateId,
@@ -82,7 +82,7 @@ class TmapSendService {
             )
 //            val httpResponse: HttpResponse<JsonNode?>? =
             restAPIManager.sendPostRequest(
-                "$url/patient/getPatientInfo",
+                url,
                 setTmapRequest("inVehicle", requestId, data)
             )
 
