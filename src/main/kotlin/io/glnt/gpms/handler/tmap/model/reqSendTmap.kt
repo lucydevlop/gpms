@@ -26,7 +26,7 @@ data class reqTmapInVehicle(
     var inVehicleType: String? = null,
     var vehicleNumber: String,
     var recognitionType: String,
-    var recognitorResult: String,
+    var recognitionResult: String,
     var fileUploadId: String
 )
 

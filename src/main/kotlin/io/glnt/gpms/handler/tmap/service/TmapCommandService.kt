@@ -47,8 +47,8 @@ class TmapCommandService {
     @Autowired
     private lateinit var inoutService: InoutService
 
-    fun getRequestCommand(request: reqApiTmapIF) {
-        val response = request.eventData
+    fun getRequestCommand(request: reqApiTmapCommon) {
+        val response = request //.commandData
 
         response.contents = JSONUtil.getJsObject(response.contents)
         // db insert
@@ -63,7 +63,7 @@ class TmapCommandService {
             )
         )
 
-        when(request.eventType) {
+        when(response.type) {
             "parkingsiteinfo" -> { commandParkingSiteInfo() }
             "dspcolorinfo" -> { facilityService.fetchDisplayColor() }
             "profileSetup" -> { commandProfileSetup(response) }
@@ -221,7 +221,7 @@ class TmapCommandService {
 
             }
         } catch (e: RuntimeException) {
-            logger.error { "createProduct is success" }
+            logger.error { "commandGateTakeActionSetup is failed ${e.message}" }
             tmapSendService.sendTmapInterface(
                 reqSendResultResponse(result = "SUCCESS"),
                 request.requestId!!,
@@ -242,7 +242,12 @@ class TmapCommandService {
 
     fun commandInOutVehicleInformationSetup(request: reqApiTmapCommon) {
         val contents = readValue(request.contents.toString(), reqInOutVehicleInformationSetup::class.java)
-        inoutService.modifyInOutVehicleByTmap(contents, request.requestId!!)
+        try {
+            inoutService.modifyInOutVehicleByTmap(contents, request.requestId!!)
+        }catch (e: RuntimeException){
+            logger.error { "commandInOutVehicleInformationSetup is failed ${e.message}" }
+        }
+
     }
 
 }

@@ -74,6 +74,5 @@ class FacilityController {
         }
     }
 
-
     companion object : KLogging()
 }

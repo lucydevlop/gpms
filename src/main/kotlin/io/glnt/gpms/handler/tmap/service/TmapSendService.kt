@@ -80,7 +80,7 @@ class TmapSendService {
                 inVehicleType = inVehicleType,
                 vehicleNumber = vehicleNumber,
                 recognitionType = recognitionType,
-                recognitorResult = recognitorResult,
+                recognitionResult = recognitionResult,
                 fileUploadId = fileUploadId
             )
 //            val httpResponse: HttpResponse<JsonNode?>? =

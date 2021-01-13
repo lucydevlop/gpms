@@ -2,7 +2,10 @@ package io.glnt.gpms.handler.tmap.controller
 
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
+import io.glnt.gpms.handler.tmap.model.reqApiTmapIF
+import io.glnt.gpms.handler.tmap.model.reqCommandApiTmapIF
 import io.glnt.gpms.handler.tmap.service.TmapCommandService
+import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.RequestBody
@@ -26,4 +29,6 @@ class TmapController {
     fun getTmapCommand(@RequestBody request: reqApiTmapCommon) {
         tmapCommandService.getRequestCommand(request)
     }
+
+    companion object : KLogging()
 }

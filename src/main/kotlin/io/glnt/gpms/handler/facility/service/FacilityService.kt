@@ -20,6 +20,7 @@ import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayPosition
 import io.glnt.gpms.model.repository.DisplayColorRepository
 import io.glnt.gpms.model.repository.DisplayMessageRepository
+import io.glnt.gpms.model.repository.ParkGateRepository
 import io.glnt.gpms.model.repository.VehicleListSearchRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -63,6 +64,9 @@ class FacilityService {
 
     @Autowired
     private lateinit var vehicleListSearchRepository: VehicleListSearchRepository
+
+    @Autowired
+    private lateinit var parkGateRepository: ParkGateRepository
 
     fun openGate(id: String, type: String) {
         logger.debug { "openGate request ${type} ${id}" }
@@ -308,5 +312,10 @@ class FacilityService {
         val factory = JsonFactory()
         factory.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
         return jacksonObjectMapper().readValue(any, valueType)
+    }
+
+    /* udp gate id */
+    fun getUdpGateId(gateId: String) : String? {
+        return parkGateRepository.findByGateId(gateId)?.udpGateid
     }
 }
