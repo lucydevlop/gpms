@@ -35,13 +35,16 @@ class TmapSendService {
     @Autowired
     private lateinit var restAPIManager: RestAPIManagerUtil
 
-    fun setTmapRequest(type: String, requestId: String?, contents: Any) : reqApiTmapCommon {
-        return reqApiTmapCommon(
-            type = type,
-            parkingSiteId = parkinglotService.parkSiteId()!!,
-            requestId = requestId?.let { requestId },
-            eventDateTime = DateUtil.stringToNowDateTime(),
-            contents = contents
+    fun setTmapRequest(type: String, requestId: String?, contents: Any) : reqApiTmapIF {
+        return reqApiTmapIF(
+            eventType = type,
+            eventData = reqApiTmapCommon(
+                type = type,
+                parkingSiteId = parkinglotService.parkSiteId()!!,
+                requestId = requestId?.let { requestId },
+                eventDateTime = DateUtil.stringToNowDateTime(),
+                contents = contents
+            )
         )
     }
 

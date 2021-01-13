@@ -1,5 +1,9 @@
 package io.glnt.gpms.handler.tmap.model
 
+data class reqApiTmapIF (
+    var eventType: String,
+    var eventData: reqApiTmapCommon
+)
 data class reqApiTmapCommon (
     var type: String? = null,
     var parkingSiteId: String? = null,
