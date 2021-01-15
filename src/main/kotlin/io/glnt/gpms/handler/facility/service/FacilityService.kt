@@ -69,7 +69,7 @@ class FacilityService {
     private lateinit var parkGateRepository: ParkGateRepository
 
     fun openGate(id: String, type: String) {
-        logger.debug { "openGate request ${type} ${id}" }
+        logger.trace { "openGate request $type $id" }
         try {
             when (type) {
                 "GATE" -> {
@@ -102,6 +102,7 @@ class FacilityService {
     }
 
     fun setDisplayColor(request: ArrayList<reqSetDisplayColor>): CommonResult = with(request) {
+        logger.trace { "setDisplayColor request $request" }
         try {
             request.forEach { it ->
                 displayColorRepository.findByPositionAndType(it.position!!, it.type!!)?.let { displayColor ->
@@ -127,6 +128,7 @@ class FacilityService {
     }
 
     fun setDisplayMessage(request: ArrayList<reqSetDisplayMessage>): CommonResult = with(request) {
+        logger.trace { "setDisplayMessage request $request" }
         try {
             request.forEach { it ->
                 displayMessageRepository.findByMessageClassAndMessageTypeAndOrder(
@@ -201,6 +203,7 @@ class FacilityService {
     }
 
     fun sendDisplayMessage(data: Any, gate: String) {
+        logger.trace { "sendPaystation request $data $gate" }
         parkinglotService.getFacilityByGateAndCategory(gate, "DISPLAY")?.let { its ->
             its.forEach {
                 restAPIManager.sendPostRequest(
@@ -212,6 +215,7 @@ class FacilityService {
     }
 
     fun sendPaystation(data: Any, gate: String, requestId: String, type: String) {
+        logger.trace { "sendPaystation request $data $gate $requestId $type" }
         //todo 정산기 api 연계 개발
         parkinglotService.getFacilityByGateAndCategory(gate, "PAYSTATION")?.let { its ->
             its.forEach {
@@ -226,6 +230,7 @@ class FacilityService {
 
     @Throws(CustomException::class)
     fun searchCarNumber(request: reqSendVehicleListSearch): CommonResult? {
+        logger.trace { "searchCarNumber request $request" }
         if (tmapSend == "on") {
             // table db insert
             val requestId = parkinglotService.generateRequestId()
@@ -239,7 +244,7 @@ class FacilityService {
 
     @Throws(CustomException::class)
     fun sendPayment(request: reqApiTmapCommon, facilitiesId: String): CommonResult? {
-        logger.info { "sendPayment request $request" }
+        logger.trace { "sendPayment request $request" }
         try{
             var fileName: String? = null
             var fileUploadId: String? = null

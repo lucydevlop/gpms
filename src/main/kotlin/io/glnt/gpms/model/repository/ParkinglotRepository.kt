@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository
 @Repository
 interface ParkSiteInfoRepository: JpaRepository<ParkSiteInfo, String> {
     fun findTopByOrderBySiteid() : ParkSiteInfo?
+    fun findBySiteid(siteid: String) : ParkSiteInfo?
 }
 
 @Repository

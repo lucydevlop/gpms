@@ -8,6 +8,8 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.common.utils.FileUtils
+import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.repository.*
 import mu.KLogging
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
 import java.lang.RuntimeException
+import javax.transaction.Transactional
 import kotlin.collections.ArrayList
 
 @Service
@@ -222,6 +225,61 @@ class ParkinglotService {
         return DataCheckUtil.generateRequestId(parkSiteId()!!)
     }
 
+    @Throws(CustomException::class)
+    fun searchFacility(id: String) : CommonResult {
+        logger.trace { "searchFacility request $id " }
+        try {
+            return CommonResult.data(data =
+                when(id) {
+                    "ALL" -> parkFacilityRepository.findAll()
+                    else -> getFacility(id)
+                }
+            )
+        }catch (e: RuntimeException) {
+            logger.error { "searchFacility error ${e.message}" }
+            return CommonResult.error("facility fetch failed ")
+        }
+
+    }
+
+    @Transactional
+    fun updateParkinglot(request: reqCreateParkinglot): CommonResult = with(request) {
+        logger.trace { "updateParkinglot request $request" }
+        try {
+            parkSiteInfoRepository.findBySiteid(request.siteId)?.let { it ->
+                return CommonResult.data(
+                    data = parkSiteInfoRepository.save(
+                        ParkSiteInfo(
+                            siteid = it.siteid,
+                            sitename = siteName,
+                            limitqty = limitqty,
+                            saupno = saupno,
+                            tel = tel,
+                            ceoname = ceoname,
+                            postcode = postcode,
+                            address = address,
+                            firsttime = firsttime,
+                            firstfee = firstfee,
+                            returntime = returntime,
+                            overtime = overtime,
+                            overfee = overfee,
+                            addtime = addtime,
+                            dayfee = dayfee,
+                            parkingSpotStatusNotiCycle = parkingSpotStatusNotiCycle,
+                            facilitiesStatusNotiCycle = facilitiesStatusNotiCycle,
+                            flagMessage = flagMessage,
+                            businame = businame,
+                            parkId = parkId
+                        )
+                ))
+            } ?: run {
+                return CommonResult.notfound("parkinglot data not found")
+            }
+        } catch(e: RuntimeException) {
+            logger.error { "updateParkinglot error ${e.message}" }
+            return CommonResult.error("parkinglot update failed ")
+        }
+    }
 
 //    fun JsonArray<*>.writeJSON(pathName: String, filename: String) {
 //        val fullOutDir = File(outDir, pathName)
