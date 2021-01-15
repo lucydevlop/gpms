@@ -2,6 +2,11 @@ package io.glnt.gpms.handler.tmap.model
 
 import io.glnt.gpms.model.enums.SetupOption
 
+data class reqCommandApiTmapIF (
+    var deviceId: String,
+    var commandData: reqApiTmapCommon
+)
+
 data class reqCommandFacilities(
     var facilitiesId: String,
     var BLOCK: String?,

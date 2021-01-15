@@ -197,11 +197,11 @@ class InoutService {
                 //todo tmap 전송
                 val facility = parkFacilityRepository.findByFacilitiesId(facilitiesId)
                 val data = reqTmapInVehicle(
-                    gateId = facility!!.udpGateid!!,
+                    gateId = facilityService.getUdpGateId(facility!!.gateId)!!,
                     inVehicleType = facility.lprType.toString().toLowerCase(),
                     vehicleNumber = vehicleNo,
                     recognitionType = facility.category,
-                    recognitorResult = recognitionResult!!,
+                    recognitionResult = recognitionResult!!,
                     fileUploadId = fileUploadId!!
                 )
                 tmapSendService.sendInVehicle(data, requestId!!, fileName)

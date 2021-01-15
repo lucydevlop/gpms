@@ -7,6 +7,7 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.parkinglot.model.reqAddParkinglotFeature
+import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -40,6 +41,18 @@ class ParkinglotController {
             ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
             else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
         }
+    }
+
+    @RequestMapping(value= ["/update"], method = [RequestMethod.POST])
+    fun updateParkinglot(@RequestBody request: reqCreateParkinglot) : ResponseEntity<CommonResult> {
+        logger.trace { "updateParkinglot request $request" }
+        val result = parkinglotService.updateParkinglot(request)
+        return when (result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        }
+
     }
 
     @RequestMapping(value = ["/facility/list"], method = [RequestMethod.POST])
@@ -77,6 +90,18 @@ class ParkinglotController {
         val result = parkinglotService.addParkinglotFeature(request)
         return when(result.code){
             ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    @RequestMapping(value= ["/facility/{id}"], method = [RequestMethod.GET])
+    fun getFacility(@PathVariable("id") id: String): ResponseEntity<CommonResult> {
+        logger.debug("facility getFacility : $id")
+
+        val result = parkinglotService.searchFacility(id)
+        return when (result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
             else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
         }
     }

@@ -20,6 +20,7 @@ import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayPosition
 import io.glnt.gpms.model.repository.DisplayColorRepository
 import io.glnt.gpms.model.repository.DisplayMessageRepository
+import io.glnt.gpms.model.repository.ParkGateRepository
 import io.glnt.gpms.model.repository.VehicleListSearchRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -64,8 +65,11 @@ class FacilityService {
     @Autowired
     private lateinit var vehicleListSearchRepository: VehicleListSearchRepository
 
+    @Autowired
+    private lateinit var parkGateRepository: ParkGateRepository
+
     fun openGate(id: String, type: String) {
-        logger.debug { "openGate request ${type} ${id}" }
+        logger.trace { "openGate request $type $id" }
         try {
             when (type) {
                 "GATE" -> {
@@ -98,6 +102,7 @@ class FacilityService {
     }
 
     fun setDisplayColor(request: ArrayList<reqSetDisplayColor>): CommonResult = with(request) {
+        logger.trace { "setDisplayColor request $request" }
         try {
             request.forEach { it ->
                 displayColorRepository.findByPositionAndType(it.position!!, it.type!!)?.let { displayColor ->
@@ -123,6 +128,7 @@ class FacilityService {
     }
 
     fun setDisplayMessage(request: ArrayList<reqSetDisplayMessage>): CommonResult = with(request) {
+        logger.trace { "setDisplayMessage request $request" }
         try {
             request.forEach { it ->
                 displayMessageRepository.findByMessageClassAndMessageTypeAndOrder(
@@ -197,6 +203,7 @@ class FacilityService {
     }
 
     fun sendDisplayMessage(data: Any, gate: String) {
+        logger.trace { "sendPaystation request $data $gate" }
         parkinglotService.getFacilityByGateAndCategory(gate, "DISPLAY")?.let { its ->
             its.forEach {
                 restAPIManager.sendPostRequest(
@@ -208,6 +215,7 @@ class FacilityService {
     }
 
     fun sendPaystation(data: Any, gate: String, requestId: String, type: String) {
+        logger.trace { "sendPaystation request $data $gate $requestId $type" }
         //todo 정산기 api 연계 개발
         parkinglotService.getFacilityByGateAndCategory(gate, "PAYSTATION")?.let { its ->
             its.forEach {
@@ -222,6 +230,7 @@ class FacilityService {
 
     @Throws(CustomException::class)
     fun searchCarNumber(request: reqSendVehicleListSearch): CommonResult? {
+        logger.trace { "searchCarNumber request $request" }
         if (tmapSend == "on") {
             // table db insert
             val requestId = parkinglotService.generateRequestId()
@@ -235,7 +244,7 @@ class FacilityService {
 
     @Throws(CustomException::class)
     fun sendPayment(request: reqApiTmapCommon, facilitiesId: String): CommonResult? {
-        logger.info { "sendPayment request $request" }
+        logger.trace { "sendPayment request $request" }
         try{
             var fileName: String? = null
             var fileUploadId: String? = null
@@ -308,5 +317,10 @@ class FacilityService {
         val factory = JsonFactory()
         factory.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
         return jacksonObjectMapper().readValue(any, valueType)
+    }
+
+    /* udp gate id */
+    fun getUdpGateId(gateId: String) : String? {
+        return parkGateRepository.findByGateId(gateId)?.udpGateid
     }
 }
