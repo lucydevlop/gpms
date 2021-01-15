@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: glnt
+    active: local
 
 server:
   port: 7000

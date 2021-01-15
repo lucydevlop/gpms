@@ -18,6 +18,8 @@ spring:
     jdbc-url: jdbc:mariadb://test-db.cwvvhmqatlkn.ap-northeast-2.rds.amazonaws.com:3306/glnt_parking?useSSL=false
 
 logging:
+  path: /home/ubuntu/servers/glnt/gpms
+  config: classpath:logback-development.xml
   level:
     ROOT: INFO
     io.github.jhipster: INFO

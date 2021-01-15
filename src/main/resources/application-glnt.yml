@@ -21,6 +21,7 @@ server:
   port: 11000
 
 logging:
+  config: classpath:logback-glnt.xml
   level:
     ROOT: INFO
     io.github.jhipster: INFO
