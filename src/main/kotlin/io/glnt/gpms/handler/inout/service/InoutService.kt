@@ -114,6 +114,25 @@ class InoutService {
             requestId = parkinglotService.generateRequestId()
 
             //todo UUID 확인 후 Update
+            // 시설 I/F
+            // PCC 가 아닌경우애만 아래 모듈 실행
+            // 1. gate open
+
+            // 2. 전광판
+            // 전광판 메세지 구성은 아래와 같이 진행한다.
+            // 'pcc' 인 경우 MEMBER -> MEMBER 로 아닌 경우 MEMBER -> NONMEMBER 로 정의
+
+            if (gate!!.takeAction != "PCC") {
+                // todo GATE 옵션인 경우 정기권/WHITE OPEN 옵션 정의
+                if (gate.seasonTicketTakeAction == "GATE" && parkingtype != "정기차량") {
+                    return CommonResult.error("Restricte vehicle $vehicleNo $parkingtype")
+                }
+                // open gate
+                facilityService.openGate(gate.gateId, "GATE")
+                // 전광판 메세지 출력, gate open
+                displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+            }
+
             // 입차 정보 DB insert
             val newData = ParkIn(
                 sn = null,
@@ -136,62 +155,6 @@ class InoutService {
             )
             parkInRepository.save(newData)
             parkInRepository.flush()
-
-            // todo 시설 I/F
-            // PCC 가 아닌경우애만 아래 모듈 실행
-            // 1. gate open
-
-            // 2. 전광판
-            // 전광판 메세지 구성은 아래와 같이 진행한다.
-            // 'pcc' 인 경우 MEMBER -> MEMBER 로 아닌 경우 MEMBER -> NONMEMBER 로 정의
-
-            if (gate.takeAction != "PCC") {
-                // open gate
-                facilityService.openGate(gate.gateId, "GATE")
-                // 전광판 메세지 출력, gate open
-                displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
-
-//                val displayMessage = when (parkingtype) {
-//                    "일반차량" -> makeParkPhrase("NONMEMBER", vehicleNo, vehicleNo, "IN")
-//                    "미인식차량" -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, "IN")
-//                    "정기차량" -> {
-//                        val days = productService.calcRemainDayProduct(vehicleNo)
-//                        if (days in 1..7)
-//                            makeParkPhrase("VIP", vehicleNo, "잔여 0${days}일", "IN")
-//                        else
-//                            makeParkPhrase("VIP", vehicleNo, vehicleNo, "IN")
-//                    }
-//                    else -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, "IN")
-//                }
-                /*
-                if (tmapSend.equals("ON")) {
-                    //todo tmap 전송
-                    val data = reqTmapInVehicle(
-                        gateId = facility!!.udpGateid!!,
-                        inVehicleType = facility.lprType.toString().toLowerCase(),
-                        vehicleNumber = vehicleNo,
-                        recognitionType = facility.category,
-                        recognitorResult = recognitionResult!!,
-                        fileUploadId = fileUploadId!!
-                    )
-                    tmapSendService.sendInVehicle(data, requestId!!, fileName)
-                }
-            } else {
-                if (tmapSend.equals("on")) {
-                    //todo tmap 전송
-                    val data = reqTmapInVehicle(
-                        gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
-                        inVehicleType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.lprType.toString()
-                            .toLowerCase(),
-                        vehicleNumber = vehicleNo,
-                        recognitionType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.category,
-                        recognitorResult = recognitionResult!!,
-                        fileUploadId = fileUploadId!!
-                    )
-                    tmapSendService.sendInVehicleRequest(data, requestId!!, fileName)
-                }
-               */
-            }
 
             if (tmapSend.equals("ON")) {
                 //todo tmap 전송
