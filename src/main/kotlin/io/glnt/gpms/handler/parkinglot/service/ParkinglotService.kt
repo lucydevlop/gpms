@@ -10,6 +10,7 @@ import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.common.utils.FileUtils
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
+import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.repository.*
 import mu.KLogging
@@ -134,6 +135,36 @@ class ParkinglotService {
                     return CommonResult.data(it)
                 }
             }
+        }
+    }
+
+    fun getParkinglotGates(requet: reqSearchParkinglotFeature): CommonResult {
+        logger.info { "getParkinglotGates request $requet" }
+        try {
+            requet.gateId?.let {
+                val gate = parkGateRepository.findByGateId(gateId = it)
+                return if (gate == null) CommonResult.notfound("gate"+requet.gateId) else CommonResult.data(gate)
+            } ?: run {
+                parkGateRepository.findAll().let {
+                    return CommonResult.data(it)
+                }
+            }
+        }catch (e: RuntimeException) {
+            logger.error("getParkinglotGates error {} ", e.message)
+            return CommonResult.error("getParkinglotGates failed ")
+        }
+    }
+
+    fun updateGates(request: reqUpdateGates) : CommonResult{
+        logger.info { "update gates request:  $request" }
+        try {
+            request.gates.forEach {
+                parkGateRepository.save(it)
+            }
+            return CommonResult.data(parkGateRepository.findAll())
+        } catch (e: RuntimeException) {
+            logger.error("updateGates error {} ", e.message)
+            return CommonResult.error("updateGates failed ")
         }
     }
 
