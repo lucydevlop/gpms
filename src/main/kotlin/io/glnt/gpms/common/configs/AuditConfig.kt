@@ -38,6 +38,8 @@ class SecurityAuditorAware: AuditorAware<String> {
 
         if (authentication.isAuthenticated) {
 //            return Optional.of(authentication.principal as SiteUser)
+            if (authentication.principal == "anonymousUser")
+                return  Optional.of("anonymousUser")
             val user = authentication.principal as UserDetails
             return Optional.of(user.username)
         }
