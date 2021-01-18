@@ -20,8 +20,9 @@ class JwtAuthenticationFilter(
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
         try {
             jwtFromRequest(request)?.takeIf { it.isNotBlank() }
-                ?.takeIf { tokenProvider.validateToken(it) }
-                ?.let { jwt ->
+                ?.takeIf { it->
+                    tokenProvider.validateToken(it)
+                }?.let { jwt ->
                     val userId = tokenProvider.userIdFromJwt(jwt)
 
                     // Note that you could also encode the user's username and roles inside JWT claims
