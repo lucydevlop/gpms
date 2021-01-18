@@ -44,7 +44,11 @@ data class Gate(
     var udpGateid: String? = "GATE",
 
     @Column(name = "upload_ct", nullable = false)
-    var udloadCt: Int? = 0
+    var udloadCt: Int? = 0,
+
+    @Column(name = "relay_svr", nullable = false)
+    var relaySvr: String? = "http://192.168.20.30:9999/v1"
+
 //    ,
 //    @JsonIgnore
 //    @OneToMany(fetch = FetchType.LAZY, mappedBy = "gate_id")

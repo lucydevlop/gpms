@@ -156,7 +156,7 @@ class InoutService {
             parkInRepository.save(newData)
             parkInRepository.flush()
 
-            if (tmapSend.equals("ON")) {
+            if (parkinglotService.parkSite.tmapSend.equals("ON")) {
                 //todo tmap 전송
                 val facility = parkFacilityRepository.findByFacilitiesId(facilitiesId)
                 val data = reqTmapInVehicle(
@@ -404,7 +404,7 @@ class InoutService {
             parkOutRepository.flush()
 
             // tmap 연동
-            if (tmapSend.equals("on")) {
+            if (parkinglotService.parkSite.tmapSend.equals("ON")) {
                 when (parkingtype) {
                     "정기차량" -> tmapSendService.sendOutVehicle(
                         reqOutVehicle(
