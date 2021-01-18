@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 
 @Repository
 interface ProductTicketRepository: JpaRepository<ProductTicket, Long> {
-    fun findByVehicleNoAndValidDateGreaterThanEqualAndRegDateLessThanEqualAndFlagIsNullOrFlag(vehiclNo: String, date1: LocalDateTime, date2: LocalDateTime, flag: Int): ProductTicket?
+    fun findByVehicleNoAndValidDateGreaterThanEqualAndRegDateLessThanEqualAndFlag(vehiclNo: String, date1: LocalDateTime, date2: LocalDateTime, flag: Int): ProductTicket?
     fun findByVehicleNoAndValidDateGreaterThanEqualAndFlagIsNullOrFlag(vehiclNo: String, date1: LocalDateTime, flag: Int): ProductTicket?
     fun findAll(specification: Specification<ProductTicket>): List<ProductTicket>?
 
