@@ -8,6 +8,7 @@ import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.parkinglot.model.reqAddParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
+import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -69,10 +70,38 @@ class ParkinglotController {
         }
     }
 
+    @RequestMapping(value = ["/gate/list"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun getParkinglotGates(@RequestBody request: reqSearchParkinglotFeature): ResponseEntity<CommonResult> {
+        logger.trace("parkinglot gate list  = $request")
+        val result = parkinglotService.getParkinglotGates(request)
+
+        return when(result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+
+        }
+    }
+
+    @RequestMapping(value = ["/gate/update"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun updateGates(@RequestBody request: reqUpdateGates): ResponseEntity<CommonResult> {
+        logger.trace("parkinglot gate update  = $request")
+        val result = parkinglotService.updateGates(request)
+
+        return when(result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+
+        }
+    }
+
     @RequestMapping(value = ["/feature/list"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun getParkinglotFeature(@RequestBody request: reqSearchParkinglotFeature): ResponseEntity<CommonResult> {
-        logger.debug("parkinglot feature list  = $request")
+        logger.trace("parkinglot feature list  = $request")
         val result = parkinglotService.getParkinglotFeature(request)
 
         return when(result.code) {

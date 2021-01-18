@@ -1,11 +1,14 @@
 package io.glnt.gpms.handler.parkinglot.model
 
+import io.glnt.gpms.model.entity.Gate
+
 data class reqSearchParkinglotFeature(
     var fromDate: String?,
     var toDate: String?,
     var gateSvrKey: String?,
     var featureId: String?,
-    var facilitiesId: String?
+    var facilitiesId: String?,
+    var gateId: String?
 )
 
 data class reqCreateParkinglot(
@@ -29,4 +32,8 @@ data class reqCreateParkinglot(
     var flagMessage: Int? = null,
     var businame: String? = null,
     var parkId: String? = null
+)
+
+data class reqUpdateGates(
+    var gates: ArrayList<Gate>
 )
