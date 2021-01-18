@@ -56,7 +56,7 @@ class ParkinglotService {
                 val facilities = parkFacilityRepository.findByGateIdAndFlagUse(gate.gateId!!, 1)!!
                 val FacilitiesId = facilities.map { it.dtFacilitiesId.toString() }.toTypedArray()
                 facilities.map {
-                    facility -> facilitiesList.add(facilitiesLists(category = facility.category, modelId = facility.modelid, dtFacilitiesId = facility.dtFacilitiesId, facilitiesName = facility.fName))
+                    facility -> facilitiesList.add(facilitiesLists(category = facility.category, modelId = facility.modelid, dtFacilitiesId = facility.dtFacilitiesId, facilitiesName = facility.fname))
                 }
                 gateList.add(gateLists(
                     dtGateId = gate.gateId+"_aa",

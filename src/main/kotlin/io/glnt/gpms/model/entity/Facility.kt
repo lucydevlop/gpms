@@ -25,7 +25,7 @@ data class Facility (
     var modelid: String,
 
     @Column(name = "f_name", nullable = false)
-    var fName: String,
+    var fname: String,
 
     @Column(name = "dtFacilitiesId", nullable = false)
     var dtFacilitiesId: String,
