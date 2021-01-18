@@ -18,10 +18,7 @@ import io.glnt.gpms.model.entity.DisplayMessage
 import io.glnt.gpms.model.entity.VehicleListSearch
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayPosition
-import io.glnt.gpms.model.repository.DisplayColorRepository
-import io.glnt.gpms.model.repository.DisplayMessageRepository
-import io.glnt.gpms.model.repository.ParkGateRepository
-import io.glnt.gpms.model.repository.VehicleListSearchRepository
+import io.glnt.gpms.model.repository.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -67,6 +64,9 @@ class FacilityService {
 
     @Autowired
     private lateinit var parkGateRepository: ParkGateRepository
+
+    @Autowired
+    private lateinit var facilityRepository: ParkFacilityRepository
 
     fun openGate(id: String, type: String) {
         logger.trace { "openGate request $type $id" }
@@ -311,6 +311,19 @@ class FacilityService {
             eventDateTime = DateUtil.stringToNowDateTime(),
             contents = contents
         )
+    }
+
+    fun allUpdateFacilities(request: reqUpdateFacilities): CommonResult {
+        logger.info("allUpdateFacilities request : $request")
+        try {
+            request.facilities.forEach {
+                facilityRepository.save(it)
+            }
+            return CommonResult.data(facilityRepository.findAll())
+        } catch (e: RuntimeException) {
+            logger.error { "allUpdateFacilities error ${e.message}" }
+            return CommonResult.error("allUpdateFacilities failed ")
+        }
     }
 
     fun <T : Any> readValue(any: String, valueType: Class<T>): T {

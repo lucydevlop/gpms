@@ -9,6 +9,7 @@ import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
 import io.glnt.gpms.handler.tmap.model.reqSendVehicleListSearch
+import io.glnt.gpms.handler.facility.model.reqUpdateFacilities
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -73,6 +74,20 @@ class FacilityController {
             else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
         }
     }
+
+    @RequestMapping(value = ["/all/update"])
+    fun allUpdateFacilities(@RequestBody request: reqUpdateFacilities): ResponseEntity<CommonResult> {
+        logger.trace("parkinglot facility update : $request")
+
+        val result = facilityService.allUpdateFacilities(request)
+        return when (result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        }
+    }
+
+
 
     companion object : KLogging()
 }
