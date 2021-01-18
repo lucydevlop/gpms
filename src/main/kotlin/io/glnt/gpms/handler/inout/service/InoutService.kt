@@ -530,7 +530,7 @@ class InoutService {
                     criteriaBuilder.between(
                         root.get("inDate"),
                         DateUtil.beginTimeToLocalDateTime(request.fromDate.toString()),
-                        DateUtil.beginTimeToLocalDateTime(request.toDate.toString())
+                        DateUtil.lastTimeToLocalDateTime(request.toDate.toString())
                     )
                 )
             }
@@ -556,7 +556,7 @@ class InoutService {
                     criteriaBuilder.between(
                         root.get("outDate"),
                         DateUtil.beginTimeToLocalDateTime(request.fromDate.toString()),
-                        DateUtil.beginTimeToLocalDateTime(request.toDate.toString())
+                        DateUtil.lastTimeToLocalDateTime(request.toDate.toString())
                     )
                 )
             }
