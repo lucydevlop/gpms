@@ -56,11 +56,12 @@ data class reqAddParkOut(
 
 data class reqSearchParkin(
     var vehicleNo: String? = null,
-    @Enumerated(EnumType.STRING) var type: DisplayMessageClass,
+    @Enumerated(EnumType.STRING) var type: DisplayMessageClass? = null,
     @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd") var fromDate: LocalDate? = null,
     @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd") var toDate: LocalDate? = null,
     var pageSize: Long? = 10,
-    var page: Int? = 1
+    var page: Int? = 1,
+    var gateId: String? = null
 )
 
 data class reqUpdatePayment(
