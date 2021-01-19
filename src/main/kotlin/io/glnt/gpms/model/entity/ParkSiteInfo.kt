@@ -70,8 +70,10 @@ data class ParkSiteInfo(
     var businame: String? = null,
 
     @Column(name = "park_id", nullable = true)
-    var parkId: String? = null
+    var parkId: String? = null,
 
+    @Column(name = "tmap_send", nullable = true)
+    var tmapSend: String? = "OFF"
 ) : Auditable(), Serializable {
 
 }

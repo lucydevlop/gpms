@@ -15,6 +15,7 @@ import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.io.glnt.gpms.common.utils.JacksonUtil
 import io.glnt.gpms.model.entity.DisplayColor
 import io.glnt.gpms.model.entity.DisplayMessage
+import io.glnt.gpms.model.entity.Gate
 import io.glnt.gpms.model.entity.VehicleListSearch
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayPosition
@@ -27,6 +28,8 @@ import org.springframework.stereotype.Service
 @Service
 class FacilityService {
     companion object : KLogging()
+
+    lateinit var gates: List<Gate>
 
     /* static */
     lateinit var displayColors: List<DisplayColor>
@@ -68,6 +71,12 @@ class FacilityService {
     @Autowired
     private lateinit var facilityRepository: ParkFacilityRepository
 
+    fun fetchGate() {
+        parkGateRepository.findAll().let {
+            gates = it
+        }
+    }
+
     fun openGate(id: String, type: String) {
         logger.trace { "openGate request $type $id" }
         try {
@@ -75,15 +84,17 @@ class FacilityService {
                 "GATE" -> {
                     parkinglotService.getFacilityByGateAndCategory(id, "BREAKER")?.let { its ->
                         its.forEach {
+                            val url = getRelaySvrUrl(id)
                             restAPIManager.sendGetRequest(
-                                "$url/breaker/${it.facilitiesId}/open"
+                                url+"/breaker/${it.facilitiesId}/open"
                             )
                         }
                     }
                 }
                 else -> {
+                    val url = getRelaySvrUrl(parkinglotService.getFacility(id)!!.gateId)
                     restAPIManager.sendGetRequest(
-                        "$url/breaker/${id}/open"
+                        url+"/breaker/${id}/open"
                     )
                 }
             }
@@ -201,13 +212,16 @@ class FacilityService {
             }
         }
     }
+    private fun getRelaySvrUrl(gateId: String): String {
+        return gates.filter { it.gateId == gateId }[0].relaySvr!!
+    }
 
     fun sendDisplayMessage(data: Any, gate: String) {
         logger.trace { "sendPaystation request $data $gate" }
         parkinglotService.getFacilityByGateAndCategory(gate, "DISPLAY")?.let { its ->
             its.forEach {
                 restAPIManager.sendPostRequest(
-                    "$url/display/show",
+                    getRelaySvrUrl(gate)+"/display/show",
                     reqSendDisplay(it.facilitiesId!!, data as ArrayList<reqDisplayMessage>)
                 )
             }
@@ -220,7 +234,7 @@ class FacilityService {
         parkinglotService.getFacilityByGateAndCategory(gate, "PAYSTATION")?.let { its ->
             its.forEach {
                 restAPIManager.sendPostRequest(
-                    "$url/parkinglot/paystation",
+                    getRelaySvrUrl(gate)+"/parkinglot/paystation",
                     reqPaystation(facilityId = it.facilitiesId!!, data = setPaystationRequest(type, requestId, data))
                 )
             }
@@ -231,7 +245,7 @@ class FacilityService {
     @Throws(CustomException::class)
     fun searchCarNumber(request: reqSendVehicleListSearch): CommonResult? {
         logger.trace { "searchCarNumber request $request" }
-        if (tmapSend == "on") {
+        if (parkinglotService.parkSite.tmapSend == "ON") {
             // table db insert
             val requestId = parkinglotService.generateRequestId()
             vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = request.facilityId))

@@ -99,11 +99,12 @@ class InoutService {
 
                 // 기 입차 여부 확인 및 update
                 val parkins = searchParkInByVehicleNo(vehicleNo)
-                if (parkins.code == ResultCode.SUCCESS) {
+                if (parkins.code == ResultCode.SUCCESS.getCode()) {
                     val lists = parkins.data as? List<*>?
                     lists!!.checkItemsAre<ParkIn>()?.forEach {
                         it.outSn = -1
                         parkInRepository.save(it)
+                        parkInRepository.flush()
                     }
                 }
             } else {
@@ -113,7 +114,8 @@ class InoutService {
 
             requestId = parkinglotService.generateRequestId()
 
-            //todo UUID 확인 후 Update
+            // todo UUID 확인 후 Update
+
             // 시설 I/F
             // PCC 가 아닌경우애만 아래 모듈 실행
             // 1. gate open
@@ -156,7 +158,7 @@ class InoutService {
             parkInRepository.save(newData)
             parkInRepository.flush()
 
-            if (tmapSend.equals("ON")) {
+            if (parkinglotService.parkSite.tmapSend.equals("ON")) {
                 //todo tmap 전송
                 val facility = parkFacilityRepository.findByFacilitiesId(facilitiesId)
                 val data = reqTmapInVehicle(
@@ -215,8 +217,8 @@ class InoutService {
     }
 
     fun searchParkInByVehicleNo(vehicleNo: String) : CommonResult {
-        logger.info("VehicleService searchParkInByVehicleNo search param : $vehicleNo")
-        parkInRepository.findByVehicleNoEndsWithAndOutSn(vehicleNo, 0L)?.let {
+        logger.trace("VehicleService searchParkInByVehicleNo search param : $vehicleNo")
+        parkInRepository.findByVehicleNoEndsWithAndOutSn(vehicleNo, 0)?.let {
             if (it.isNullOrEmpty()) return CommonResult.notfound("$vehicleNo park in data not found")
             return CommonResult.data(it)
         }
@@ -404,7 +406,7 @@ class InoutService {
             parkOutRepository.flush()
 
             // tmap 연동
-            if (tmapSend.equals("on")) {
+            if (parkinglotService.parkSite.tmapSend.equals("ON")) {
                 when (parkingtype) {
                     "정기차량" -> tmapSendService.sendOutVehicle(
                         reqOutVehicle(
