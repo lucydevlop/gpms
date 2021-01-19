@@ -35,7 +35,8 @@ enum class DisplayMessageType(val code: String, val desc: String) {
     VIP("VIP", "정기권차량"),
     CALL("CALL", "호출"),
     FAIL("FAIL", "실패"),
-    FAILNUMBER("FAILNUMBER", "미인식차량")
+    FAILNUMBER("FAILNUMBER", "미인식차량"),
+    RESTRICTE("RESTRICTE", "입차제한차량"),
 }
 
 enum class DisplayMessageCode(val code: String, val desc: String) {

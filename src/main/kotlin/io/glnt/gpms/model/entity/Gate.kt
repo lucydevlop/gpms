@@ -46,6 +46,9 @@ data class Gate(
     @Column(name = "upload_ct", nullable = false)
     var uploadCt: Int? = 0,
 
+    @Column(name = "open_action", nullable = false)
+    var openAction: String? = "ALL",
+
     @Column(name = "relay_svr", nullable = false)
     var relaySvr: String? = "http://192.168.20.30:9999/v1"
 

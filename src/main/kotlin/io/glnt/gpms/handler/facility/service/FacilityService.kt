@@ -251,7 +251,7 @@ class FacilityService {
             vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = request.facilityId))
             tmapSendService.sendTmapInterface(request, requestId, "vehicleListSearch")
         } else {
-            return inoutService.searchParkInByVehicleNo(request.vehicleNumber)
+            return inoutService.searchParkInByVehicleNo(request.vehicleNumber, "")
         }
         return null
     }
