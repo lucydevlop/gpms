@@ -9,7 +9,7 @@ enum class GateTypeStatus {
 }
 
 enum class LprTypeStatus {
-    FRONT, BACK, ASSIST
+    INFRONT, INBACK, INASSIST, OUTFRONT, OUTBACK, OUTASSIST
 }
 
 enum class DisplayPosition(val code: String, val desc: String) {
