@@ -5,7 +5,7 @@ import io.glnt.gpms.model.entity.Gate
 data class reqSearchParkinglotFeature(
     var fromDate: String?,
     var toDate: String?,
-    var gateSvrKey: String?,
+    var relaySvrKey: String?,
     var featureId: String?,
     var facilitiesId: String?,
     var gateId: String?

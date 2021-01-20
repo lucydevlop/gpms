@@ -58,18 +58,11 @@ data class Facility (
     var flagConnect: Int? = 0,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "gate_type")
-    var gateType: GateTypeStatus,
-
-    @Enumerated(EnumType.STRING)
     @Column(name = "lpr_type")
     var lprType: LprTypeStatus? = null,
 
     @Column(name = "image_path")
-    var imagePath: String? = null,
-
-    @Column(name = "gate_svr_key")
-    var gateSvrKey: String? = null
+    var imagePath: String? = null
 //    ,
 //    @ManyToOne(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "gate_id", nullable = false)

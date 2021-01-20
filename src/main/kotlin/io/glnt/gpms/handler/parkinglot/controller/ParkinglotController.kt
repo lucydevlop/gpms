@@ -98,30 +98,30 @@ class ParkinglotController {
         }
     }
 
-    @RequestMapping(value = ["/feature/list"], method = [RequestMethod.POST])
-    @Throws(CustomException::class)
-    fun getParkinglotFeature(@RequestBody request: reqSearchParkinglotFeature): ResponseEntity<CommonResult> {
-        logger.trace("parkinglot feature list  = $request")
-        val result = parkinglotService.getParkinglotFeature(request)
-
-        return when(result.code) {
-            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
-            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
-            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
-
-        }
-    }
-
-    @RequestMapping(value = ["/feature/add"], method = [RequestMethod.POST])
-    @Throws(CustomException::class)
-    fun addParkinglotFeature(@RequestBody request: reqAddParkinglotFeature): ResponseEntity<CommonResult> {
-        logger.debug("list parkinglot = $request")
-        val result = parkinglotService.addParkinglotFeature(request)
-        return when(result.code){
-            ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
-            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
-        }
-    }
+//    @RequestMapping(value = ["/feature/list"], method = [RequestMethod.POST])
+//    @Throws(CustomException::class)
+//    fun getParkinglotFeature(@RequestBody request: reqSearchParkinglotFeature): ResponseEntity<CommonResult> {
+//        logger.trace("parkinglot feature list  = $request")
+//        val result = parkinglotService.getParkinglotFeature(request)
+//
+//        return when(result.code) {
+//            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+//            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+//            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+//
+//        }
+//    }
+//
+//    @RequestMapping(value = ["/feature/add"], method = [RequestMethod.POST])
+//    @Throws(CustomException::class)
+//    fun addParkinglotFeature(@RequestBody request: reqAddParkinglotFeature): ResponseEntity<CommonResult> {
+//        logger.debug("list parkinglot = $request")
+//        val result = parkinglotService.addParkinglotFeature(request)
+//        return when(result.code){
+//            ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
+//            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+//        }
+//    }
 
     @RequestMapping(value= ["/facility/{id}"], method = [RequestMethod.GET])
     fun getFacility(@PathVariable("id") id: String): ResponseEntity<CommonResult> {

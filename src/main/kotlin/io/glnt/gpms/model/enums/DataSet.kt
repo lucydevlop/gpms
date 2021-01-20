@@ -60,6 +60,16 @@ enum class TicketType(val code: String, val desc: String) {
     ETC("ETC", "기타"),
 }
 
+enum class DiscountRangeType(val code: String, val desc: String) {
+    WEEKDAY("WEEKDAY", "평일"),
+    ALL("ALL", "전체")
+}
+
+enum class DiscountSaleType(val code: String, val desc: String) {
+    PAID("PAID", "유료권"),
+    FREE("FREE", "무료권")
+}
+
 //enum class parkCarType {
 //    "일반차량", "정기권차량", "미인식차량"
 //}
