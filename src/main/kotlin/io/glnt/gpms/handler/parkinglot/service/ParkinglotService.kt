@@ -9,6 +9,7 @@ import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.common.utils.FileUtils
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.facility.model.resRelaySvrFacility
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
 import io.glnt.gpms.model.entity.*
@@ -33,8 +34,8 @@ class ParkinglotService {
     @Autowired
     lateinit var tmapSendService: TmapSendService
 
-    @Autowired
-    private lateinit var parkFeatureRepository: ParkFeatureRepository
+//    @Autowired
+//    private lateinit var parkFeatureRepository: ParkFeatureRepository
 
     @Autowired
     private lateinit var parkFacilityRepository: ParkFacilityRepository
@@ -99,44 +100,44 @@ class ParkinglotService {
         }
     }
 
-    fun addParkinglotFeature(request: reqAddParkinglotFeature): CommonResult = with(request) {
-        logger.debug("addParkinglotFeature service {}", request)
-        try {
-            val new = ParkFeature(
-                idx = null,
-                featureId = featureId,
-                flag = flag,
-                groupKey = groupKey,
-                category = category,
-                connectionType = connetionType,
-                ip = ip,
-                port = port,
-                originImgPath = path,
-                transactinoId = transactionId
-            )
-            parkFeatureRepository.save(new)
-            return CommonResult.created("parkinglot feature add success")
-        } catch (e: RuntimeException) {
-            logger.error("addParkinglotFeature error {} ", e.message)
-            return CommonResult.error("parkinglot feature db add failed ")
-        }
-    }
+//    fun addParkinglotFeature(request: reqAddParkinglotFeature): CommonResult = with(request) {
+//        logger.debug("addParkinglotFeature service {}", request)
+//        try {
+//            val new = ParkFeature(
+//                idx = null,
+//                featureId = featureId,
+//                flag = flag,
+//                groupKey = groupKey,
+//                category = category,
+//                connectionType = connetionType,
+//                ip = ip,
+//                port = port,
+//                originImgPath = path,
+//                transactinoId = transactionId
+//            )
+//            parkFeatureRepository.save(new)
+//            return CommonResult.created("parkinglot feature add success")
+//        } catch (e: RuntimeException) {
+//            logger.error("addParkinglotFeature error {} ", e.message)
+//            return CommonResult.error("parkinglot feature db add failed ")
+//        }
+//    }
 
-    fun getParkinglotFeature(requet: reqSearchParkinglotFeature): CommonResult {
-        requet.featureId?.let {
-            val list = parkFeatureRepository.findByFeatureId(it)
-            return if (list == null) CommonResult.notfound("parkinglot feature") else CommonResult.data(list)
-        } ?: run {
-            requet.gateSvrKey?.let {
-                val lists = parkFeatureRepository.findByGroupKey(it)
-                return if (lists.isNullOrEmpty()) CommonResult.notfound("parkinglot feature") else CommonResult.data(lists)
-            } ?: run {
-                parkFeatureRepository.findAll().let {
-                    return CommonResult.data(it)
-                }
-            }
-        }
-    }
+//    fun getParkinglotFeature(requet: reqSearchParkinglotFeature): CommonResult {
+//        requet.featureId?.let {
+//            val list = parkFeatureRepository.findByFeatureId(it)
+//            return if (list == null) CommonResult.notfound("parkinglot feature") else CommonResult.data(list)
+//        } ?: run {
+//            requet.gateSvrKey?.let {
+//                val lists = parkFeatureRepository.findByGroupKey(it)
+//                return if (lists.isNullOrEmpty()) CommonResult.notfound("parkinglot feature") else CommonResult.data(lists)
+//            } ?: run {
+//                parkFeatureRepository.findAll().let {
+//                    return CommonResult.data(it)
+//                }
+//            }
+//        }
+//    }
 
     fun getParkinglotGates(requet: reqSearchParkinglotFeature): CommonResult {
         logger.info { "getParkinglotGates request $requet" }
@@ -170,17 +171,64 @@ class ParkinglotService {
 
     fun getParkinglotfacilities(requet: reqSearchParkinglotFeature): CommonResult {
         requet.facilitiesId?.let {
-            val list = parkFacilityRepository.findByFacilitiesId(it)
-            return if (list == null) CommonResult.notfound("parkinglot facilities") else CommonResult.data(list)
+            parkFacilityRepository.findByFacilitiesId(it)?.let { facility ->
+                parkGateRepository.findByGateId(facility.gateId)?.let { gate ->
+                    return CommonResult.data(
+                        resRelaySvrFacility(sn = facility.sn,
+                            category = facility.category, modelid = facility.modelid,
+                            fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
+                            facilitiesId = facility.facilitiesId, flagUse = facility.flagUse,
+                            gateId = facility.gateId, udpGateid = facility.udpGateid,
+                            ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
+                            resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
+                            imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey
+                        ))
+                }
+
+            }
+            return CommonResult.notfound("parkinglot facilities")
         } ?: run {
-            requet.gateSvrKey?.let {
-                val lists = parkFacilityRepository.findByGateSvrKey(it)
-                return if (lists.isNullOrEmpty()) CommonResult.notfound("parkinglot facilities") else CommonResult.data(lists)
+            val result = ArrayList<resRelaySvrFacility>()
+            requet.relaySvrKey?.let {
+                parkGateRepository.findByRelaySvrKey(it).let { gates ->
+                    gates.forEach { gate ->
+                        parkFacilityRepository.findByGateIdAndFlagUse(gate.gateId, 0)?.let { facilities ->
+                            facilities.forEach { facility ->
+                                result.add(
+                                    resRelaySvrFacility(sn = facility.sn,
+                                        category = facility.category, modelid = facility.modelid,
+                                        fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
+                                        facilitiesId = facility.facilitiesId, flagUse = facility.flagUse,
+                                        gateId = facility.gateId, udpGateid = facility.udpGateid,
+                                        ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
+                                        resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
+                                        imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey
+                                    ))
+                            }
+                        }
+                    }
+                }
             } ?: run {
-                parkFacilityRepository.findAll().let {
-                    return CommonResult.data(it)
+                parkGateRepository.findAll().let { gates ->
+                    gates.forEach { gate ->
+                        parkFacilityRepository.findByGateIdAndFlagUse(gate.gateId, 0)?.let { facilities ->
+                            facilities.forEach { facility ->
+                                result.add(
+                                    resRelaySvrFacility(sn = facility.sn,
+                                        category = facility.category, modelid = facility.modelid,
+                                        fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
+                                        facilitiesId = facility.facilitiesId, flagUse = facility.flagUse,
+                                        gateId = facility.gateId, udpGateid = facility.udpGateid,
+                                        ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
+                                        resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
+                                        imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey
+                                    ))
+                            }
+                        }
+                    }
                 }
             }
+            return if (result.isNullOrEmpty()) CommonResult.notfound("parkinglot facilities") else CommonResult.data(result)
         }
     }
 
