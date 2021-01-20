@@ -27,6 +27,28 @@ class FacilityController {
     @Autowired
     private lateinit var facilityService: FacilityService
 
+    @RequestMapping(value= ["/display/color"], method = [RequestMethod.GET])
+    fun getDisplayColor() : ResponseEntity<CommonResult> {
+        logger.trace { "getDisplayColor" }
+        val result = facilityService.getDisplayColor()
+        return when (result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    @RequestMapping(value= ["/display/message"], method = [RequestMethod.GET])
+    fun getDisplayMessage() : ResponseEntity<CommonResult> {
+        logger.trace { "getDisplayMessage" }
+        val result = facilityService.getDisplayMessage()
+        return when (result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        }
+    }
+
     @RequestMapping(value= ["/display/color"], method = [RequestMethod.POST])
     fun setDisplayColor(@RequestBody request: ArrayList<reqSetDisplayColor>) : ResponseEntity<CommonResult> {
         logger.debug("parkinglot facility display color : $request")
@@ -86,8 +108,6 @@ class FacilityController {
             else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
         }
     }
-
-
 
     companion object : KLogging()
 }
