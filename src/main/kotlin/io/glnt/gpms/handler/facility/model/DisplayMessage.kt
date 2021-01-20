@@ -2,7 +2,6 @@ package io.glnt.gpms.handler.facility.model
 
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayMessageType
-import io.glnt.gpms.model.enums.DisplayPosition
 import io.glnt.gpms.model.enums.DisplayType
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
@@ -27,7 +26,7 @@ data class reqDisplayMessage(
 //)
 
 data class reqSetDisplayColor(
-    @Enumerated(EnumType.STRING) var position: DisplayPosition? = null,
+    @Enumerated(EnumType.STRING) var messageClass: DisplayMessageClass? = null,
     @Enumerated(EnumType.STRING) var type: DisplayType? = null,
     var colorCode: String,
     var colorDesc: String

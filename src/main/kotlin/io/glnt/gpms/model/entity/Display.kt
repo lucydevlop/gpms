@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayMessageType
-import io.glnt.gpms.model.enums.DisplayPosition
 import io.glnt.gpms.model.enums.DisplayType
 import java.io.Serializable
 import javax.persistence.*
@@ -21,12 +20,12 @@ data class DisplayColor(
     var  sn : Long?,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "position", nullable = false)
-    var position: DisplayPosition = DisplayPosition.IN,
+    @Column(name = "message_class", nullable = true)
+    var messageClass: DisplayMessageClass? = DisplayMessageClass.IN,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
-    var type: DisplayType = DisplayType.NORMAL1,
+    @Column(name = "color_type", nullable = false)
+    var colorType: DisplayType = DisplayType.NORMAL1,
 
     @Column(name = "color_code")
     var colorCode: String,

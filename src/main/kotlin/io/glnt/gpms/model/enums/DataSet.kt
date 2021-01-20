@@ -12,10 +12,10 @@ enum class LprTypeStatus {
     INFRONT, INBACK, INASSIST, OUTFRONT, OUTBACK, OUTASSIST
 }
 
-enum class DisplayPosition(val code: String, val desc: String) {
-    IN("IN", "입구"),
-    OUT("OUT", "출구")
-}
+//enum class DisplayPosition(val code: String, val desc: String) {
+//    IN("IN", "입구"),
+//    OUT("OUT", "출구")
+//}
 
 enum class DisplayType(val code: String, val desc: String) {
     NORMAL1("NORMAL1", "일반(첫번째줄)"),

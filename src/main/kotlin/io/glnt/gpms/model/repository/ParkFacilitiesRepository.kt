@@ -4,15 +4,14 @@ import io.glnt.gpms.model.entity.DisplayColor
 import io.glnt.gpms.model.entity.DisplayMessage
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayMessageType
-import io.glnt.gpms.model.enums.DisplayPosition
 import io.glnt.gpms.model.enums.DisplayType
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
 interface DisplayColorRepository: JpaRepository<DisplayColor, Long> {
-    fun findByPositionAndType(position: DisplayPosition, type: DisplayType): DisplayColor?
-    fun findByPositionIn(positions: List<DisplayPosition>): List<DisplayColor>
+    fun findByMessageClassAndColorType(messageClass: DisplayMessageClass, colorType: DisplayType): DisplayColor?
+    fun findByMessageClassIn(messageClasses: List<DisplayMessageClass>): List<DisplayColor>
 }
 
 @Repository

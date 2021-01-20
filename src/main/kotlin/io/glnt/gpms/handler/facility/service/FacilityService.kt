@@ -18,7 +18,6 @@ import io.glnt.gpms.model.entity.DisplayMessage
 import io.glnt.gpms.model.entity.Gate
 import io.glnt.gpms.model.entity.VehicleListSearch
 import io.glnt.gpms.model.enums.DisplayMessageClass
-import io.glnt.gpms.model.enums.DisplayPosition
 import io.glnt.gpms.model.repository.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -116,7 +115,7 @@ class FacilityService {
         logger.trace { "setDisplayColor request $request" }
         try {
             request.forEach { it ->
-                displayColorRepository.findByPositionAndType(it.position!!, it.type!!)?.let { displayColor ->
+                displayColorRepository.findByMessageClassAndColorType(it.messageClass!!, it.type!!)?.let { displayColor ->
                     displayColor.colorCode = it.colorCode
                     displayColor.colorDesc = it.colorDesc
                     displayColorRepository.save(displayColor)
@@ -124,7 +123,7 @@ class FacilityService {
                     displayColorRepository.save(
                         DisplayColor(
                             sn = null,
-                            position = it.position!!, type = it.type!!,
+                            messageClass = it.messageClass!!, colorType = it.type!!,
                             colorCode = it.colorCode, colorDesc = it.colorDesc
                         )
                     )
@@ -176,9 +175,32 @@ class FacilityService {
         }
     }
 
+    fun getDisplayColor() : CommonResult {
+        logger.info { "getDisplayColor" }
+        try {
+            displayColorRepository.findAll().let { it ->
+                return CommonResult.data(it)
+            }
+        }catch (e: RuntimeException){
+            logger.error { "getDisplayColor error ${e.message}" }
+            return CommonResult.error("getDisplayColor error")
+        }
+    }
+    fun getDisplayMessage() : CommonResult {
+        logger.info { "getDisplayMessage" }
+        try {
+            displayMessageRepository.findAll().let { it ->
+                return CommonResult.data(it)
+            }
+        }catch (e: RuntimeException){
+            logger.error { "getDisplayColor error ${e.message}" }
+            return CommonResult.error("getDisplayColor error")
+        }
+    }
+
     fun fetchDisplayColor() {
-        val positions: List<DisplayPosition> = listOf(DisplayPosition.IN, DisplayPosition.OUT)
-        displayColorRepository.findByPositionIn(positions).let {
+        val positions: List<DisplayMessageClass> = listOf(DisplayMessageClass.IN, DisplayMessageClass.OUT)
+        displayColorRepository.findByMessageClassIn(positions).let {
             displayColors = it
         }
 
@@ -186,7 +208,7 @@ class FacilityService {
             displayMessagesIn = meessages
 
             displayMessagesIn.forEach { it ->
-                displayColorRepository.findByPositionAndType(DisplayPosition.IN, it.colorType!!)?.let { color ->
+                displayColorRepository.findByMessageClassAndColorType(DisplayMessageClass.IN, it.colorType!!)?.let { color ->
                     it.displayColor = color
                 }
             }
@@ -196,7 +218,7 @@ class FacilityService {
             displayMessagesOut = meessages
 
             displayMessagesOut.forEach { it ->
-                displayColorRepository.findByPositionAndType(DisplayPosition.OUT, it.colorType!!)?.let { color ->
+                displayColorRepository.findByMessageClassAndColorType(DisplayMessageClass.OUT, it.colorType!!)?.let { color ->
                     it.displayColor = color
                 }
             }
@@ -206,7 +228,7 @@ class FacilityService {
             displayMessagesWait = meessages
 
             displayMessagesWait.forEach { it ->
-                displayColorRepository.findByPositionAndType(DisplayPosition.OUT, it.colorType!!)?.let { color ->
+                displayColorRepository.findByMessageClassAndColorType(DisplayMessageClass.OUT, it.colorType!!)?.let { color ->
                     it.displayColor = color
                 }
             }
