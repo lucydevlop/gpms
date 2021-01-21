@@ -10,8 +10,8 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface DisplayColorRepository: JpaRepository<DisplayColor, Long> {
-    fun findByMessageClassAndColorType(messageClass: DisplayMessageClass, colorType: DisplayType): DisplayColor?
-    fun findByMessageClassIn(messageClasses: List<DisplayMessageClass>): List<DisplayColor>
+    fun findByColorCode(colorCode: String): DisplayColor?
+//    fun findByMessageClassIn(messageClasses: List<DisplayMessageClass>): List<DisplayColor>
 }
 
 @Repository

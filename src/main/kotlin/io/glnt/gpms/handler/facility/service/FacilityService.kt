@@ -115,16 +115,14 @@ class FacilityService {
         logger.trace { "setDisplayColor request $request" }
         try {
             request.forEach { it ->
-                displayColorRepository.findByMessageClassAndColorType(it.messageClass!!, it.type!!)?.let { displayColor ->
+                displayColorRepository.findByColorCode(it.colorCode)?.let { displayColor ->
                     displayColor.colorCode = it.colorCode
                     displayColor.colorDesc = it.colorDesc
                     displayColorRepository.save(displayColor)
                 } ?: run {
                     displayColorRepository.save(
                         DisplayColor(
-                            sn = null,
-                            messageClass = it.messageClass!!, colorType = it.type!!,
-                            colorCode = it.colorCode, colorDesc = it.colorDesc
+                            sn = null, colorCode = it.colorCode, colorDesc = it.colorDesc
                         )
                     )
                 }
@@ -146,7 +144,7 @@ class FacilityService {
                     it.messageType!!,
                     it.order
                 )?.let { displayMessage ->
-                    displayMessage.colorType = it.colorType
+                    displayMessage.colorCode = it.colorCode
                     displayMessage.messageDesc = it.messageDesc
                     displayMessage.lineNumber = it.line
                     displayMessageRepository.save(displayMessage)
@@ -156,7 +154,7 @@ class FacilityService {
                             sn = null,
                             messageClass = it.messageClass!!,
                             messageType = it.messageType!!,
-                            colorType = it.colorType,
+                            colorCode = it.colorCode,
                             order = it.order,
                             messageDesc = it.messageDesc,
                             lineNumber = it.line
@@ -199,39 +197,34 @@ class FacilityService {
     }
 
     fun fetchDisplayColor() {
-        val positions: List<DisplayMessageClass> = listOf(DisplayMessageClass.IN, DisplayMessageClass.OUT)
-        displayColorRepository.findByMessageClassIn(positions).let {
-            displayColors = it
-        }
-
         displayMessageRepository.findByMessageClass(DisplayMessageClass.IN)?.let { meessages ->
             displayMessagesIn = meessages
 
-            displayMessagesIn.forEach { it ->
-                displayColorRepository.findByMessageClassAndColorType(DisplayMessageClass.IN, it.colorType!!)?.let { color ->
-                    it.displayColor = color
-                }
-            }
+//            displayMessagesIn.forEach { it ->
+//                displayColorRepository.findByMessageClassAndColorType(DisplayMessageClass.IN, it.colorType!!)?.let { color ->
+//                    it.displayColor = color
+//                }
+//            }
         }
 
         displayMessageRepository.findByMessageClass(DisplayMessageClass.OUT)?.let { meessages ->
             displayMessagesOut = meessages
 
-            displayMessagesOut.forEach { it ->
-                displayColorRepository.findByMessageClassAndColorType(DisplayMessageClass.OUT, it.colorType!!)?.let { color ->
-                    it.displayColor = color
-                }
-            }
+//            displayMessagesOut.forEach { it ->
+//                displayColorRepository.findByMessageClassAndColorType(DisplayMessageClass.OUT, it.colorType!!)?.let { color ->
+//                    it.displayColor = color
+//                }
+//            }
         }
 
         displayMessageRepository.findByMessageClass(DisplayMessageClass.WAIT)?.let { meessages ->
             displayMessagesWait = meessages
 
-            displayMessagesWait.forEach { it ->
-                displayColorRepository.findByMessageClassAndColorType(DisplayMessageClass.OUT, it.colorType!!)?.let { color ->
-                    it.displayColor = color
-                }
-            }
+//            displayMessagesWait.forEach { it ->
+//                displayColorRepository.findByMessageClassAndColorType(DisplayMessageClass.OUT, it.colorType!!)?.let { color ->
+//                    it.displayColor = color
+//                }
+//            }
         }
     }
     private fun getRelaySvrUrl(gateId: String): String {
