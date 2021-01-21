@@ -173,7 +173,7 @@ class TmapCommandService {
                     },
                     line = 1,
                     order = 1,
-                    colorType = DisplayType.NORMAL1,
+                    colorCode = "C1",
                     messageDesc = message.message!!
                 )
                 messages.add(new)

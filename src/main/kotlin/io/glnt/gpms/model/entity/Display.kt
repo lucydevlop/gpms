@@ -19,14 +19,6 @@ data class DisplayColor(
     @Column(name = "sn", unique = true, nullable = false)
     var  sn : Long?,
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "message_class", nullable = true)
-    var messageClass: DisplayMessageClass? = DisplayMessageClass.IN,
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "color_type", nullable = false)
-    var colorType: DisplayType = DisplayType.NORMAL1,
-
     @Column(name = "color_code")
     var colorCode: String,
 
@@ -63,20 +55,8 @@ data class DisplayMessage(
     @Column(name = "line_number")
     var lineNumber: Int? = 1,
 
-
-//    @Column(name = "line1_message", nullable = false)
-//    var line1Message: String? = null,
-//
-//    @Enumerated(EnumType.STRING)
-//    @Column(name = "line1_color_type", nullable = false)
-//    var line1ColorType: DisplayType? = null,
-//
-//    @Column(name = "line2_message", nullable = false)
-//    var line2Message: String? = null,
-//
-    @Enumerated(EnumType.STRING)
-    @Column(name = "color_type", nullable = false)
-    var colorType: DisplayType? = null,
+    @Column(name = "color_code", nullable = false)
+    var colorCode: String,
 
     @Column(name = "message_desc")
     var messageDesc: String,
@@ -84,9 +64,6 @@ data class DisplayMessage(
     @Transient
     var displayColor: DisplayColor? = null
 
-//    ,
-//    @Column(name = "color_desc")
-//    var colorDesc: String? = null
 ): Auditable(), Serializable {
 //    constructor(sn: Nothing?, messageClass: DisplayMessageClass, messageType: DisplayMessageType, colorType: DisplayType, order: Int, messageDesc: String) : this()
 

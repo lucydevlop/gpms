@@ -26,8 +26,6 @@ data class reqDisplayMessage(
 //)
 
 data class reqSetDisplayColor(
-    @Enumerated(EnumType.STRING) var messageClass: DisplayMessageClass? = null,
-    @Enumerated(EnumType.STRING) var type: DisplayType? = null,
     var colorCode: String,
     var colorDesc: String
 )
@@ -35,7 +33,7 @@ data class reqSetDisplayColor(
 data class reqSetDisplayMessage(
     @Enumerated(EnumType.STRING) var messageClass: DisplayMessageClass? = null,
     @Enumerated(EnumType.STRING) var messageType: DisplayMessageType? = null,
-    @Enumerated(EnumType.STRING) var colorType: DisplayType,
+    var colorCode: String,
     var messageDesc: String,
     var order: Int,
     var line: Int
