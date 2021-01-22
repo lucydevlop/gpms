@@ -177,6 +177,19 @@ class ParkinglotService {
         }
     }
 
+    fun deleteGate(id: Long) : CommonResult {
+        logger.info{ "delete gate: $id"}
+        try{
+            parkGateRepository.findBySn(id)?.let { gate ->
+                gate.delYn = "Y"
+                return CommonResult.data(parkGateRepository.save(gate))
+            }
+        }catch (e: CustomException) {
+            logger.error("deleteGate error {} ", e.message)
+        }
+        return CommonResult.error("deleteGate failed ")
+    }
+
     fun getParkinglotfacilities(requet: reqSearchParkinglotFeature): CommonResult {
         requet.facilitiesId?.let {
             parkFacilityRepository.findByFacilitiesId(it)?.let { facility ->
