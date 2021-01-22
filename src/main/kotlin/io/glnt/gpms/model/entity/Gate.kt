@@ -53,7 +53,10 @@ data class Gate(
     var relaySvrKey: String? = "RELAYSVR1",
 
     @Column(name = "relay_svr", nullable = false)
-    var relaySvr: String? = "http://192.168.20.30:9999/v1"
+    var relaySvr: String? = "http://192.168.20.30:9999/v1",
+
+    @Column(name = "del_yn", nullable = false)
+    var delYn: String? = "N"
 
 //    ,
 //    @JsonIgnore
