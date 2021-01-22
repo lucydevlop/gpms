@@ -3,6 +3,7 @@ package io.glnt.gpms.model.repository
 import io.glnt.gpms.model.entity.Facility
 import io.glnt.gpms.model.entity.Gate
 import io.glnt.gpms.model.entity.ParkSiteInfo
+import io.glnt.gpms.model.enums.DelYn
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
@@ -33,7 +34,7 @@ interface ParkFacilityRepository: JpaRepository<Facility, Long> {
 @Repository
 interface ParkGateRepository: JpaRepository<Gate, Long> {
     fun findBySn(sn: Long): Gate?
-    fun findByFlagUse(flagUse: Int): List<Gate>
+    fun findByDelYn(delYn: DelYn): List<Gate>
     fun findByGateId(gateId: String): Gate?
     fun findByUdpGateid(udpGateid: String): Gate?
     fun findByRelaySvrKey(relaySvrKey: String): List<Gate>

@@ -12,6 +12,7 @@ import io.glnt.gpms.handler.facility.model.resRelaySvrFacility
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
 import io.glnt.gpms.model.entity.*
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.repository.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -51,7 +52,7 @@ class ParkinglotService {
             val mapData : ArrayList<parkinglotMap> = ArrayList()
             val gateList : ArrayList<gateLists> = ArrayList()
             val facilitiesList: ArrayList<facilitiesLists> = ArrayList()
-            val gateData = parkGateRepository.findByFlagUse(1)
+            val gateData = parkGateRepository.findByDelYn(DelYn.N)
             gateData.forEach { gate ->
                 val facilities = parkFacilityRepository.findByGateIdAndFlagUse(gate.gateId!!, 1)!!
                 val FacilitiesId = facilities.map { it.dtFacilitiesId.toString() }.toTypedArray()
@@ -181,7 +182,7 @@ class ParkinglotService {
         logger.info{ "delete gate: $id"}
         try{
             parkGateRepository.findBySn(id)?.let { gate ->
-                gate.delYn = "Y"
+                gate.delYn = DelYn.Y
                 return CommonResult.data(parkGateRepository.save(gate))
             }
         }catch (e: CustomException) {

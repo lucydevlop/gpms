@@ -3,6 +3,7 @@ package io.glnt.gpms.model.entity
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.GateTypeStatus
 import org.hibernate.annotations.Where
 import java.io.Serializable
@@ -55,8 +56,9 @@ data class Gate(
     @Column(name = "relay_svr", nullable = false)
     var relaySvr: String? = "http://192.168.20.30:9999/v1",
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
-    var delYn: String? = "N"
+    var delYn: DelYn? = DelYn.N
 
 //    ,
 //    @JsonIgnore
