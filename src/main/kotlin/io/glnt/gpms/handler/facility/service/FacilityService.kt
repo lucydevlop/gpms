@@ -98,7 +98,7 @@ class FacilityService {
                 }
             }
         } catch (e: RuntimeException) {
-            logger.error {  "openGate ${type} ${id} error ${e.message}"}
+            logger.error {  "openGate $type $id error ${e.message}"}
         }
     }
 

@@ -6,9 +6,9 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
-import io.glnt.gpms.handler.parkinglot.model.reqAddParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
+import io.glnt.gpms.model.entity.Gate
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -97,6 +97,22 @@ class ParkinglotController {
 
         }
     }
+
+    @RequestMapping(value = ["/gate/create"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun createGate(@RequestBody request: Gate): ResponseEntity<CommonResult> {
+        logger.trace("parkinglot gate create  = $request")
+        val result = parkinglotService.createGate(request)
+
+        return when(result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+
+        }
+    }
+
+
 
 //    @RequestMapping(value = ["/feature/list"], method = [RequestMethod.POST])
 //    @Throws(CustomException::class)
