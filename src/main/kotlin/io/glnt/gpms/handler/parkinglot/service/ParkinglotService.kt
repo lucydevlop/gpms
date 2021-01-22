@@ -145,7 +145,7 @@ class ParkinglotService {
                 val gate = parkGateRepository.findByGateId(gateId = it)
                 return if (gate == null) CommonResult.notfound("gate"+requet.gateId) else CommonResult.data(gate)
             } ?: run {
-                parkGateRepository.findAll().let {
+                parkGateRepository.findByDelYn(DelYn.N).let {
                     return CommonResult.data(it)
                 }
             }
