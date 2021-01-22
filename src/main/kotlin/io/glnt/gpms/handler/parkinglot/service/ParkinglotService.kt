@@ -2,7 +2,6 @@ package io.glnt.gpms.handler.parkinglot.service
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
-import io.glnt.gpms.handler.parkinglot.model.reqAddParkinglotFeature
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.tmap.model.*
@@ -18,7 +17,6 @@ import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
-import java.lang.RuntimeException
 import javax.transaction.Transactional
 import kotlin.collections.ArrayList
 
@@ -80,7 +78,7 @@ class ParkinglotService {
             // todo db Update
 
             return CommonResult.created("parkinglot feature add success")
-        } catch (e: RuntimeException) {
+        } catch (e: CustomException) {
             logger.error("createParkinglot error {} ", e.message)
             return CommonResult.error("Parkinglot db creatae failed ")
         }
@@ -94,7 +92,7 @@ class ParkinglotService {
             } ?: run {
                 return CommonResult.notfound("parkinglot site info")
             }
-        }catch (e: RuntimeException) {
+        }catch (e: CustomException) {
             logger.error { "getParkinglot error ${e.message}" }
             return CommonResult.error("parkinglot fetch failed ")
         }
@@ -117,7 +115,7 @@ class ParkinglotService {
 //            )
 //            parkFeatureRepository.save(new)
 //            return CommonResult.created("parkinglot feature add success")
-//        } catch (e: RuntimeException) {
+//        } catch (e: CustomException) {
 //            logger.error("addParkinglotFeature error {} ", e.message)
 //            return CommonResult.error("parkinglot feature db add failed ")
 //        }
@@ -150,7 +148,7 @@ class ParkinglotService {
                     return CommonResult.data(it)
                 }
             }
-        }catch (e: RuntimeException) {
+        }catch (e: CustomException) {
             logger.error("getParkinglotGates error {} ", e.message)
             return CommonResult.error("getParkinglotGates failed ")
         }
@@ -163,9 +161,19 @@ class ParkinglotService {
                 parkGateRepository.save(it)
             }
             return CommonResult.data(parkGateRepository.findAll())
-        } catch (e: RuntimeException) {
+        } catch (e: CustomException) {
             logger.error("updateGates error {} ", e.message)
             return CommonResult.error("updateGates failed ")
+        }
+    }
+
+    fun createGate(request: Gate) : CommonResult{
+        logger.info { "create gate: $request" }
+        try {
+            return CommonResult.data(parkGateRepository.save(request))
+        }catch (e: CustomException) {
+            logger.error("createGate error {} ", e.message)
+            return CommonResult.error("createGate failed ")
         }
     }
 
@@ -283,7 +291,7 @@ class ParkinglotService {
             data.flagMessage = 1
             parkSiteInfoRepository.save(data)
             fetchParkSiteInfo()
-        } catch (e: RuntimeException) {
+        } catch (e: CustomException) {
             logger.error { "save tb_parksite error ${e.message}" }
             return false
         }
@@ -293,7 +301,7 @@ class ParkinglotService {
     fun saveGate(data: Gate): Boolean {
         try {
             parkGateRepository.save(data)
-        } catch (e: RuntimeException) {
+        } catch (e: CustomException) {
             logger.error { "save gate error ${e.message}" }
             return false
         }
@@ -314,7 +322,7 @@ class ParkinglotService {
                     else -> getFacility(id)
                 }
             )
-        }catch (e: RuntimeException) {
+        }catch (e: CustomException) {
             logger.error { "searchFacility error ${e.message}" }
             return CommonResult.error("facility fetch failed ")
         }
@@ -354,7 +362,7 @@ class ParkinglotService {
             } ?: run {
                 return CommonResult.notfound("parkinglot data not found")
             }
-        } catch(e: RuntimeException) {
+        } catch(e: CustomException) {
             logger.error { "updateParkinglot error ${e.message}" }
             return CommonResult.error("parkinglot update failed ")
         }
