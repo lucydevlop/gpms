@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.enums.GateTypeStatus
 import io.glnt.gpms.model.enums.LprTypeStatus
+import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
+import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
@@ -62,7 +64,14 @@ data class Facility (
     var lprType: LprTypeStatus? = null,
 
     @Column(name = "image_path")
-    var imagePath: String? = null
+    var imagePath: String? = null,
+
+    @Column(name = "status")
+    var status: String? = null,
+
+    @Column(name = "status_date")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var statusDate: LocalDateTime? = null
 //    ,
 //    @ManyToOne(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "gate_id", nullable = false)

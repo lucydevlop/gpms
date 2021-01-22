@@ -13,16 +13,14 @@ import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.io.glnt.gpms.common.utils.JacksonUtil
-import io.glnt.gpms.model.entity.DisplayColor
-import io.glnt.gpms.model.entity.DisplayMessage
-import io.glnt.gpms.model.entity.Gate
-import io.glnt.gpms.model.entity.VehicleListSearch
+import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.repository.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 
 @Service
 class FacilityService {
@@ -364,5 +362,22 @@ class FacilityService {
     /* udp gate id */
     fun getUdpGateId(gateId: String) : String? {
         return parkGateRepository.findByGateId(gateId)?.udpGateid
+    }
+
+    fun updateFacility(facility: Facility): Facility {
+        return facilityRepository.save(facility)
+    }
+
+    fun updateHealthCheck(facilitiesId: String, status: String) {
+        logger.info { "updateHealthCheck facility $facilitiesId status $status" }
+        try {
+            facilityRepository.findByFacilitiesId(facilitiesId)?.let { facility ->
+                facility.status = status
+                facility.statusDate = LocalDateTime.now()
+                facilityRepository.save(facility)
+            }
+        }catch (e: RuntimeException) {
+            logger.error { "allUpdateFacilities error ${e.message}" }
+        }
     }
 }
