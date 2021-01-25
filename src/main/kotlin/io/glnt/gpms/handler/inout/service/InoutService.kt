@@ -693,6 +693,10 @@ class InoutService {
         facilityService.sendDisplayMessage(displayMessage, gateId)
     }
 
+    fun lastSettleData(facilityId: String): ParkOut? {
+        return parkOutRepository.findTopByPaystationOrderByOutDateDesc(facilityId)
+    }
+
     fun makeParkOutPhrase(parkingtype: String, vehicleNo: String, text: String? = null) {
         val messages = ArrayList<reqDisplayMessage>()
 //        when(parkingtype) {

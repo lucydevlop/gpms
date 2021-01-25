@@ -3,6 +3,7 @@ package io.glnt.gmps
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.relay.service.RelayService
 import io.vertx.core.Vertx
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.unit.junit.Timeout
@@ -27,6 +28,9 @@ class ParkinglotUnitTest {
 
     @Autowired
     private lateinit var parkinglotService: ParkinglotService
+
+    @Autowired
+    private lateinit var relayService: RelayService
 
 //    @Before
 //    fun setup(context: TestContext) {
@@ -72,6 +76,11 @@ class ParkinglotUnitTest {
         val today = DateUtil.formatDateTime(DateUtil.stringToLocalDateTime("2018-10-01 00:00:00", "yyyy-MM-dd HH:mm:ss"), "yyyyMMddHHmmss").substring(0, 8)+"235959"
         val yesterday = DateUtil.getAddDays(DateUtil.stringToLocalDateTime(today), -1)
         println("Base64ImageString = $today $yesterday")
+    }
+
+    @Test
+    fun paymentHealthCheck() {
+        relayService.paymentHealthCheck()
     }
 
 

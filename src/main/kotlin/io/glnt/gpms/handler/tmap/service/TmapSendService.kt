@@ -7,6 +7,7 @@ import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.relay.model.FacilitiesFailureAlarm
 import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
 import io.glnt.gpms.handler.tmap.model.*
 import mu.KLogging
@@ -222,7 +223,7 @@ class TmapSendService {
     }
 
     fun sendHealthCheckRequest(request: reqRelayHealthCheck, requestId: String) {
-        logger.debug { "sendHealthCheckRequest request ${request}" }
+        logger.debug { "sendHealthCheckRequest request $request" }
         try {
             restAPIManager.sendPostRequest(
                 url,
@@ -234,8 +235,21 @@ class TmapSendService {
         }
     }
 
+    fun sendFacilitiesFailureAlarm(request: FacilitiesFailureAlarm, requestId: String?) {
+        logger.debug { "sendFacilitiesFailureAlarm request $request" }
+        try {
+            restAPIManager.sendPostRequest(
+                url,
+                setTmapRequest("failureAlarm", requestId, request)
+            )
+
+        }catch (e: RuntimeException) {
+            logger.error { "sendAdjustmentRequest error ${e.message}" }
+        }
+    }
+
     fun sendFacilitiesStatusNoti(request: reqTmapFacilitiesStatusNoti, requestId: String?) {
-        logger.debug { "sendFacilitiesStatusNoti request ${request}" }
+        logger.debug { "sendFacilitiesStatusNoti request $request" }
         try {
             restAPIManager.sendPostRequest(
                 url,

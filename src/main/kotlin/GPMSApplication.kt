@@ -8,6 +8,7 @@ import io.glnt.gpms.common.configs.ApplicationProperties
 import io.glnt.gpms.common.utils.DefaultProfileUtil
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.relay.service.RelayService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -24,7 +25,9 @@ import javax.annotation.PostConstruct
 class GPMSApplication(
     private val env: Environment,
     val parkinglotService: ParkinglotService,
-    val facilityService: FacilityService) {
+    val facilityService: FacilityService,
+    val relayService: RelayService
+) {
     private val log = LoggerFactory.getLogger(GPMSApplication::class.java)
 
     @PostConstruct
@@ -34,6 +37,7 @@ class GPMSApplication(
         parkinglotService.fetchParkSiteInfo()
         facilityService.fetchDisplayColor()
         facilityService.fetchGate()
+        relayService.fetchParkAlarmSetting(parkinglotService.parkSite.siteid)
 
         if (activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT) && activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_PRODUCTION)) {
             log.error("You have misconfigured your application! It should not run " + "with both the 'dev' and 'prod' profiles at the same time.")

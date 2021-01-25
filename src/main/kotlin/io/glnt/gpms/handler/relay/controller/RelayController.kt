@@ -33,6 +33,12 @@ class RelayController {
         relayService.statusNoti(request)
     }
 
+    @RequestMapping(value=["/payment_health"], method=[RequestMethod.GET])
+    fun paymentHealthCheck() {
+        logger.trace { "paymentHealthCheck " }
+        relayService.paymentHealthCheck()
+    }
+
 
 
     companion object : KLogging()

@@ -24,4 +24,6 @@ interface ParkOutRepository: JpaRepository<ParkOut, Long> {
     fun findAll(specification: Specification<ParkOut>, pageable: Pageable): List<ParkOut>?
     fun findByRequestid(requestId: String): ParkOut?
     fun findByUuid(uuid: String): ParkOut?
+    fun findTopByPaystationAndApproveDatetimeIsNotNullOrderByOutDateDesc(paystation: String): ParkOut?
+    fun findTopByPaystationOrderByOutDateDesc(paystation: String): ParkOut?
 }
