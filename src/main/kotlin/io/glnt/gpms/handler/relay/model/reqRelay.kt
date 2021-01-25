@@ -14,3 +14,8 @@ data class FacilitiesStatusNoti(
     var facilitiesId: String,
     var STATUS: String
 )
+
+data class FacilitiesFailureAlarm(
+    var facilitiesId: String,
+    var failureAlarm: String
+)

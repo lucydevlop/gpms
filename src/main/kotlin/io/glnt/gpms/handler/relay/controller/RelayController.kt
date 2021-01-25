@@ -25,12 +25,19 @@ class RelayController {
     @RequestMapping(value=["/failure_alarm"], method=[RequestMethod.POST])
     fun failureAlarm(@RequestBody request: reqRelayHealthCheck) {
         logger.trace { "healthCheck category $request" }
+        relayService.failureAlarm(request)
     }
 
     @RequestMapping(value=["/status_noti"], method=[RequestMethod.POST])
     fun statusNoti(@RequestBody request: reqRelayHealthCheck) {
         logger.trace { "statusNoti category $request" }
         relayService.statusNoti(request)
+    }
+
+    @RequestMapping(value=["/payment_health"], method=[RequestMethod.GET])
+    fun paymentHealthCheck() {
+        logger.trace { "paymentHealthCheck " }
+        relayService.paymentHealthCheck()
     }
 
 

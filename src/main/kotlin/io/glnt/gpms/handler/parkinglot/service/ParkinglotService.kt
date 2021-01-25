@@ -11,6 +11,7 @@ import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.facility.model.resRelaySvrFacility
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
+import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.repository.*
@@ -33,8 +34,8 @@ class ParkinglotService {
     @Autowired
     lateinit var tmapSendService: TmapSendService
 
-//    @Autowired
-//    private lateinit var parkFeatureRepository: ParkFeatureRepository
+    @Autowired
+    lateinit var relayService: RelayService
 
     @Autowired
     private lateinit var parkFacilityRepository: ParkFacilityRepository
@@ -203,7 +204,8 @@ class ParkinglotService {
                             gateId = facility.gateId, udpGateid = facility.udpGateid,
                             ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
                             resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
-                            imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey
+                            imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey,
+                            checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0
                         ))
                 }
 
@@ -224,7 +226,8 @@ class ParkinglotService {
                                         gateId = facility.gateId, udpGateid = facility.udpGateid,
                                         ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
                                         resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
-                                        imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey
+                                        imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey,
+                                        checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0
                                     ))
                             }
                         }
@@ -243,7 +246,8 @@ class ParkinglotService {
                                         gateId = facility.gateId, udpGateid = facility.udpGateid,
                                         ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
                                         resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
-                                        imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey
+                                        imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey,
+                                        checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0
                                     ))
                             }
                         }

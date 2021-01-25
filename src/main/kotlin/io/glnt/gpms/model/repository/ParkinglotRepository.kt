@@ -1,8 +1,6 @@
 package io.glnt.gpms.model.repository
 
-import io.glnt.gpms.model.entity.Facility
-import io.glnt.gpms.model.entity.Gate
-import io.glnt.gpms.model.entity.ParkSiteInfo
+import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
@@ -14,12 +12,10 @@ interface ParkSiteInfoRepository: JpaRepository<ParkSiteInfo, String> {
     fun findBySiteid(siteid: String) : ParkSiteInfo?
 }
 
-//@Repository
-//interface ParkFeatureRepository: JpaRepository<ParkFeature, Long> {
-//    fun findByGroupKey(groupKey: String): List<ParkFeature>?
-//    fun findByFeatureId(featureId: String): ParkFeature?
-//
-//}
+@Repository
+interface ParkAlarmSetttingRepository: JpaRepository<ParkAlarmSetting, String> {
+    fun findBySiteid(siteid: String): ParkAlarmSetting?
+}
 
 @Repository
 interface ParkFacilityRepository: JpaRepository<Facility, Long> {
@@ -39,4 +35,10 @@ interface ParkGateRepository: JpaRepository<Gate, Long> {
     fun findByUdpGateid(udpGateid: String): Gate?
     fun findByRelaySvrKey(relaySvrKey: String): List<Gate>
 
+}
+
+@Repository
+interface FailureRepository: JpaRepository<Failure, Long> {
+    fun findTopByFacilitiesIdAndFailureCodeOrderByIssueDateTimeDesc(facilityId: String, failureCode: String): Failure?
+    fun findTopByFacilitiesIdAndFailureCodeAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(facilityId: String, failureCode: String): Failure?
 }
