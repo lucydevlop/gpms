@@ -234,6 +234,19 @@ class TmapSendService {
         }
     }
 
+    fun sendFacilitiesStatusNoti(request: reqTmapFacilitiesStatusNoti, requestId: String?) {
+        logger.debug { "sendFacilitiesStatusNoti request ${request}" }
+        try {
+            restAPIManager.sendPostRequest(
+                url,
+                setTmapRequest("facilitiesStatusNoti", requestId, request)
+            )
+
+        }catch (e: RuntimeException) {
+            logger.error { "sendAdjustmentRequest error ${e.message}" }
+        }
+    }
+
     fun sendTmapInterface(data: Any, requestId: String, type: String) {
         restAPIManager.sendPostRequest(
             url,

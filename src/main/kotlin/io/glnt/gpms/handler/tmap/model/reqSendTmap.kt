@@ -1,5 +1,7 @@
 package io.glnt.gpms.handler.tmap.model
 
+import io.glnt.gpms.handler.relay.model.FacilitiesStatusNoti
+
 data class reqApiTmapIF (
     var eventType: String,
     var eventData: reqApiTmapCommon
@@ -43,6 +45,10 @@ data class reqTmapFileUpload(
 data class reqTmapFailureAlarm(
     var facilitiesId: String,
     var failureAlarm: String?
+)
+
+data class reqTmapFacilitiesStatusNoti(
+    var facilitiesList: ArrayList<FacilitiesStatusNoti>
 )
 
 data class reqFacilitiesRegist(
