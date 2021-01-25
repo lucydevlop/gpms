@@ -83,6 +83,20 @@ class RelayService {
                 val data = facilityService.updateStatusCheck(facility.facilitiesId, facility.healthStatus!!)
                 if (data != null) {
                     result.add(FacilitiesStatusNoti(facilitiesId = facility.facilitiesId, STATUS = facility.healthStatus!!))
+                    // close 상태 수신 시 error 상태 check
+                    if (facility.healthStatus!! == "CLOSE") {
+                        saveFailure(
+                            Failure(
+                                sn = null,
+                                issueDateTime = LocalDateTime.now(),
+//                                        expireDateTime = LocalDateTime.now(),
+                                facilitiesId = facility.facilitiesId,
+                                fName = parkinglotService.getFacility(facility.facilitiesId)!!.fname,
+                                failureCode = "crossingGateBarDamageDoubt",
+                                failureType = "NORMAL"
+                            )
+                        )
+                    }
                 }
             }
 
@@ -97,14 +111,27 @@ class RelayService {
     fun failureAlarm(request: reqRelayHealthCheck) {
         logger.info { "failureAlarm $request" }
         try {
-            // ping fail -> noResponse
-            // 차단기
-            // 정산기
-            val result = ArrayList<FacilitiesFailureAlarm>()
-            request.facilitiesList.forEach { facility ->
-                val data = facilityService.updateStatusCheck(facility.facilitiesId, facility.healthStatus!!)
-                if (data != null) {
-                    result.add(FacilitiesFailureAlarm(facilitiesId = facility.facilitiesId, failureAlarm = facility.healthStatus!!))
+            request.facilitiesList.forEach { failure ->
+                parkinglotService.getFacility(facilityId = failure.facilitiesId)?.let { facility ->
+                    if (failure.failureAlarm == "noResponse") {
+                        // ping fail -> noResponse
+                        facilityService.updateHealthCheck(failure.facilitiesId, failure.failureAlarm!!)
+                    } else if (failure.failureAlarm == "crossingGateBarDamageDoubt") {
+                        // 차단기
+                        saveFailure(
+                            Failure(sn = null,
+                                issueDateTime = LocalDateTime.now(),
+//                                        expireDateTime = LocalDateTime.now(),
+                                facilitiesId = failure.facilitiesId,
+                                fName = facility.fname,
+                                failureCode = failure.failureAlarm,
+                                failureType = failure.failureAlarm)
+                        )
+                    } else {
+                        // 정산기
+                    }
+                    if (parkinglotService.parkSite.tmapSend == "ON")
+                        tmapSendService.sendFacilitiesFailureAlarm(FacilitiesFailureAlarm(facilitiesId = failure.facilitiesId, failureAlarm = failure.failureAlarm!!), null)
                 }
             }
 

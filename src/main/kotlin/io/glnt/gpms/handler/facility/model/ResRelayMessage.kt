@@ -21,6 +21,7 @@ data class resRelaySvrFacility(
     var lprType: LprTypeStatus?,
     var imagePath: String?,
     var gateType: GateTypeStatus,
-    var relaySvrKey: String?
+    var relaySvrKey: String?,
+    var checkTime: Int? = null
 )
 

@@ -21,7 +21,14 @@ data class ParkAlarmSetting(
     var payAlarm: checkUseStatus? = checkUseStatus.N,
 
     @Column(name = "pay_limit_time")
-    var payLimitTime: Int? = 0
+    var payLimitTime: Int? = 0,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gate_alarm")
+    var gateAlarm: checkUseStatus? = checkUseStatus.N,
+
+    @Column(name = "gate_limit_time")
+    var gateLimitTime: Int? = 0
 
 ): Auditable(), Serializable {
 
