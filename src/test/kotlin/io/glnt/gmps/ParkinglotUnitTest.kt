@@ -73,4 +73,6 @@ class ParkinglotUnitTest {
         val yesterday = DateUtil.getAddDays(DateUtil.stringToLocalDateTime(today), -1)
         println("Base64ImageString = $today $yesterday")
     }
+
+
 }

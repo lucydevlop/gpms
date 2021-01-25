@@ -66,6 +66,13 @@ data class Facility (
     @Column(name = "image_path")
     var imagePath: String? = null,
 
+    @Column(name = "health")
+    var health: String? = null,
+
+    @Column(name = "health_date")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var healthDate: LocalDateTime? = null,
+
     @Column(name = "status")
     var status: String? = null,
 

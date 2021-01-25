@@ -372,12 +372,28 @@ class FacilityService {
         logger.info { "updateHealthCheck facility $facilitiesId status $status" }
         try {
             facilityRepository.findByFacilitiesId(facilitiesId)?.let { facility ->
-                facility.status = status
-                facility.statusDate = LocalDateTime.now()
+                facility.health = status
+                facility.healthDate = LocalDateTime.now()
                 facilityRepository.save(facility)
             }
         }catch (e: RuntimeException) {
             logger.error { "allUpdateFacilities error ${e.message}" }
         }
+    }
+
+    fun updateStatusCheck(facilitiesId: String, status: String) : Facility? {
+        logger.info { "updateStatusCheck facility $facilitiesId status $status" }
+        try {
+            facilityRepository.findByFacilitiesId(facilitiesId)?.let { facility ->
+                if (facility.category == "BREAKER") {
+                    facility.status = status
+                    facility.statusDate = LocalDateTime.now()
+                    return facilityRepository.save(facility)
+                }
+            }
+        }catch (e: RuntimeException) {
+            logger.error { "allUpdateFacilities error ${e.message}" }
+        }
+        return null
     }
 }
