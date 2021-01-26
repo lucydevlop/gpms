@@ -15,6 +15,7 @@ interface ParkInRepository: JpaRepository<ParkIn, Long> {
     fun findByUdpssid(udpssid: String): ParkIn?
     fun findAll(specification: Specification<ParkIn>): List<ParkIn>?
     fun findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo: String, outSn: Long, delYn: String, inDate: LocalDateTime ) : ParkIn?
+    fun findBySn(sn: Long): ParkIn?
 }
 
 @Repository

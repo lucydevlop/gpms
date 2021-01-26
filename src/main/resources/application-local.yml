@@ -17,6 +17,9 @@ spring:
     driver-class-name: org.mariadb.jdbc.Driver
     jdbc-url: jdbc:mariadb://test-db.cwvvhmqatlkn.ap-northeast-2.rds.amazonaws.com:3306/glnt_parking?useSSL=false
 
+server:
+  port: 11000
+
 logging:
   path: /Users/lucy/project/glnt/park
   config: classpath:logback-development.xml
