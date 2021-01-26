@@ -58,5 +58,16 @@ class InoutController {
         }
     }
 
+    @RequestMapping(value = ["/list/{request}"], method = [RequestMethod.GET])
+    @Throws(CustomException::class)
+    fun getParkInOutDetail(@PathVariable request: Long) : ResponseEntity<CommonResult> {
+        logger.trace { "getParkInOutDetail inseq $request" }
+        val result = inoutService.getParkInOutDetail(request)
+        return when (result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        }
+    }
+
     companion object : KLogging()
 }

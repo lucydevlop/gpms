@@ -697,6 +697,37 @@ class InoutService {
         return parkOutRepository.findTopByPaystationOrderByOutDateDesc(facilityId)
     }
 
+    @Transactional(readOnly = true)
+    fun getParkInOutDetail(request: Long): CommonResult {
+        logger.info { "getParkInOutDetail inseq $request" }
+        try {
+            parkInRepository.findBySn(request)?.let { it ->
+                val result = ResParkInList(
+                    type = DisplayMessageClass.IN,
+                    parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
+                    inGateId = it.gateId, inDate = it.inDate!!, inImgBase64Str = Base64Util.encodeAsString(File(it.image!!).readBytes())
+                )
+                if (it.outSn!! > 0L || it.outSn != null) {
+                    parkOutRepository.findBySn(it.outSn!!)?.let { out ->
+                        result.type = DisplayMessageClass.OUT
+                        result.parkoutSn = out.sn
+                        result.outDate = out.outDate
+                        result.outGateId = out.gateId
+                        result.parktime = out.parktime
+                        result.parkfee = out.parkfee
+                        result.payfee = out.payfee
+                        result.discountfee = out.discountfee
+                    }
+                }
+                return CommonResult.data(result)
+            }
+        }catch (e: RuntimeException){
+            logger.error { "getParkInOutDetail failed ${e.message}" }
+            return CommonResult.error("getParkInOutDetail inseq $request failed")
+        }
+        return CommonResult.error("getParkInOutDetail inseq $request failed")
+    }
+
     fun makeParkOutPhrase(parkingtype: String, vehicleNo: String, text: String? = null) {
         val messages = ArrayList<reqDisplayMessage>()
 //        when(parkingtype) {

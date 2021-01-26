@@ -18,5 +18,9 @@ data class ResParkInList(
     var parktime: Int? = 0,
     var parkfee: Int? = 0,
     var payfee: Int? = 0,
-    var discountfee: Int? = 0
+    var discountfee: Int? = 0,
+    /* 입차 차량이미지 File (base64) */
+    var inImgBase64Str: String? = null,
+    /* 출차 차량이미지 File (base64) */
+    var outImgBase64Str: String? = null
 )
