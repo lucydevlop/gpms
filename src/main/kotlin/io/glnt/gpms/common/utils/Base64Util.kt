@@ -1,5 +1,6 @@
 package io.glnt.gpms.common.utils
 
+import java.io.File
 import java.util.*
 
 object Base64Util {
