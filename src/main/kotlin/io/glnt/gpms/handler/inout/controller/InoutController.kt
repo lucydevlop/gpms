@@ -49,12 +49,12 @@ class InoutController {
 
     @RequestMapping(value = ["/list"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
-    fun getAllParkInLists(@RequestBody request: reqSearchParkin) : ResponseEntity<PaginationResult<ResParkInList>> {
-        return when (val result = inoutService.getAllParkLists(request)) {
-            null -> ResponseEntity.ok(emptyPaginationResult())
-            else ->  {
-                ResponseEntity.ok(result.paginate(localPagination(request.page!!, request.pageSize!!.toInt())))
-            }
+    fun getAllParkInLists(@RequestBody request: reqSearchParkin) : ResponseEntity<CommonResult> {
+        logger.trace { "getAllParkInLists $request" }
+        val result = inoutService.getAllParkLists(request)
+        return when(result.code){
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
         }
     }
 

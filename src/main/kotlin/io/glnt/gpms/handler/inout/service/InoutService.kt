@@ -486,41 +486,48 @@ class InoutService {
     }
 
     @Transactional(readOnly = true)
-    fun getAllParkLists(request: reqSearchParkin): ArrayList<ResParkInList>? {
-        val pageable: Pageable = PageRequest.of(request.page!!, request.pageSize!!.toInt())
-        val results = ArrayList<ResParkInList>()
-        when (request.type) {
-            DisplayMessageClass.IN -> {
-                parkInRepository.findAll(findAllParkInSpecification(request))?.let { list ->
-                    list.forEach {
-                        val result = ResParkInList(
-                            type = DisplayMessageClass.IN,
-                            parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
-                            inGateId = it.gateId, inDate = it.inDate!!
-                        )
-                        if (it.outSn!! > 0L || it.outSn != null) {
-                            parkOutRepository.findBySn(it.outSn!!)?.let { out ->
-                                result.type = DisplayMessageClass.OUT
-                                result.parkoutSn = out.sn
-                                result.outDate = out.outDate
-                                result.outGateId = out.gateId
-                                result.parktime = out.parktime
-                                result.parkfee = out.parkfee
-                                result.payfee = out.payfee
-                                result.discountfee = out.discountfee
+    fun getAllParkLists(request: reqSearchParkin): CommonResult {
+        logger.info { "getAllParkLists $request" }
+        try {
+            val results = ArrayList<ResParkInList>()
+            when (request.type) {
+                DisplayMessageClass.IN -> {
+                    parkInRepository.findAll(findAllParkInSpecification(request))?.let { list ->
+                        list.forEach {
+                            val result = ResParkInList(
+                                type = DisplayMessageClass.IN,
+                                parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
+                                inGateId = it.gateId, inDate = it.inDate!!
+                            )
+                            if (it.outSn!! > 0L || it.outSn != null) {
+                                parkOutRepository.findBySn(it.outSn!!)?.let { out ->
+                                    result.type = DisplayMessageClass.OUT
+                                    result.parkoutSn = out.sn
+                                    result.outDate = out.outDate
+                                    result.outGateId = out.gateId
+                                    result.parktime = out.parktime
+                                    result.parkfee = out.parkfee
+                                    result.payfee = out.payfee
+                                    result.discountfee = out.discountfee
+                                }
                             }
+                            results.add(result)
                         }
-                        results.add(result)
                     }
                 }
-            }
-            DisplayMessageClass.OUT -> {
-                parkOutRepository.findAll(findAllParkOutSpecification(request), pageable)
+                DisplayMessageClass.OUT -> {
+//                parkOutRepository.findAll(findAllParkOutSpecification(request))
 
+                }
+                else -> return CommonResult.error("getAllParkLists failed")
             }
-            else -> return null
+            return CommonResult.data(results)
+        } catch (e: RuntimeException) {
+            logger.error { "getAllParkLists ${e.message}" }
+            return CommonResult.error("getAllParkLists failed")
         }
-        return results
+//        val pageable: Pageable = PageRequest.of(request.page!!, request.pageSize!!.toInt())
+
     }
 
     private fun findAllParkInSpecification(request: reqSearchParkin): Specification<ParkIn> {
@@ -548,7 +555,7 @@ class InoutService {
                     criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("gateId")), likeValue)
                 )
             }
-
+            query.orderBy(criteriaBuilder.desc(root.get<LocalDateTime>("inDate")))
             criteriaBuilder.and(*clues.toTypedArray())
         }
         return spec
