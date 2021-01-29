@@ -23,8 +23,11 @@ data class Corp(
     @Column(name = "sn", unique = true, nullable = false)
     var sn: Long?,
 
-    @Column(name = "flag", nullable = false)
-    var flag: Int = 1,
+    @Column(name = "del_yn", nullable = false)
+    var delYn: String? = "N",
+
+//    @Column(name = "flag", nullable = false)
+//    var flag: Int = 1,
 
 //    @GenericGenerator(
 //            name = "inovices",
