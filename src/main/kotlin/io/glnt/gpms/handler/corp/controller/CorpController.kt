@@ -39,6 +39,19 @@ class CorpController {
         }
     }
 
+    @RequestMapping(value = ["/delete/{id}"], method = [RequestMethod.DELETE])
+    @Throws(CustomException::class)
+    fun deleteCorp(@PathVariable id: Long): ResponseEntity<CommonResult> {
+        logger.trace { "deleteCorp : $id" }
+        val result = corpService.deleteCorp(id)
+        return when(result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+
+        }
+    }
+
     @RequestMapping(value = ["/ticket"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun getCorpTicket(@RequestBody request: reqSearchDiscount) : ResponseEntity<CommonResult> {

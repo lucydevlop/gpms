@@ -4,6 +4,7 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.corp.model.reqSearchCorp
 import io.glnt.gpms.model.entity.Corp
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.repository.CorpRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,6 +35,19 @@ class CorpService {
             logger.error { "getCorp ${e.message}" }
             return CommonResult.error("getCorp ${e.message}")
         }
+    }
+
+    fun deleteCorp(id: Long) : CommonResult {
+        logger.info { "delete corp: $id" }
+        try {
+            corpRepository.findBySn(id)?.let { corp ->
+                corp.delYn = DelYn.Y
+                return CommonResult.data(corpRepository.save(corp))
+            }
+        }catch (e: CustomException) {
+            logger.error { "deleteCorp error ${e.message}" }
+        }
+        return CommonResult.error("deleteCorp failed")
     }
 
     private fun findAllCorpSpecification(request: reqSearchCorp): Specification<Corp> {
