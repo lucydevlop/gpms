@@ -40,21 +40,21 @@ class CorpService {
         val spec = Specification<Corp> { root, query, criteriaBuilder ->
             val clues = mutableListOf<Predicate>()
 
-            if (request.searchLabel == "ID") {
+            if (request.searchLabel == "ID" && request.searchText != null) {
                 val likeValue = "%" + request.searchText + "%"
                 clues.add(
                     criteriaBuilder.like(criteriaBuilder.upper(root.get<String>("corpId")), likeValue)
                 )
             }
 
-            if (request.searchLabel == "NAME") {
+            if (request.searchLabel == "NAME" && request.searchText != null) {
                 val likeValue = "%" + request.searchText + "%"
                 clues.add(
                     criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("corpName")), likeValue)
                 )
             }
 
-            if (request.searchLabel == "MOBILE") {
+            if (request.searchLabel == "MOBILE" && request.searchText != null) {
                 val likeValue = "%" + request.searchText + "%"
                 clues.add(
                     criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("tel")), likeValue)
