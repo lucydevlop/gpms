@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.common.utils.StringPrefixedSequenceIdGenerator
 import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.DelYn
 import org.hibernate.annotations.GenerationTime
 import org.hibernate.annotations.GeneratorType
 import org.hibernate.annotations.GenericGenerator
@@ -23,8 +24,9 @@ data class Corp(
     @Column(name = "sn", unique = true, nullable = false)
     var sn: Long?,
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
-    var delYn: String? = "N",
+    var delYn: DelYn? = DelYn.N,
 
 //    @Column(name = "flag", nullable = false)
 //    var flag: Int = 1,
