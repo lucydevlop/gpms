@@ -50,6 +50,16 @@ class CorpService {
         return CommonResult.error("deleteCorp failed")
     }
 
+    fun createCorp(request: Corp) : CommonResult{
+        logger.info { "create corp: $request" }
+        try {
+            return CommonResult.data(corpRepository.save(request))
+        }catch (e: CustomException) {
+            logger.error("createCorp error {} ", e.message)
+            return CommonResult.error("createCorp failed ")
+        }
+    }
+
     private fun findAllCorpSpecification(request: reqSearchCorp): Specification<Corp> {
         val spec = Specification<Corp> { root, query, criteriaBuilder ->
             val clues = mutableListOf<Predicate>()

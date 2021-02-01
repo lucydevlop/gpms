@@ -9,6 +9,7 @@ import io.glnt.gpms.handler.corp.model.reqSearchCorp
 import io.glnt.gpms.handler.corp.service.CorpService
 import io.glnt.gpms.handler.discount.model.reqSearchDiscount
 import io.glnt.gpms.handler.discount.service.DiscountService
+import io.glnt.gpms.model.entity.Corp
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -44,6 +45,19 @@ class CorpController {
     fun deleteCorp(@PathVariable id: Long): ResponseEntity<CommonResult> {
         logger.trace { "deleteCorp : $id" }
         val result = corpService.deleteCorp(id)
+        return when(result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+
+        }
+    }
+
+    @RequestMapping(value = ["/create"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun createCorp(@RequestBody request: Corp) : ResponseEntity<CommonResult> {
+        logger.trace { "createCorp : $request" }
+        val result = corpService.createCorp(request)
         return when(result.code) {
             ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
             ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
