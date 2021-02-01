@@ -75,7 +75,7 @@ class CorpService {
                 )
             }
 
-            if (request.useStatus != "ALL") {
+            if (request.useStatus != null) {
                 clues.add(
                     criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), request.useStatus)
                 )
