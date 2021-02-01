@@ -3,10 +3,12 @@ package io.glnt.gpms.handler.corp.service
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.corp.model.reqSearchCorp
+import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.model.entity.Corp
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.repository.CorpRepository
 import mu.KLogging
+import okhttp3.internal.format
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
@@ -19,6 +21,9 @@ class CorpService {
 
     @Autowired
     private lateinit var corpRepository: CorpRepository
+
+    @Autowired
+    private lateinit var parkinglotService: ParkinglotService
 
     fun getCorp(request: reqSearchCorp): CommonResult {
         logger.info { "getCorp $request" }
@@ -53,6 +58,10 @@ class CorpService {
     fun createCorp(request: Corp) : CommonResult{
         logger.info { "create corp: $request" }
         try {
+            if (request.corpId != null)
+                return CommonResult.data(corpRepository.save(request))
+            corpRepository.save(request)
+            request.corpId = parkinglotService.parkSite.siteid+"_"+ format("%05d", request.sn!!)
             return CommonResult.data(corpRepository.save(request))
         }catch (e: CustomException) {
             logger.error("createCorp error {} ", e.message)
