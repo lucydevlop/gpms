@@ -13,6 +13,7 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.entity.Auditable
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.TicketType
+import io.glnt.gpms.model.enums.VehicleType
 import org.hibernate.annotations.Type
 import org.hibernate.annotations.TypeDef
 import org.springframework.format.annotation.DateTimeFormat
@@ -62,6 +63,10 @@ data class ProductTicket(
 
     @Column(name = "vehiclekind", nullable = true)
     var vehiclekind: String? = null,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "vehicle_type", nullable = true)
+    var vehicleType: VehicleType? = VehicleType.MEDIUM,
 
     @Column(name = "name", nullable = true)
     var name: String? = null,

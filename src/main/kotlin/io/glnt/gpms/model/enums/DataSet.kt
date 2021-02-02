@@ -75,6 +75,12 @@ enum class DiscountSaleType(val code: String, val desc: String) {
     FREE("FREE", "무료권")
 }
 
+enum class VehicleType(val code: String, val desc: String) {
+    SMALL("SMALL", "소형"),
+    MEDIUM("MEDIUM", "중형"),
+    LARGE("LARGE", "중형")
+}
+
 //enum class parkCarType {
 //    "일반차량", "정기권차량", "미인식차량"
 //}
