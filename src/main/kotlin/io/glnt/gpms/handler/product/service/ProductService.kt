@@ -6,6 +6,8 @@ import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.product.model.reqCreateProduct
 import io.glnt.gpms.handler.product.model.reqSearchProduct
 import io.glnt.gpms.model.entity.ProductTicket
+import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.TicketType
 import io.glnt.gpms.model.repository.ProductTicketRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,7 +26,7 @@ class ProductService {
     private lateinit var productTicketRepository: ProductTicketRepository
 
     fun getValidProductByVehicleNo(vehicleNo: String): ProductTicket? {
-        return productTicketRepository.findByVehicleNoAndValidDateGreaterThanEqualAndRegDateLessThanEqualAndFlag(vehicleNo, LocalDateTime.now(), LocalDateTime.now(), 0)
+        return productTicketRepository.findByVehicleNoAndValidDateGreaterThanEqualAndRegDateLessThanEqualAndDelYn(vehicleNo, LocalDateTime.now(), LocalDateTime.now(), DelYn.N)
     }
 
     fun calcRemainDayProduct(vehicleNo: String): Int {
@@ -38,7 +40,7 @@ class ProductService {
     fun createProduct(request: reqCreateProduct): Boolean {
         logger.info { "createProduct request $request" }
         try {
-            productTicketRepository.findByVehicleNoAndValidDateGreaterThanEqualAndFlagIsNullOrFlag(request.vehicleNo, request.startDate, 0
+            productTicketRepository.findByVehicleNoAndValidDateGreaterThanEqualAndDelYn(request.vehicleNo, request.startDate, DelYn.N
             )?.let { ticket ->
                 // exists product
                 // case endDate > validate -> 이력 생성
@@ -48,7 +50,7 @@ class ProductService {
                     saveProductTicket(ticket)
 
                     val new = ProductTicket(
-                        sn = null, vehicleNo = request.vehicleNo, flag = 0,
+                        sn = null, vehicleNo = request.vehicleNo, delYn = DelYn.N,
                         regDate = request.startDate, validDate = request.endDate,
                         userId = request.userId, gates = request.gateId!!, ticketType = request.ticktType
                     )
@@ -68,7 +70,7 @@ class ProductService {
                 val new = ProductTicket(
                     sn = null,
                     vehicleNo = request.vehicleNo,
-                    flag = 0,
+                    delYn = DelYn.N,
                     regDate = request.startDate,
                     validDate = request.endDate,
                     userId = request.userId,
@@ -97,8 +99,8 @@ class ProductService {
         val spec = Specification<ProductTicket> { root, query, criteriaBuilder ->
             val clues = mutableListOf<Predicate>()
 
-            if(request.vehicleNo != null) {
-                val likeValue = "%" + request.vehicleNo + "%"
+            if(request.searchLabel == "CARNUM" && request.searchText != null) {
+                val likeValue = "%" + request.searchText + "%"
                 clues.add(
                     criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("vehicleNo")), likeValue)
                 )
@@ -110,6 +112,11 @@ class ProductService {
                         DateUtil.beginTimeToLocalDateTime(request.from.toString()),
                         DateUtil.lastTimeToLocalDateTime(request.to.toString())
                     )
+                )
+            }
+            if (request.ticketType != null) {
+                clues.add(
+                    criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("ticketType")), request.ticketType)
                 )
             }
             criteriaBuilder.and(*clues.toTypedArray())
