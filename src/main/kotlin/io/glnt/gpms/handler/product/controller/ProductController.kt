@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping(
-    path = ["/${ApiConfig.API_VERSION}/parkinglot/product"]
+    path = ["/${ApiConfig.API_VERSION}/ticket"]
 )
 @CrossOrigin(origins = arrayOf("*"), allowedHeaders = arrayOf("*"))
 class ProductController {
