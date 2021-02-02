@@ -6,9 +6,11 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class reqSearchProduct(
-    var vehicleNo: String? = null,
+    var searchLabel: String? = null,
+    var searchText: String? = null,
     @JsonFormat(pattern = "yyyy-MM-dd") var from: LocalDate? = null,
-    @JsonFormat(pattern = "yyyy-MM-dd") var to: LocalDate? = null
+    @JsonFormat(pattern = "yyyy-MM-dd") var to: LocalDate? = null,
+    var ticketType: TicketType? = null
 )
 
 data class reqCreateProduct(

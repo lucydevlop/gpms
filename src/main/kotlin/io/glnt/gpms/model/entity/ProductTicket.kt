@@ -11,6 +11,7 @@ import com.vladmihalcea.hibernate.type.json.JsonBinaryType
 import com.vladmihalcea.hibernate.type.json.JsonStringType
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.TicketType
 import org.hibernate.annotations.Type
 import org.hibernate.annotations.TypeDef
@@ -49,8 +50,9 @@ data class ProductTicket(
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var validDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59", "yyyy-MM-dd HH:mm:ss"),
 
-    @Column(name = "flag", nullable = true)
-    var flag: Int? = null,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "del_yn", nullable = false)
+    var delYn: DelYn? = DelYn.N,
 
     @Column(name = "cardnum", nullable = true)
     var cardNum: String? = null,
@@ -88,6 +90,14 @@ data class ProductTicket(
     @Column(name = "reg_date", nullable = true)
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var regDate: LocalDateTime? = null,
+
+    @Column(name = "effect_date", nullable = true)
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var effectDate: LocalDateTime? = DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate),
+
+    @Column(name = "expire_date", nullable = true)
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var expireDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59", "yyyy-MM-dd HH:mm:ss"),
 
     @Enumerated(EnumType.STRING)
     @Column(name = "ticket_type", nullable = true)
