@@ -35,5 +35,17 @@ class ProductController {
         }
     }
 
+    @RequestMapping(value = ["/delete/{request}"], method = [RequestMethod.DELETE])
+    @Throws(CustomException::class)
+    fun deleteTicket(@PathVariable request: Long): ResponseEntity<CommonResult> {
+        logger.trace("ticket delete id = $request")
+        val result = productService.deleteTicket(request)
+        return when(result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        }
+    }
+
     companion object : KLogging()
 }

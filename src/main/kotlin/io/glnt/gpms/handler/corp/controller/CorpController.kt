@@ -49,7 +49,6 @@ class CorpController {
             ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
             ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
             else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
-
         }
     }
 
