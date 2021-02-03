@@ -21,8 +21,8 @@ data class reqCreateProduct(
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var effectDate: LocalDateTime,
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var expireDate: LocalDateTime,
     var userId: String? = null,
-    var gateId: MutableSet<String>? = mutableSetOf("ALL"),
-    var ticktType: TicketType? = TicketType.SEASONTICKET,
-    var vehicleType: VehicleType? = VehicleType.SMALL,
+    var gateId: MutableSet<String>? = null,
+    var ticketType: TicketType? = null,
+    var vehicleType: VehicleType? = null,
     var corpSn: Long? = null
 )

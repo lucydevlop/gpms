@@ -66,7 +66,7 @@ data class ProductTicket(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "vehicle_type", nullable = true)
-    var vehicleType: VehicleType? = VehicleType.MEDIUM,
+    var vehicleType: VehicleType? = VehicleType.SMALL,
 
     @Column(name = "name", nullable = true)
     var name: String? = null,
@@ -113,7 +113,7 @@ data class ProductTicket(
 //    @Json(name = "gate_id")
 //    @Column(name = "gate_id")
 //    @TypeConverters(ListConverter::class)
-    var gates: MutableSet<String>? = mutableSetOf() // mutableListOf("ALL")
+    var gates: MutableSet<String>? = mutableSetOf("ALL") // mutableListOf("ALL")
 ): Auditable(), Serializable {
 
 }
