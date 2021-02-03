@@ -2,6 +2,7 @@ package io.glnt.gpms.handler.product.model
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.enums.TicketType
+import io.glnt.gpms.model.enums.VehicleType
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -15,10 +16,13 @@ data class reqSearchProduct(
 )
 
 data class reqCreateProduct(
+    var sn: Long? = null,
     var vehicleNo: String,
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var startDate: LocalDateTime,
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var endDate: LocalDateTime,
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var effectDate: LocalDateTime,
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var expireDate: LocalDateTime,
     var userId: String? = null,
     var gateId: MutableSet<String>? = mutableSetOf("ALL"),
-    var ticktType: TicketType? = TicketType.SEASONTICKET
+    var ticktType: TicketType? = TicketType.SEASONTICKET,
+    var vehicleType: VehicleType? = VehicleType.SMALL,
+    var corpSn: Long? = null
 )

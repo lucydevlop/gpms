@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping(path=["/$API_VERSION/ticket"])
+@RequestMapping(path=["/$API_VERSION/discount/ticket"])
 @CrossOrigin(origins = arrayOf("*"), allowedHeaders = arrayOf("*"))
 class DiscountController {
 

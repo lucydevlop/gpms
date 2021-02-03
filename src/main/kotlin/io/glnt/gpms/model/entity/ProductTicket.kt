@@ -33,7 +33,7 @@ data class ProductTicket(
     var sn: Long?,
 
     @Column(name = "corp_sn", nullable = true)
-    var corpSn: Int? = null,
+    var corpSn: Long? = null,
 
     @Column(name = "corp_name", nullable = true)
     var corpName: String? = null,
