@@ -43,10 +43,16 @@ class ProductService {
             if (request.sn != null) {
                 productTicketRepository.findBySn(request.sn!!)?.let {
                     val new = ProductTicket(
-                        sn = null, vehicleNo = request.vehicleNo, delYn = DelYn.N,
-                        effectDate = request.effectDate, expireDate = request.expireDate,
-                        userId = request.userId, gates = request.gateId!!, ticketType = request.ticktType,
-                        vehicleType = request.vehicleType, corpSn = request.corpSn
+                        sn = it.sn,
+                        vehicleNo = request.vehicleNo,
+                        delYn = DelYn.N,
+                        effectDate = request.effectDate,
+                        expireDate = request.expireDate,
+                        userId = request.userId?.let { request.userId } ?: run { it.userId },
+                        gates = request.gateId?.let { request.gateId } ?: run { it.gates },
+                        ticketType = request.ticketType?.let { request.ticketType } ?: run { it.ticketType },
+                        vehicleType = request.vehicleType?.let { request.vehicleType } ?: run { it.vehicleType },
+                        corpSn = request.corpSn?.let { request.corpSn } ?: run { it.corpSn }
                     )
                     saveProductTicket(new)
                 } ?: run {
@@ -65,7 +71,7 @@ class ProductService {
                         val new = ProductTicket(
                             sn = null, vehicleNo = request.vehicleNo, delYn = DelYn.N,
                             effectDate = request.effectDate, expireDate = request.expireDate,
-                            userId = request.userId, gates = request.gateId!!, ticketType = request.ticktType,
+                            userId = request.userId, gates = request.gateId!!, ticketType = request.ticketType,
                             vehicleType = request.vehicleType, corpSn = request.corpSn
                         )
                         saveProductTicket(new)
@@ -76,7 +82,7 @@ class ProductService {
                         // case endDate =< validate -> skip(update)
                         ticket.userId = request.userId
 //                    it.gates = request.gateId!!
-                        ticket.ticketType = request.ticktType
+                        ticket.ticketType = request.ticketType
 
                         saveProductTicket(ticket)
                     }
@@ -89,7 +95,7 @@ class ProductService {
                         expireDate = request.expireDate,
                         userId = request.userId,
                         gates = request.gateId!!,
-                        ticketType = request.ticktType
+                        ticketType = request.ticketType
                     )
                     saveProductTicket(new)
                 }
