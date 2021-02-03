@@ -132,6 +132,21 @@ class ProductService {
                     criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("ticketType")), request.ticketType)
                 )
             }
+            if (request.delYn != "ALL") {
+                when(request.delYn) {
+                    "Y" -> {
+                        clues.add(
+                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.Y)
+                        )
+                    }
+                    else -> {
+                        clues.add(
+                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N)
+                        )
+                    }
+                }
+            }
+
             criteriaBuilder.and(*clues.toTypedArray())
         }
         return spec

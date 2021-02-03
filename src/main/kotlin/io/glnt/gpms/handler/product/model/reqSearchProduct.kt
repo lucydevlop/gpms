@@ -10,7 +10,8 @@ data class reqSearchProduct(
     var searchText: String? = null,
     @JsonFormat(pattern = "yyyy-MM-dd") var from: LocalDate? = null,
     @JsonFormat(pattern = "yyyy-MM-dd") var to: LocalDate? = null,
-    var ticketType: TicketType? = null
+    var ticketType: TicketType? = null,
+    var delYn: String? = "N"
 )
 
 data class reqCreateProduct(
