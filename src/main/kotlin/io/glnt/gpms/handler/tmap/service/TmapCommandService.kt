@@ -204,7 +204,7 @@ class TmapCommandService {
                                         effectDate = DateUtil.stringToLocalDateTime(vehicle.startDateTime),
                                         expireDate = DateUtil.stringToLocalDateTime(vehicle.endDateTime),
                                         gateId = mutableSetOf(parkinglotService.getGateInfoByUdpGateId(gate.gateId)!!.gateId),
-                                        ticktType = ticketType
+                                        ticketType = ticketType
                                     )
                                 )
                             ) {
