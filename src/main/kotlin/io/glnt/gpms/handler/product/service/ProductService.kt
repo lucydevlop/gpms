@@ -95,6 +95,19 @@ class ProductService {
         return CommonResult.data(productTicketRepository.findAll(findAllProductSpecification(request)))
     }
 
+    fun deleteTicket(request: Long) : CommonResult {
+        logger.info { "delete ticket : $request" }
+        try {
+            productTicketRepository.findBySn(request)?.let { ticket ->
+                ticket.delYn = DelYn.Y
+                return CommonResult.data(productTicketRepository.save(ticket))
+            }
+        }catch (e: CustomException) {
+            logger.error { "deleteTicket error ${e.message}" }
+        }
+        return CommonResult.error("deleteTicket failed")
+    }
+
     private fun findAllProductSpecification(request: reqSearchProduct): Specification<ProductTicket> {
         val spec = Specification<ProductTicket> { root, query, criteriaBuilder ->
             val clues = mutableListOf<Predicate>()
