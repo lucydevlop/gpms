@@ -201,8 +201,8 @@ class TmapCommandService {
                             if (!productService.createProduct(
                                     reqCreateProduct(
                                         vehicleNo = vehicle.vehicleNumber, userId = vehicle.messageType,
-                                        startDate = DateUtil.stringToLocalDateTime(vehicle.startDateTime),
-                                        endDate = DateUtil.stringToLocalDateTime(vehicle.endDateTime),
+                                        effectDate = DateUtil.stringToLocalDateTime(vehicle.startDateTime),
+                                        expireDate = DateUtil.stringToLocalDateTime(vehicle.endDateTime),
                                         gateId = mutableSetOf(parkinglotService.getGateInfoByUdpGateId(gate.gateId)!!.gateId),
                                         ticktType = ticketType
                                     )

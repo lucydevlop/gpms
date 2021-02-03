@@ -40,44 +40,59 @@ class ProductService {
     fun createProduct(request: reqCreateProduct): Boolean {
         logger.info { "createProduct request $request" }
         try {
-            productTicketRepository.findByVehicleNoAndValidDateGreaterThanEqualAndDelYn(request.vehicleNo, request.startDate, DelYn.N
-            )?.let { ticket ->
-                // exists product
-                // case endDate > validate -> 이력 생성
-                if (request.endDate > ticket.validDate) {
-                    val date = DateUtil.formatDateTime(request.startDate, "yyyyMMddHHmmss").substring(0, 8)+"235959"
-                    ticket.validDate = DateUtil.getAddDays(DateUtil.stringToLocalDateTime(date), -1)
-                    saveProductTicket(ticket)
-
+            if (request.sn != null) {
+                productTicketRepository.findBySn(request.sn!!)?.let {
                     val new = ProductTicket(
                         sn = null, vehicleNo = request.vehicleNo, delYn = DelYn.N,
-                        regDate = request.startDate, validDate = request.endDate,
-                        userId = request.userId, gates = request.gateId!!, ticketType = request.ticktType
+                        effectDate = request.effectDate, expireDate = request.expireDate,
+                        userId = request.userId, gates = request.gateId!!, ticketType = request.ticktType,
+                        vehicleType = request.vehicleType, corpSn = request.corpSn
                     )
                     saveProductTicket(new)
-                } else {
-                    //gates list update
-                    request.gateId!!.forEach { gate ->
-                        if (!ticket.gates!!.contains(gate)) ticket.gates!!.add(gate) }
-                    // case endDate =< validate -> skip(update)
-                    ticket.userId = request.userId
-//                    it.gates = request.gateId!!
-                    ticket.ticketType = request.ticktType
-
-                    saveProductTicket(ticket)
+                } ?: run {
+                    return false
                 }
-            } ?: run {
-                val new = ProductTicket(
-                    sn = null,
-                    vehicleNo = request.vehicleNo,
-                    delYn = DelYn.N,
-                    regDate = request.startDate,
-                    validDate = request.endDate,
-                    userId = request.userId,
-                    gates = request.gateId!!,
-                    ticketType = request.ticktType
-                )
-                saveProductTicket(new)
+            } else {
+                productTicketRepository.findByVehicleNoAndValidDateGreaterThanEqualAndDelYn(request.vehicleNo, request.effectDate, DelYn.N
+                )?.let { ticket ->
+                    // exists product
+                    // case endDate > validate -> 이력 생성
+                    if (request.expireDate > ticket.expireDate) {
+                        val date = DateUtil.formatDateTime(request.effectDate, "yyyyMMddHHmmss").substring(0, 8)+"235959"
+                        ticket.expireDate = DateUtil.getAddDays(DateUtil.stringToLocalDateTime(date), -1)
+                        saveProductTicket(ticket)
+
+                        val new = ProductTicket(
+                            sn = null, vehicleNo = request.vehicleNo, delYn = DelYn.N,
+                            effectDate = request.effectDate, expireDate = request.expireDate,
+                            userId = request.userId, gates = request.gateId!!, ticketType = request.ticktType,
+                            vehicleType = request.vehicleType, corpSn = request.corpSn
+                        )
+                        saveProductTicket(new)
+                    } else {
+                        //gates list update
+                        request.gateId!!.forEach { gate ->
+                            if (!ticket.gates!!.contains(gate)) ticket.gates!!.add(gate) }
+                        // case endDate =< validate -> skip(update)
+                        ticket.userId = request.userId
+//                    it.gates = request.gateId!!
+                        ticket.ticketType = request.ticktType
+
+                        saveProductTicket(ticket)
+                    }
+                } ?: run {
+                    val new = ProductTicket(
+                        sn = null,
+                        vehicleNo = request.vehicleNo,
+                        delYn = DelYn.N,
+                        effectDate = request.effectDate,
+                        expireDate = request.expireDate,
+                        userId = request.userId,
+                        gates = request.gateId!!,
+                        ticketType = request.ticktType
+                    )
+                    saveProductTicket(new)
+                }
             }
         } catch (e: RuntimeException) {
             logger.info { "createProduct error ${e.message}" }
