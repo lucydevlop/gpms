@@ -223,7 +223,7 @@ class InoutService {
     fun searchParkInByVehicleNo(vehicleNo: String, gateId: String) : CommonResult {
         logger.trace("VehicleService searchParkInByVehicleNo search param : $vehicleNo $gateId")
 
-        parkInRepository.findAll(findAllParkInSpecification(reqSearchParkin(vehicleNo = vehicleNo, gateId = gateId)))?.let { it ->
+        parkInRepository.findAll(findAllParkInSpecification(reqSearchParkin(searchLabel = "CARNUM", searchText = vehicleNo, gateId = gateId)))?.let { it ->
             if (it.isNullOrEmpty()) return CommonResult.notfound("$vehicleNo park in data not found")
             return CommonResult.data(it)
         }
@@ -490,7 +490,7 @@ class InoutService {
         logger.info { "getAllParkLists $request" }
         try {
             val results = ArrayList<ResParkInList>()
-            when (request.type) {
+            when (request.searchDateLabel) {
                 DisplayMessageClass.IN -> {
                     parkInRepository.findAll(findAllParkInSpecification(request))?.let { list ->
                         list.forEach {
@@ -534,8 +534,8 @@ class InoutService {
         val spec = Specification<ParkIn> { root, query, criteriaBuilder ->
             val clues = mutableListOf<Predicate>()
 
-            if(request.vehicleNo != null) {
-                val likeValue = "%" + request.vehicleNo + "%"
+            if(request.searchLabel == "CARNUM" && request.searchText != null) {
+                val likeValue = "%" + request.searchText + "%"
                 clues.add(
                     criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("vehicleNo")), likeValue)
                 )
@@ -566,8 +566,8 @@ class InoutService {
         val spec = Specification<ParkOut> { root, query, criteriaBuilder ->
             val clues = mutableListOf<Predicate>()
 
-            if(request.vehicleNo != null) {
-                val likeValue = "%" + request.vehicleNo + "%"
+            if(request.searchLabel == "CARNUM" && request.searchText != null) {
+                val likeValue = "%" + request.searchText + "%"
                 clues.add(
                     criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("vehicleNo")), likeValue)
                 )
