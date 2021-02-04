@@ -58,7 +58,7 @@ class InoutController {
         }
     }
 
-    @RequestMapping(value = ["/list/{request}"], method = [RequestMethod.GET])
+    @RequestMapping(value = ["/detail/{request}"], method = [RequestMethod.GET])
     @Throws(CustomException::class)
     fun getParkInOutDetail(@PathVariable request: Long) : ResponseEntity<CommonResult> {
         logger.trace { "getParkInOutDetail inseq $request" }

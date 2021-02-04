@@ -94,8 +94,10 @@ class ProductService {
                         effectDate = request.effectDate,
                         expireDate = request.expireDate,
                         userId = request.userId,
-                        gates = request.gateId!!,
-                        ticketType = request.ticketType
+                        gates = request.gateId,
+                        ticketType = request.ticketType,
+                        vehicleType = request.vehicleType,
+                        corpSn = request.corpSn
                     )
                     saveProductTicket(new)
                 }
