@@ -19,6 +19,8 @@ data class reqAddParkIn(
     var originFileName: String? = null,
     var uuid: String,
 
+    /* update 사용 */
+    var inSn: Long? = null,
 
     /* 연계 필요한 항목들 정의 */
     var parkingtype: String? = "미인식차량",
@@ -42,6 +44,9 @@ data class reqAddParkOut(
     var base64Str: String? = null,
     var originFileName: String? = null,
     var uuid: String,
+
+    /* update */
+    var outSn: Long? = null,
 
     /* 연계 필요한 항목들 정의 */
     var parkingtype: String? = "미인식차량",

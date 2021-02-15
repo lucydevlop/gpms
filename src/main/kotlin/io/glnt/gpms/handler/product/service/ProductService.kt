@@ -7,7 +7,6 @@ import io.glnt.gpms.handler.product.model.reqCreateProduct
 import io.glnt.gpms.handler.product.model.reqSearchProduct
 import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.TicketType
 import io.glnt.gpms.model.repository.ProductTicketRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,6 +26,10 @@ class ProductService {
 
     fun getValidProductByVehicleNo(vehicleNo: String): ProductTicket? {
         return productTicketRepository.findByVehicleNoAndValidDateGreaterThanEqualAndRegDateLessThanEqualAndDelYn(vehicleNo, LocalDateTime.now(), LocalDateTime.now(), DelYn.N)
+    }
+
+    fun getValidProductByVehicleNo(vehicleNo: String, startTime: LocalDateTime, endTime: LocalDateTime): ProductTicket? {
+        return productTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startTime, endTime, DelYn.N)
     }
 
     fun calcRemainDayProduct(vehicleNo: String): Int {

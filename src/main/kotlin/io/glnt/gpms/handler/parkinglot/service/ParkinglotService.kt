@@ -55,7 +55,7 @@ class ParkinglotService {
             val facilitiesList: ArrayList<facilitiesLists> = ArrayList()
             val gateData = parkGateRepository.findByDelYn(DelYn.N)
             gateData.forEach { gate ->
-                val facilities = parkFacilityRepository.findByGateIdAndFlagUse(gate.gateId!!, 1)!!
+                val facilities = parkFacilityRepository.findByGateIdAndFlagUse(gate.gateId, 1)!!
                 val FacilitiesId = facilities.map { it.dtFacilitiesId.toString() }.toTypedArray()
                 facilities.map {
                     facility -> facilitiesList.add(facilitiesLists(category = facility.category, modelId = facility.modelid, dtFacilitiesId = facility.dtFacilitiesId, facilitiesName = facility.fname))
@@ -99,45 +99,6 @@ class ParkinglotService {
             return CommonResult.error("parkinglot fetch failed ")
         }
     }
-
-//    fun addParkinglotFeature(request: reqAddParkinglotFeature): CommonResult = with(request) {
-//        logger.debug("addParkinglotFeature service {}", request)
-//        try {
-//            val new = ParkFeature(
-//                idx = null,
-//                featureId = featureId,
-//                flag = flag,
-//                groupKey = groupKey,
-//                category = category,
-//                connectionType = connetionType,
-//                ip = ip,
-//                port = port,
-//                originImgPath = path,
-//                transactinoId = transactionId
-//            )
-//            parkFeatureRepository.save(new)
-//            return CommonResult.created("parkinglot feature add success")
-//        } catch (e: CustomException) {
-//            logger.error("addParkinglotFeature error {} ", e.message)
-//            return CommonResult.error("parkinglot feature db add failed ")
-//        }
-//    }
-
-//    fun getParkinglotFeature(requet: reqSearchParkinglotFeature): CommonResult {
-//        requet.featureId?.let {
-//            val list = parkFeatureRepository.findByFeatureId(it)
-//            return if (list == null) CommonResult.notfound("parkinglot feature") else CommonResult.data(list)
-//        } ?: run {
-//            requet.gateSvrKey?.let {
-//                val lists = parkFeatureRepository.findByGroupKey(it)
-//                return if (lists.isNullOrEmpty()) CommonResult.notfound("parkinglot feature") else CommonResult.data(lists)
-//            } ?: run {
-//                parkFeatureRepository.findAll().let {
-//                    return CommonResult.data(it)
-//                }
-//            }
-//        }
-//    }
 
     fun getParkinglotGates(requet: reqSearchParkinglotFeature): CommonResult {
         logger.info { "getParkinglotGates request $requet" }
