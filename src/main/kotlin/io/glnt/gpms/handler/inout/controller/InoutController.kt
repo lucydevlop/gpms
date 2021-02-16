@@ -31,6 +31,7 @@ class InoutController {
         val result = inoutService.parkIn(request)
         return when(result.code){
             ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
             else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
         }
     }
@@ -42,6 +43,7 @@ class InoutController {
         val result = inoutService.parkOut(request)
         return when(result.code){
             ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
             ResultCode.CONFLICT.getCode() -> ResponseEntity(result, HttpStatus.CONFLICT)
             else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
         }

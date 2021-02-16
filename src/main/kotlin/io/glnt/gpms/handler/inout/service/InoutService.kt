@@ -77,7 +77,7 @@ class InoutService {
 
 
     fun parkIn(request: reqAddParkIn) : CommonResult = with(request){
-        logger.debug("parkIn service {}", request)
+        logger.info{"parkIn service car_num:${request.vehicleNo} facility_id:${request.facilitiesId} in_date:${request.inDate} result_code:${request.resultcode} uuid:${request.uuid}"}
         try {
             // UUID 없을 경우(Back 입차) deviceIF -> OFF 로 전환
             if (uuid == null) deviceIF = "OFF"
@@ -127,8 +127,10 @@ class InoutService {
                 }
 
                 // Back 입차 시
-                parkInRepository.findByVehicleNoEndsWithAndOutSnAndGateId(vehicleNo, 0, gate.gateId)?.let {
-                    return CommonResult.data(it)
+                if (uuid == null) {
+                    parkInRepository.findByVehicleNoEndsWithAndOutSnAndGateId(vehicleNo, 0, gate.gateId)?.let {
+                        return CommonResult.data(it)
+                    }
                 }
 
                 // 시설 I/F
@@ -156,7 +158,7 @@ class InoutService {
                 val newData = ParkIn(
                     sn = request.inSn?.let { request.inSn } ?: run { null },
 //                gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.gateInfo.gateId,
-                    gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.gateId,
+                    gateId = gate.gateId,
                     parkcartype = parkingtype,
                     userSn = 0,
                     vehicleNo = vehicleNo,
@@ -190,6 +192,7 @@ class InoutService {
                 }
                 return CommonResult.data(newData)
             }
+            logger.error("parkIn error failed gateId is not found {} ", facilitiesId )
             return CommonResult.error("parkin failed gateId is not found ")
 
         } catch (e: RuntimeException) {

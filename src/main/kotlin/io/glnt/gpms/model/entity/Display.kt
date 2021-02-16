@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayMessageType
 import io.glnt.gpms.model.enums.DisplayType
+import org.hibernate.annotations.Where
 import java.io.Serializable
 import javax.persistence.*
 import kotlin.jvm.Transient
@@ -59,12 +60,13 @@ data class DisplayMessage(
     var colorCode: String,
 
     @Column(name = "message_desc")
-    var messageDesc: String,
-
-    @Transient
-    var displayColor: DisplayColor? = null
+    var messageDesc: String
 
 ): Auditable(), Serializable {
+
+    @OneToOne//(mappedBy = "serviceProduct", cascade = arrayOf(CascadeType.ALL), fetch = FetchType.EAGER)
+    @JoinColumn(name = "color_code", referencedColumnName = "color_code", insertable = false, updatable = false)
+    var displayColor: DisplayColor? = null
 //    constructor(sn: Nothing?, messageClass: DisplayMessageClass, messageType: DisplayMessageType, colorType: DisplayType, order: Int, messageDesc: String) : this()
 
 
