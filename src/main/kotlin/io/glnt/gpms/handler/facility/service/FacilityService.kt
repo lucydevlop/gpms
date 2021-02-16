@@ -230,7 +230,7 @@ class FacilityService {
     }
 
     fun sendDisplayMessage(data: Any, gate: String) {
-        logger.trace { "sendPaystation request $data $gate" }
+        logger.info { "sendPaystation request $data $gate" }
         parkinglotService.getFacilityByGateAndCategory(gate, "DISPLAY")?.let { its ->
             its.forEach {
                 restAPIManager.sendPostRequest(
