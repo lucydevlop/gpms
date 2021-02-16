@@ -3,6 +3,7 @@ package io.glnt.gpms.handler.inout.model
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.handler.calc.model.BasicPrice
 import io.glnt.gpms.model.entity.ParkIn
+import io.glnt.gpms.model.entity.ParkOut
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -61,7 +62,9 @@ data class reqAddParkOut(
     var fileFullPath: String? = null,
     var recognitionResult: String? = null,
     var parkIn: ParkIn? = null,
-    var price: BasicPrice? = null
+    var parkOut: ParkOut? = null,
+    var price: BasicPrice? = null,
+    var deviceIF: String? = "ON"
 )
 
 data class reqSearchParkin(

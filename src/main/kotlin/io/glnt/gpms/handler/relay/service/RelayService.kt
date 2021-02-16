@@ -1,13 +1,21 @@
 package io.glnt.gpms.handler.relay.service
 
+import com.fasterxml.jackson.core.JsonFactory
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.common.utils.JSONUtil
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.facility.model.reqPayData
+import io.glnt.gpms.handler.facility.model.reqPaymentResponse
+import io.glnt.gpms.handler.facility.model.reqPaymentResult
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.relay.model.FacilitiesFailureAlarm
 import io.glnt.gpms.handler.relay.model.FacilitiesStatusNoti
 import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
+import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
 import io.glnt.gpms.handler.tmap.model.reqTmapFacilitiesFailureAlarm
 import io.glnt.gpms.handler.tmap.model.reqTmapFacilitiesStatusNoti
 import io.glnt.gpms.handler.tmap.service.TmapSendService
@@ -16,6 +24,7 @@ import io.glnt.gpms.model.entity.ParkAlarmSetting
 import io.glnt.gpms.model.enums.checkUseStatus
 import io.glnt.gpms.model.repository.FailureRepository
 import io.glnt.gpms.model.repository.ParkAlarmSetttingRepository
+import io.glnt.gpms.model.repository.ParkFacilityRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -47,6 +56,9 @@ class RelayService {
 
     @Autowired
     private lateinit var failureRepository: FailureRepository
+
+    @Autowired
+    private lateinit var parkingFacilityRepository: ParkFacilityRepository
 
     fun fetchParkAlarmSetting(parkId: String) {
         parkAlarmSettingRepository.findBySiteid(parkId)?.let { it ->
@@ -209,5 +221,27 @@ class RelayService {
         }catch (e: CustomException){
             logger.error { "saveFailure failed ${e.message}" }
         }
+    }
+
+    fun paymentResult(request: reqApiTmapCommon, facilityId: String){
+        request.contents = JSONUtil.getJsObject(request.contents)
+        val contents = readValue(request.contents.toString(), reqPaymentResult::class.java)
+        facilityService.sendPaystation(
+            reqPaymentResponse(
+                chargingId = contents.transactionId,
+                vehicleNumber = contents.vehicleNumber
+            ),
+            gate = parkingFacilityRepository.findByFacilitiesId(facilityId)!!.gateId,
+            requestId = request.requestId!!,
+            type = "paymentResponse"
+        )
+        val result = inoutService.paymentResult(contents, request.requestId!!, parkingFacilityRepository.findByFacilitiesId(facilityId)!!.gateId)
+    }
+
+    fun <T : Any> readValue(any: String, valueType: Class<T>): T {
+        val data = JSONUtil.getJSONObject(any)
+        val factory = JsonFactory()
+        factory.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
+        return jacksonObjectMapper().readValue(data.toString(), valueType)
     }
 }

@@ -39,7 +39,7 @@ class InoutController {
 //    @ResponseStatus(CREATED)
     @Throws(CustomException::class)
     fun parkOut(@RequestBody request: reqAddParkOut) : ResponseEntity<CommonResult> {
-        val result = inoutService.parkOut(request, "ON")
+        val result = inoutService.parkOut(request)
         return when(result.code){
             ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
             ResultCode.CONFLICT.getCode() -> ResponseEntity(result, HttpStatus.CONFLICT)
