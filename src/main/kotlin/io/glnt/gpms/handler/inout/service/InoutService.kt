@@ -118,11 +118,16 @@ class InoutService {
 
                 requestId = parkinglotService.generateRequestId()
 
-                // todo UUID 확인 후 Update
+                // UUID 확인 후 Update
                 parkInRepository.findByUuid(uuid!!)?.let {
                     deviceIF = "OFF"
                     inSn = it.sn
                     requestId = it.requestid
+                }
+
+                // Back 입차 시
+                parkInRepository.findByVehicleNoEndsWithAndOutSnAndGateId(vehicleNo, 0, gate.gateId)?.let {
+                    return CommonResult.data(it)
                 }
 
                 // 시설 I/F
@@ -357,11 +362,11 @@ class InoutService {
         return "$fileFullPath/$fileName"
     }
 
-    @Transactional(readOnly = true)
+//    @Transactional(readOnly = true)
     fun parkOut(request: reqAddParkOut, deviceIF: String) : CommonResult = with(request){
         logger.debug("parkOut service {}", request)
         try {
-            // todo uuid 확인 후 skip
+            // uuid 확인 후 skip
             parkOutRepository.findByUuid(uuid)?.let {
                 logger.error{ "park out uuid $uuid exists "}
                 return CommonResult.exist(request, "park out uuid exists")
