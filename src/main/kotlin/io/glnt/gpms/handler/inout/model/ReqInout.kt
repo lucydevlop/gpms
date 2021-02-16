@@ -1,6 +1,8 @@
 package io.glnt.gpms.handler.inout.model
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import io.glnt.gpms.handler.calc.model.BasicPrice
+import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -17,7 +19,7 @@ data class reqAddParkIn(
     /* 차량이미지 File (base64) */
     var base64Str: String? = null,
     var originFileName: String? = null,
-    var uuid: String,
+    var uuid: String? = null,
 
     /* update 사용 */
     var inSn: Long? = null,
@@ -30,7 +32,8 @@ data class reqAddParkIn(
     var fileName: String? = null,
     var fileUploadId: String? = null,
     var fileFullPath: String? = null,
-    var recognitionResult: String? = null
+    var recognitionResult: String? = null,
+    var deviceIF: String? = "ON"
 )
 
 data class reqAddParkOut(
@@ -56,7 +59,9 @@ data class reqAddParkOut(
     var fileName: String? = null,
     var fileUploadId: String? = null,
     var fileFullPath: String? = null,
-    var recognitionResult: String? = null
+    var recognitionResult: String? = null,
+    var parkIn: ParkIn? = null,
+    var price: BasicPrice? = null
 )
 
 data class reqSearchParkin(

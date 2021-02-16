@@ -5,6 +5,7 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.Base64Util
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.handler.calc.service.FeeCalculation
 import io.glnt.gpms.handler.facility.model.reqDisplayMessage
 import io.glnt.gpms.handler.facility.model.reqPayData
 import io.glnt.gpms.handler.facility.model.reqPayStationData
@@ -18,10 +19,7 @@ import io.glnt.gpms.model.entity.DisplayMessage
 import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.entity.ParkOut
 import io.glnt.gpms.model.entity.VehicleListSearch
-import io.glnt.gpms.model.enums.DisplayMessageClass
-import io.glnt.gpms.model.enums.DisplayMessageType
-import io.glnt.gpms.model.enums.LprTypeStatus
-import io.glnt.gpms.model.enums.SetupOption
+import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.ParkFacilityRepository
 import io.glnt.gpms.model.repository.ParkInRepository
 import io.glnt.gpms.model.repository.ParkOutRepository
@@ -62,6 +60,9 @@ class InoutService {
     lateinit var facilityService: FacilityService
 
     @Autowired
+    lateinit var feeCalculation: FeeCalculation
+
+    @Autowired
     private lateinit var parkFacilityRepository: ParkFacilityRepository
 
     @Autowired
@@ -74,9 +75,12 @@ class InoutService {
     private lateinit var vehicleListSearchRepository: VehicleListSearchRepository
 
 
-    fun parkIn(request: reqAddParkIn, deviceIF: String) : CommonResult = with(request){
+    fun parkIn(request: reqAddParkIn) : CommonResult = with(request){
         logger.debug("parkIn service {}", request)
         try {
+            // UUID 없을 경우 deviceIF -> OFF 로 전환
+            if (uuid == null) deviceIF = "OFF"
+
             // todo gate up(option check)
             parkinglotService.getGateInfoByFacilityId(facilitiesId) ?.let { gate ->
                 // image 파일 저장
@@ -115,6 +119,11 @@ class InoutService {
                 requestId = parkinglotService.generateRequestId()
 
                 // todo UUID 확인 후 Update
+                parkInRepository.findByUuid(uuid!!)?.let {
+                    deviceIF = "OFF"
+                    inSn = it.sn
+                    requestId = it.requestid
+                }
 
                 // 시설 I/F
                 // PCC 가 아닌경우애만 아래 모듈 실행
@@ -357,139 +366,187 @@ class InoutService {
                 logger.error{ "park out uuid $uuid exists "}
                 return CommonResult.exist(request, "park out uuid exists")
             }
-            val gate = parkinglotService.getGateInfoByFacilityId(facilitiesId)
-
-            // image 파일 저장
-            if (base64Str != null) {
-                fileFullPath = saveImage(base64Str!!, vehicleNo, facilitiesId)
-                fileName = fileFullPath!!.substring(fileFullPath!!.lastIndexOf("/")+1)
-
-                fileUploadId = DateUtil.stringToNowDateTimeMS()+"_F"
-            }
-
-            //차량번호 패턴 체크
-            if (DataCheckUtil.isValidCarNumber(vehicleNo)) {
-                parkingtype = "일반차량"
-                //todo 정기권 차량 여부 확인
-                productService.getValidProductByVehicleNo(vehicleNo)?.let {
-                    parkingtype = "정기차량"
-                    validDate = it.validDate
+            parkinglotService.getGateInfoByFacilityId(facilitiesId)?.let { gate ->
+                // park-in update
+                parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", outDate)?.let { it ->
+                    parkIn = it
                 }
-                recognitionResult = "RECOGNITION"
 
-            } else {
-                parkingtype = "미인식차량"
-                recognitionResult = "NOTRECOGNITION"
-            }
+                // image 파일 저장
+                if (base64Str != null) {
+                    fileFullPath = saveImage(base64Str!!, vehicleNo, facilitiesId)
+                    fileName = fileFullPath!!.substring(fileFullPath!!.lastIndexOf("/")+1)
 
-            // 전광판 메세지 출력, gate open
-            if (deviceIF == "ON") {
-                displayMessage(parkingtype!!, vehicleNo, "OUT", gate!!.gateId)
-                if (parkingtype == "정기차량")
-                    facilityService.openGate(gate.gateId, "GATE")
-            }
+                    fileUploadId = DateUtil.stringToNowDateTimeMS()+"_F"
+                }
 
-//            requestId = DataCheckUtil.generateRequestId(parkinglotService.parkSiteId())
-            requestId = parkinglotService.generateRequestId()
+                //차량번호 패턴 체크
+                if (DataCheckUtil.isValidCarNumber(vehicleNo)) {
+                    parkingtype = "일반차량"
+                    //todo 정기권 차량 여부 확인
+                    productService.getValidProductByVehicleNo(vehicleNo)?.let {
+                        parkingtype = "정기차량"
+                        validDate = it.validDate
+                    }
+                    recognitionResult = "RECOGNITION"
 
-            // 출차 정보 DB insert
-            val newData = ParkOut(
-                sn = request.outSn?.let { request.outSn }?.run { null },
+                } else {
+                    parkingtype = "미인식차량"
+                    recognitionResult = "NOTRECOGNITION"
+                }
+
+                // gate 옵션인 경우 요금계산 진행
+//                if (gate.takeAction == "GATE") {
+                if (parkIn != null)  {
+                    price = feeCalculation.getBasicPayment(parkIn!!.inDate!!, outDate, VehicleType.SMALL, vehicleNo, 1, 0)
+                }
+//                }
+
+                requestId = parkinglotService.generateRequestId()
+
+                // 출차 정보 DB insert
+                val newData = ParkOut(
+                    sn = request.outSn?.let { request.outSn }?.run { null },
 //                gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.gateInfo.gateId,
-                gateId = gate!!.gateId, //parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.gateId,
-                parkcartype = parkingtype,
-                userSn = 0,
-                vehicleNo = vehicleNo,
-                image = "$fileFullPath",
-                flag = 0,
-                validate = validDate,
-                resultcode = resultcode.toInt(),
-                requestid = requestId,
-                fileuploadid = fileUploadId,
-                hour = DateUtil.nowTimeDetail.substring(0, 2),
-                min = DateUtil.nowTimeDetail.substring(3, 5),
-                outDate = outDate,
-                uuid = uuid
-            )
-            parkOutRepository.save(newData)
-            parkOutRepository.flush()
+                    gateId = gate.gateId, //parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.gateId,
+                    parkcartype = parkingtype,
+                    userSn = 0,
+                    vehicleNo = vehicleNo,
+                    image = "$fileFullPath",
+                    flag = 0,
+                    validate = validDate,
+                    resultcode = resultcode.toInt(),
+                    requestid = requestId,
+                    fileuploadid = fileUploadId,
+                    hour = DateUtil.nowTimeDetail.substring(0, 2),
+                    min = DateUtil.nowTimeDetail.substring(3, 5),
+                    outDate = outDate,
+                    uuid = uuid
+                )
+                parkOutRepository.save(newData)
+                parkOutRepository.flush()
 
-            // tmap 연동
-            if (parkinglotService.parkSite.tmapSend.equals("ON")) {
-                when (parkingtype) {
-                    "정기차량" -> tmapSendService.sendOutVehicle(
-                        reqOutVehicle(
-                            gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
-                            seasonTicketYn = "Y",
-                            vehicleNumber = vehicleNo,
-                            recognitionType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.category,
-                            recognitorResult = recognitionResult!!,
-                            fileUploadId = fileUploadId!! ),
-                        requestId!!, fileName)
-                    "일반차량" -> {
-                        tmapSendService.sendAdjustmentRequest(
-                            reqAdjustmentRequest(
+                // tmap 연동
+                if (parkinglotService.parkSite.tmapSend.equals("ON")) {
+                    when (parkingtype) {
+                        "정기차량" -> tmapSendService.sendOutVehicle(
+                            reqOutVehicle(
                                 gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
-                                paymentMachineType = "exit",
+                                seasonTicketYn = "Y",
                                 vehicleNumber = vehicleNo,
                                 recognitionType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.category,
-                                facilitiesId = parkFacilityRepository.findByGateIdAndCategory(gate.gateId, "PAYSTATION")?.get(0)!!.facilitiesId!!,
-                                fileuploadId = fileUploadId!!
-                            ),
-                            requestId!!
-                        )
-                        vehicleListSearchRepository.save(VehicleListSearch(requestId, parkFacilityRepository.findByGateIdAndCategory(gate.gateId, "PAYSTATION")?.get(0)!!.facilitiesId!!))
+                                recognitorResult = recognitionResult!!,
+                                fileUploadId = fileUploadId!! ),
+                            requestId!!, fileName)
+                        "일반차량" -> {
+                            tmapSendService.sendAdjustmentRequest(
+                                reqAdjustmentRequest(
+                                    gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
+                                    paymentMachineType = "exit",
+                                    vehicleNumber = vehicleNo,
+                                    recognitionType = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.category,
+                                    facilitiesId = parkFacilityRepository.findByGateIdAndCategory(gate.gateId, "PAYSTATION")?.get(0)!!.facilitiesId!!,
+                                    fileuploadId = fileUploadId!!
+                                ),
+                                requestId!!
+                            )
+                            vehicleListSearchRepository.save(VehicleListSearch(requestId, parkFacilityRepository.findByGateIdAndCategory(gate.gateId, "PAYSTATION")?.get(0)!!.facilitiesId!!))
+                        }
                     }
                 }
-            }
 
-            if (deviceIF == "ON") {
-                //todo 정산기 출차 전송
-                when (parkingtype) {
-                    "미인식차량" -> {
-                        facilityService.sendPaystation(
-                            reqPayStationData(
-                                paymentMachineType = "EXIT",
-                                vehicleNumber = vehicleNo,
-                                facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
-                                recognitionType = "NOTRECOGNITION",
-                                recognitionResult = recognitionResult!!,
-                                paymentAmount = "0",
-                                vehicleIntime = DateUtil.nowDateTimeHm
-                            ),
-                            gate = gate.gateId,
-                            requestId = requestId!!,
-                            type = "adjustmentRequest"
-                        )
-                    }
-                    "정기차량" -> {
-                        facilityService.sendPaystation(
-                            reqPayStationData(
-                                paymentMachineType = "SEASON",
-                                vehicleNumber = vehicleNo,
-                                facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
-                                recognitionType = "SEASON",
-                                recognitionResult = recognitionResult!!,
-                                paymentAmount = "0",
-                                parktime = "0",
-                                vehicleIntime = DateUtil.nowDateTimeHm
-                            ),
-                            gate = gate.gateId,
-                            requestId = requestId!!,
-                            type = "adjustmentRequest"
-                        )
+
+//                if (deviceIF == "ON" && gate.takeAction != "GATE") {
+//                    displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+////                    if (parkingtype == "정기차량")
+////                        facilityService.openGate(gate.gateId, "GATE")
+//                }
+                // 전광판,정산기, tmap if
+                // gate open 은 제외처리 (2021-02-15) 정산기 성공 OK 시
+                if (deviceIF == "ON") {
+                    //todo 정산기 출차 전송
+                    when (parkingtype) {
+                        "미인식차량" -> {
+                            facilityService.sendPaystation(
+                                reqPayStationData(
+                                    paymentMachineType = "EXIT",
+                                    vehicleNumber = vehicleNo,
+                                    facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
+                                    recognitionType = "NOTRECOGNITION",
+                                    recognitionResult = recognitionResult!!,
+                                    paymentAmount = "0",
+                                    vehicleIntime = DateUtil.nowDateTimeHm
+                                ),
+                                gate = gate.gateId,
+                                requestId = requestId!!,
+                                type = "adjustmentRequest"
+                            )
+                            displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+                        }
+                        "정기차량" -> {
+                            if (price!!.totalPrice == 0) {
+                                facilityService.sendPaystation(
+                                    reqPayStationData(
+                                        paymentMachineType = "SEASON",
+                                        vehicleNumber = vehicleNo,
+                                        facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
+                                        recognitionType = "SEASON",
+                                        recognitionResult = recognitionResult!!,
+                                        paymentAmount = "0",
+                                        parktime = "0",
+                                        vehicleIntime = DateUtil.nowDateTimeHm
+                                    ),
+                                    gate = gate.gateId,
+                                    requestId = requestId!!,
+                                    type = "adjustmentRequest"
+                                )
+                            } else {
+                                facilityService.sendPaystation(
+                                    reqPayStationData(
+                                        paymentMachineType = "SEASON",
+                                        vehicleNumber = vehicleNo,
+                                        facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
+                                        recognitionType = "SEASON",
+                                        recognitionResult = recognitionResult!!,
+                                        paymentAmount = "0",
+                                        parktime = "0",
+                                        vehicleIntime = DateUtil.nowDateTimeHm
+                                    ),
+                                    gate = gate.gateId,
+                                    requestId = requestId!!,
+                                    type = "adjustmentRequest"
+                                )
+                            }
+                        }
+                        "일반차량" -> {
+                            facilityService.sendPaystation(
+                                reqPayStationData(
+                                    paymentMachineType = "SEASON",
+                                    vehicleNumber = vehicleNo,
+                                    facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
+                                    recognitionType = "SEASON",
+                                    recognitionResult = recognitionResult!!,
+                                    paymentAmount = "0",
+                                    parktime = "0",
+                                    vehicleIntime = DateUtil.nowDateTimeHm
+                                ),
+                                gate = gate.gateId,
+                                requestId = requestId!!,
+                                type = "adjustmentRequest"
+                            )
+                        }
                     }
                 }
-            }
 
-            // park-in update
-            parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", outDate)?.let { it ->
-                it.outSn = newData.sn
-                parkInRepository.save(it)
-                parkInRepository.flush()
-            }
+                parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", outDate)?.let { parkIn ->
+                    parkIn.outSn = newData.sn
+                    parkInRepository.save(parkIn)
+                    parkInRepository.flush()
+                }
 
-            CommonResult.created()
+                return CommonResult.created()
+            }
+            return CommonResult.error("parkout add failed ")
         } catch (e: RuntimeException) {
             logger.error { "parkout add failed ${e.message}" }
             return CommonResult.error("parkout add failed ")
@@ -761,9 +818,9 @@ class InoutService {
                         resultcode = "0",
                         base64Str = request.inImgBase64Str,
                         uuid = UUID.randomUUID().toString(),
-                        inSn = if (request.parkinSn == 0L) null else request.parkinSn
-                    ),
-                    "OFF").data!! as ParkIn
+                        inSn = if (request.parkinSn == 0L) null else request.parkinSn,
+                        deviceIF = "OFF"
+                    )).data!! as ParkIn
                 inResult = parkInRepository.findBySn(result.sn!!)!!
             }?.run {
                 return CommonResult.error("updateInout failed")

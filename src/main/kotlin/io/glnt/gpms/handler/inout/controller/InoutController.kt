@@ -28,7 +28,7 @@ class InoutController {
     @RequestMapping(value = ["/parkin"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun parkIn(@RequestBody request: reqAddParkIn) : ResponseEntity<CommonResult> {
-        val result = inoutService.parkIn(request, "ON")
+        val result = inoutService.parkIn(request)
         return when(result.code){
             ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
             else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
