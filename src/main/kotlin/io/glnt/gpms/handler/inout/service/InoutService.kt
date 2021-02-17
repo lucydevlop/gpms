@@ -406,7 +406,7 @@ class InoutService {
                 if (DataCheckUtil.isValidCarNumber(vehicleNo)) {
                     parkingtype = "일반차량"
                     //todo 정기권 차량 여부 확인
-                    productService.getValidProductByVehicleNo(vehicleNo)?.let {
+                    productService.getValidProductByVehicleNo(vehicleNo, date, date)?.let {
                         parkingtype = "정기차량"
                         validDate = it.validDate
                     }
@@ -425,6 +425,7 @@ class InoutService {
                     logger.info { "입차시간 : $parkIn!!.inDate!! / 출차시간 : $date / 주차시간: ${price!!.parkTime}" }
                     logger.info { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price!!.totalPrice}" }
                 }
+                price!!.totalPrice = 0
 //                }
 
                 // 출차 정보 DB insert
@@ -508,15 +509,17 @@ class InoutService {
                                         vehicleNumber = vehicleNo,
                                         facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
                                         recognitionType = "SEASON",
-                                        recognitionResult = recognitionResult!!,
-                                        paymentAmount = "0",
-                                        parktime = "0",
+                                        recognitionResult = "RECOGNITION",
+                                        paymentAmount = price!!.totalPrice.toString(),
+                                        parktime = price!!.parkTime.toString(),
                                         vehicleIntime = DateUtil.nowDateTimeHm
                                     ),
                                     gate = gate.gateId,
-                                    requestId = requestId!!,
+                                    requestId = newData.sn.toString(),
                                     type = "adjustmentRequest"
                                 )
+                                displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+                                facilityService.openGate(gate.gateId, "GATE")
                             } else {
                                 facilityService.sendPaystation(
                                     reqPayStationData(

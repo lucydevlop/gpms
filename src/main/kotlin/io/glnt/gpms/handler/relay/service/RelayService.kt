@@ -125,11 +125,11 @@ class RelayService {
         try {
             request.facilitiesList.forEach { failure ->
                 parkinglotService.getFacility(facilityId = failure.facilitiesId)?.let { facility ->
-                    if (failure.failureAlarm == "noResponse") {
+                    // SESSION CHECK
+                    if (failure.failureAlarm.isNullOrBlank()) {
                         // ping fail -> noResponse
                         facilityService.updateHealthCheck(failure.facilitiesId, failure.failureAlarm!!)
-                    } else if (failure.failureAlarm == "crossingGateBarDamageDoubt") {
-                        // 차단기
+                    } else {
                         saveFailure(
                             Failure(sn = null,
                                 issueDateTime = LocalDateTime.now(),
@@ -137,28 +137,41 @@ class RelayService {
                                 facilitiesId = failure.facilitiesId,
                                 fName = facility.fname,
                                 failureCode = failure.failureAlarm,
-                                failureType = failure.failureAlarm)
+                                failureType = failure.healthStatus)
                         )
-                    } else {
-                        // 정산기
-                        if (facility.category == "PAYSTATION") {
-                            if (failure.healthStatus == "Normal") {
-                                facilityService.updateHealthCheck(failure.facilitiesId, failure.healthStatus!!)
-                            } else {
-                                facilityService.updateHealthCheck(failure.facilitiesId, failure.failureAlarm!!)
-                            }
-                            saveFailure(
-                                Failure(sn = null,
-                                    issueDateTime = LocalDateTime.now(),
-//                                        expireDateTime = LocalDateTime.now(),
-                                    facilitiesId = facility.facilitiesId,
-                                    fName = facility.fname,
-                                    failureCode = failure.failureAlarm!!,
-                                    failureType = failure.healthStatus)
-                            )
-                        }
                     }
-                    if (parkinglotService.parkSite.tmapSend == "ON" && failure.healthStatus != "Normal")
+//                    if (failure.failureAlarm == "crossingGateBarDamageDoubt") {
+//                            // 차단기
+//                            saveFailure(
+//                                Failure(sn = null,
+//                                    issueDateTime = LocalDateTime.now(),
+////                                        expireDateTime = LocalDateTime.now(),
+//                                    facilitiesId = failure.facilitiesId,
+//                                    fName = facility.fname,
+//                                    failureCode = failure.failureAlarm,
+//                                    failureType = failure.failureAlarm)
+//                            )
+//                        } else {
+//                            // 정산기
+//                            if (facility.category == "PAYSTATION") {
+//                                if (failure.healthStatus == "Normal") {
+//                                    facilityService.updateHealthCheck(failure.facilitiesId, failure.healthStatus!!)
+//                                } else {
+//                                    facilityService.updateHealthCheck(failure.facilitiesId, failure.failureAlarm!!)
+//                                }
+//                                saveFailure(
+//                                    Failure(sn = null,
+//                                        issueDateTime = LocalDateTime.now(),
+////                                        expireDateTime = LocalDateTime.now(),
+//                                        facilitiesId = facility.facilitiesId,
+//                                        fName = facility.fname,
+//                                        failureCode = failure.failureAlarm!!,
+//                                        failureType = failure.healthStatus)
+//                                )
+//                            }
+//                        }
+//                    }
+                    if (parkinglotService.parkSite.tmapSend == "ON" && failure.healthStatus != "normal")
                         tmapSendService.sendFacilitiesFailureAlarm(FacilitiesFailureAlarm(facilitiesId = failure.facilitiesId, failureAlarm = failure.failureAlarm!!), null)
                 }
             }
@@ -214,7 +227,7 @@ class RelayService {
     fun saveFailure(request: Failure) {
         logger.info { "saveFailure $request" }
         try {
-            if (request.failureType == "NORMAL") {
+            if (request.failureType!!.toUpperCase() == "NORMAL") {
                 failureRepository.findTopByFacilitiesIdAndFailureCodeAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(
                     request.facilitiesId!!,
                     request.failureCode!!
