@@ -93,15 +93,32 @@ class FeeCalculation {
                 )
                 retPrice.basic = basicTime
                 retPrice.basicFare = it.basicFare
+
+                //정기권 기간 체크
+                val seasonTicket = getSeasonTicket(vehicleNo!!, basicTime.startTime!!, basicTime.endTime!!)
                 val dailySplit = DailySplit(
                     startTime = basicTime.startTime!!, endTime = basicTime.endTime!!,
                     payStartTime = basicTime.startTime!!, payEndTime = basicTime.endTime!!,
                     fareInfo = it.basicFare, date = DateUtil.LocalDateTimeToDateString(basicTime.startTime!!),
-                    week = DateUtil.getWeek(DateUtil.formatDateTime(basicTime.startTime!!, "yyyy-MM-dd"))
+                    week = DateUtil.getWeek(DateUtil.formatDateTime(basicTime.startTime!!, "yyyy-MM-dd")),
+                    priceType = if (seasonTicket != null) "SeasonTicket" else "Normal"
                 )
                 val dailySplits = ArrayList<DailySplit>()
                 dailySplits.add(dailySplit)
                 retPrice.dailySplits = dailySplits
+
+                if (seasonTicket != null) {
+                    if (seasonTicket.startTime!! <= basicTime.startTime && seasonTicket.endTime!! >= basicTime.endTime) {
+                    } else {
+                        dailySplits.add(DailySplit(
+                            startTime = basicTime.startTime!!, endTime = basicTime.endTime!!,
+                            payStartTime = basicTime.startTime!!, payEndTime = basicTime.endTime!!,
+                            fareInfo = it.basicFare, date = DateUtil.LocalDateTimeToDateString(basicTime.startTime!!),
+                            week = DateUtil.getWeek(DateUtil.formatDateTime(basicTime.startTime!!, "yyyy-MM-dd")),
+                            priceType = "Normal"
+                        ))
+                    }
+                }
             }
         }
 
