@@ -141,8 +141,24 @@ class RelayService {
                         )
                     } else {
                         // 정산기
+                        if (facility.category == "PAYSTATION") {
+                            if (failure.healthStatus == "Normal") {
+                                facilityService.updateHealthCheck(failure.facilitiesId, failure.healthStatus!!)
+                            } else {
+                                facilityService.updateHealthCheck(failure.facilitiesId, failure.failureAlarm!!)
+                            }
+                            saveFailure(
+                                Failure(sn = null,
+                                    issueDateTime = LocalDateTime.now(),
+//                                        expireDateTime = LocalDateTime.now(),
+                                    facilitiesId = facility.facilitiesId,
+                                    fName = facility.fname,
+                                    failureCode = failure.failureAlarm!!,
+                                    failureType = failure.healthStatus)
+                            )
+                        }
                     }
-                    if (parkinglotService.parkSite.tmapSend == "ON")
+                    if (parkinglotService.parkSite.tmapSend == "ON" && failure.healthStatus != "Normal")
                         tmapSendService.sendFacilitiesFailureAlarm(FacilitiesFailureAlarm(facilitiesId = failure.facilitiesId, failureAlarm = failure.failureAlarm!!), null)
                 }
             }

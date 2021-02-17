@@ -37,6 +37,7 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.criteria.Predicate
 import kotlin.collections.ArrayList
+import kotlin.concurrent.timer
 
 @Service
 class InoutService {
@@ -537,23 +538,38 @@ class InoutService {
                         "일반차량" -> {
                             if (gate.takeAction != "PCC") {
                                 facilityService.sendPaystation(
-                                    reqPayData(
-                                        paymentMachineType = "beforehand",
+                                    reqPayStationData(
+                                        paymentMachineType = "exit",
                                         vehicleNumber = vehicleNo,
-                                        parkTicketType = "OK",
-                                        parkTicketMoney = price!!.totalPrice.toString(),
-                                        facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!
-//                                    ,
-//                                    recognitionType = "SEASON",
-//                                    recognitionResult = recognitionResult!!,
-//                                    paymentAmount = "0",
-//                                    parktime = "0",
-//                                    vehicleIntime = DateUtil.nowDateTimeHm
+                                        facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
+                                        recognitionType = "FREE",
+                                        recognitionResult = "RECOGNITION",
+                                        paymentAmount = price!!.totalPrice.toString(),
+                                        parktime = price!!.parkTime.toString(),
+                                        vehicleIntime = DateUtil.formatDateTime(parkIn!!.inDate!!),
+                                        adjustmentDateTime = DateUtil.nowDateTime
                                     ),
                                     gate = gate.gateId,
-                                    requestId = requestId!!,
+                                    requestId = newData.sn.toString(),
                                     type = "adjustmentRequest"
                                 )
+
+                                if (price!!.discountPrice!! > 0) {
+                                    Thread.sleep(200)
+
+                                    facilityService.sendPaystation(
+                                        reqPayData(
+                                            paymentMachineType = "exit",
+                                            vehicleNumber = vehicleNo,
+                                            parkTicketType = "OK",
+                                            parkTicketMoney = price!!.discountPrice.toString(),  // 할인요금
+                                            facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!
+                                        ),
+                                        gate = gate.gateId,
+                                        requestId = newData.sn.toString(),
+                                        type = "adjustmentdataRequest"
+                                    )
+                                }
                             }
                         }
                     }
