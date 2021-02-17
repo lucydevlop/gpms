@@ -37,6 +37,7 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.criteria.Predicate
 import kotlin.collections.ArrayList
+import kotlin.concurrent.timer
 
 @Service
 class InoutService {
@@ -77,7 +78,7 @@ class InoutService {
 
 
     fun parkIn(request: reqAddParkIn) : CommonResult = with(request){
-        logger.info{"parkIn service car_num:${request.vehicleNo} facility_id:${request.facilitiesId} in_date:${request.inDate} result_code:${request.resultcode} uuid:${request.uuid}"}
+        logger.info{"parkIn service car_num:${request.vehicleNo} facility_id:${request.facilitiesId} in_date:${request.date} result_code:${request.resultcode} uuid:${request.uuid}"}
         try {
             // UUID 없을 경우(Back 입차) deviceIF -> OFF 로 전환
             if (uuid == null) deviceIF = "OFF"
@@ -170,7 +171,7 @@ class InoutService {
                     fileuploadid = fileUploadId,
                     hour = DateUtil.nowTimeDetail.substring(0, 2),
                     min = DateUtil.nowTimeDetail.substring(3, 5),
-                    inDate = inDate,
+                    inDate = date,
                     uuid = uuid,
                     udpssid = if (gate.takeAction == "PCC") "11111" else "00000"
                 )
@@ -368,24 +369,28 @@ class InoutService {
 
 //    @Transactional(readOnly = true)
     fun parkOut(request: reqAddParkOut) : CommonResult = with(request){
-        logger.debug("parkOut service {}", request)
+        logger.info{"parkOut service car_number: ${request.vehicleNo} out_date: ${request.date} facilityId: ${request.facilitiesId}"}
         try {
+            if (!parkOutRepository.findByVehicleNoEndsWith(vehicleNo).isNullOrEmpty()) {
+                return CommonResult.exist(request.vehicleNo, "park out vehicleNo exists")
+            }
+
+            requestId = parkinglotService.generateRequestId()
             // uuid 확인 후 skip
             parkOutRepository.findByUuid(uuid)?.let {
-                logger.debug{ "park out uuid $uuid exists $it "}
+                logger.info{ "park out uuid $uuid exists $it "}
                 if (it.parkcartype != "미인식차량" && DataCheckUtil.isValidCarNumber(vehicleNo)) {
                     logger.error { "park out uuid $uuid exists " }
-                    return CommonResult.exist(request, "park out uuid exists")
+                    return CommonResult.exist(request.uuid, "park out uuid exists")
                 }
                 requestId = it.requestid
                 parkOut = it
                 outSn = it.sn
-            }?.run {
-                requestId = parkinglotService.generateRequestId()
             }
+
             parkinglotService.getGateInfoByFacilityId(facilitiesId)?.let { gate ->
                 // park-in update
-                parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", outDate)?.let { it ->
+                parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", date)?.let { it ->
                     parkIn = it
                 }
 
@@ -401,7 +406,7 @@ class InoutService {
                 if (DataCheckUtil.isValidCarNumber(vehicleNo)) {
                     parkingtype = "일반차량"
                     //todo 정기권 차량 여부 확인
-                    productService.getValidProductByVehicleNo(vehicleNo)?.let {
+                    productService.getValidProductByVehicleNo(vehicleNo, date, date)?.let {
                         parkingtype = "정기차량"
                         validDate = it.validDate
                     }
@@ -415,8 +420,12 @@ class InoutService {
                 // gate 옵션인 경우 요금계산 진행
 //                if (gate.takeAction == "GATE") {
                 if (parkIn != null)  {
-                    price = feeCalculation.getBasicPayment(parkIn!!.inDate!!, outDate, VehicleType.SMALL, vehicleNo, 1, 0)
+                    price = feeCalculation.getBasicPayment(parkIn!!.inDate!!, date, VehicleType.SMALL, vehicleNo, 1, 0)
+                    logger.info { "-------------------getBasicPayment Result -------------------" }
+                    logger.info { "입차시간 : $parkIn!!.inDate!! / 출차시간 : $date / 주차시간: ${price!!.parkTime}" }
+                    logger.info { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price!!.totalPrice}" }
                 }
+                price!!.totalPrice = 0
 //                }
 
                 // 출차 정보 DB insert
@@ -434,7 +443,7 @@ class InoutService {
                     fileuploadid = fileUploadId,
                     hour = DateUtil.nowTimeDetail.substring(0, 2),
                     min = DateUtil.nowTimeDetail.substring(3, 5),
-                    outDate = outDate,
+                    outDate = date,
                     uuid = uuid,
                     parktime = price!!.parkTime,
                     parkfee = price!!.orgTotalPrice,
@@ -500,15 +509,17 @@ class InoutService {
                                         vehicleNumber = vehicleNo,
                                         facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
                                         recognitionType = "SEASON",
-                                        recognitionResult = recognitionResult!!,
-                                        paymentAmount = "0",
-                                        parktime = "0",
+                                        recognitionResult = "RECOGNITION",
+                                        paymentAmount = price!!.totalPrice.toString(),
+                                        parktime = price!!.parkTime.toString(),
                                         vehicleIntime = DateUtil.nowDateTimeHm
                                     ),
                                     gate = gate.gateId,
-                                    requestId = requestId!!,
+                                    requestId = newData.sn.toString(),
                                     type = "adjustmentRequest"
                                 )
+                                displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+                                facilityService.openGate(gate.gateId, "GATE")
                             } else {
                                 facilityService.sendPaystation(
                                     reqPayStationData(
@@ -530,29 +541,44 @@ class InoutService {
                         "일반차량" -> {
                             if (gate.takeAction != "PCC") {
                                 facilityService.sendPaystation(
-                                    reqPayData(
-                                        paymentMachineType = "beforehand",
+                                    reqPayStationData(
+                                        paymentMachineType = "exit",
                                         vehicleNumber = vehicleNo,
-                                        parkTicketType = "OK",
-                                        parkTicketMoney = price!!.totalPrice.toString(),
-                                        facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!
-//                                    ,
-//                                    recognitionType = "SEASON",
-//                                    recognitionResult = recognitionResult!!,
-//                                    paymentAmount = "0",
-//                                    parktime = "0",
-//                                    vehicleIntime = DateUtil.nowDateTimeHm
+                                        facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
+                                        recognitionType = "FREE",
+                                        recognitionResult = "RECOGNITION",
+                                        paymentAmount = price!!.totalPrice.toString(),
+                                        parktime = price!!.parkTime.toString(),
+                                        vehicleIntime = DateUtil.formatDateTime(parkIn!!.inDate!!),
+                                        adjustmentDateTime = DateUtil.nowDateTime
                                     ),
                                     gate = gate.gateId,
-                                    requestId = requestId!!,
+                                    requestId = newData.sn.toString(),
                                     type = "adjustmentRequest"
                                 )
+
+                                if (price!!.discountPrice!! > 0) {
+                                    Thread.sleep(200)
+
+                                    facilityService.sendPaystation(
+                                        reqPayData(
+                                            paymentMachineType = "exit",
+                                            vehicleNumber = vehicleNo,
+                                            parkTicketType = "OK",
+                                            parkTicketMoney = price!!.discountPrice.toString(),  // 할인요금
+                                            facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!
+                                        ),
+                                        gate = gate.gateId,
+                                        requestId = newData.sn.toString(),
+                                        type = "adjustmentdataRequest"
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
-                parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", outDate)?.let { parkIn ->
+                parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", date)?.let { parkIn ->
                     parkIn.outSn = newData.sn
                     parkInRepository.save(parkIn)
                     parkInRepository.flush()
@@ -562,7 +588,7 @@ class InoutService {
             }
             return CommonResult.error("parkout add failed ")
         } catch (e: RuntimeException) {
-            logger.error { "parkout add failed ${e.message}" }
+            logger.error { "parkout add failed ${e.stackTrace}" }
             return CommonResult.error("parkout add failed ")
         }
     }
@@ -830,7 +856,7 @@ class InoutService {
                 val result = parkIn(
                     reqAddParkIn(vehicleNo = request.vehicleNo!!,
                         facilitiesId = facilies[0].dtFacilitiesId,
-                        inDate = request.inDate,
+                        date = request.inDate,
                         resultcode = "0",
                         base64Str = request.inImgBase64Str,
                         uuid = UUID.randomUUID().toString(),
@@ -848,7 +874,7 @@ class InoutService {
                     var newOut = parkOut(
                         reqAddParkOut(vehicleNo = request.vehicleNo!!,
                             facilitiesId = facilies[0].dtFacilitiesId,
-                            outDate = request.outDate!!,
+                            date = request.outDate!!,
                             base64Str = request.outImgBase64Str,
                             uuid = UUID.randomUUID().toString(),
                             resultcode = "0",
