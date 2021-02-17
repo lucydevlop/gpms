@@ -67,6 +67,7 @@ enum class TicketType(val code: String, val desc: String) {
 
 enum class DiscountRangeType(val code: String, val desc: String) {
     WEEKDAY("WEEKDAY", "평일"),
+    WEEKEND("WEEKEND", "주말"),
     ALL("ALL", "전체")
 }
 

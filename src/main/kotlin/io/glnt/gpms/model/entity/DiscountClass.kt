@@ -1,9 +1,11 @@
 package io.glnt.gpms.model.entity
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountRangeType
 import io.glnt.gpms.model.enums.DiscountSaleType
 import org.springframework.format.annotation.DateTimeFormat
@@ -51,12 +53,16 @@ data class DiscountClass(
     var disPrice: Int? = 0,
 
     @Column(name = "effectDate")
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var effectDate: LocalDateTime? = DateUtil.stringToLocalDateTime(DateUtil.nowDateTime, "yyyy-MM-dd HH:mm:ss"),
 
     @Column(name = "expireDate")
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    var expireDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var expireDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59"),
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "del_yn", nullable = true)
+    var delYn: DelYn? = DelYn.N
 ): Auditable(), Serializable {
 
 }
