@@ -6,6 +6,7 @@ package io.glnt.gpms
 import io.github.jhipster.config.JHipsterConstants
 import io.glnt.gpms.common.configs.ApplicationProperties
 import io.glnt.gpms.common.utils.DefaultProfileUtil
+import io.glnt.gpms.handler.calc.service.FeeCalculation
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.relay.service.RelayService
@@ -26,7 +27,8 @@ class GPMSApplication(
     private val env: Environment,
     val parkinglotService: ParkinglotService,
     val facilityService: FacilityService,
-    val relayService: RelayService
+    val relayService: RelayService,
+    val feeCalculation: FeeCalculation
 ) {
     private val log = LoggerFactory.getLogger(GPMSApplication::class.java)
 
@@ -38,6 +40,7 @@ class GPMSApplication(
         facilityService.fetchDisplayColor()
         facilityService.fetchGate()
         relayService.fetchParkAlarmSetting(parkinglotService.parkSite.siteid)
+        feeCalculation.init()
 
         if (activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT) && activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_PRODUCTION)) {
             log.error("You have misconfigured your application! It should not run " + "with both the 'dev' and 'prod' profiles at the same time.")

@@ -67,6 +67,7 @@ enum class TicketType(val code: String, val desc: String) {
 
 enum class DiscountRangeType(val code: String, val desc: String) {
     WEEKDAY("WEEKDAY", "평일"),
+    WEEKEND("WEEKEND", "주말"),
     ALL("ALL", "전체")
 }
 
@@ -80,6 +81,30 @@ enum class VehicleType(val code: String, val desc: String) {
     MEDIUM("MEDIUM", "중형"),
     LARGE("LARGE", "중형")
 }
+
+enum class WeekType(val code: Int, val desc: String) {
+    SUN(1, "일요일"),
+    MON(2, "월요일"),
+    TUE(3, "화요일"),
+    WED(4, "수요일"),
+    THU(5, "목요일"),
+    FRI(6, "금요일"),
+    SAT(7, "요일"),
+    ALL(0, "ALL")
+}
+
+enum class FareType(val code: String, val desc: String) {
+    BASIC("BASIC", "기본요금"),
+    ADD("ADD", "추가요금")
+}
+
+enum class HolidayType(val code: String, val desc: String) {
+    HOLIDAY("HOLIDAY", "공휴일"),
+    SPECIALDAY("SPECIALDAY", "특근일"),
+    ETC("ETC", "기타")
+}
+
+
 
 //enum class parkCarType {
 //    "일반차량", "정기권차량", "미인식차량"

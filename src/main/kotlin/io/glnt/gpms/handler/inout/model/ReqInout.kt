@@ -1,6 +1,9 @@
 package io.glnt.gpms.handler.inout.model
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import io.glnt.gpms.handler.calc.model.BasicPrice
+import io.glnt.gpms.model.entity.ParkIn
+import io.glnt.gpms.model.entity.ParkOut
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -12,13 +15,15 @@ data class reqAddParkIn(
     var vehicleNo: String,
     var facilitiesId: String,
     @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd HH:mm:ss")
-    var inDate: LocalDateTime,
+    var date: LocalDateTime,
     var resultcode: String,
     /* 차량이미지 File (base64) */
     var base64Str: String? = null,
     var originFileName: String? = null,
-    var uuid: String,
+    var uuid: String? = null,
 
+    /* update 사용 */
+    var inSn: Long? = null,
 
     /* 연계 필요한 항목들 정의 */
     var parkingtype: String? = "미인식차량",
@@ -28,7 +33,8 @@ data class reqAddParkIn(
     var fileName: String? = null,
     var fileUploadId: String? = null,
     var fileFullPath: String? = null,
-    var recognitionResult: String? = null
+    var recognitionResult: String? = null,
+    var deviceIF: String? = "ON"
 )
 
 data class reqAddParkOut(
@@ -36,12 +42,15 @@ data class reqAddParkOut(
     var vehicleNo: String,
     var facilitiesId: String,
     @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd HH:mm:ss")
-    var outDate: LocalDateTime,
+    var date: LocalDateTime,
     var resultcode: String,
     /* 차량이미지 File (base64) */
     var base64Str: String? = null,
     var originFileName: String? = null,
     var uuid: String,
+
+    /* update */
+    var outSn: Long? = null,
 
     /* 연계 필요한 항목들 정의 */
     var parkingtype: String? = "미인식차량",
@@ -51,7 +60,11 @@ data class reqAddParkOut(
     var fileName: String? = null,
     var fileUploadId: String? = null,
     var fileFullPath: String? = null,
-    var recognitionResult: String? = null
+    var recognitionResult: String? = null,
+    var parkIn: ParkIn? = null,
+    var parkOut: ParkOut? = null,
+    var price: BasicPrice? = null,
+    var deviceIF: String? = "ON"
 )
 
 data class reqSearchParkin(

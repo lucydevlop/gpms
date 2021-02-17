@@ -7,7 +7,7 @@ import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.inout.model.reqAddParkIn
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.common.api.utils.paginate
-import io.glnt.gpms.handler.inout.model.ResParkInList
+import io.glnt.gpms.handler.inout.model.resParkInList
 import io.glnt.gpms.handler.inout.model.reqAddParkOut
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,6 +31,7 @@ class InoutController {
         val result = inoutService.parkIn(request)
         return when(result.code){
             ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
             else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
         }
     }
@@ -42,6 +43,7 @@ class InoutController {
         val result = inoutService.parkOut(request)
         return when(result.code){
             ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
             ResultCode.CONFLICT.getCode() -> ResponseEntity(result, HttpStatus.CONFLICT)
             else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
         }
@@ -63,6 +65,17 @@ class InoutController {
     fun getParkInOutDetail(@PathVariable request: Long) : ResponseEntity<CommonResult> {
         logger.trace { "getParkInOutDetail inseq $request" }
         val result = inoutService.getParkInOutDetail(request)
+        return when (result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    @RequestMapping(value = ["/update"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun updateInout(@PathVariable request: resParkInList) : ResponseEntity<CommonResult> {
+        logger.trace { "update INOUT $request" }
+        val result = inoutService.updateInout(request)
         return when (result.code) {
             ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
             else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)

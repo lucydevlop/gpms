@@ -3,14 +3,8 @@ package io.glnt.gpms.model.entity
 //import androidx.room.*
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType
 import com.vladmihalcea.hibernate.type.json.JsonStringType
 import io.glnt.gpms.common.utils.DateUtil
-import io.glnt.gpms.model.entity.Auditable
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.TicketType
 import io.glnt.gpms.model.enums.VehicleType

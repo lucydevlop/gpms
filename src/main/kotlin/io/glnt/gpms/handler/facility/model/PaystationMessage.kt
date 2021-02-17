@@ -34,11 +34,32 @@ data class reqPayData(
     var paymentMachineType: String,
     var vehicleNumber: String,
     var parkTicketType: String,
-    var parkTicketMoney: String
+    var parkTicketMoney: String,
+    var facilitiesId: String? = null
 )
 
 data class reqPaystation(
     var facilityId: String,
     var data: Any
 )
+
+data class reqPaymentResponse(
+    var chargingId: String? = null,
+    var vehicleNumber: String
+)
+
+data class reqPaymentResult(
+    var vehicleNumber: String,
+    var paymentMachineType: String,
+    var paymentType: String,
+    var approveDatetime: String? = null,
+    var cardAmount: Int? = null,
+    var cardCorp: String? = null,
+    var cardNumber: String? = null,
+    var parkTicketAmount: String? = null,
+    var paymentAmount: String? = null,
+    var transactionId: String? = null,
+    var failureMessage: String? = null
+)
+
 

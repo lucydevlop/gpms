@@ -8,6 +8,7 @@ import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
+import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.entity.Gate
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -158,6 +159,18 @@ class ParkinglotController {
 
         val result = parkinglotService.searchFacility(id)
         return when (result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    @RequestMapping(value = ["/discount/ticket"], method = [RequestMethod.GET])
+    @Throws(CustomException::class)
+    fun getDiscountCoupon() : ResponseEntity<CommonResult> {
+        logger.trace { "getDiscountCoupon" }
+        val result = parkinglotService.getDiscountCoupon()
+        return when(result.code) {
             ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
             ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
             else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)

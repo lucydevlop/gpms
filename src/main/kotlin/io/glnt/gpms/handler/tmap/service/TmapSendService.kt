@@ -6,6 +6,7 @@ import io.github.jhipster.config.JHipsterDefaults.Cache.Hazelcast.ManagementCent
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
+import io.glnt.gpms.handler.facility.model.reqPaymentResult
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.relay.model.FacilitiesFailureAlarm
 import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
@@ -112,7 +113,7 @@ class TmapSendService {
     }
 
     fun sendInVehicleRequest(request: reqTmapInVehicle, requestId: String, fileName: String?) = with(request) {
-        logger.debug { "sendInVehicle request ${request}" }
+        logger.info { "sendInVehicle request $request" }
         try {
 //            val data = reqTmapInVehicle(
 //                gateId = gateId,
@@ -150,7 +151,7 @@ class TmapSendService {
     }
 
     fun sendOutVehicle(request: reqOutVehicle, requestId: String, fileName: String?) = with(request) {
-        logger.debug { "sendInVehicle request ${request}" }
+        logger.info { "sendInVehicle request $request" }
         try {
             restAPIManager.sendPostRequest(
                 url,
@@ -174,7 +175,7 @@ class TmapSendService {
     }
 
     fun sendAdjustmentRequest(request: reqAdjustmentRequest, requestId: String) = with(request) {
-        logger.debug { "sendAdjustmentRequest request ${request}" }
+        logger.info { "sendAdjustmentRequest request $request" }
         try {
             restAPIManager.sendPostRequest(
                 url,
@@ -187,7 +188,7 @@ class TmapSendService {
     }
 
     fun sendFileUpload(request: reqTmapFileUpload, filePath: String?) = with(request) {
-        logger.debug { "sendFileUpload request $request fileName $filePath" }
+        logger.info { "sendFileUpload request $request fileName $filePath" }
         parkingSiteId = parkinglotService.parkSiteId()!!
         try {
             restAPIManager.sendFormPostRequest(url, request)
@@ -223,7 +224,7 @@ class TmapSendService {
     }
 
     fun sendHealthCheckRequest(request: reqRelayHealthCheck, requestId: String) {
-        logger.debug { "sendHealthCheckRequest request $request" }
+        logger.info { "sendHealthCheckRequest request $request" }
         try {
             restAPIManager.sendPostRequest(
                 url,
@@ -236,7 +237,7 @@ class TmapSendService {
     }
 
     fun sendFacilitiesFailureAlarm(request: FacilitiesFailureAlarm, requestId: String?) {
-        logger.debug { "sendFacilitiesFailureAlarm request $request" }
+        logger.info { "sendFacilitiesFailureAlarm request $request" }
         try {
             restAPIManager.sendPostRequest(
                 url,
@@ -249,7 +250,7 @@ class TmapSendService {
     }
 
     fun sendFacilitiesStatusNoti(request: reqTmapFacilitiesStatusNoti, requestId: String?) {
-        logger.debug { "sendFacilitiesStatusNoti request $request" }
+        logger.info { "sendFacilitiesStatusNoti request $request" }
         try {
             restAPIManager.sendPostRequest(
                 url,
@@ -258,6 +259,18 @@ class TmapSendService {
 
         }catch (e: RuntimeException) {
             logger.error { "sendAdjustmentRequest error ${e.message}" }
+        }
+    }
+
+    fun sendPayment(request: reqSendPayment, requestId: String) {
+        logger.info { "sendPayment request $request" }
+        try {
+            restAPIManager.sendPostRequest(
+                url,
+                setTmapRequest("payment", requestId, request)
+            )
+        }catch (e: RuntimeException) {
+            logger.error { "sendPayment error ${e.message}" }
         }
     }
 

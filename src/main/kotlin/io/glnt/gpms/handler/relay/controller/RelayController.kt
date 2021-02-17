@@ -3,6 +3,7 @@ package io.glnt.gpms.handler.relay.controller
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
 import io.glnt.gpms.handler.relay.service.RelayService
+import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
@@ -38,6 +39,12 @@ class RelayController {
     fun paymentHealthCheck() {
         logger.trace { "paymentHealthCheck " }
         relayService.paymentHealthCheck()
+    }
+
+    @RequestMapping(value=["/paystation/result/{facilityId}"], method=[RequestMethod.GET])
+    fun paymentResult(@RequestBody request: reqApiTmapCommon, @PathVariable facilityId: String) {
+        logger.trace { "paymentResult " }
+        relayService.paymentResult(request, facilityId)
     }
 
 

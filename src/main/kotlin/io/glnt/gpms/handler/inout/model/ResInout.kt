@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import java.time.LocalDateTime
 
-data class ResParkInList(
+data class resParkInList(
     var type: DisplayMessageClass,
     var parkinSn: Long,
     var vehicleNo: String? = null,

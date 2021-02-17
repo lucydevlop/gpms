@@ -1,5 +1,7 @@
 package io.glnt.gpms.common.utils
 
+import io.glnt.gpms.model.enums.WeekType
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -66,8 +68,16 @@ object DateUtil {
         return LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
     }
 
+    fun LocalDateTimeToDateString(date: LocalDateTime) : String {
+        return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+    }
+
     fun formatDateTime(dateTime: LocalDateTime, timePattern: String = DATE_TIME_PATTERN): String {
         return dateTime.format(DateTimeFormatter.ofPattern(timePattern))
+    }
+
+    fun getHourMinuteByLocalDateTime(date: LocalDateTime) : String {
+        return date.format(DateTimeFormatter.ofPattern("HHmm"))
     }
 
 
@@ -81,6 +91,10 @@ object DateUtil {
 
     fun getAddMinutes(date: LocalDateTime, amount: Long): LocalDateTime {
         return date.plusMinutes(amount)
+    }
+
+    fun getAddSeconds(date: LocalDateTime, amount: Long): LocalDateTime {
+        return date.plusSeconds(amount)
     }
 
     fun diffDays(date1: LocalDateTime, date2: LocalDateTime) : Int {
@@ -105,5 +119,41 @@ object DateUtil {
 
     fun lastTimeToLocalDateTime(date: String) : LocalDateTime {
         return LocalDateTime.parse(("$date 23:59:59").toString(), DateTimeFormatter.ofPattern(DATE_TIME_PATTERN))
+    }
+
+    fun makeLocalDateTime(date: String, hour: String, minute: String) : LocalDateTime {
+        return LocalDateTime.parse(("$date $hour:$minute:00").toString(), DateTimeFormatter.ofPattern(DATE_TIME_PATTERN))
+    }
+
+    fun getWeek(date: String?): WeekType?{
+        val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val c = Calendar.getInstance()
+        try {
+            c.time = format.parse(date)
+        } catch (e: ParseException) {
+            e.printStackTrace()
+        }
+        if (c[Calendar.DAY_OF_WEEK] == Calendar.SUNDAY) {
+            return WeekType.SUN
+        }
+        if (c[Calendar.DAY_OF_WEEK] == Calendar.MONDAY) {
+            return WeekType.MON
+        }
+        if (c[Calendar.DAY_OF_WEEK] == Calendar.TUESDAY) {
+            return WeekType.TUE
+        }
+        if (c[Calendar.DAY_OF_WEEK] == Calendar.WEDNESDAY) {
+            return WeekType.WED
+        }
+        if (c[Calendar.DAY_OF_WEEK] == Calendar.THURSDAY) {
+            return WeekType.THU
+        }
+        if (c[Calendar.DAY_OF_WEEK] == Calendar.FRIDAY) {
+            return WeekType.FRI
+        }
+        if (c[Calendar.DAY_OF_WEEK] == Calendar.SATURDAY) {
+            return WeekType.SAT
+        }
+        return null
     }
 }
