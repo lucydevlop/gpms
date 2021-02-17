@@ -73,17 +73,17 @@ class FacilityController {
         }
     }
 
-    @RequestMapping(value = ["/paystation/search"])
-    fun searchCarNumber(@RequestBody request: reqSendVehicleListSearch) : ResponseEntity<CommonResult> {
-        logger.debug("parkinglot facility paystation search param : $request")
-
-        val result = facilityService.searchCarNumber(request)
-        return when(result!!.code) {
-            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
-            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
-            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
-        }
-    }
+//    @RequestMapping(value = ["/paystation/search"])
+//    fun searchCarNumber(@RequestBody request: reqSendVehicleListSearch) : ResponseEntity<CommonResult> {
+//        logger.debug("parkinglot facility paystation search param : $request")
+//
+//        val result = facilityService.searchCarNumber(request)
+//        return when(result!!.code) {
+//            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+//            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+//            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+//        }
+//    }
 
     @RequestMapping(value = ["/paystation/payment/{facilitiesId}"])
     fun payment(@RequestBody request: reqApiTmapCommon, @PathVariable("facilitiesId") facilitiesId: String) : ResponseEntity<CommonResult> {

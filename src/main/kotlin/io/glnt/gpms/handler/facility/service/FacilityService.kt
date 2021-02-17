@@ -60,9 +60,6 @@ class FacilityService {
     private lateinit var restAPIManager: RestAPIManagerUtil
 
     @Autowired
-    private lateinit var vehicleListSearchRepository: VehicleListSearchRepository
-
-    @Autowired
     private lateinit var parkGateRepository: ParkGateRepository
 
     @Autowired
@@ -253,20 +250,6 @@ class FacilityService {
             }
         }
 
-    }
-
-    @Throws(CustomException::class)
-    fun searchCarNumber(request: reqSendVehicleListSearch): CommonResult? {
-        logger.info { "searchCarNumber request $request" }
-        if (parkinglotService.parkSite.tmapSend == "ON") {
-            // table db insert
-            val requestId = parkinglotService.generateRequestId()
-            vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = request.facilityId))
-            tmapSendService.sendTmapInterface(request, requestId, "vehicleListSearch")
-        } else {
-            return inoutService.searchParkInByVehicleNo(request.vehicleNumber, "")
-        }
-        return null
     }
 
     @Throws(CustomException::class)

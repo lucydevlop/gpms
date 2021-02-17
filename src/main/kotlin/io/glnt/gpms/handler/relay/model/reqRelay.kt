@@ -19,3 +19,8 @@ data class FacilitiesFailureAlarm(
     var facilitiesId: String,
     var failureAlarm: String
 )
+
+data class paystationvehicleListSearch(
+    var vehicleNumber: String,
+    var inVehicleDateTime: String
+)
