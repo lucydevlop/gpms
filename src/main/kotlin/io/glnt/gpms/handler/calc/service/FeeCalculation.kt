@@ -264,14 +264,15 @@ class FeeCalculation {
     }
 
     fun betweenTimeRange(start: String, end: String, target: String) : Boolean {
-        return if (start > end) {
-                if (target <= "2400")
-                        (start <= target && target < "2400")
-                else
-                        ("0000" <= target && target < end)
-        } else {
-            start <= target && target < end
-        }
+        val result =
+            if (start > end) {
+                if ( start <= target && target < "2400" ) true
+                else "0000" <= target && target < end
+            } else {
+                start <= target && target < end
+            }
+
+        return result
     }
 }
 

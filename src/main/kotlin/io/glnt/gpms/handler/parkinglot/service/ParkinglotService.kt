@@ -19,6 +19,7 @@ import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 import javax.transaction.Transactional
 import kotlin.collections.ArrayList
 
@@ -45,6 +46,9 @@ class ParkinglotService {
 
     @Autowired
     private lateinit var parkGateRepository: ParkGateRepository
+
+    @Autowired
+    private lateinit var discountClassRepository: DiscountClassRepository
 
     fun createParkinglot(): CommonResult {
         logger.debug { "createParkinglot service" }
@@ -344,6 +348,18 @@ class ParkinglotService {
         } catch(e: CustomException) {
             logger.error { "updateParkinglot error ${e.message}" }
             return CommonResult.error("parkinglot update failed ")
+        }
+    }
+
+    fun getDiscountCoupon(): CommonResult {
+        logger.info { "getDiscountCounpon" }
+        try {
+            return CommonResult.data(
+                data = discountClassRepository.findByExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(LocalDateTime.now(), LocalDateTime.now(), DelYn.N)
+            )
+        }catch(e: CustomException) {
+            logger.error { "getDiscountCounpon error ${e.message}" }
+            return CommonResult.error("getDiscountCounpon failed ")
         }
     }
 
