@@ -42,14 +42,20 @@ class RelayController {
     }
 
     @RequestMapping(value=["/paystation/result/{facilityId}"], method=[RequestMethod.POST])
-    fun paymentResult(@RequestBody request: reqApiTmapCommon, @PathVariable facilityId: String) {
-        logger.info { "paymentResult $request " }
-        relayService.paymentResult(request, facilityId)
+    fun resultPayment(@RequestBody request: reqApiTmapCommon, @PathVariable facilityId: String) {
+        logger.info { "resultPayment $request " }
+        relayService.resultPayment(request, facilityId)
     }
 
     @RequestMapping(value = ["/paystation/search/vehicle/{facilityId}"], method = [RequestMethod.POST])
     fun searchCarNumber(@RequestBody request: reqApiTmapCommon, @PathVariable facilityId: String) {
         logger.info { "searchCarNumber $request " }
+        relayService.searchCarNumber(request, facilityId)
+    }
+
+    @RequestMapping(value = ["/paystation/request/{facilityId}"], method = [RequestMethod.POST])
+    fun requestPayment(@RequestBody request: reqApiTmapCommon, @PathVariable facilityId: String) {
+        logger.info { "requestPayment $request " }
         relayService.searchCarNumber(request, facilityId)
     }
 

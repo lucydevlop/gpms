@@ -266,7 +266,9 @@ class RelayService {
         }
     }
 
-    fun paymentResult(request: reqApiTmapCommon, facilityId: String){
+    @Throws(CustomException::class)
+    fun resultPayment(request: reqApiTmapCommon, facilityId: String){
+        logger.info { "resultPayment request $request facilityId $facilityId" }
 //        request.contents = JSONUtil.getJsObject(request.contents)
         val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqPaymentResult::class.java)
         facilityService.sendPaystation(
