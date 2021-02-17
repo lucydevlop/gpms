@@ -80,7 +80,7 @@ class RelayService {
                 paymentHealthCheck()
             }
 
-        }catch (e: CustomException){
+        } catch (e: CustomException){
             logger.error { "facilitiesHealthCheck failed ${e.message}" }
         }
 

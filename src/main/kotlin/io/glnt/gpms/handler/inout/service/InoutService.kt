@@ -77,7 +77,7 @@ class InoutService {
 
 
     fun parkIn(request: reqAddParkIn) : CommonResult = with(request){
-        logger.info{"parkIn service car_num:${request.vehicleNo} facility_id:${request.facilitiesId} in_date:${request.inDate} result_code:${request.resultcode} uuid:${request.uuid}"}
+        logger.info{"parkIn service car_num:${request.vehicleNo} facility_id:${request.facilitiesId} in_date:${request.date} result_code:${request.resultcode} uuid:${request.uuid}"}
         try {
             // UUID 없을 경우(Back 입차) deviceIF -> OFF 로 전환
             if (uuid == null) deviceIF = "OFF"
@@ -170,7 +170,7 @@ class InoutService {
                     fileuploadid = fileUploadId,
                     hour = DateUtil.nowTimeDetail.substring(0, 2),
                     min = DateUtil.nowTimeDetail.substring(3, 5),
-                    inDate = inDate,
+                    inDate = date,
                     uuid = uuid,
                     udpssid = if (gate.takeAction == "PCC") "11111" else "00000"
                 )
@@ -368,24 +368,28 @@ class InoutService {
 
 //    @Transactional(readOnly = true)
     fun parkOut(request: reqAddParkOut) : CommonResult = with(request){
-        logger.debug("parkOut service {}", request)
+        logger.info{"parkOut service car_number: ${request.vehicleNo} out_date: ${request.date} facilityId: ${request.facilitiesId}"}
         try {
+            if (!parkOutRepository.findByVehicleNoEndsWith(vehicleNo).isNullOrEmpty()) {
+                return CommonResult.exist(request.vehicleNo, "park out vehicleNo exists")
+            }
+
+            requestId = parkinglotService.generateRequestId()
             // uuid 확인 후 skip
             parkOutRepository.findByUuid(uuid)?.let {
-                logger.debug{ "park out uuid $uuid exists $it "}
+                logger.info{ "park out uuid $uuid exists $it "}
                 if (it.parkcartype != "미인식차량" && DataCheckUtil.isValidCarNumber(vehicleNo)) {
                     logger.error { "park out uuid $uuid exists " }
-                    return CommonResult.exist(request, "park out uuid exists")
+                    return CommonResult.exist(request.uuid, "park out uuid exists")
                 }
                 requestId = it.requestid
                 parkOut = it
                 outSn = it.sn
-            }?.run {
-                requestId = parkinglotService.generateRequestId()
             }
+
             parkinglotService.getGateInfoByFacilityId(facilitiesId)?.let { gate ->
                 // park-in update
-                parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", outDate)?.let { it ->
+                parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", date)?.let { it ->
                     parkIn = it
                 }
 
@@ -415,7 +419,10 @@ class InoutService {
                 // gate 옵션인 경우 요금계산 진행
 //                if (gate.takeAction == "GATE") {
                 if (parkIn != null)  {
-                    price = feeCalculation.getBasicPayment(parkIn!!.inDate!!, outDate, VehicleType.SMALL, vehicleNo, 1, 0)
+                    price = feeCalculation.getBasicPayment(parkIn!!.inDate!!, date, VehicleType.SMALL, vehicleNo, 1, 0)
+                    logger.info { "-------------------getBasicPayment Result -------------------" }
+                    logger.info { "입차시간 : $parkIn!!.inDate!! / 출차시간 : $date / 주차시간: ${price!!.parkTime}" }
+                    logger.info { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price!!.totalPrice}" }
                 }
 //                }
 
@@ -434,7 +441,7 @@ class InoutService {
                     fileuploadid = fileUploadId,
                     hour = DateUtil.nowTimeDetail.substring(0, 2),
                     min = DateUtil.nowTimeDetail.substring(3, 5),
-                    outDate = outDate,
+                    outDate = date,
                     uuid = uuid,
                     parktime = price!!.parkTime,
                     parkfee = price!!.orgTotalPrice,
@@ -552,7 +559,7 @@ class InoutService {
                     }
                 }
 
-                parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", outDate)?.let { parkIn ->
+                parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", date)?.let { parkIn ->
                     parkIn.outSn = newData.sn
                     parkInRepository.save(parkIn)
                     parkInRepository.flush()
@@ -562,7 +569,7 @@ class InoutService {
             }
             return CommonResult.error("parkout add failed ")
         } catch (e: RuntimeException) {
-            logger.error { "parkout add failed ${e.message}" }
+            logger.error { "parkout add failed ${e.stackTrace}" }
             return CommonResult.error("parkout add failed ")
         }
     }
@@ -830,7 +837,7 @@ class InoutService {
                 val result = parkIn(
                     reqAddParkIn(vehicleNo = request.vehicleNo!!,
                         facilitiesId = facilies[0].dtFacilitiesId,
-                        inDate = request.inDate,
+                        date = request.inDate,
                         resultcode = "0",
                         base64Str = request.inImgBase64Str,
                         uuid = UUID.randomUUID().toString(),
@@ -848,7 +855,7 @@ class InoutService {
                     var newOut = parkOut(
                         reqAddParkOut(vehicleNo = request.vehicleNo!!,
                             facilitiesId = facilies[0].dtFacilitiesId,
-                            outDate = request.outDate!!,
+                            date = request.outDate!!,
                             base64Str = request.outImgBase64Str,
                             uuid = UUID.randomUUID().toString(),
                             resultcode = "0",

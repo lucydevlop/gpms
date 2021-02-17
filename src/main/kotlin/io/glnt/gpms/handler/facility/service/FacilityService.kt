@@ -75,7 +75,7 @@ class FacilityService {
     }
 
     fun openGate(id: String, type: String) {
-        logger.trace { "openGate request $type $id" }
+        logger.info { "openGate request $type $id" }
         try {
             when (type) {
                 "GATE" -> {
@@ -110,7 +110,7 @@ class FacilityService {
     }
 
     fun setDisplayColor(request: ArrayList<reqSetDisplayColor>): CommonResult = with(request) {
-        logger.trace { "setDisplayColor request $request" }
+        logger.info { "setDisplayColor request $request" }
         try {
             request.forEach { it ->
                 displayColorRepository.findByColorCode(it.colorCode)?.let { displayColor ->
@@ -134,7 +134,7 @@ class FacilityService {
     }
 
     fun setDisplayMessage(request: ArrayList<reqSetDisplayMessage>): CommonResult = with(request) {
-        logger.trace { "setDisplayMessage request $request" }
+        logger.info { "setDisplayMessage request $request" }
         try {
             request.forEach { it ->
                 displayMessageRepository.findByMessageClassAndMessageTypeAndOrder(
@@ -242,7 +242,7 @@ class FacilityService {
     }
 
     fun sendPaystation(data: Any, gate: String, requestId: String, type: String) {
-        logger.trace { "sendPaystation request $data $gate $requestId $type" }
+        logger.info { "sendPaystation request $data $gate $requestId $type" }
         //todo 정산기 api 연계 개발
         parkinglotService.getFacilityByGateAndCategory(gate, "PAYSTATION")?.let { its ->
             its.forEach {
@@ -257,7 +257,7 @@ class FacilityService {
 
     @Throws(CustomException::class)
     fun searchCarNumber(request: reqSendVehicleListSearch): CommonResult? {
-        logger.trace { "searchCarNumber request $request" }
+        logger.info { "searchCarNumber request $request" }
         if (parkinglotService.parkSite.tmapSend == "ON") {
             // table db insert
             val requestId = parkinglotService.generateRequestId()
@@ -271,7 +271,7 @@ class FacilityService {
 
     @Throws(CustomException::class)
     fun sendPayment(request: reqApiTmapCommon, facilitiesId: String): CommonResult? {
-        logger.trace { "sendPayment request $request" }
+        logger.info { "sendPayment request $request" }
         try{
             var fileName: String? = null
             var fileUploadId: String? = null

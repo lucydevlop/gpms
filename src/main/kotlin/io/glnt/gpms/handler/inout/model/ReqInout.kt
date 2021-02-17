@@ -15,7 +15,7 @@ data class reqAddParkIn(
     var vehicleNo: String,
     var facilitiesId: String,
     @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd HH:mm:ss")
-    var inDate: LocalDateTime,
+    var date: LocalDateTime,
     var resultcode: String,
     /* 차량이미지 File (base64) */
     var base64Str: String? = null,
@@ -42,7 +42,7 @@ data class reqAddParkOut(
     var vehicleNo: String,
     var facilitiesId: String,
     @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd HH:mm:ss")
-    var outDate: LocalDateTime,
+    var date: LocalDateTime,
     var resultcode: String,
     /* 차량이미지 File (base64) */
     var base64Str: String? = null,
