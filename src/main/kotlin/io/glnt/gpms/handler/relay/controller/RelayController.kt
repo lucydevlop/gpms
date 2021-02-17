@@ -19,35 +19,33 @@ class RelayController {
 
     @RequestMapping(value=["/health_check"], method=[RequestMethod.POST])
     fun healthCheck(@RequestBody request: reqRelayHealthCheck) {
-        logger.trace { "healthCheck category $request" }
+        logger.info { "healthCheck category $request" }
         relayService.facilitiesHealthCheck(request)
     }
 
     @RequestMapping(value=["/failure_alarm"], method=[RequestMethod.POST])
     fun failureAlarm(@RequestBody request: reqRelayHealthCheck) {
-        logger.trace { "healthCheck category $request" }
+        logger.info { "healthCheck category $request" }
         relayService.failureAlarm(request)
     }
 
     @RequestMapping(value=["/status_noti"], method=[RequestMethod.POST])
     fun statusNoti(@RequestBody request: reqRelayHealthCheck) {
-        logger.trace { "statusNoti category $request" }
+        logger.info { "statusNoti category $request" }
         relayService.statusNoti(request)
     }
 
     @RequestMapping(value=["/payment_health"], method=[RequestMethod.GET])
     fun paymentHealthCheck() {
-        logger.trace { "paymentHealthCheck " }
+        logger.info { "paymentHealthCheck " }
         relayService.paymentHealthCheck()
     }
 
-    @RequestMapping(value=["/paystation/result/{facilityId}"], method=[RequestMethod.GET])
+    @RequestMapping(value=["/paystation/result/{facilityId}"], method=[RequestMethod.POST])
     fun paymentResult(@RequestBody request: reqApiTmapCommon, @PathVariable facilityId: String) {
-        logger.trace { "paymentResult " }
+        logger.info { "paymentResult $request " }
         relayService.paymentResult(request, facilityId)
     }
-
-
 
     companion object : KLogging()
 }

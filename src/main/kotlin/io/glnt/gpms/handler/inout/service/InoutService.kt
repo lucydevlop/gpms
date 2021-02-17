@@ -425,7 +425,6 @@ class InoutService {
                     logger.info { "입차시간 : $parkIn!!.inDate!! / 출차시간 : $date / 주차시간: ${price!!.parkTime}" }
                     logger.info { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price!!.totalPrice}" }
                 }
-                price!!.totalPrice = 0
 //                }
 
                 // 출차 정보 DB insert
@@ -895,7 +894,7 @@ class InoutService {
     fun paymentResult(request: reqPaymentResult, requestId: String, gateId: String) : CommonResult {
         logger.info { "paymentResult $request" }
         try {
-            parkOutRepository.findByRequestid(requestId)?.let { it ->
+            parkOutRepository.findBySn(requestId.toLong())?.let { it ->
                 it.cardtransactionid = request.transactionId
                 it.approveDatetime = request.approveDatetime
                 it.cardNumber = request.cardNumber
