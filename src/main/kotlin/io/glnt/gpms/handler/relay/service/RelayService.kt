@@ -13,6 +13,7 @@ import io.glnt.gpms.handler.facility.model.reqPaymentResponse
 import io.glnt.gpms.handler.facility.model.reqPaymentResult
 import io.glnt.gpms.handler.facility.model.reqVehicleSearchList
 import io.glnt.gpms.handler.facility.service.FacilityService
+import io.glnt.gpms.handler.inout.model.reqAddParkOut
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.inout.service.checkItemsAre
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
@@ -20,10 +21,7 @@ import io.glnt.gpms.handler.relay.model.FacilitiesFailureAlarm
 import io.glnt.gpms.handler.relay.model.FacilitiesStatusNoti
 import io.glnt.gpms.handler.relay.model.paystationvehicleListSearch
 import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
-import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
-import io.glnt.gpms.handler.tmap.model.reqSendVehicleListSearch
-import io.glnt.gpms.handler.tmap.model.reqTmapFacilitiesFailureAlarm
-import io.glnt.gpms.handler.tmap.model.reqTmapFacilitiesStatusNoti
+import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.model.entity.Failure
 import io.glnt.gpms.model.entity.ParkAlarmSetting
@@ -266,7 +264,9 @@ class RelayService {
         }
     }
 
-    fun paymentResult(request: reqApiTmapCommon, facilityId: String){
+    @Throws(CustomException::class)
+    fun resultPayment(request: reqApiTmapCommon, facilityId: String){
+        logger.info { "resultPayment request $request facilityId $facilityId" }
 //        request.contents = JSONUtil.getJsObject(request.contents)
         val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqPaymentResult::class.java)
         facilityService.sendPaystation(
@@ -321,6 +321,32 @@ class RelayService {
                 requestId = request.requestId!!,
                 type = "vehicleListSearchResponse"
             )
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun requestAdjustment(request: reqApiTmapCommon, facilityId: String){
+        logger.info { "requestAdjustment request $request facilityId $facilityId" }
+        try {
+            val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqAdjustmentRequest::class.java)
+            request.requestId = parkinglotService.generateRequestId()
+
+            if (parkinglotService.parkSite.tmapSend == "ON") {
+                // table db insert
+//                val requestId = parkinglotService.generateRequestId()
+//                vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = facilityId))
+//                tmapSendService.sendTmapInterface(request, requestId, "vehicleListSearch")
+            } else {
+                val gateId = parkingFacilityRepository.findByFacilitiesId(facilityId)!!.gateId
+                inoutService.parkOut(reqAddParkOut(vehicleNo = contents.vehicleNumber,
+                                                   facilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, "LPR")!![0].facilitiesId!!,
+                                                   date = LocalDateTime.now(),
+                                                   resultcode = "0",
+                                                   uuid = JSONUtil.generateRandomBasedUUID()))
+            }
+
+        }catch (e: CustomException){
+            logger.error { "saveFailure failed ${e.message}" }
         }
     }
 
