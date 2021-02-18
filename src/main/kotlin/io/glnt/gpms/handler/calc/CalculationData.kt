@@ -88,8 +88,8 @@ class CalculationData {
             it.delYn == DelYn.N &&
                     it.vehicleType == vehicleType &&
                     ( (it.startTime!! <= time && time < it.endTime!! && it.startTime!! < it.endTime!!) ||
-                      (it.startTime!! > it.endTime!! && it.endTime!! > time && it.startTime!! > time) ||
-                      (it.startTime!! > it.endTime!! && it.endTime!! < time && it.startTime!! < time) ) &&
+                      (it.startTime!! > it.endTime!! && it.endTime!! > time && it.startTime!! >= time) ||
+                      (it.startTime!! > it.endTime!! && it.endTime!! < time && it.startTime!! <= time) ) &&
 //                    ( it.week == DateUtil.getWeek(date) || it.week!!.contains(WeekType.ALL)) &&
                     ( it.effectDate!! <= DateUtil.beginTimeToLocalDateTime(date) &&
                             it.expireDate!! > DateUtil.lastTimeToLocalDateTime(date) )
