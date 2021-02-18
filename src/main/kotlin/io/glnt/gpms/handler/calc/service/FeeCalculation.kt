@@ -244,7 +244,7 @@ class FeeCalculation {
     }
 
     fun getSeasonTicket(vehicleNo: String, startTime: LocalDateTime, endTime: LocalDateTime): TimeRange? {
-        logger.info { "vaildate season ticket $vehicleNo, $startTime $endTime" }
+        logger.debug { "vaildate season ticket $vehicleNo, $startTime $endTime" }
         try {
             productService.getValidProductByVehicleNo(vehicleNo, startTime, endTime)?.let {
                 return TimeRange(

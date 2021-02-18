@@ -53,10 +53,10 @@ class RelayController {
         relayService.searchCarNumber(request, facilityId)
     }
 
-    @RequestMapping(value = ["/paystation/request/{facilityId}"], method = [RequestMethod.POST])
-    fun requestPayment(@RequestBody request: reqApiTmapCommon, @PathVariable facilityId: String) {
-        logger.info { "requestPayment $request " }
-        relayService.searchCarNumber(request, facilityId)
+    @RequestMapping(value = ["/paystation/request/adjustment/{facilityId}"], method = [RequestMethod.POST])
+    fun requestAdjustment(@RequestBody request: reqApiTmapCommon, @PathVariable facilityId: String) {
+        logger.info { "requestAdjustment $request " }
+        relayService.requestAdjustment(request, facilityId)
     }
 
     companion object : KLogging()

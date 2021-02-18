@@ -17,7 +17,7 @@ class HolidayService {
     private lateinit var holidayRepository: HolidayRepository
 
     fun isHolidayByLocalDate(request: LocalDate) : Boolean {
-        logger.info { "isHoliday $request" }
+        logger.debug { "isHoliday $request" }
         holidayRepository.findByHolidateAndDelYn(request, DelYn.N)?.let {
             return true
         }
@@ -25,7 +25,7 @@ class HolidayService {
     }
 
     fun isHolidayByLocalDateTime(request: LocalDateTime) : Boolean {
-        logger.info { "isHoliday $request" }
+        logger.debug { "isHoliday $request" }
         holidayRepository.findByHolidateAndDelYn(request.toLocalDate(), DelYn.N)?.let {
             return true
         }
@@ -33,7 +33,7 @@ class HolidayService {
     }
 
     fun isHolidayByString(request: String) : Boolean {
-        logger.info { "isHoliday $request" }
+        logger.debug { "isHoliday $request" }
         holidayRepository.findByHolidateAndDelYn(DateUtil.stringToLocalDate(request), DelYn.N)?.let {
             return true
         }
