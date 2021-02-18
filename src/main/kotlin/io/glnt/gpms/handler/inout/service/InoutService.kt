@@ -371,11 +371,10 @@ class InoutService {
     fun parkOut(request: reqAddParkOut) : CommonResult = with(request){
         logger.info{"parkOut service car_number: ${request.vehicleNo} out_date: ${request.date} facilityId: ${request.facilitiesId}"}
         try {
-            if (!parkOutRepository.findByVehicleNoEndsWith(vehicleNo).isNullOrEmpty()) {
-                return CommonResult.exist(request.vehicleNo, "park out vehicleNo exists")
+            if (requestId.isNullOrEmpty()) {
+                requestId = parkinglotService.generateRequestId()
             }
 
-            requestId = parkinglotService.generateRequestId()
             // uuid 확인 후 skip
             parkOutRepository.findByUuid(uuid)?.let {
                 logger.info{ "park out uuid $uuid exists $it "}
@@ -389,10 +388,6 @@ class InoutService {
             }
 
             parkinglotService.getGateInfoByFacilityId(facilitiesId)?.let { gate ->
-                // park-in update
-                parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", date)?.let { it ->
-                    parkIn = it
-                }
 
                 // image 파일 저장
                 if (base64Str != null) {
@@ -411,6 +406,15 @@ class InoutService {
                         validDate = it.validDate
                     }
                     recognitionResult = "RECOGNITION"
+
+                    if (!parkOutRepository.findByVehicleNoEndsWith(vehicleNo).isNullOrEmpty()) {
+                        return CommonResult.exist(request.vehicleNo, "park out vehicleNo exists")
+                    }
+
+                    // park-in update
+                    parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", date)?.let { it ->
+                        parkIn = it
+                    }
 
                 } else {
                     parkingtype = "미인식차량"
@@ -444,9 +448,9 @@ class InoutService {
                     min = DateUtil.nowTimeDetail.substring(3, 5),
                     outDate = date,
                     uuid = uuid,
-                    parktime = price!!.parkTime,
-                    parkfee = price!!.orgTotalPrice,
-                    payfee = price!!.totalPrice
+                    parktime = price?.let { price!!.parkTime }?.run { null },
+                    parkfee = price?.let { price!!.orgTotalPrice }?.run { null },
+                    payfee = price?.let { price!!.totalPrice }?.run { null }
                 )
                 parkOutRepository.save(newData)
                 parkOutRepository.flush()
@@ -498,7 +502,7 @@ class InoutService {
                                 requestId = requestId!!,
                                 type = "adjustmentRequest"
                             )
-                            displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+                            // displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
                         }
                         "정기차량" -> {
                             if (price!!.totalPrice == 0) {
