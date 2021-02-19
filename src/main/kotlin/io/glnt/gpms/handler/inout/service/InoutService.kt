@@ -37,6 +37,7 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.criteria.Predicate
 import kotlin.collections.ArrayList
+import kotlin.concurrent.timer
 
 @Service
 class InoutService {
@@ -370,11 +371,10 @@ class InoutService {
     fun parkOut(request: reqAddParkOut) : CommonResult = with(request){
         logger.info{"parkOut service car_number: ${request.vehicleNo} out_date: ${request.date} facilityId: ${request.facilitiesId}"}
         try {
-            if (!parkOutRepository.findByVehicleNoEndsWith(vehicleNo).isNullOrEmpty()) {
-                return CommonResult.exist(request.vehicleNo, "park out vehicleNo exists")
+            if (requestId.isNullOrEmpty()) {
+                requestId = parkinglotService.generateRequestId()
             }
 
-            requestId = parkinglotService.generateRequestId()
             // uuid 확인 후 skip
             parkOutRepository.findByUuid(uuid)?.let {
                 logger.info{ "park out uuid $uuid exists $it "}
@@ -388,10 +388,6 @@ class InoutService {
             }
 
             parkinglotService.getGateInfoByFacilityId(facilitiesId)?.let { gate ->
-                // park-in update
-                parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", date)?.let { it ->
-                    parkIn = it
-                }
 
                 // image 파일 저장
                 if (base64Str != null) {
@@ -405,11 +401,20 @@ class InoutService {
                 if (DataCheckUtil.isValidCarNumber(vehicleNo)) {
                     parkingtype = "일반차량"
                     //todo 정기권 차량 여부 확인
-                    productService.getValidProductByVehicleNo(vehicleNo)?.let {
+                    productService.getValidProductByVehicleNo(vehicleNo, date, date)?.let {
                         parkingtype = "정기차량"
                         validDate = it.validDate
                     }
                     recognitionResult = "RECOGNITION"
+
+                    if (!parkOutRepository.findByVehicleNoEndsWith(vehicleNo).isNullOrEmpty()) {
+                        return CommonResult.exist(request.vehicleNo, "park out vehicleNo exists")
+                    }
+
+                    // park-in update
+                    parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", date)?.let { it ->
+                        parkIn = it
+                    }
 
                 } else {
                     parkingtype = "미인식차량"
@@ -443,9 +448,9 @@ class InoutService {
                     min = DateUtil.nowTimeDetail.substring(3, 5),
                     outDate = date,
                     uuid = uuid,
-                    parktime = price!!.parkTime,
-                    parkfee = price!!.orgTotalPrice,
-                    payfee = price!!.totalPrice
+                    parktime = price?.let { price!!.parkTime }?.run { null },
+                    parkfee = price?.let { price!!.orgTotalPrice }?.run { null },
+                    payfee = price?.let { price!!.totalPrice }?.run { null }
                 )
                 parkOutRepository.save(newData)
                 parkOutRepository.flush()
@@ -497,7 +502,7 @@ class InoutService {
                                 requestId = requestId!!,
                                 type = "adjustmentRequest"
                             )
-                            displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+                            // displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
                         }
                         "정기차량" -> {
                             if (price!!.totalPrice == 0) {
@@ -507,15 +512,17 @@ class InoutService {
                                         vehicleNumber = vehicleNo,
                                         facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
                                         recognitionType = "SEASON",
-                                        recognitionResult = recognitionResult!!,
-                                        paymentAmount = "0",
-                                        parktime = "0",
+                                        recognitionResult = "RECOGNITION",
+                                        paymentAmount = price!!.totalPrice.toString(),
+                                        parktime = price!!.parkTime.toString(),
                                         vehicleIntime = DateUtil.nowDateTimeHm
                                     ),
                                     gate = gate.gateId,
-                                    requestId = requestId!!,
+                                    requestId = newData.sn.toString(),
                                     type = "adjustmentRequest"
                                 )
+                                displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+                                facilityService.openGate(gate.gateId, "GATE")
                             } else {
                                 facilityService.sendPaystation(
                                     reqPayStationData(
@@ -537,23 +544,38 @@ class InoutService {
                         "일반차량" -> {
                             if (gate.takeAction != "PCC") {
                                 facilityService.sendPaystation(
-                                    reqPayData(
-                                        paymentMachineType = "beforehand",
+                                    reqPayStationData(
+                                        paymentMachineType = "exit",
                                         vehicleNumber = vehicleNo,
-                                        parkTicketType = "OK",
-                                        parkTicketMoney = price!!.totalPrice.toString(),
-                                        facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!
-//                                    ,
-//                                    recognitionType = "SEASON",
-//                                    recognitionResult = recognitionResult!!,
-//                                    paymentAmount = "0",
-//                                    parktime = "0",
-//                                    vehicleIntime = DateUtil.nowDateTimeHm
+                                        facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
+                                        recognitionType = "FREE",
+                                        recognitionResult = "RECOGNITION",
+                                        paymentAmount = price!!.totalPrice.toString(),
+                                        parktime = price!!.parkTime.toString(),
+                                        vehicleIntime = DateUtil.formatDateTime(parkIn!!.inDate!!),
+                                        adjustmentDateTime = DateUtil.nowDateTime
                                     ),
                                     gate = gate.gateId,
-                                    requestId = requestId!!,
+                                    requestId = newData.sn.toString(),
                                     type = "adjustmentRequest"
                                 )
+
+                                if (price!!.discountPrice!! > 0) {
+                                    Thread.sleep(200)
+
+                                    facilityService.sendPaystation(
+                                        reqPayData(
+                                            paymentMachineType = "exit",
+                                            vehicleNumber = vehicleNo,
+                                            parkTicketType = "OK",
+                                            parkTicketMoney = price!!.discountPrice.toString(),  // 할인요금
+                                            facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!
+                                        ),
+                                        gate = gate.gateId,
+                                        requestId = newData.sn.toString(),
+                                        type = "adjustmentdataRequest"
+                                    )
+                                }
                             }
                         }
                     }
@@ -876,7 +898,7 @@ class InoutService {
     fun paymentResult(request: reqPaymentResult, requestId: String, gateId: String) : CommonResult {
         logger.info { "paymentResult $request" }
         try {
-            parkOutRepository.findByRequestid(requestId)?.let { it ->
+            parkOutRepository.findBySn(requestId.toLong())?.let { it ->
                 it.cardtransactionid = request.transactionId
                 it.approveDatetime = request.approveDatetime
                 it.cardNumber = request.cardNumber

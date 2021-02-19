@@ -19,35 +19,45 @@ class RelayController {
 
     @RequestMapping(value=["/health_check"], method=[RequestMethod.POST])
     fun healthCheck(@RequestBody request: reqRelayHealthCheck) {
-        logger.trace { "healthCheck category $request" }
+        logger.info { "healthCheck category $request" }
         relayService.facilitiesHealthCheck(request)
     }
 
     @RequestMapping(value=["/failure_alarm"], method=[RequestMethod.POST])
     fun failureAlarm(@RequestBody request: reqRelayHealthCheck) {
-        logger.trace { "healthCheck category $request" }
+        logger.info { "healthCheck category $request" }
         relayService.failureAlarm(request)
     }
 
     @RequestMapping(value=["/status_noti"], method=[RequestMethod.POST])
     fun statusNoti(@RequestBody request: reqRelayHealthCheck) {
-        logger.trace { "statusNoti category $request" }
+        logger.info { "statusNoti category $request" }
         relayService.statusNoti(request)
     }
 
     @RequestMapping(value=["/payment_health"], method=[RequestMethod.GET])
     fun paymentHealthCheck() {
-        logger.trace { "paymentHealthCheck " }
+        logger.info { "paymentHealthCheck " }
         relayService.paymentHealthCheck()
     }
 
-    @RequestMapping(value=["/paystation/result/{facilityId}"], method=[RequestMethod.GET])
-    fun paymentResult(@RequestBody request: reqApiTmapCommon, @PathVariable facilityId: String) {
-        logger.trace { "paymentResult " }
-        relayService.paymentResult(request, facilityId)
+    @RequestMapping(value=["/paystation/result/{facilityId}"], method=[RequestMethod.POST])
+    fun resultPayment(@RequestBody request: reqApiTmapCommon, @PathVariable facilityId: String) {
+        logger.info { "resultPayment $request " }
+        relayService.resultPayment(request, facilityId)
     }
 
+    @RequestMapping(value = ["/paystation/search/vehicle/{facilityId}"], method = [RequestMethod.POST])
+    fun searchCarNumber(@RequestBody request: reqApiTmapCommon, @PathVariable facilityId: String) {
+        logger.info { "searchCarNumber $request " }
+        relayService.searchCarNumber(request, facilityId)
+    }
 
+    @RequestMapping(value = ["/paystation/request/adjustment/{facilityId}"], method = [RequestMethod.POST])
+    fun requestAdjustment(@RequestBody request: reqApiTmapCommon, @PathVariable facilityId: String) {
+        logger.info { "requestAdjustment $request " }
+        relayService.requestAdjustment(request, facilityId)
+    }
 
     companion object : KLogging()
 }

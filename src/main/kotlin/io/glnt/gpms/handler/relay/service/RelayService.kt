@@ -3,30 +3,39 @@ package io.glnt.gpms.handler.relay.service
 import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.glnt.gpms.common.api.CommonResult
+import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.JSONUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.facility.model.reqPayData
 import io.glnt.gpms.handler.facility.model.reqPaymentResponse
 import io.glnt.gpms.handler.facility.model.reqPaymentResult
+import io.glnt.gpms.handler.facility.model.reqVehicleSearchList
 import io.glnt.gpms.handler.facility.service.FacilityService
+import io.glnt.gpms.handler.inout.model.reqAddParkOut
 import io.glnt.gpms.handler.inout.service.InoutService
+import io.glnt.gpms.handler.inout.service.checkItemsAre
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.relay.model.FacilitiesFailureAlarm
 import io.glnt.gpms.handler.relay.model.FacilitiesStatusNoti
+import io.glnt.gpms.handler.relay.model.paystationvehicleListSearch
 import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
-import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
-import io.glnt.gpms.handler.tmap.model.reqTmapFacilitiesFailureAlarm
-import io.glnt.gpms.handler.tmap.model.reqTmapFacilitiesStatusNoti
+import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.model.entity.Failure
 import io.glnt.gpms.model.entity.ParkAlarmSetting
+import io.glnt.gpms.model.entity.ParkIn
+import io.glnt.gpms.model.entity.VehicleListSearch
 import io.glnt.gpms.model.enums.checkUseStatus
 import io.glnt.gpms.model.repository.FailureRepository
 import io.glnt.gpms.model.repository.ParkAlarmSetttingRepository
 import io.glnt.gpms.model.repository.ParkFacilityRepository
+import io.glnt.gpms.model.repository.VehicleListSearchRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -59,6 +68,9 @@ class RelayService {
 
     @Autowired
     private lateinit var parkingFacilityRepository: ParkFacilityRepository
+
+    @Autowired
+    private lateinit var vehicleListSearchRepository: VehicleListSearchRepository
 
     fun fetchParkAlarmSetting(parkId: String) {
         parkAlarmSettingRepository.findBySiteid(parkId)?.let { it ->
@@ -125,11 +137,11 @@ class RelayService {
         try {
             request.facilitiesList.forEach { failure ->
                 parkinglotService.getFacility(facilityId = failure.facilitiesId)?.let { facility ->
-                    if (failure.failureAlarm == "noResponse") {
+                    // SESSION CHECK
+                    if (failure.failureAlarm.isNullOrBlank()) {
                         // ping fail -> noResponse
                         facilityService.updateHealthCheck(failure.facilitiesId, failure.failureAlarm!!)
-                    } else if (failure.failureAlarm == "crossingGateBarDamageDoubt") {
-                        // 차단기
+                    } else {
                         saveFailure(
                             Failure(sn = null,
                                 issueDateTime = LocalDateTime.now(),
@@ -137,12 +149,41 @@ class RelayService {
                                 facilitiesId = failure.facilitiesId,
                                 fName = facility.fname,
                                 failureCode = failure.failureAlarm,
-                                failureType = failure.failureAlarm)
+                                failureType = failure.healthStatus)
                         )
-                    } else {
-                        // 정산기
                     }
-                    if (parkinglotService.parkSite.tmapSend == "ON")
+//                    if (failure.failureAlarm == "crossingGateBarDamageDoubt") {
+//                            // 차단기
+//                            saveFailure(
+//                                Failure(sn = null,
+//                                    issueDateTime = LocalDateTime.now(),
+////                                        expireDateTime = LocalDateTime.now(),
+//                                    facilitiesId = failure.facilitiesId,
+//                                    fName = facility.fname,
+//                                    failureCode = failure.failureAlarm,
+//                                    failureType = failure.failureAlarm)
+//                            )
+//                        } else {
+//                            // 정산기
+//                            if (facility.category == "PAYSTATION") {
+//                                if (failure.healthStatus == "Normal") {
+//                                    facilityService.updateHealthCheck(failure.facilitiesId, failure.healthStatus!!)
+//                                } else {
+//                                    facilityService.updateHealthCheck(failure.facilitiesId, failure.failureAlarm!!)
+//                                }
+//                                saveFailure(
+//                                    Failure(sn = null,
+//                                        issueDateTime = LocalDateTime.now(),
+////                                        expireDateTime = LocalDateTime.now(),
+//                                        facilitiesId = facility.facilitiesId,
+//                                        fName = facility.fname,
+//                                        failureCode = failure.failureAlarm!!,
+//                                        failureType = failure.healthStatus)
+//                                )
+//                            }
+//                        }
+//                    }
+                    if (parkinglotService.parkSite.tmapSend == "ON" && failure.healthStatus != "normal")
                         tmapSendService.sendFacilitiesFailureAlarm(FacilitiesFailureAlarm(facilitiesId = failure.facilitiesId, failureAlarm = failure.failureAlarm!!), null)
                 }
             }
@@ -198,7 +239,7 @@ class RelayService {
     fun saveFailure(request: Failure) {
         logger.info { "saveFailure $request" }
         try {
-            if (request.failureType == "NORMAL") {
+            if (request.failureType!!.toUpperCase() == "NORMAL") {
                 failureRepository.findTopByFacilitiesIdAndFailureCodeAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(
                     request.facilitiesId!!,
                     request.failureCode!!
@@ -223,9 +264,11 @@ class RelayService {
         }
     }
 
-    fun paymentResult(request: reqApiTmapCommon, facilityId: String){
-        request.contents = JSONUtil.getJsObject(request.contents)
-        val contents = readValue(request.contents.toString(), reqPaymentResult::class.java)
+    @Throws(CustomException::class)
+    fun resultPayment(request: reqApiTmapCommon, facilityId: String){
+        logger.info { "resultPayment request $request facilityId $facilityId" }
+//        request.contents = JSONUtil.getJsObject(request.contents)
+        val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqPaymentResult::class.java)
         facilityService.sendPaystation(
             reqPaymentResponse(
                 chargingId = contents.transactionId,
@@ -238,10 +281,94 @@ class RelayService {
         val result = inoutService.paymentResult(contents, request.requestId!!, parkingFacilityRepository.findByFacilitiesId(facilityId)!!.gateId)
     }
 
-    fun <T : Any> readValue(any: String, valueType: Class<T>): T {
-        val data = JSONUtil.getJSONObject(any)
-        val factory = JsonFactory()
-        factory.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
-        return jacksonObjectMapper().readValue(data.toString(), valueType)
+    @Throws(CustomException::class)
+    fun searchCarNumber(request: reqApiTmapCommon, facilityId: String){
+        logger.info { "searchCarNumber request $request facilityId $facilityId" }
+//        request.contents = JSONUtil.getJsObject(request.contents)
+        val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqSendVehicleListSearch::class.java)
+        request.requestId = parkinglotService.generateRequestId()
+
+        if (parkinglotService.parkSite.tmapSend == "ON") {
+            // table db insert
+            val requestId = parkinglotService.generateRequestId()
+            vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = facilityId))
+            tmapSendService.sendTmapInterface(request, requestId, "vehicleListSearch")
+        } else {
+            val parkins = inoutService.searchParkInByVehicleNo(contents.vehicleNumber, "")
+            val data = ArrayList<paystationvehicleListSearch>()
+
+             when(parkins.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    val lists = parkins.data as? List<*>?
+                    lists!!.checkItemsAre<ParkIn>()?.filter { it.outSn == 0L }?.let { list ->
+                        list.forEach {
+                            data.add(
+                                paystationvehicleListSearch(
+                                    vehicleNumber = it.vehicleNo!!,
+                                    inVehicleDateTime = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss")))
+                        }
+
+                    }
+                }
+            }
+
+            facilityService.sendPaystation(
+                reqVehicleSearchList(
+                    vehicleList = data,
+                    result = "SUCCESS"
+                ),
+                gate = parkingFacilityRepository.findByFacilitiesId(facilityId)!!.gateId,
+                requestId = request.requestId!!,
+                type = "vehicleListSearchResponse"
+            )
+        }
     }
+
+    @Throws(CustomException::class)
+    fun requestAdjustment(request: reqApiTmapCommon, facilityId: String){
+        logger.info { "requestAdjustment request $request facilityId $facilityId" }
+        try {
+            val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqAdjustmentRequest::class.java)
+            request.requestId = parkinglotService.generateRequestId()
+
+            if (parkinglotService.parkSite.tmapSend == "ON") {
+                // table db insert
+//                val requestId = parkinglotService.generateRequestId()
+//                vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = facilityId))
+//                tmapSendService.sendTmapInterface(request, requestId, "vehicleListSearch")
+            } else {
+                val gateId = parkingFacilityRepository.findByFacilitiesId(facilityId)!!.gateId
+                inoutService.parkOut(reqAddParkOut(vehicleNo = contents.vehicleNumber,
+                                                   facilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, "LPR")!![0].facilitiesId!!,
+                                                   date = LocalDateTime.now(),
+                                                   resultcode = "0",
+                                                   uuid = JSONUtil.generateRandomBasedUUID()))
+            }
+
+        }catch (e: CustomException){
+            logger.error { "saveFailure failed ${e.message}" }
+        }
+    }
+
+
+//    fun searchCarNumber(request: reqSendVehicleListSearch): CommonResult? {
+//        logger.info { "searchCarNumber request $request" }
+//        if (parkinglotService.parkSite.tmapSend == "ON") {
+//            // table db insert
+//            val requestId = parkinglotService.generateRequestId()
+//            vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = request.facilityId))
+//            tmapSendService.sendTmapInterface(request, requestId, "vehicleListSearch")
+//        } else {
+//            return inoutService.searchParkInByVehicleNo(request.vehicleNumber, "")
+//        }
+//        return null
+//    }
+
+//    fun <T : Any> readValue(any: String, valueType: Class<T>): T {
+//        val data = JSONUtil.getJSONObject(any)
+//        val factory = JsonFactory()
+//        factory.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
+//        return jacksonObjectMapper().readValue(data.toString(), valueType)
+//    }
 }
+

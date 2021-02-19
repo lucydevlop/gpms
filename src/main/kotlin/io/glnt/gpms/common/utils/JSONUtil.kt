@@ -1,5 +1,8 @@
 package io.glnt.gpms.common.utils
 
+import com.fasterxml.jackson.core.JsonFactory
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.boot.configurationprocessor.json.JSONArray
 import org.springframework.boot.configurationprocessor.json.JSONException
 import org.springframework.boot.configurationprocessor.json.JSONObject
@@ -207,5 +210,12 @@ object JSONUtil {
 
     fun generateRandomBasedUUID(): String {
         return UUID.randomUUID().toString()
+    }
+
+    fun <T : Any> readValue(any: String, valueType: Class<T>): T {
+        val data = getJSONObject(any)
+        val factory = JsonFactory()
+        factory.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
+        return jacksonObjectMapper().readValue(data.toString(), valueType)
     }
 }

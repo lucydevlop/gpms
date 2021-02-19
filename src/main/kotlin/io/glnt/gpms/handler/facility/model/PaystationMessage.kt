@@ -1,5 +1,7 @@
 package io.glnt.gpms.handler.facility.model
 
+import io.glnt.gpms.handler.relay.model.paystationvehicleListSearch
+
 data class reqParkingSiteInfo(
     var parkingSiteName: String,
     var lotNumberAddress: String,
@@ -60,6 +62,11 @@ data class reqPaymentResult(
     var paymentAmount: String? = null,
     var transactionId: String? = null,
     var failureMessage: String? = null
+)
+
+data class reqVehicleSearchList(
+    var vehicleList: ArrayList<paystationvehicleListSearch>?,
+    var result: String? = "SUCCESS"
 )
 
 

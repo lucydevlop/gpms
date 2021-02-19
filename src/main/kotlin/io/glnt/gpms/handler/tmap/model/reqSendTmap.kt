@@ -72,11 +72,14 @@ data class reqOutVehicle(
 
 data class reqAdjustmentRequest(
     var vehicleNumber: String,
-    var paymentMachineType: String,
-    var gateId: String,
-    var facilitiesId: String,
-    var recognitionType: String,
-    var fileuploadId: String
+    var paymentMachineType: String? = null,
+    var gateId: String? = null,
+    var facilitiesId: String? = null,
+    var recognitionType: String? = null,
+    var fileuploadId: String? = null,
+    var recognitionResult: String? = null,
+    var vehicleIntime: String? = null,
+    var parkTicketAmount: String? = null
 )
 
 data class reqSendResultResponse(

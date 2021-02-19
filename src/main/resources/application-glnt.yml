@@ -2,10 +2,10 @@ spring:
   profiles:
     active: glnt
   jpa:
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
     generate-ddl: true
     hibernate:
       ddl-auto: update
