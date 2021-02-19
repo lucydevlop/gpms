@@ -40,7 +40,7 @@ class DashboardUserService {
                                     sn = it.sn!!,
                                     vehicleNo = it.vehicleNo!!,
                                     inDate = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss"),
-                                    inImgBase64Str = it.image!!.substring(it.image!!.indexOf("/park")) )
+                                    imImagePath = it.image!!.substring(it.image!!.indexOf("/park")) )
                             )
                         }
 
