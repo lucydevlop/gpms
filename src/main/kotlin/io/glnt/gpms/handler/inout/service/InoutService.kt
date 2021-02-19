@@ -407,13 +407,14 @@ class InoutService {
                     }
                     recognitionResult = "RECOGNITION"
 
-                    if (!parkOutRepository.findByVehicleNoEndsWith(vehicleNo).isNullOrEmpty()) {
-                        return CommonResult.exist(request.vehicleNo, "park out vehicleNo exists")
-                    }
-
                     // park-in update
                     parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", date)?.let { it ->
                         parkIn = it
+                    }
+
+                    if (parkIn == null && !parkOutRepository.findByVehicleNoEndsWith(vehicleNo).isNullOrEmpty()) {
+                        logger.error { "park out vehicleNo ${request.vehicleNo} exists" }
+                        return CommonResult.exist(request.vehicleNo, "park out vehicleNo exists")
                     }
 
                 } else {
