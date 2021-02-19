@@ -34,7 +34,7 @@ class DashboardUserService {
                     val lists = parkins.data as? List<*>?
                     lists!!.checkItemsAre<ParkIn>()?.filter { it.outSn == 0L }?.let { list ->
                         list.forEach {
-                            logger.debug { "image path ${it.image!!.substring(it.image!!.indexOf("/park"))}" }
+//                            logger.debug { "image path ${it.image!!.substring(it.image!!.indexOf("/park"))}" }
                             data.add(
                                 resVehicleSearch(
                                     sn = it.sn!!,

@@ -21,9 +21,9 @@ class DashboardUserController {
     private lateinit var dashboardUserService: DashboardUserService
 
     @RequestMapping(value=["/parking/discount/search/vehicle"], method = [RequestMethod.POST])
-    fun parkingDiscountSearchVehicle(@RequestBody request: reqVehicleSearch) {
+    fun parkingDiscountSearchVehicle(@RequestBody request: reqVehicleSearch): ResponseEntity<CommonResult> {
         logger.info { "parkingDiscountSearchVehicle $request" }
-        returnResult(dashboardUserService.parkingDiscountSearchVehicle(request))
+        return returnResult(dashboardUserService.parkingDiscountSearchVehicle(request))
     }
 
     fun returnResult(result: CommonResult): ResponseEntity<CommonResult> {
