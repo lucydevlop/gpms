@@ -49,6 +49,9 @@ data class CorpTicket(
     @Column(name = "disPrice")
     var disPrice: Int?,
 
+    @Column(name = "quantity", nullable = false)
+    var quantity: Int? = 1,
+
     @Column(name = "effectDate", nullable = true)
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var effectDate: LocalDateTime? = null,
@@ -63,4 +66,5 @@ data class CorpTicket(
     @Where(clause = "del_yn = 'N'")
     var discountClass: DiscountClass? = null
 
+    var ableCnt: Int? = 0
 }

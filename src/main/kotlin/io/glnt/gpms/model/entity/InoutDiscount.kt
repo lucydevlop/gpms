@@ -1,9 +1,11 @@
-package io.glnt.gpms.io.glnt.gpms.model.entity
+package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.DelYn
 import java.io.Serializable
+import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
@@ -26,7 +28,17 @@ data class InoutDiscount(
     var inSn: Long,
 
     @Column(name = "quantity", nullable = false)
-    var quantity: Int? = 1
+    var quantity: Int? = 1,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "del_yn", nullable = false)
+    var delYn: DelYn? = DelYn.N,
+
+    @Column(name = "apply_date")
+    var applyDate: LocalDateTime? = null,
+
+    @Column(name = "out_sn")
+    var outSn: Long? = null
 
 ): Auditable(), Serializable {
 
