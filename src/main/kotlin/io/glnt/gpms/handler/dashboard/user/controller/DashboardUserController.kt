@@ -26,6 +26,17 @@ class DashboardUserController {
         return returnResult(dashboardUserService.parkingDiscountSearchVehicle(request))
     }
 
+    @RequestMapping(value=["/parking/discount/search/ticket"], method = [RequestMethod.POST])
+    fun parkingDiscountSearchTicket(@RequestBody request: reqParkingDiscounTicketSearch): ResponseEntity<CommonResult> {
+        logger.info { "parkingDiscountSearchVehicle $request" }
+        return returnResult(dashboardUserService.parkingDiscountSearchTicket(request))
+    }
+
+    @RequestMapping(value=["/parking/discount/able/ticket"], method = [RequestMethod.POST])
+    fun parkingDiscountAbleTicket(@RequestBody request: reqParkingDiscountAbleTicketsSearch): ResponseEntity<CommonResult> {
+        return returnResult(dashboardUserService.parkingDiscountAbleTickets(request))
+    }
+
     fun returnResult(result: CommonResult): ResponseEntity<CommonResult> {
         return when(result.code) {
             ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
