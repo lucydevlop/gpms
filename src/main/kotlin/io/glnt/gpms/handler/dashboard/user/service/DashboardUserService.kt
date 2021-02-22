@@ -94,8 +94,11 @@ class DashboardUserService {
             val discountTickets = discountService.getDiscountableTickets(reqDiscountableTicket(corpId = request.corpId, date = request.inDate, inSn = request.inSn))
             when(discountTickets.code) {
                 ResultCode.SUCCESS.getCode() -> {
-                    val lists = discountTickets.data as List<CorpTicket>
-                    return CommonResult.data(lists)
+                    discountTickets.data?.let {
+                        val lists = discountTickets.data as List<CorpTicket>
+                        return CommonResult.data(lists)
+                    }
+                    return CommonResult.data()
                 }
                 ResultCode.VALIDATE_FAILED.getCode() -> {
                     return CommonResult.notfound("ticket not found")
