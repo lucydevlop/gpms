@@ -1,5 +1,6 @@
 package io.glnt.gpms.common.utils
 
+import io.glnt.gpms.model.enums.DiscountRangeType
 import io.glnt.gpms.model.enums.WeekType
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -155,5 +156,13 @@ object DateUtil {
             return WeekType.SAT
         }
         return null
+    }
+
+    fun getWeekRange(date: String?): DiscountRangeType? {
+        return when (getWeek(date)) {
+            WeekType.SUN,WeekType.SAT -> DiscountRangeType.WEEKEND
+            WeekType.MON,WeekType.TUE,WeekType.WED,WeekType.THU,WeekType.FRI -> DiscountRangeType.WEEKDAY
+            else -> null
+        }
     }
 }
