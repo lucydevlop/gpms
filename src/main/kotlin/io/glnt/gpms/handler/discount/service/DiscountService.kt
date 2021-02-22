@@ -80,10 +80,10 @@ class DiscountService {
                     // 입차 요일 확인
                     ( it.discountClass!!.range1 == weekRange || it.discountClass!!.range1 == DiscountRangeType.ALL)
                 }
-                if (result.isNullOrEmpty()) return CommonResult.notfound("")
+                if (result.isNullOrEmpty()) return CommonResult.data()
                 return CommonResult.data(result)
             }
-            return CommonResult.notfound("")
+            return CommonResult.data()
         }catch (e: CustomException){
             logger.error { "getDiscountableTickets error ${e.message}" }
             return CommonResult.error("getDiscountableTickets search failed")
