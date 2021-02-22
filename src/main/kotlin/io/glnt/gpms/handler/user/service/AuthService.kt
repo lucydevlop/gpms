@@ -169,7 +169,7 @@ class AuthService {
     fun getUser(userId: String): CommonResult {
         try {
             val user = searchUserId(userId) ?: return CommonResult.notfound("User not found")
-            return CommonResult.data(resLogin(userInfo = user))
+            return CommonResult.data(resLogin(userInfo = user, corpInfo = if (user.role==UserRole.STORE) corpRepository.findByCorpId(user.id) else null))
         } catch (e: RuntimeException) {
             logger.error{"search user $userId error ${e.message}"}
             return CommonResult.unprocessable()
