@@ -6,6 +6,7 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -120,6 +121,22 @@ object DateUtil {
 
     fun lastTimeToLocalDateTime(date: String) : LocalDateTime {
         return LocalDateTime.parse(("$date 23:59:59").toString(), DateTimeFormatter.ofPattern(DATE_TIME_PATTERN))
+    }
+
+    fun firstDayToLocalDateTime(date: String) : LocalDateTime {
+        val day = yearMonthToString(date)
+//        val day = LocalDate.parse(stringToLocalDate(date).toString(), DateTimeFormatter.ofPattern("yyyy-MM")).toString()
+        return LocalDateTime.parse(("$day-01 00:00:00").toString(), DateTimeFormatter.ofPattern(DATE_TIME_PATTERN))
+    }
+
+    fun lastDayToLocalDateTime(date: String) : LocalDateTime {
+        val day = yearMonthToString(date)
+        val lastDay = day.lengthOfMonth()
+        return LocalDateTime.parse(("$day-$lastDay 23:59:59").toString(), DateTimeFormatter.ofPattern(DATE_TIME_PATTERN))
+    }
+
+    private fun yearMonthToString(date: String) : YearMonth {
+        return YearMonth.from(LocalDate.parse(stringToLocalDate(date).toString()))
     }
 
     fun makeLocalDateTime(date: String, hour: String, minute: String) : LocalDateTime {
