@@ -49,16 +49,16 @@ class InoutController {
         }
     }
 
-    @RequestMapping(value = ["/list"], method = [RequestMethod.POST])
-    @Throws(CustomException::class)
-    fun getAllParkInLists(@RequestBody request: reqSearchParkin) : ResponseEntity<CommonResult> {
-        logger.trace { "getAllParkInLists $request" }
-        val result = inoutService.getAllParkLists(request)
-        return when(result.code){
-            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
-            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
-        }
-    }
+//    @RequestMapping(value = ["/list"], method = [RequestMethod.POST])
+//    @Throws(CustomException::class)
+//    fun getAllParkInLists(@RequestBody request: reqSearchParkin) : ResponseEntity<CommonResult> {
+//        logger.trace { "getAllParkInLists $request" }
+//        val result = inoutService.getAllParkLists(request)
+//        return when(result.code){
+//            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
+//            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+//        }
+//    }
 
     @RequestMapping(value = ["/detail/{request}"], method = [RequestMethod.GET])
     @Throws(CustomException::class)

@@ -623,7 +623,8 @@ class InoutService {
                             val result = resParkInList(
                                 type = DisplayMessageClass.IN,
                                 parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
-                                inGateId = it.gateId, inDate = it.inDate!!
+                                inGateId = it.gateId, inDate = it.inDate!!,
+                                ticketCorpName = it.ticket?.corp?.corpName
                             )
                             if (it.outSn!! > 0L || it.outSn != null) {
                                 parkOutRepository.findBySn(it.outSn!!)?.let { out ->
@@ -841,7 +842,7 @@ class InoutService {
                 val result = resParkInList(
                     type = DisplayMessageClass.IN,
                     parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
-                    inGateId = it.gateId, inDate = it.inDate!!, inImgBase64Str = Base64Util.encodeAsString(File(it.image!!).readBytes())
+                    inGateId = it.gateId, inDate = it.inDate!!, inImgBase64Str = it.image!!.substring(it.image!!.indexOf("/park"))
                 )
                 if (it.outSn!! > 0L || it.outSn != null) {
                     parkOutRepository.findBySn(it.outSn!!)?.let { out ->
