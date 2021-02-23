@@ -2,6 +2,7 @@ package io.glnt.gpms.model.repository
 
 import io.glnt.gpms.model.entity.ParkOut
 import io.glnt.gpms.model.entity.ParkIn
+import io.glnt.gpms.model.enums.DelYn
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.repository.JpaRepository
@@ -17,6 +18,7 @@ interface ParkInRepository: JpaRepository<ParkIn, Long> {
     fun findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo: String, outSn: Long, delYn: String, inDate: LocalDateTime ) : ParkIn?
     fun findBySn(sn: Long): ParkIn?
     fun findByUuid(uuid: String): ParkIn?
+    fun countByGateIdAndOutSn(gateId: String, outSn: Long): Int
 }
 
 @Repository

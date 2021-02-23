@@ -30,6 +30,9 @@ data class InoutDiscount(
     @Column(name = "quantity", nullable = false)
     var quantity: Int? = 1,
 
+    @Column(name = "use_quantity")
+    var useQuantity: Int? = null,
+
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
     var delYn: DelYn? = DelYn.N,

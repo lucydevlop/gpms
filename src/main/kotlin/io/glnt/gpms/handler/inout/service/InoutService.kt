@@ -85,6 +85,17 @@ class InoutService {
 
             // todo gate up(option check)
             parkinglotService.getGateInfoByFacilityId(facilitiesId) ?.let { gate ->
+                // 만차 제어 설정 시 count 확인 후 skip
+                if (parkinglotService.parkSite.space != null) {
+                    parkinglotService.parkSite.space!!.spaces!!.forEach { it ->
+                        if (it.gate.contains(gate.gateId) || it.gate.contains("ALL")) {
+                            if (parkInRepository.countByGateIdAndOutSn(gate.gateId, 0) >= it.space) {
+                                displayMessage("FULL", vehicleNo, "IN", gate.gateId)
+                                return CommonResult.data("Full limit $vehicleNo $parkingtype")
+                            }
+                        }
+                    }
+                }
                 // image 파일 저장
                 if (base64Str != null) {
                     fileFullPath = saveImage(base64Str!!, vehicleNo, facilitiesId)
@@ -216,6 +227,7 @@ class InoutService {
             /* 입차제한차량 */
             "RESTRICTE" -> filterDisplayMessage(type, DisplayMessageType.RESTRICTE)
             "CALL" -> filterDisplayMessage(type, DisplayMessageType.CALL)
+            "FULL" -> filterDisplayMessage(type, DisplayMessageType.FULL)
             else -> filterDisplayMessage(type, DisplayMessageType.FAILNUMBER)
         }
         lists.forEach { list ->
@@ -809,6 +821,7 @@ class InoutService {
             }
             "MEMBER" -> makeParkPhrase("MEMBER", vehicleNo, vehicleNo, type)
             "RESTRICTE" -> makeParkPhrase("RESTRICTE", vehicleNo, vehicleNo, type)
+            "FULL" -> makeParkPhrase("FULL", vehicleNo, vehicleNo, type)
             else -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, type)
         }
         facilityService.sendDisplayMessage(displayMessage, gateId)
