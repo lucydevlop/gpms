@@ -85,6 +85,17 @@ class InoutService {
 
             // todo gate up(option check)
             parkinglotService.getGateInfoByFacilityId(facilitiesId) ?.let { gate ->
+                // 만차 제어 설정 시 count 확인 후 skip
+                if (parkinglotService.parkSite.space != null) {
+                    parkinglotService.parkSite.space!!.spaces!!.forEach { it ->
+                        if (it.gate.contains(gate.gateId) || it.gate.contains("ALL")) {
+                            if (parkInRepository.countByGateIdAndOutSn(gate.gateId, 0) >= it.space) {
+                                displayMessage("FULL", vehicleNo, "IN", gate.gateId)
+                                return CommonResult.data("Full limit $vehicleNo $parkingtype")
+                            }
+                        }
+                    }
+                }
                 // image 파일 저장
                 if (base64Str != null) {
                     fileFullPath = saveImage(base64Str!!, vehicleNo, facilitiesId)
@@ -97,9 +108,10 @@ class InoutService {
                 if (DataCheckUtil.isValidCarNumber(vehicleNo)) {
                     parkingtype = "일반차량"
                     // 정기권 차량 여부 확인
-                    productService.getValidProductByVehicleNo(vehicleNo)?.let {
+                    productService.getValidProductByVehicleNo(vehicleNo, date, date)?.let {
                         parkingtype = "정기차량"
                         validDate = it.validDate
+                        ticketSn = it.sn
                     }
                     recognitionResult = "RECOGNITION"
 
@@ -173,7 +185,8 @@ class InoutService {
                     min = DateUtil.nowTimeDetail.substring(3, 5),
                     inDate = date,
                     uuid = uuid,
-                    udpssid = if (gate.takeAction == "PCC") "11111" else "00000"
+                    udpssid = if (gate.takeAction == "PCC") "11111" else "00000",
+                    ticketSn = ticketSn
                 )
                 parkInRepository.save(newData)
                 parkInRepository.flush()
@@ -216,6 +229,7 @@ class InoutService {
             /* 입차제한차량 */
             "RESTRICTE" -> filterDisplayMessage(type, DisplayMessageType.RESTRICTE)
             "CALL" -> filterDisplayMessage(type, DisplayMessageType.CALL)
+            "FULL" -> filterDisplayMessage(type, DisplayMessageType.FULL)
             else -> filterDisplayMessage(type, DisplayMessageType.FAILNUMBER)
         }
         lists.forEach { list ->
@@ -609,7 +623,8 @@ class InoutService {
                             val result = resParkInList(
                                 type = DisplayMessageClass.IN,
                                 parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
-                                inGateId = it.gateId, inDate = it.inDate!!
+                                inGateId = it.gateId, inDate = it.inDate!!,
+                                ticketCorpName = it.ticket?.corp?.corpName
                             )
                             if (it.outSn!! > 0L || it.outSn != null) {
                                 parkOutRepository.findBySn(it.outSn!!)?.let { out ->
@@ -809,6 +824,7 @@ class InoutService {
             }
             "MEMBER" -> makeParkPhrase("MEMBER", vehicleNo, vehicleNo, type)
             "RESTRICTE" -> makeParkPhrase("RESTRICTE", vehicleNo, vehicleNo, type)
+            "FULL" -> makeParkPhrase("FULL", vehicleNo, vehicleNo, type)
             else -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, type)
         }
         facilityService.sendDisplayMessage(displayMessage, gateId)
@@ -826,7 +842,7 @@ class InoutService {
                 val result = resParkInList(
                     type = DisplayMessageClass.IN,
                     parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
-                    inGateId = it.gateId, inDate = it.inDate!!, inImgBase64Str = Base64Util.encodeAsString(File(it.image!!).readBytes())
+                    inGateId = it.gateId, inDate = it.inDate!!, inImgBase64Str = it.image!!.substring(it.image!!.indexOf("/park"))
                 )
                 if (it.outSn!! > 0L || it.outSn != null) {
                     parkOutRepository.findBySn(it.outSn!!)?.let { out ->

@@ -104,12 +104,11 @@ data class ProductTicket(
 
     @Type(type = "json")
     @Column(name = "gates", columnDefinition = "json")
-//    @Json(name = "gate_id")
-//    @Column(name = "gate_id")
-//    @TypeConverters(ListConverter::class)
     var gates: MutableSet<String>? = mutableSetOf("ALL") // mutableListOf("ALL")
 ): Auditable(), Serializable {
-
+    @OneToOne
+    @JoinColumn(name = "corp_sn", referencedColumnName = "sn", insertable = false, updatable = false)
+    var corp: Corp? = null
 }
 
 //class ListConverter{

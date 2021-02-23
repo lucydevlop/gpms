@@ -2,6 +2,8 @@ package io.glnt.gpms.common.api
 
 import io.glnt.gpms.common.api.IErrorCode
 import io.glnt.gpms.common.api.ResultCode
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 
 class CommonResult {
     var code : Any? = 200
@@ -78,6 +80,15 @@ class CommonResult {
             return CommonResult().also {
                 it.msg = "Invalid username or password"
                 it.code = ResultCode.UNPROCESSABLE_ENTITY.getCode()
+            }
+        }
+
+        fun returnResult(result: CommonResult): ResponseEntity<CommonResult> {
+            return when(result.code) {
+                ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+                ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.OK)
+                ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+                else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
             }
         }
     }

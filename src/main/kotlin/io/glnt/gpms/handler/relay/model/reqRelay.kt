@@ -7,7 +7,7 @@ data class reqRelayHealthCheck(
 data class FacilitiesHealthCheck(
     var facilitiesId: String,
     var failureAlarm: String? = null,
-    var healthStatus: String? = null
+    var status: String? = null
 )
 
 data class FacilitiesStatusNoti(
