@@ -24,6 +24,7 @@ data class reqAddParkIn(
 
     /* update 사용 */
     var inSn: Long? = null,
+    var ticketSn: Long? = null,
 
     /* 연계 필요한 항목들 정의 */
     var parkingtype: String? = "미인식차량",

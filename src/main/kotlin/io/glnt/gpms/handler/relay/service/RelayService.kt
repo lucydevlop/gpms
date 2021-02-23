@@ -137,11 +137,7 @@ class RelayService {
         try {
             request.facilitiesList.forEach { failure ->
                 parkinglotService.getFacility(facilityId = failure.facilitiesId)?.let { facility ->
-//                    // SESSION CHECK
-//                    if (failure.failureAlarm.isNullOrBlank()) {
-//                        // ping fail -> noResponse
-//                        facilityService.updateHealthCheck(failure.facilitiesId, failure.failureAlarm!!)
-//                    } else {
+                    // 정산기 정상, 비정상
                     saveFailure(
                         Failure(sn = null,
                             issueDateTime = LocalDateTime.now(),

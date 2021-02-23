@@ -111,6 +111,7 @@ class InoutService {
                     productService.getValidProductByVehicleNo(vehicleNo, date, date)?.let {
                         parkingtype = "정기차량"
                         validDate = it.validDate
+                        ticketSn = it.sn
                     }
                     recognitionResult = "RECOGNITION"
 
@@ -184,7 +185,8 @@ class InoutService {
                     min = DateUtil.nowTimeDetail.substring(3, 5),
                     inDate = date,
                     uuid = uuid,
-                    udpssid = if (gate.takeAction == "PCC") "11111" else "00000"
+                    udpssid = if (gate.takeAction == "PCC") "11111" else "00000",
+                    ticketSn = ticketSn
                 )
                 parkInRepository.save(newData)
                 parkInRepository.flush()
