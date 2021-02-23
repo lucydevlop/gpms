@@ -39,7 +39,7 @@ class DiscountService {
     fun getByCorp(request: reqSearchDiscount) : CommonResult {
         request.corpId?.let {
             val lists = corpTicketRepository.findByCorpId(it)
-            return if (lists.isNullOrEmpty()) CommonResult.notfound("corp ticket") else CommonResult.data(lists)
+            return CommonResult.data(lists)
         } ?: run {
             corpTicketRepository.findAll().let {
                 return CommonResult.data(it)

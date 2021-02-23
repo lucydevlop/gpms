@@ -85,7 +85,7 @@ class RelayService {
                 tmapSendService.sendHealthCheckRequest(request, "")
 
             request.facilitiesList.forEach { facility ->
-                facilityService.updateHealthCheck(facility.facilitiesId, facility.healthStatus!!)
+                facilityService.updateHealthCheck(facility.facilitiesId, facility.status!!)
             }
 
             if (parkAlarmSetting.payAlarm == checkUseStatus.Y && parkAlarmSetting.payLimitTime!! > 0) {
@@ -104,11 +104,11 @@ class RelayService {
             val result = ArrayList<FacilitiesStatusNoti>()
 
             request.facilitiesList.forEach { facility ->
-                val data = facilityService.updateStatusCheck(facility.facilitiesId, facility.healthStatus!!)
+                val data = facilityService.updateStatusCheck(facility.facilitiesId, facility.status!!)
                 if (data != null) {
-                    result.add(FacilitiesStatusNoti(facilitiesId = facility.facilitiesId, STATUS = facility.healthStatus!!))
+                    result.add(FacilitiesStatusNoti(facilitiesId = facility.facilitiesId, STATUS = facility.status!!))
                     // close 상태 수신 시 error 상태 check
-                    if (facility.healthStatus!! == "CLOSE") {
+                    if (facility.status!! == "CLOSE") {
                         saveFailure(
                             Failure(
                                 sn = null,
@@ -137,21 +137,21 @@ class RelayService {
         try {
             request.facilitiesList.forEach { failure ->
                 parkinglotService.getFacility(facilityId = failure.facilitiesId)?.let { facility ->
-                    // SESSION CHECK
-                    if (failure.failureAlarm.isNullOrBlank()) {
-                        // ping fail -> noResponse
-                        facilityService.updateHealthCheck(failure.facilitiesId, failure.failureAlarm!!)
-                    } else {
-                        saveFailure(
-                            Failure(sn = null,
-                                issueDateTime = LocalDateTime.now(),
+//                    // SESSION CHECK
+//                    if (failure.failureAlarm.isNullOrBlank()) {
+//                        // ping fail -> noResponse
+//                        facilityService.updateHealthCheck(failure.facilitiesId, failure.failureAlarm!!)
+//                    } else {
+                    saveFailure(
+                        Failure(sn = null,
+                            issueDateTime = LocalDateTime.now(),
 //                                        expireDateTime = LocalDateTime.now(),
-                                facilitiesId = failure.facilitiesId,
-                                fName = facility.fname,
-                                failureCode = failure.failureAlarm,
-                                failureType = failure.healthStatus)
-                        )
-                    }
+                            facilitiesId = failure.facilitiesId,
+                            fName = facility.fname,
+                            failureCode = failure.failureAlarm,
+                            failureType = failure.status)
+                    )
+//                    }
 //                    if (failure.failureAlarm == "crossingGateBarDamageDoubt") {
 //                            // 차단기
 //                            saveFailure(
@@ -183,7 +183,7 @@ class RelayService {
 //                            }
 //                        }
 //                    }
-                    if (parkinglotService.parkSite.tmapSend == "ON" && failure.healthStatus != "normal")
+                    if (parkinglotService.parkSite.tmapSend == "ON" && failure.status != "normal")
                         tmapSendService.sendFacilitiesFailureAlarm(FacilitiesFailureAlarm(facilitiesId = failure.facilitiesId, failureAlarm = failure.failureAlarm!!), null)
                 }
             }

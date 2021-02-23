@@ -41,6 +41,7 @@ enum class DisplayMessageType(val code: String, val desc: String) {
     FAIL("FAIL", "실패"),
     FAILNUMBER("FAILNUMBER", "미인식차량"),
     RESTRICTE("RESTRICTE", "입차제한차량"),
+    FULL("FULL", "만차제한")
 }
 
 enum class DisplayMessageCode(val code: String, val desc: String) {

@@ -2,7 +2,13 @@ package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.google.common.collect.Multiset
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType
+import com.vladmihalcea.hibernate.type.json.JsonStringType
 import io.glnt.gpms.model.entity.Auditable
+import org.hibernate.annotations.Type
+import org.hibernate.annotations.TypeDef
 import java.io.Serializable
 import javax.persistence.*
 
@@ -10,6 +16,7 @@ import javax.persistence.*
 @Table(schema = "glnt_parking", name="tb_parksiteinfo")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@TypeDef(name = "jsonb", typeClass = JsonBinaryType::class)
 data class ParkSiteInfo(
     @Id
     @Column(name = "siteid", unique = true, nullable = false)
@@ -72,8 +79,24 @@ data class ParkSiteInfo(
     @Column(name = "park_id", nullable = true)
     var parkId: String? = null,
 
+    @Type(type = "jsonb")
+    @Column(name = "space", nullable = true)
+    var space: spaceAttributes? = null,
+
     @Column(name = "tmap_send", nullable = true)
     var tmapSend: String? = "OFF"
 ) : Auditable(), Serializable {
 
+    data class spaceAttributes(
+        var spaces: MutableSet<spaceAttribute>? = null
+    )
+    data class spaceAttribute(
+        @JsonProperty("gate")
+        var gate: List<String>,
+        @JsonProperty("space")
+        var space: Int
+    )
 }
+
+//@JsonInclude(JsonInclude.Include.NON_NULL)
+
