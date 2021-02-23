@@ -97,7 +97,7 @@ class InoutService {
                 if (DataCheckUtil.isValidCarNumber(vehicleNo)) {
                     parkingtype = "일반차량"
                     // 정기권 차량 여부 확인
-                    productService.getValidProductByVehicleNo(vehicleNo)?.let {
+                    productService.getValidProductByVehicleNo(vehicleNo, date, date)?.let {
                         parkingtype = "정기차량"
                         validDate = it.validDate
                     }
