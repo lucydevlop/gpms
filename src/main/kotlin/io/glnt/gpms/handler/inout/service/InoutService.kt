@@ -5,6 +5,7 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.Base64Util
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.calc.service.FeeCalculation
 import io.glnt.gpms.handler.facility.model.reqDisplayMessage
 import io.glnt.gpms.handler.facility.model.reqPayData
@@ -37,6 +38,7 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.criteria.Predicate
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 import kotlin.concurrent.timer
 
 @Service
@@ -337,7 +339,7 @@ class InoutService {
                 }
                 SetupOption.DELETE -> {
                     if (inVehicle != null) {
-                        inVehicle.delYn = "Y"
+                        inVehicle.delYn = DelYn.Y
                         inVehicle.requestid = requestId
                         inVehicle.udpssid = request.sessionId
                         parkInRepository.save(inVehicle)
@@ -422,7 +424,7 @@ class InoutService {
                     recognitionResult = "RECOGNITION"
 
                     // park-in update
-                    parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", date)?.let { it ->
+                    parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, DelYn.N, date)?.let { it ->
                         parkIn = it
                     }
 
@@ -596,7 +598,7 @@ class InoutService {
                     }
                 }
 
-                parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", date)?.let { parkIn ->
+                parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, DelYn.N, date)?.let { parkIn ->
                     parkIn.outSn = newData.sn
                     parkInRepository.save(parkIn)
                     parkInRepository.flush()
@@ -944,6 +946,90 @@ class InoutService {
         }catch (e: RuntimeException){
             logger.error { "paymentResult failed ${e.message}" }
             return CommonResult.error("paymentResult failed")
+        }
+    }
+
+    fun getLastInout(type: GateTypeStatus, gateId: String ): HashMap<String, Any?>? {
+        try {
+            var result = HashMap<String, Any?>()
+            when (type) {
+                GateTypeStatus.IN -> {
+                    parkInRepository.findTopByGateIdAndDelYnAndInDateGreaterThanEqualOrderByInDateDesc(gateId, DelYn.N, DateUtil.minusSecLocalDateTime(
+                        LocalDateTime.now(), 10))?.let {
+                        result =
+                            hashMapOf<String, Any?>(
+                                "gateId" to gateId,
+                                "vehicleNo" to it.vehicleNo,
+                                "date" to it.inDate,
+                                "carType" to it.parkcartype,
+                                "image" to it.image
+                            )
+                    }
+                }
+                GateTypeStatus.OUT -> {
+                    parkOutRepository.findTopByGateIdAndDelYnAndOutDateGreaterThanEqualOrderByOutDateDesc(gateId, DelYn.N, DateUtil.minusSecLocalDateTime(
+                        LocalDateTime.now(), 10) )?.let {
+                        result =
+                            hashMapOf<String, Any?>(
+                                "gateId" to gateId,
+                                "vehicleNo" to it.vehicleNo,
+                                "date" to it.outDate,
+                                "carType" to it.parkcartype,
+                                "image" to it.image
+                            )
+                    }
+                }
+                else -> {
+                    parkInRepository.findTopByGateIdAndDelYnAndInDateGreaterThanEqualOrderByInDateDesc(gateId, DelYn.N, DateUtil.minusSecLocalDateTime(
+                        LocalDateTime.now(), 10))?.let { parkIn ->
+                        parkOutRepository.findTopByGateIdAndDelYnAndOutDateGreaterThanEqualOrderByOutDateDesc(gateId, DelYn.N, DateUtil.minusSecLocalDateTime(
+                            LocalDateTime.now(), 10) )?.let { parkOut ->
+                            if (parkIn.inDate!! > parkOut.outDate) {
+                                result =
+                                    hashMapOf<String, Any?>(
+                                        "gateId" to gateId,
+                                        "vehicleNo" to parkIn.vehicleNo,
+                                        "date" to parkIn.inDate,
+                                        "carType" to parkIn.parkcartype,
+                                        "image" to parkIn.image )
+                            } else {
+                                result =
+                                    hashMapOf<String, Any?>(
+                                        "gateId" to gateId,
+                                        "vehicleNo" to parkOut.vehicleNo,
+                                        "date" to parkOut.outDate,
+                                        "carType" to parkOut.parkcartype,
+                                        "image" to parkOut.image )
+                            }
+                        }?.run {
+                            result =
+                                hashMapOf<String, Any?>(
+                                    "gateId" to gateId,
+                                    "vehicleNo" to parkIn.vehicleNo,
+                                    "date" to parkIn.inDate,
+                                    "carType" to parkIn.parkcartype,
+                                    "image" to parkIn.image )
+                        }
+                    }?.run {
+                        parkOutRepository.findTopByGateIdAndDelYnAndOutDateGreaterThanEqualOrderByOutDateDesc(gateId, DelYn.N, DateUtil.minusSecLocalDateTime(
+                            LocalDateTime.now(), 10) )?.let {
+                            result =
+                                hashMapOf<String, Any?>(
+                                    "gateId" to gateId,
+                                    "vehicleNo" to it.vehicleNo,
+                                    "date" to it.outDate,
+                                    "carType" to it.parkcartype,
+                                    "image" to it.image
+                                )
+
+                        }
+                    }
+                }
+            }
+            return result
+        }catch (e: CustomException) {
+            logger.error { "getLastInout failed ${e.message}" }
+            return null
         }
     }
 

@@ -25,6 +25,9 @@ interface ParkFacilityRepository: JpaRepository<Facility, Long> {
     fun findByGateIdAndFlagUse(gateId: String, flagUse: Int): List<Facility>?
     fun findByGateIdAndCategory(gateId: String, category: String): List<Facility>?
     fun findByCategory(category: String): List<Facility>?
+//    fun getDistinctByCategoryAndGateId(gateId: String): List<Facility>?
+//    fun countByGateIdAndCategoryAndHealth(gateId: String): List<Facility>?
+    fun findTopByGateIdAndCategoryOrderByStatusDate(gateId: String, category: String): Facility
 }
 
 @Repository
@@ -41,4 +44,5 @@ interface ParkGateRepository: JpaRepository<Gate, Long> {
 interface FailureRepository: JpaRepository<Failure, Long> {
     fun findTopByFacilitiesIdAndFailureCodeOrderByIssueDateTimeDesc(facilityId: String, failureCode: String): Failure?
     fun findTopByFacilitiesIdAndFailureCodeAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(facilityId: String, failureCode: String): Failure?
+    fun findTopByFacilitiesIdAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(facilityId: String): Failure?
 }

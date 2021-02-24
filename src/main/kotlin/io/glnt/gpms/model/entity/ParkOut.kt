@@ -3,6 +3,7 @@ package io.glnt.gpms.model.entity
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.DelYn
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
 import java.time.LocalDate
@@ -109,8 +110,9 @@ data class ParkOut(
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var outDate: LocalDateTime? = null,
 
-    @Column(name = "del_yn", nullable = true)
-    var delYn: String? = "N"
+    @Enumerated(EnumType.STRING)
+    @Column(name = "del_yn", nullable = false)
+    var delYn: DelYn? = DelYn.N
 ): Auditable(), Serializable {
 
 }
