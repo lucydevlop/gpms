@@ -404,7 +404,7 @@ class FacilityService {
                     else -> {
                         result = hashMapOf(
                             "category" to category,
-                            "status" to "PART_NORMAL")
+                            "status" to "PARTNORMAL")
                     }
                 }
             }
