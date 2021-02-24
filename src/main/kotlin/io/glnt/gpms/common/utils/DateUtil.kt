@@ -6,6 +6,7 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.Period
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -141,6 +142,10 @@ object DateUtil {
 
     fun makeLocalDateTime(date: String, hour: String, minute: String) : LocalDateTime {
         return LocalDateTime.parse(("$date $hour:$minute:00").toString(), DateTimeFormatter.ofPattern(DATE_TIME_PATTERN))
+    }
+
+    fun minusSecLocalDateTime(date: LocalDateTime, sec: Int): LocalDateTime {
+        return date.minusSeconds(sec.toLong())
     }
 
     fun getWeek(date: String?): WeekType?{
