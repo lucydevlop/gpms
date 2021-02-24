@@ -399,12 +399,12 @@ class FacilityService {
                     0 -> {
                         result = hashMapOf(
                             "category" to category,
-                            "status" to "NORMAL")
+                            "status" to "NORESPONSE")
                     }
                     else -> {
                         result = hashMapOf(
                             "category" to category,
-                            "status" to "NORMAL")
+                            "status" to "PART_NORMAL")
                     }
                 }
             }
