@@ -949,41 +949,54 @@ class InoutService {
         }
     }
 
+    fun getImagePath(imagePath: String?): String? {
+        return if (imagePath!!.contains("/park", true)) { imagePath.substring(imagePath.indexOf("/park")).replace("//", "/") }
+            else null
+    }
+
     fun getLastInout(type: GateTypeStatus, gateId: String ): HashMap<String, Any?>? {
         try {
             var result = HashMap<String, Any?>()
             when (type) {
                 GateTypeStatus.IN -> {
-                    parkInRepository.findTopByGateIdAndDelYnAndInDateGreaterThanEqualOrderByInDateDesc(gateId, DelYn.N, DateUtil.minusSecLocalDateTime(
-                        LocalDateTime.now(), 10))?.let {
+                    parkInRepository.findTopByGateIdAndDelYnOrderByInDateDesc(gateId, DelYn.N
+//                        , DateUtil.minusSecLocalDateTime(
+//                        LocalDateTime.now(), 10)
+                    )?.let {
                         result =
                             hashMapOf<String, Any?>(
                                 "gateId" to gateId,
                                 "vehicleNo" to it.vehicleNo,
                                 "date" to it.inDate,
                                 "carType" to it.parkcartype,
-                                "image" to it.image
+                                "image" to getImagePath(it.image)
                             )
                     }
                 }
                 GateTypeStatus.OUT -> {
-                    parkOutRepository.findTopByGateIdAndDelYnAndOutDateGreaterThanEqualOrderByOutDateDesc(gateId, DelYn.N, DateUtil.minusSecLocalDateTime(
-                        LocalDateTime.now(), 10) )?.let {
+                    parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N
+//                        , DateUtil.minusSecLocalDateTime(
+//                        LocalDateTime.now(), 10)
+                    )?.let {
                         result =
                             hashMapOf<String, Any?>(
                                 "gateId" to gateId,
                                 "vehicleNo" to it.vehicleNo,
                                 "date" to it.outDate,
                                 "carType" to it.parkcartype,
-                                "image" to it.image
+                                "image" to getImagePath(it.image)
                             )
                     }
                 }
                 else -> {
-                    parkInRepository.findTopByGateIdAndDelYnAndInDateGreaterThanEqualOrderByInDateDesc(gateId, DelYn.N, DateUtil.minusSecLocalDateTime(
-                        LocalDateTime.now(), 10))?.let { parkIn ->
-                        parkOutRepository.findTopByGateIdAndDelYnAndOutDateGreaterThanEqualOrderByOutDateDesc(gateId, DelYn.N, DateUtil.minusSecLocalDateTime(
-                            LocalDateTime.now(), 10) )?.let { parkOut ->
+                    parkInRepository.findTopByGateIdAndDelYnOrderByInDateDesc(gateId, DelYn.N
+//                        , DateUtil.minusSecLocalDateTime(
+//                        LocalDateTime.now(), 10)
+                    )?.let { parkIn ->
+                        parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N
+//                        , DateUtil.minusSecLocalDateTime(
+//                        LocalDateTime.now(), 10)
+                        )?.let { parkOut ->
                             if (parkIn.inDate!! > parkOut.outDate) {
                                 result =
                                     hashMapOf<String, Any?>(
@@ -991,7 +1004,7 @@ class InoutService {
                                         "vehicleNo" to parkIn.vehicleNo,
                                         "date" to parkIn.inDate,
                                         "carType" to parkIn.parkcartype,
-                                        "image" to parkIn.image )
+                                        "image" to getImagePath(parkIn.image) )
                             } else {
                                 result =
                                     hashMapOf<String, Any?>(
@@ -999,7 +1012,7 @@ class InoutService {
                                         "vehicleNo" to parkOut.vehicleNo,
                                         "date" to parkOut.outDate,
                                         "carType" to parkOut.parkcartype,
-                                        "image" to parkOut.image )
+                                        "image" to getImagePath(parkOut.image) )
                             }
                         }?.run {
                             result =
@@ -1008,20 +1021,21 @@ class InoutService {
                                     "vehicleNo" to parkIn.vehicleNo,
                                     "date" to parkIn.inDate,
                                     "carType" to parkIn.parkcartype,
-                                    "image" to parkIn.image )
+                                    "image" to getImagePath(parkIn.image) )
                         }
                     }?.run {
-                        parkOutRepository.findTopByGateIdAndDelYnAndOutDateGreaterThanEqualOrderByOutDateDesc(gateId, DelYn.N, DateUtil.minusSecLocalDateTime(
-                            LocalDateTime.now(), 10) )?.let {
+                        parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N
+//                        , DateUtil.minusSecLocalDateTime(
+//                        LocalDateTime.now(), 10)
+                        )?.let {
                             result =
                                 hashMapOf<String, Any?>(
                                     "gateId" to gateId,
                                     "vehicleNo" to it.vehicleNo,
                                     "date" to it.outDate,
                                     "carType" to it.parkcartype,
-                                    "image" to it.image
+                                    "image" to getImagePath(it.image)
                                 )
-
                         }
                     }
                 }
