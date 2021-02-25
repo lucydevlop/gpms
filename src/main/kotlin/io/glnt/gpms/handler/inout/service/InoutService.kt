@@ -949,6 +949,11 @@ class InoutService {
         }
     }
 
+    fun getImagePath(imagePath: String?): String? {
+        return if (imagePath!!.contains("/park", true)) { imagePath.substring(imagePath.indexOf("/park")).replace("//", "/") }
+            else null
+    }
+
     fun getLastInout(type: GateTypeStatus, gateId: String ): HashMap<String, Any?>? {
         try {
             var result = HashMap<String, Any?>()
@@ -964,7 +969,7 @@ class InoutService {
                                 "vehicleNo" to it.vehicleNo,
                                 "date" to it.inDate,
                                 "carType" to it.parkcartype,
-                                "image" to it.image
+                                "image" to getImagePath(it.image)
                             )
                     }
                 }
@@ -979,7 +984,7 @@ class InoutService {
                                 "vehicleNo" to it.vehicleNo,
                                 "date" to it.outDate,
                                 "carType" to it.parkcartype,
-                                "image" to it.image
+                                "image" to getImagePath(it.image)
                             )
                     }
                 }
@@ -999,7 +1004,7 @@ class InoutService {
                                         "vehicleNo" to parkIn.vehicleNo,
                                         "date" to parkIn.inDate,
                                         "carType" to parkIn.parkcartype,
-                                        "image" to parkIn.image )
+                                        "image" to getImagePath(parkIn.image) )
                             } else {
                                 result =
                                     hashMapOf<String, Any?>(
@@ -1007,7 +1012,7 @@ class InoutService {
                                         "vehicleNo" to parkOut.vehicleNo,
                                         "date" to parkOut.outDate,
                                         "carType" to parkOut.parkcartype,
-                                        "image" to parkOut.image )
+                                        "image" to getImagePath(parkOut.image) )
                             }
                         }?.run {
                             result =
@@ -1016,7 +1021,7 @@ class InoutService {
                                     "vehicleNo" to parkIn.vehicleNo,
                                     "date" to parkIn.inDate,
                                     "carType" to parkIn.parkcartype,
-                                    "image" to parkIn.image )
+                                    "image" to getImagePath(parkIn.image) )
                         }
                     }?.run {
                         parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N
@@ -1029,9 +1034,8 @@ class InoutService {
                                     "vehicleNo" to it.vehicleNo,
                                     "date" to it.outDate,
                                     "carType" to it.parkcartype,
-                                    "image" to it.image
+                                    "image" to getImagePath(it.image)
                                 )
-
                         }
                     }
                 }
