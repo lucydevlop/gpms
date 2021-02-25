@@ -20,6 +20,7 @@ interface ParkInRepository: JpaRepository<ParkIn, Long> {
     fun findByUuid(uuid: String): ParkIn?
     fun countByGateIdAndOutSn(gateId: String, outSn: Long): Int
     fun findTopByGateIdAndDelYnAndInDateGreaterThanEqualOrderByInDateDesc(gateId: String, delYn: DelYn, inDate: LocalDateTime ) : ParkIn?
+    fun findTopByGateIdAndDelYnOrderByInDateDesc(gateId: String, delYn: DelYn) : ParkIn?
 }
 
 @Repository
@@ -32,4 +33,5 @@ interface ParkOutRepository: JpaRepository<ParkOut, Long> {
     fun findTopByPaystationAndApproveDatetimeIsNotNullOrderByOutDateDesc(paystation: String): ParkOut?
     fun findTopByPaystationOrderByOutDateDesc(paystation: String): ParkOut?
     fun findTopByGateIdAndDelYnAndOutDateGreaterThanEqualOrderByOutDateDesc(gateId: String, delYn: DelYn, inDate: LocalDateTime ) : ParkOut?
+    fun findTopByGateIdAndDelYnOrderByOutDateDesc(gateId: String, delYn: DelYn) : ParkOut?
 }

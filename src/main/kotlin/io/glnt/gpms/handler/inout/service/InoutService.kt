@@ -954,8 +954,10 @@ class InoutService {
             var result = HashMap<String, Any?>()
             when (type) {
                 GateTypeStatus.IN -> {
-                    parkInRepository.findTopByGateIdAndDelYnAndInDateGreaterThanEqualOrderByInDateDesc(gateId, DelYn.N, DateUtil.minusSecLocalDateTime(
-                        LocalDateTime.now(), 10))?.let {
+                    parkInRepository.findTopByGateIdAndDelYnOrderByInDateDesc(gateId, DelYn.N
+//                        , DateUtil.minusSecLocalDateTime(
+//                        LocalDateTime.now(), 10)
+                    )?.let {
                         result =
                             hashMapOf<String, Any?>(
                                 "gateId" to gateId,
@@ -967,8 +969,10 @@ class InoutService {
                     }
                 }
                 GateTypeStatus.OUT -> {
-                    parkOutRepository.findTopByGateIdAndDelYnAndOutDateGreaterThanEqualOrderByOutDateDesc(gateId, DelYn.N, DateUtil.minusSecLocalDateTime(
-                        LocalDateTime.now(), 10) )?.let {
+                    parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N
+//                        , DateUtil.minusSecLocalDateTime(
+//                        LocalDateTime.now(), 10)
+                    )?.let {
                         result =
                             hashMapOf<String, Any?>(
                                 "gateId" to gateId,
@@ -980,10 +984,14 @@ class InoutService {
                     }
                 }
                 else -> {
-                    parkInRepository.findTopByGateIdAndDelYnAndInDateGreaterThanEqualOrderByInDateDesc(gateId, DelYn.N, DateUtil.minusSecLocalDateTime(
-                        LocalDateTime.now(), 10))?.let { parkIn ->
-                        parkOutRepository.findTopByGateIdAndDelYnAndOutDateGreaterThanEqualOrderByOutDateDesc(gateId, DelYn.N, DateUtil.minusSecLocalDateTime(
-                            LocalDateTime.now(), 10) )?.let { parkOut ->
+                    parkInRepository.findTopByGateIdAndDelYnOrderByInDateDesc(gateId, DelYn.N
+//                        , DateUtil.minusSecLocalDateTime(
+//                        LocalDateTime.now(), 10)
+                    )?.let { parkIn ->
+                        parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N
+//                        , DateUtil.minusSecLocalDateTime(
+//                        LocalDateTime.now(), 10)
+                        )?.let { parkOut ->
                             if (parkIn.inDate!! > parkOut.outDate) {
                                 result =
                                     hashMapOf<String, Any?>(
@@ -1011,8 +1019,10 @@ class InoutService {
                                     "image" to parkIn.image )
                         }
                     }?.run {
-                        parkOutRepository.findTopByGateIdAndDelYnAndOutDateGreaterThanEqualOrderByOutDateDesc(gateId, DelYn.N, DateUtil.minusSecLocalDateTime(
-                            LocalDateTime.now(), 10) )?.let {
+                        parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N
+//                        , DateUtil.minusSecLocalDateTime(
+//                        LocalDateTime.now(), 10)
+                        )?.let {
                             result =
                                 hashMapOf<String, Any?>(
                                     "gateId" to gateId,
