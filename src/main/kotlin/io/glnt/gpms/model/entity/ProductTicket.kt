@@ -106,7 +106,9 @@ data class ProductTicket(
     @Column(name = "gates", columnDefinition = "json")
     var gates: MutableSet<String>? = mutableSetOf("ALL") // mutableListOf("ALL")
 ): Auditable(), Serializable {
-
+    @OneToOne
+    @JoinColumn(name = "corp_sn", referencedColumnName = "sn", insertable = false, updatable = false)
+    var corp: Corp? = null
 }
 
 //class ListConverter{

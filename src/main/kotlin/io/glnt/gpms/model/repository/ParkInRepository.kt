@@ -15,10 +15,12 @@ interface ParkInRepository: JpaRepository<ParkIn, Long> {
     fun findByVehicleNoEndsWithAndOutSnAndGateId(vehicleNo: String, outSn: Long, gateId: String) : List<ParkIn>?
     fun findByUdpssid(udpssid: String): ParkIn?
     fun findAll(specification: Specification<ParkIn>): List<ParkIn>?
-    fun findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo: String, outSn: Long, delYn: String, inDate: LocalDateTime ) : ParkIn?
+    fun findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo: String, outSn: Long, delYn: DelYn, inDate: LocalDateTime ) : ParkIn?
     fun findBySn(sn: Long): ParkIn?
     fun findByUuid(uuid: String): ParkIn?
     fun countByGateIdAndOutSn(gateId: String, outSn: Long): Int
+    fun findTopByGateIdAndDelYnAndInDateGreaterThanEqualOrderByInDateDesc(gateId: String, delYn: DelYn, inDate: LocalDateTime ) : ParkIn?
+    fun findTopByGateIdAndDelYnOrderByInDateDesc(gateId: String, delYn: DelYn) : ParkIn?
 }
 
 @Repository
@@ -30,4 +32,6 @@ interface ParkOutRepository: JpaRepository<ParkOut, Long> {
     fun findByUuid(uuid: String): ParkOut?
     fun findTopByPaystationAndApproveDatetimeIsNotNullOrderByOutDateDesc(paystation: String): ParkOut?
     fun findTopByPaystationOrderByOutDateDesc(paystation: String): ParkOut?
+    fun findTopByGateIdAndDelYnAndOutDateGreaterThanEqualOrderByOutDateDesc(gateId: String, delYn: DelYn, inDate: LocalDateTime ) : ParkOut?
+    fun findTopByGateIdAndDelYnOrderByOutDateDesc(gateId: String, delYn: DelYn) : ParkOut?
 }

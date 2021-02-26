@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
+import javax.annotation.PostConstruct
 
 @Service
 class FacilityService {
@@ -65,7 +66,11 @@ class FacilityService {
     @Autowired
     private lateinit var facilityRepository: ParkFacilityRepository
 
-    fun fetchGate() {
+    @Autowired
+    private lateinit var failureRepository: FailureRepository
+
+    @PostConstruct
+    fun initalizeData() {
         parkGateRepository.findAll().let {
             gates = it
         }
@@ -376,6 +381,98 @@ class FacilityService {
             }
         }catch (e: RuntimeException) {
             logger.error { "allUpdateFacilities error ${e.message}" }
+        }
+        return null
+    }
+
+    fun getStatusByGateAndCategory(gateId: String, category: String): HashMap<String, Any?>? {
+        try {
+            var result = HashMap<String, Any?>()
+            facilityRepository.findByGateIdAndCategory(gateId, category)?.let { facilities ->
+                val normal = facilities.filter {
+                    it.health == "NORMAL"
+                }
+                when (normal.size) {
+                    facilities.size -> {
+                        result = hashMapOf(
+                            "category" to category,
+                            "status" to "NORMAL")
+                    }
+                    0 -> {
+                        result = hashMapOf(
+                            "category" to category,
+                            "status" to "NORESPONSE")
+                    }
+                    else -> {
+                        result = hashMapOf(
+                            "category" to category,
+                            "status" to "PARTNORMAL")
+                    }
+                }
+            }
+            return result
+        }catch (e: RuntimeException) {
+            logger.error { "allUpdateFacilities error ${e.message}" }
+        }
+        return null
+    }
+
+    fun getActionByGateAndCategory(gateId: String, category: String): HashMap<String, Any?>? {
+        try {
+            var result = HashMap<String, Any?>()
+            facilityRepository.findByGateIdAndCategory(gateId, category)?.let { facilities ->
+                facilities.forEach { facility ->
+                    // 장애 상태 확인
+                    failureRepository.findTopByFacilitiesIdAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(facility.facilitiesId!!)?.let {
+                        return hashMapOf(
+                            "category" to category,
+                            "status" to facility.status,
+                            "failure" to it.failureCode)
+                    }
+                    result = hashMapOf(
+                        "category" to category,
+                        "status" to facility.status,
+                        "failure" to null)
+                }
+            }
+            return result
+        }catch (e: RuntimeException) {
+            logger.error { "allUpdateFacilities error ${e.message}" }
+        }
+        return null
+    }
+
+    fun getStatusByGate(gateId: String): HashMap<String, Any?>? {
+        try {
+            //LPR
+            val lpr = getStatusByGateAndCategory(gateId, "LPR")
+
+            //BREAKER
+            val breaker = getStatusByGateAndCategory(gateId, "BREAKER")
+            val breakerAction = getActionByGateAndCategory(gateId, "BREAKER")
+
+            //DISPLAY
+            val display = getStatusByGateAndCategory(gateId, "DISPLAY")
+
+            //PAYSTATION
+            val paystation = getStatusByGateAndCategory(gateId, "PAYSTATION")
+            val paystationAction = getActionByGateAndCategory(gateId, "PAYSTATION")
+
+            logger.debug { "breaker status ${breaker!!.get("status")} action ${breakerAction!!.get("status")}" }
+
+            return hashMapOf<String, Any?>(
+                "lprStatus" to lpr!!["status"],
+                "breakerStatus" to breaker!!["status"],
+                "breakerAction" to breakerAction!!["status"],
+                "breakerFailure" to breakerAction["failure"],
+                "displayStatus" to display!!["status"],
+                "paystationStatus" to paystation!!["status"],
+                "paystationAction" to paystationAction!!["status"],
+                "paystationFailure" to paystationAction["failure"]
+            )
+
+        }catch (e: CustomException){
+            logger.error { "getStatusByGate error ${e.message}" }
         }
         return null
     }

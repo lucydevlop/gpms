@@ -23,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
 @Service
@@ -49,6 +50,22 @@ class AuthService {
 
     @Autowired
     private lateinit var jwtTokenProvider: JwtTokenProvider
+
+    @PostConstruct
+    fun addFirstAdminUser() {
+        if (userRepository.findUsersById("glnt") == null) {
+            userRepository.save(
+                SiteUser(
+                    idx = null,
+                    id = "glnt",
+                    password = passwordEncoder.encode("glnt123!@#"),
+                    userName = "glnt",
+                    userPhone = "0100000000",
+                    role = UserRole.SUPER_ADMIN
+                )
+            )
+        }
+    }
 
     fun adminLogin(request: reqLogin) : CommonResult = with(request) {
         try {

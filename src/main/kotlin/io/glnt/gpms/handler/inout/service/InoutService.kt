@@ -5,6 +5,7 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.Base64Util
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.calc.service.FeeCalculation
 import io.glnt.gpms.handler.facility.model.reqDisplayMessage
 import io.glnt.gpms.handler.facility.model.reqPayData
@@ -37,6 +38,7 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.criteria.Predicate
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 import kotlin.concurrent.timer
 
 @Service
@@ -83,7 +85,8 @@ class InoutService {
             // UUID 없을 경우(Back 입차) deviceIF -> OFF 로 전환
             if (uuid == null) deviceIF = "OFF"
 
-            // todo gate up(option check)
+            // gate up(option check)
+            // todo 요일제 차량 옵션 적용
             parkinglotService.getGateInfoByFacilityId(facilitiesId) ?.let { gate ->
                 // 만차 제어 설정 시 count 확인 후 skip
                 if (parkinglotService.parkSite.space != null) {
@@ -191,7 +194,7 @@ class InoutService {
                 parkInRepository.save(newData)
                 parkInRepository.flush()
 
-                if (parkinglotService.parkSite.tmapSend.equals("ON")) {
+                if (parkinglotService.isTmapSend()) {
                     //todo tmap 전송
                     val facility = parkFacilityRepository.findByFacilitiesId(facilitiesId)
                     val data = reqTmapInVehicle(
@@ -337,7 +340,7 @@ class InoutService {
                 }
                 SetupOption.DELETE -> {
                     if (inVehicle != null) {
-                        inVehicle.delYn = "Y"
+                        inVehicle.delYn = DelYn.Y
                         inVehicle.requestid = requestId
                         inVehicle.udpssid = request.sessionId
                         parkInRepository.save(inVehicle)
@@ -422,7 +425,7 @@ class InoutService {
                     recognitionResult = "RECOGNITION"
 
                     // park-in update
-                    parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", date)?.let { it ->
+                    parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, DelYn.N, date)?.let { it ->
                         parkIn = it
                     }
 
@@ -438,13 +441,13 @@ class InoutService {
 
                 // gate 옵션인 경우 요금계산 진행
 //                if (gate.takeAction == "GATE") {
-                if (parkIn != null)  {
+
+                if (parkinglotService.parkSite.saleType == SaleType.PAID && parkIn != null) {
                     price = feeCalculation.getBasicPayment(parkIn!!.inDate!!, date, VehicleType.SMALL, vehicleNo, 1, 0)
                     logger.info { "-------------------getBasicPayment Result -------------------" }
                     logger.info { "입차시간 : $parkIn!!.inDate!! / 출차시간 : $date / 주차시간: ${price!!.parkTime}" }
                     logger.info { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price!!.totalPrice}" }
                 }
-//                }
 
                 // 출차 정보 DB insert
                 val newData = ParkOut(
@@ -463,7 +466,7 @@ class InoutService {
                     min = DateUtil.nowTimeDetail.substring(3, 5),
                     outDate = date,
                     uuid = uuid,
-                    parktime = price?.let { price!!.parkTime }?.run { null },
+                    parktime = price?.let { price!!.parkTime }?.run { DateUtil.diffMins(parkIn!!.inDate!!, date) },
                     parkfee = price?.let { price!!.orgTotalPrice }?.run { null },
                     payfee = price?.let { price!!.totalPrice }?.run { null }
                 )
@@ -471,7 +474,7 @@ class InoutService {
                 parkOutRepository.flush()
 
                 // tmap 연동
-                if (parkinglotService.parkSite.tmapSend.equals("ON")) {
+                if (parkinglotService.isTmapSend()) {
                     when (parkingtype) {
                         "정기차량" -> tmapSendService.sendOutVehicle(
                             reqOutVehicle(
@@ -596,7 +599,7 @@ class InoutService {
                     }
                 }
 
-                parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, "N", date)?.let { parkIn ->
+                parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, DelYn.N, date)?.let { parkIn ->
                     parkIn.outSn = newData.sn
                     parkInRepository.save(parkIn)
                     parkInRepository.flush()
@@ -623,7 +626,8 @@ class InoutService {
                             val result = resParkInList(
                                 type = DisplayMessageClass.IN,
                                 parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
-                                inGateId = it.gateId, inDate = it.inDate!!
+                                inGateId = it.gateId, inDate = it.inDate!!,
+                                ticketCorpName = it.ticket?.corp?.corpName
                             )
                             if (it.outSn!! > 0L || it.outSn != null) {
                                 parkOutRepository.findBySn(it.outSn!!)?.let { out ->
@@ -841,7 +845,7 @@ class InoutService {
                 val result = resParkInList(
                     type = DisplayMessageClass.IN,
                     parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
-                    inGateId = it.gateId, inDate = it.inDate!!, inImgBase64Str = Base64Util.encodeAsString(File(it.image!!).readBytes())
+                    inGateId = it.gateId, inDate = it.inDate!!, inImgBase64Str = it.image!!.substring(it.image!!.indexOf("/park"))
                 )
                 if (it.outSn!! > 0L || it.outSn != null) {
                     parkOutRepository.findBySn(it.outSn!!)?.let { out ->
@@ -925,7 +929,7 @@ class InoutService {
                     it.parkcartype!!,
                     request.vehicleNumber, "OUT", gateId)
 
-                if (parkinglotService.parkSite.tmapSend.equals("ON")) {
+                if (parkinglotService.isTmapSend()) {
                     //todo tmap 전송
                     val data = reqSendPayment(
                         vehicleNumber = request.vehicleNumber,
@@ -943,6 +947,104 @@ class InoutService {
         }catch (e: RuntimeException){
             logger.error { "paymentResult failed ${e.message}" }
             return CommonResult.error("paymentResult failed")
+        }
+    }
+
+    fun getImagePath(imagePath: String?): String? {
+        return if (imagePath!!.contains("/park", true)) { imagePath.substring(imagePath.indexOf("/park")).replace("//", "/") }
+            else null
+    }
+
+    fun getLastInout(type: GateTypeStatus, gateId: String ): HashMap<String, Any?>? {
+        try {
+            var result = HashMap<String, Any?>()
+            when (type) {
+                GateTypeStatus.IN -> {
+                    parkInRepository.findTopByGateIdAndDelYnOrderByInDateDesc(gateId, DelYn.N
+//                        , DateUtil.minusSecLocalDateTime(
+//                        LocalDateTime.now(), 10)
+                    )?.let {
+                        result =
+                            hashMapOf<String, Any?>(
+                                "gateId" to gateId,
+                                "vehicleNo" to it.vehicleNo,
+                                "date" to it.inDate,
+                                "carType" to it.parkcartype,
+                                "image" to getImagePath(it.image)
+                            )
+                    }
+                }
+                GateTypeStatus.OUT -> {
+                    parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N
+//                        , DateUtil.minusSecLocalDateTime(
+//                        LocalDateTime.now(), 10)
+                    )?.let {
+                        result =
+                            hashMapOf<String, Any?>(
+                                "gateId" to gateId,
+                                "vehicleNo" to it.vehicleNo,
+                                "date" to it.outDate,
+                                "carType" to it.parkcartype,
+                                "image" to getImagePath(it.image)
+                            )
+                    }
+                }
+                else -> {
+                    parkInRepository.findTopByGateIdAndDelYnOrderByInDateDesc(gateId, DelYn.N
+//                        , DateUtil.minusSecLocalDateTime(
+//                        LocalDateTime.now(), 10)
+                    )?.let { parkIn ->
+                        parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N
+//                        , DateUtil.minusSecLocalDateTime(
+//                        LocalDateTime.now(), 10)
+                        )?.let { parkOut ->
+                            if (parkIn.inDate!! > parkOut.outDate) {
+                                result =
+                                    hashMapOf<String, Any?>(
+                                        "gateId" to gateId,
+                                        "vehicleNo" to parkIn.vehicleNo,
+                                        "date" to parkIn.inDate,
+                                        "carType" to parkIn.parkcartype,
+                                        "image" to getImagePath(parkIn.image) )
+                            } else {
+                                result =
+                                    hashMapOf<String, Any?>(
+                                        "gateId" to gateId,
+                                        "vehicleNo" to parkOut.vehicleNo,
+                                        "date" to parkOut.outDate,
+                                        "carType" to parkOut.parkcartype,
+                                        "image" to getImagePath(parkOut.image) )
+                            }
+                        }?.run {
+                            result =
+                                hashMapOf<String, Any?>(
+                                    "gateId" to gateId,
+                                    "vehicleNo" to parkIn.vehicleNo,
+                                    "date" to parkIn.inDate,
+                                    "carType" to parkIn.parkcartype,
+                                    "image" to getImagePath(parkIn.image) )
+                        }
+                    }?.run {
+                        parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N
+//                        , DateUtil.minusSecLocalDateTime(
+//                        LocalDateTime.now(), 10)
+                        )?.let {
+                            result =
+                                hashMapOf<String, Any?>(
+                                    "gateId" to gateId,
+                                    "vehicleNo" to it.vehicleNo,
+                                    "date" to it.outDate,
+                                    "carType" to it.parkcartype,
+                                    "image" to getImagePath(it.image)
+                                )
+                        }
+                    }
+                }
+            }
+            return result
+        }catch (e: CustomException) {
+            logger.error { "getLastInout failed ${e.message}" }
+            return null
         }
     }
 

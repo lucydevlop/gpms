@@ -7,7 +7,7 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.entity.Auditable
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountRangeType
-import io.glnt.gpms.model.enums.DiscountSaleType
+import io.glnt.gpms.model.enums.SaleType
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -38,7 +38,7 @@ data class DiscountClass(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "disUse", nullable = false)
-    var disUse: DiscountSaleType? = DiscountSaleType.FREE,
+    var disUse: SaleType? = SaleType.FREE,
 
     @Column(name = "disMaxNo")
     var disMaxNo: Int? = 1,

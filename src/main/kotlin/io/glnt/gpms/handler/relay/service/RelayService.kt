@@ -81,7 +81,7 @@ class RelayService {
     fun facilitiesHealthCheck(request: reqRelayHealthCheck) {
         logger.info { "facilitiesHealthCheck $request" }
         try {
-            if (parkinglotService.parkSite.tmapSend == "ON")
+            if (parkinglotService.isTmapSend())
                 tmapSendService.sendHealthCheckRequest(request, "")
 
             request.facilitiesList.forEach { facility ->
@@ -108,7 +108,19 @@ class RelayService {
                 if (data != null) {
                     result.add(FacilitiesStatusNoti(facilitiesId = facility.facilitiesId, STATUS = facility.status!!))
                     // close 상태 수신 시 error 상태 check
-                    if (facility.status!! == "CLOSE") {
+                    if (facility.status == "DOWN") {
+                        saveFailure(
+                            Failure(
+                                sn = null,
+                                issueDateTime = LocalDateTime.now(),
+//                                        expireDateTime = LocalDateTime.now(),
+                                facilitiesId = facility.facilitiesId,
+                                fName = parkinglotService.getFacility(facility.facilitiesId)!!.fname,
+                                failureCode = "crossingGateLongTimeOpen",
+                                failureType = "NORMAL"
+                            )
+                        )
+                    } else {
                         saveFailure(
                             Failure(
                                 sn = null,
@@ -124,7 +136,7 @@ class RelayService {
                 }
             }
 
-            if (parkinglotService.parkSite.tmapSend == "ON" && result.isNotEmpty())
+            if (parkinglotService.isTmapSend() && result.isNotEmpty())
                 tmapSendService.sendFacilitiesStatusNoti(reqTmapFacilitiesStatusNoti(facilitiesList = result), null)
 
         } catch (e: CustomException){
@@ -181,7 +193,7 @@ class RelayService {
 //                            }
 //                        }
 //                    }
-                    if (parkinglotService.parkSite.tmapSend == "ON" && failure.status != "normal")
+                    if (parkinglotService.isTmapSend() && failure.status != "normal")
                         tmapSendService.sendFacilitiesFailureAlarm(FacilitiesFailureAlarm(facilitiesId = failure.facilitiesId, failureAlarm = failure.failureAlarm!!), null)
                 }
             }
@@ -202,7 +214,7 @@ class RelayService {
                         if (DateUtil.diffHours(
                                 DateUtil.stringToLocalDateTime(out.approveDatetime!!, "yyyy-MM-dd HH:mm:ss"),
                                 LocalDateTime.now()) > parkAlarmSetting.payLimitTime!!) {
-                            if (parkinglotService.parkSite.tmapSend == "ON" && result.isNotEmpty())
+                            if (parkinglotService.isTmapSend() && result.isNotEmpty())
                                 tmapSendService.sendFacilitiesFailureAlarm(FacilitiesFailureAlarm(facilitiesId = facility.facilitiesId!!, failureAlarm = "dailyUnAdjustment"), null)
                             saveFailure(
                                 Failure(sn = null,
@@ -286,7 +298,7 @@ class RelayService {
         val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqSendVehicleListSearch::class.java)
         request.requestId = parkinglotService.generateRequestId()
 
-        if (parkinglotService.parkSite.tmapSend == "ON") {
+        if (parkinglotService.isTmapSend()) {
             // table db insert
             val requestId = parkinglotService.generateRequestId()
             vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = facilityId))
@@ -329,7 +341,7 @@ class RelayService {
             val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqAdjustmentRequest::class.java)
             request.requestId = parkinglotService.generateRequestId()
 
-            if (parkinglotService.parkSite.tmapSend == "ON") {
+            if (parkinglotService.isTmapSend()) {
                 // table db insert
 //                val requestId = parkinglotService.generateRequestId()
 //                vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = facilityId))
