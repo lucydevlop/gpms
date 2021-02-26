@@ -523,7 +523,7 @@ class InoutService {
                             // displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
                         }
                         "정기차량" -> {
-                            if (price!!.totalPrice == 0) {
+                            if (price!!.totalPrice == 0 || parkinglotService.parkSite.saleType == SaleType.FREE) {
                                 facilityService.sendPaystation(
                                     reqPayStationData(
                                         paymentMachineType = "SEASON",
@@ -594,6 +594,9 @@ class InoutService {
                                         type = "adjustmentdataRequest"
                                     )
                                 }
+                            } else {
+                                displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+                                facilityService.openGate(gate.gateId, "GATE")
                             }
                         }
                     }
