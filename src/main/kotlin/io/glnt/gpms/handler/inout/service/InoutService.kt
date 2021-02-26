@@ -85,7 +85,8 @@ class InoutService {
             // UUID 없을 경우(Back 입차) deviceIF -> OFF 로 전환
             if (uuid == null) deviceIF = "OFF"
 
-            // todo gate up(option check)
+            // gate up(option check)
+            // todo 요일제 차량 옵션 적용
             parkinglotService.getGateInfoByFacilityId(facilitiesId) ?.let { gate ->
                 // 만차 제어 설정 시 count 확인 후 skip
                 if (parkinglotService.parkSite.space != null) {
@@ -193,7 +194,7 @@ class InoutService {
                 parkInRepository.save(newData)
                 parkInRepository.flush()
 
-                if (parkinglotService.parkSite.tmapSend.equals("ON")) {
+                if (parkinglotService.isTmapSend()) {
                     //todo tmap 전송
                     val facility = parkFacilityRepository.findByFacilitiesId(facilitiesId)
                     val data = reqTmapInVehicle(
@@ -440,13 +441,13 @@ class InoutService {
 
                 // gate 옵션인 경우 요금계산 진행
 //                if (gate.takeAction == "GATE") {
-                if (parkIn != null)  {
+
+                if (parkinglotService.parkSite.saleType == SaleType.PAID && parkIn != null) {
                     price = feeCalculation.getBasicPayment(parkIn!!.inDate!!, date, VehicleType.SMALL, vehicleNo, 1, 0)
                     logger.info { "-------------------getBasicPayment Result -------------------" }
                     logger.info { "입차시간 : $parkIn!!.inDate!! / 출차시간 : $date / 주차시간: ${price!!.parkTime}" }
                     logger.info { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price!!.totalPrice}" }
                 }
-//                }
 
                 // 출차 정보 DB insert
                 val newData = ParkOut(
@@ -465,7 +466,7 @@ class InoutService {
                     min = DateUtil.nowTimeDetail.substring(3, 5),
                     outDate = date,
                     uuid = uuid,
-                    parktime = price?.let { price!!.parkTime }?.run { null },
+                    parktime = price?.let { price!!.parkTime }?.run { DateUtil.diffMins(parkIn!!.inDate!!, date) },
                     parkfee = price?.let { price!!.orgTotalPrice }?.run { null },
                     payfee = price?.let { price!!.totalPrice }?.run { null }
                 )
@@ -473,7 +474,7 @@ class InoutService {
                 parkOutRepository.flush()
 
                 // tmap 연동
-                if (parkinglotService.parkSite.tmapSend.equals("ON")) {
+                if (parkinglotService.isTmapSend()) {
                     when (parkingtype) {
                         "정기차량" -> tmapSendService.sendOutVehicle(
                             reqOutVehicle(
@@ -522,7 +523,7 @@ class InoutService {
                             // displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
                         }
                         "정기차량" -> {
-                            if (price!!.totalPrice == 0) {
+                            if (price!!.totalPrice == 0 || parkinglotService.parkSite.saleType == SaleType.FREE) {
                                 facilityService.sendPaystation(
                                     reqPayStationData(
                                         paymentMachineType = "SEASON",
@@ -559,7 +560,7 @@ class InoutService {
                             }
                         }
                         "일반차량" -> {
-                            if (gate.takeAction != "PCC") {
+                            if (gate.takeAction != "PCC" && parkinglotService.parkSite.saleType == SaleType.PAID) {
                                 facilityService.sendPaystation(
                                     reqPayStationData(
                                         paymentMachineType = "exit",
@@ -593,6 +594,9 @@ class InoutService {
                                         type = "adjustmentdataRequest"
                                     )
                                 }
+                            } else {
+                                displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+                                facilityService.openGate(gate.gateId, "GATE")
                             }
                         }
                     }
@@ -928,7 +932,7 @@ class InoutService {
                     it.parkcartype!!,
                     request.vehicleNumber, "OUT", gateId)
 
-                if (parkinglotService.parkSite.tmapSend.equals("ON")) {
+                if (parkinglotService.isTmapSend()) {
                     //todo tmap 전송
                     val data = reqSendPayment(
                         vehicleNumber = request.vehicleNumber,

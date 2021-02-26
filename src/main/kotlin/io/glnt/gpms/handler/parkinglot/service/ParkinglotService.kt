@@ -14,12 +14,14 @@ import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.OnOff
 import io.glnt.gpms.model.repository.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
+import javax.annotation.PostConstruct
 import javax.transaction.Transactional
 import kotlin.collections.ArrayList
 
@@ -49,6 +51,13 @@ class ParkinglotService {
 
     @Autowired
     private lateinit var discountClassRepository: DiscountClassRepository
+
+    @PostConstruct
+    fun initalizeData() {
+        parkSiteInfoRepository.findTopByOrderBySiteid()?.let {
+            parkSite = it
+        }
+    }
 
     fun createParkinglot(): CommonResult {
         logger.debug { "createParkinglot service" }
@@ -223,12 +232,6 @@ class ParkinglotService {
         }
     }
 
-    fun fetchParkSiteInfo() {
-        parkSiteInfoRepository.findTopByOrderBySiteid()?.let {
-            parkSite = it
-        }
-    }
-
     fun parkSiteId() : String? {
         return parkSite.parkId
     }
@@ -273,7 +276,7 @@ class ParkinglotService {
         try {
             data.flagMessage = 1
             parkSiteInfoRepository.save(data)
-            fetchParkSiteInfo()
+            initalizeData()
         } catch (e: CustomException) {
             logger.error { "save tb_parksite error ${e.message}" }
             return false
@@ -361,6 +364,10 @@ class ParkinglotService {
             logger.error { "getDiscountCounpon error ${e.message}" }
             return CommonResult.error("getDiscountCounpon failed ")
         }
+    }
+
+    fun isTmapSend(): Boolean {
+        return parkSite.tmapSend!! == OnOff.ON
     }
 
 //    fun JsonArray<*>.writeJSON(pathName: String, filename: String) {

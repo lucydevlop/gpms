@@ -16,16 +16,20 @@ enum class LprTypeStatus {
     INFRONT, INBACK, INASSIST, OUTFRONT, OUTBACK, OUTASSIST
 }
 
+enum class OnOff {
+    ON, OFF
+}
+
 //enum class DisplayPosition(val code: String, val desc: String) {
 //    IN("IN", "입구"),
 //    OUT("OUT", "출구")
 //}
 
-enum class DisplayType(val code: String, val desc: String) {
-    NORMAL1("NORMAL1", "일반(첫번째줄)"),
-    NORMAL2("NORMAL2", "일반(두번째줄)"),
-    EMPHASIS("EMPHASIS", "강조"),
-}
+//enum class DisplayType(val code: String, val desc: String) {
+//    NORMAL1("NORMAL1", "일반(첫번째줄)"),
+//    NORMAL2("NORMAL2", "일반(두번째줄)"),
+//    EMPHASIS("EMPHASIS", "강조"),
+//}
 
 enum class DisplayMessageClass(val code: String, val desc: String) {
     IN("IN", "입차"),
@@ -72,7 +76,7 @@ enum class DiscountRangeType(val code: String, val desc: String) {
     ALL("ALL", "전체")
 }
 
-enum class DiscountSaleType(val code: String, val desc: String) {
+enum class SaleType(val code: String, val desc: String) {
     PAID("PAID", "유료권"),
     FREE("FREE", "무료권")
 }
