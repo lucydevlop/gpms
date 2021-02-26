@@ -560,7 +560,7 @@ class InoutService {
                             }
                         }
                         "일반차량" -> {
-                            if (gate.takeAction != "PCC") {
+                            if (gate.takeAction != "PCC" && parkinglotService.parkSite.saleType == SaleType.PAID) {
                                 facilityService.sendPaystation(
                                     reqPayStationData(
                                         paymentMachineType = "exit",
