@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
+import javax.annotation.PostConstruct
 
 @Service
 class FacilityService {
@@ -68,7 +69,8 @@ class FacilityService {
     @Autowired
     private lateinit var failureRepository: FailureRepository
 
-    fun fetchGate() {
+    @PostConstruct
+    fun initalizeData() {
         parkGateRepository.findAll().let {
             gates = it
         }

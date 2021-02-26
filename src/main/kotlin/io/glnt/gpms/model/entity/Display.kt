@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayMessageType
-import io.glnt.gpms.model.enums.DisplayType
+//import io.glnt.gpms.model.enums.DisplayType
 import org.hibernate.annotations.Where
 import java.io.Serializable
 import javax.persistence.*

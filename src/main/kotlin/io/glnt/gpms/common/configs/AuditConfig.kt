@@ -34,6 +34,7 @@ class AuditConfig {
 
 class SecurityAuditorAware: AuditorAware<String> {
     override fun getCurrentAuditor(): Optional<String> {
+        if (SecurityContextHolder.getContext().authentication == null) return  Optional.of("anonymousUser")
         val authentication = SecurityContextHolder.getContext().authentication
 
         if (authentication.isAuthenticated) {
