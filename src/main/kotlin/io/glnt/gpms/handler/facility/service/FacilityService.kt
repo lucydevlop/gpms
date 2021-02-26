@@ -368,11 +368,11 @@ class FacilityService {
         logger.info { "updateStatusCheck facility $facilitiesId status $status" }
         try {
             facilityRepository.findByFacilitiesId(facilitiesId)?.let { facility ->
-                if (facility.category == "BREAKER") {
+//                if (facility.category == "BREAKER") {
                     facility.status = status
                     facility.statusDate = LocalDateTime.now()
                     return facilityRepository.save(facility)
-                }
+//                }
             }
         }catch (e: RuntimeException) {
             logger.error { "allUpdateFacilities error ${e.message}" }

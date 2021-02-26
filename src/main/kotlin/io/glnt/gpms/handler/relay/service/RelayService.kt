@@ -147,6 +147,8 @@ class RelayService {
                             failureCode = failure.failureAlarm,
                             failureType = failure.status)
                     )
+                    if (facility.category == "PAYSTATION")
+                        facilityService.updateStatusCheck(facility.facilitiesId!!, facility.status!!)
 //                    }
 //                    if (failure.failureAlarm == "crossingGateBarDamageDoubt") {
 //                            // 차단기
