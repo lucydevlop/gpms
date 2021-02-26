@@ -2,7 +2,7 @@ package io.glnt.gpms.handler.facility.model
 
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayMessageType
-import io.glnt.gpms.model.enums.DisplayType
+//import io.glnt.gpms.model.enums.DisplayType
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 
