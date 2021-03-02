@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import retrofit2.http.Path
 
 @RestController
 @RequestMapping(
@@ -32,6 +33,13 @@ class DashboardAdminController {
     fun getParkInLists(@RequestBody request: reqSearchParkin) : ResponseEntity<CommonResult> {
         logger.info { "getParkInLists $request" }
         return CommonResult.returnResult(dashboardAdminService.getParkInLists(request))
+    }
+
+    @RequestMapping(value = ["/gate/{action}/{gateId}"], method = [RequestMethod.GET])
+    @Throws(CustomException::class)
+    fun gateAction(@PathVariable action: String, @PathVariable gateId: String) : ResponseEntity<CommonResult> {
+        logger.info { "gateAction $gateId $action" }
+        return CommonResult.returnResult(dashboardAdminService.gateAction(action, gateId))
     }
     companion object : KLogging()
 }

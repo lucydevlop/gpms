@@ -165,7 +165,7 @@ class InoutService {
 
                     }
                     // open gate
-                    facilityService.openGate(gate.gateId, "GATE")
+                    facilityService.actionGate(gate.gateId, "GATE", "open")
                     // 전광판 메세지 출력, gate open
                     displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
                 }
@@ -386,7 +386,7 @@ class InoutService {
 
 //    @Transactional(readOnly = true)
     fun parkOut(request: reqAddParkOut) : CommonResult = with(request){
-        logger.info{"parkOut service car_number: ${request.vehicleNo} out_date: ${request.date} facilityId: ${request.facilitiesId}"}
+        logger.info{"parkOut service car_number: ${request.vehicleNo} out_date: ${request.date} facilityId: ${request.facilitiesId} uuid: ${request.uuid}"}
         try {
             if (requestId.isNullOrEmpty()) {
                 requestId = parkinglotService.generateRequestId()
@@ -523,7 +523,7 @@ class InoutService {
                             // displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
                         }
                         "정기차량" -> {
-                            if (price!!.totalPrice == 0 || parkinglotService.parkSite.saleType == SaleType.FREE) {
+                            if (parkinglotService.parkSite.saleType == SaleType.FREE || price!!.totalPrice!! == 0) {
                                 facilityService.sendPaystation(
                                     reqPayStationData(
                                         paymentMachineType = "SEASON",
@@ -531,8 +531,8 @@ class InoutService {
                                         facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
                                         recognitionType = "SEASON",
                                         recognitionResult = "RECOGNITION",
-                                        paymentAmount = price!!.totalPrice.toString(),
-                                        parktime = price!!.parkTime.toString(),
+                                        paymentAmount = price?.let { price!!.totalPrice.toString() }?.run { "0" },
+                                        parktime = price?.let { price!!.parkTime.toString() }?.run { "0" },
                                         vehicleIntime = DateUtil.nowDateTimeHm
                                     ),
                                     gate = gate.gateId,
@@ -540,7 +540,7 @@ class InoutService {
                                     type = "adjustmentRequest"
                                 )
                                 displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
-                                facilityService.openGate(gate.gateId, "GATE")
+                                facilityService.actionGate(gate.gateId, "GATE", "open")
                             } else {
                                 facilityService.sendPaystation(
                                     reqPayStationData(
@@ -568,7 +568,7 @@ class InoutService {
                                         facilitiesId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.udpGateid!!,
                                         recognitionType = "FREE",
                                         recognitionResult = "RECOGNITION",
-                                        paymentAmount = price!!.totalPrice.toString(),
+                                        paymentAmount = price!!.totalPrice!!.toString(),
                                         parktime = price!!.parkTime.toString(),
                                         vehicleIntime = DateUtil.formatDateTime(parkIn!!.inDate!!),
                                         adjustmentDateTime = DateUtil.nowDateTime
@@ -596,7 +596,7 @@ class InoutService {
                                 }
                             } else {
                                 displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
-                                facilityService.openGate(gate.gateId, "GATE")
+                                facilityService.actionGate(gate.gateId, "GATE", "open")
                             }
                         }
                     }
@@ -611,8 +611,8 @@ class InoutService {
                 return CommonResult.created()
             }
             return CommonResult.error("parkout add failed ")
-        } catch (e: RuntimeException) {
-            logger.error { "parkout add failed ${e.stackTrace}" }
+        } catch (e: CustomException) {
+            logger.error { "parkout add failed ${e.message} ${e.cause}" }
             return CommonResult.error("parkout add failed ")
         }
     }
@@ -728,7 +728,7 @@ class InoutService {
                     "SUCCESS" -> {
                         // open Gate
                         if (request.outVehicleAllowYn == "Y" || request.adjustmentAmount == 0) {
-                            facilityService.openGate(it.gateId!!, "GATE")
+                            facilityService.actionGate(it.gateId!!, "GATE", "open")
 
                             facilityService.sendPaystation(
                                 reqPayStationData(paymentMachineType = "exit",
@@ -781,7 +781,7 @@ class InoutService {
                     }
                     "FAILED" -> {
                         // open gate
-                        facilityService.openGate(it.gateId!!, "GATE")
+                        facilityService.actionGate(it.gateId!!, "GATE", "open")
                         it.outVehicle = 1
                         // todo 정산기 I/F
                         // todo 전광판
@@ -927,7 +927,7 @@ class InoutService {
                 it.cardNumber = request.cardNumber
                 parkOutRepository.save(it)
 
-                facilityService.openGate(gateId, "GATE")
+                facilityService.actionGate(gateId, "GATE", "open")
                 displayMessage(
                     it.parkcartype!!,
                     request.vehicleNumber, "OUT", gateId)
