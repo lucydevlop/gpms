@@ -76,8 +76,8 @@ class FacilityService {
         }
     }
 
-    fun openGate(id: String, type: String) {
-        logger.info { "openGate request $type $id" }
+    fun actionGate(id: String, type: String, action: String) {
+        logger.info { "actionGate request $type $id $action" }
         try {
             when (type) {
                 "GATE" -> {
@@ -85,7 +85,7 @@ class FacilityService {
                         its.forEach {
                             val url = getRelaySvrUrl(id)
                             restAPIManager.sendGetRequest(
-                                url+"/breaker/${it.facilitiesId}/open"
+                                url+"/breaker/${it.facilitiesId}/$action"
                             )
                         }
                     }
@@ -93,12 +93,12 @@ class FacilityService {
                 else -> {
                     val url = getRelaySvrUrl(parkinglotService.getFacility(id)!!.gateId)
                     restAPIManager.sendGetRequest(
-                        url+"/breaker/${id}/open"
+                        url+"/breaker/${id}/$action"
                     )
                 }
             }
         } catch (e: RuntimeException) {
-            logger.error {  "openGate $type $id error ${e.message}"}
+            logger.error {  "$action Gate $type $id error ${e.message}"}
         }
     }
 
@@ -278,7 +278,7 @@ class FacilityService {
                 )
             )?.let { it ->
                 // gate open
-                openGate(it.gateId!!, "GATE")
+                actionGate(it.gateId!!, "GATE", "open")
                 // todo tmap-payment
                 tmapSendService.sendTmapInterface(
                     reqSendPayment(

@@ -77,4 +77,17 @@ class DashboardAdminService {
             return CommonResult.error("Admin getParkInLists failed ${e.message}")
         }
     }
+
+    @Throws(CustomException::class)
+    fun gateAction(action: String, gateId: String) : CommonResult {
+        try {
+            facilityService.actionGate(gateId, "GATE", action)
+            return CommonResult.data()
+        }catch (e: CustomException){
+            logger.error { "Admin gateAction failed ${e.message}" }
+            return CommonResult.error("Admin gateAction failed ${e.message}")
+        }
+    }
+
+
 }
