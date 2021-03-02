@@ -74,6 +74,47 @@ class FacilityService {
         parkGateRepository.findAll().let {
             gates = it
         }
+
+        val defaultDisplayColor = ArrayList<DisplayColor>()
+        defaultDisplayColor.add(DisplayColor(colorCode = "C1", colorDesc = "초록색", sn = null))
+        defaultDisplayColor.add(DisplayColor(colorCode = "C3", colorDesc = "하늘색", sn = null))
+        defaultDisplayColor.add(DisplayColor(colorCode = "C4", colorDesc = "빨강색", sn = null))
+        defaultDisplayColor.add(DisplayColor(colorCode = "C5", colorDesc = "핑크색", sn = null))
+        defaultDisplayColor.forEach { displayColor ->
+            displayColorRepository.findByColorCode(displayColor.colorCode)?:run {
+                displayColorRepository.save(displayColor)
+            }
+        }
+
+        displayMessageRepository.findByMessageClass(DisplayMessageClass.IN)?.let { meessages ->
+            displayMessagesIn = meessages
+
+        }
+
+        displayMessageRepository.findByMessageClass(DisplayMessageClass.OUT)?.let { meessages ->
+            displayMessagesOut = meessages
+        }
+
+        displayMessageRepository.findByMessageClass(DisplayMessageClass.WAIT)?.let { meessages ->
+            displayMessagesWait = meessages
+        }
+    }
+
+    // @PostConstruct
+    fun fetchDisplayColor() {
+        displayMessageRepository.findByMessageClass(DisplayMessageClass.IN)?.let { meessages ->
+            displayMessagesIn = meessages
+
+        }
+
+        displayMessageRepository.findByMessageClass(DisplayMessageClass.OUT)?.let { meessages ->
+            displayMessagesOut = meessages
+        }
+
+        displayMessageRepository.findByMessageClass(DisplayMessageClass.WAIT)?.let { meessages ->
+            displayMessagesWait = meessages
+        }
+
     }
 
     fun actionGate(id: String, type: String, action: String) {
@@ -163,7 +204,7 @@ class FacilityService {
                 }
             }
             // static upload
-            fetchDisplayColor()
+            initalizeData()
 
             return CommonResult.created("display message setting success")
 
@@ -196,37 +237,7 @@ class FacilityService {
         }
     }
 
-    fun fetchDisplayColor() {
-        displayMessageRepository.findByMessageClass(DisplayMessageClass.IN)?.let { meessages ->
-            displayMessagesIn = meessages
 
-//            displayMessagesIn.forEach { it ->
-//                displayColorRepository.findByMessageClassAndColorType(DisplayMessageClass.IN, it.colorType!!)?.let { color ->
-//                    it.displayColor = color
-//                }
-//            }
-        }
-
-        displayMessageRepository.findByMessageClass(DisplayMessageClass.OUT)?.let { meessages ->
-            displayMessagesOut = meessages
-
-//            displayMessagesOut.forEach { it ->
-//                displayColorRepository.findByMessageClassAndColorType(DisplayMessageClass.OUT, it.colorType!!)?.let { color ->
-//                    it.displayColor = color
-//                }
-//            }
-        }
-
-        displayMessageRepository.findByMessageClass(DisplayMessageClass.WAIT)?.let { meessages ->
-            displayMessagesWait = meessages
-
-//            displayMessagesWait.forEach { it ->
-//                displayColorRepository.findByMessageClassAndColorType(DisplayMessageClass.OUT, it.colorType!!)?.let { color ->
-//                    it.displayColor = color
-//                }
-//            }
-        }
-    }
     private fun getRelaySvrUrl(gateId: String): String {
         return gates.filter { it.gateId == gateId }[0].relaySvr!!
     }

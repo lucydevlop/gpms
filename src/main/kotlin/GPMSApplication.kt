@@ -41,7 +41,7 @@ class GPMSApplication(
         val activeProfiles = env.activeProfiles
         
 //        parkinglotService.fetchParkSiteInfo()
-        facilityService.fetchDisplayColor()
+//        facilityService.fetchDisplayColor()
 //        facilityService.fetchGate()
         relayService.fetchParkAlarmSetting(parkinglotService.parkSite.siteid)
         feeCalculation.init()

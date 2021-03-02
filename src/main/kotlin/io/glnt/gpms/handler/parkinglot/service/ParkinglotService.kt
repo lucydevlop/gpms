@@ -9,6 +9,7 @@ import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.common.utils.FileUtils
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.facility.model.resRelaySvrFacility
+import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
 import io.glnt.gpms.handler.relay.service.RelayService
@@ -41,6 +42,9 @@ class ParkinglotService {
     lateinit var relayService: RelayService
 
     @Autowired
+    lateinit var facilityService: FacilityService
+
+    @Autowired
     private lateinit var parkFacilityRepository: ParkFacilityRepository
 
     @Autowired
@@ -69,7 +73,7 @@ class ParkinglotService {
             val gateData = parkGateRepository.findByDelYn(DelYn.N)
             gateData.forEach { gate ->
                 val facilities = parkFacilityRepository.findByGateIdAndFlagUse(gate.gateId, 1)!!
-                val FacilitiesId = facilities.map { it.dtFacilitiesId.toString() }.toTypedArray()
+                val FacilitiesId = facilities.map { it.dtFacilitiesId }.toTypedArray()
                 facilities.map {
                     facility -> facilitiesList.add(facilitiesLists(category = facility.category, modelId = facility.modelid, dtFacilitiesId = facility.dtFacilitiesId, facilitiesName = facility.fname))
                 }
@@ -136,7 +140,8 @@ class ParkinglotService {
             request.gates.forEach {
                 parkGateRepository.save(it)
             }
-            return CommonResult.data(parkGateRepository.findAll())
+            facilityService.initalizeData()
+            return CommonResult.data(parkGateRepository.findByDelYn(DelYn.N))
         } catch (e: CustomException) {
             logger.error("updateGates error {} ", e.message)
             return CommonResult.error("updateGates failed ")
@@ -320,31 +325,32 @@ class ParkinglotService {
         logger.trace { "updateParkinglot request $request" }
         try {
             parkSiteInfoRepository.findBySiteid(request.siteId)?.let { it ->
-                return CommonResult.data(
-                    data = parkSiteInfoRepository.save(
-                        ParkSiteInfo(
-                            siteid = it.siteid,
-                            sitename = siteName,
-                            limitqty = limitqty,
-                            saupno = saupno,
-                            tel = tel,
-                            ceoname = ceoname,
-                            postcode = postcode,
-                            address = address,
-                            firsttime = firsttime,
-                            firstfee = firstfee,
-                            returntime = returntime,
-                            overtime = overtime,
-                            overfee = overfee,
-                            addtime = addtime,
-                            dayfee = dayfee,
-                            parkingSpotStatusNotiCycle = parkingSpotStatusNotiCycle,
-                            facilitiesStatusNotiCycle = facilitiesStatusNotiCycle,
-                            flagMessage = flagMessage,
-                            businame = businame,
-                            parkId = parkId
-                        )
-                ))
+                val data = parkSiteInfoRepository.save(
+                    ParkSiteInfo(
+                        siteid = it.siteid,
+                        sitename = siteName,
+                        limitqty = limitqty,
+                        saupno = saupno,
+                        tel = tel,
+                        ceoname = ceoname,
+                        postcode = postcode,
+                        address = address,
+                        firsttime = firsttime,
+                        firstfee = firstfee,
+                        returntime = returntime,
+                        overtime = overtime,
+                        overfee = overfee,
+                        addtime = addtime,
+                        dayfee = dayfee,
+                        parkingSpotStatusNotiCycle = parkingSpotStatusNotiCycle,
+                        facilitiesStatusNotiCycle = facilitiesStatusNotiCycle,
+                        flagMessage = flagMessage,
+                        businame = businame,
+                        parkId = parkId
+                    )
+                )
+                initalizeData()
+                return CommonResult.data(data)
             } ?: run {
                 return CommonResult.notfound("parkinglot data not found")
             }
