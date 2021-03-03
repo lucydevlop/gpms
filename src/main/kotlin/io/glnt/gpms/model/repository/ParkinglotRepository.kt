@@ -24,7 +24,7 @@ interface ParkFacilityRepository: JpaRepository<Facility, Long> {
     fun findByDtFacilitiesId(dtFacilitiesId: String): Facility?
     @Query("SELECT v from Facility v where v.category != 'LPR' or (v.category = 'LPR' and v.imagePath is not null)")
     fun findByGateSvrKey(gateSvrKey: String): List<Facility>?
-    fun findByGateIdAndFlagUse(gateId: String, flagUse: Int): List<Facility>?
+    fun findByGateIdAndDelYn(gateId: String, delYn: DelYn): List<Facility>?
     fun findByGateIdAndCategory(gateId: String, category: String): List<Facility>?
     fun findByCategory(category: String): List<Facility>?
 //    fun getDistinctByCategoryAndGateId(gateId: String): List<Facility>?
