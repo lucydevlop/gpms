@@ -4,6 +4,7 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.dashboard.admin.model.reqCreateFacility
 import io.glnt.gpms.handler.dashboard.admin.service.DashboardAdminService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import mu.KLogging
@@ -40,6 +41,13 @@ class DashboardAdminController {
     fun gateAction(@PathVariable action: String, @PathVariable gateId: String) : ResponseEntity<CommonResult> {
         logger.info { "gateAction $gateId $action" }
         return CommonResult.returnResult(dashboardAdminService.gateAction(action, gateId))
+    }
+
+    @RequestMapping(value = ["/facility/create"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun createFacility(@RequestBody request: reqCreateFacility) : ResponseEntity<CommonResult> {
+        logger.info { "createFacility $request " }
+        return CommonResult.returnResult(dashboardAdminService.createFacility(request))
     }
     companion object : KLogging()
 }

@@ -5,19 +5,21 @@ data class reqRelayHealthCheck(
 )
 
 data class FacilitiesHealthCheck(
-    var facilitiesId: String,
+    var dtFacilitiesId: String,
     var failureAlarm: String? = null,
     var status: String? = null
 )
 
 data class FacilitiesStatusNoti(
-    var facilitiesId: String,
-    var STATUS: String
+    var dtFacilitiesId: String? = null,
+    var STATUS: String,
+    var facilitiesId: String? = null
 )
 
 data class FacilitiesFailureAlarm(
-    var facilitiesId: String,
-    var failureAlarm: String
+    var dtFacilitiesId: String? = null,
+    var failureAlarm: String,
+    var facilitiesId: String? = null
 )
 
 data class paystationvehicleListSearch(

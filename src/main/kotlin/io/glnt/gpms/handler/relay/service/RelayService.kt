@@ -88,7 +88,7 @@ class RelayService {
                 tmapSendService.sendHealthCheckRequest(request, "")
 
             request.facilitiesList.forEach { facility ->
-                facilityService.updateHealthCheck(facility.facilitiesId, facility.status!!)
+                facilityService.updateHealthCheck(facility.dtFacilitiesId, facility.status!!)
             }
 
             if (parkAlarmSetting.payAlarm == checkUseStatus.Y && parkAlarmSetting.payLimitTime!! > 0) {
@@ -107,9 +107,9 @@ class RelayService {
             val result = ArrayList<FacilitiesStatusNoti>()
 
             request.facilitiesList.forEach { facility ->
-                val data = facilityService.updateStatusCheck(facility.facilitiesId, facility.status!!)
+                val data = facilityService.updateStatusCheck(facility.dtFacilitiesId, facility.status!!)
                 if (data != null) {
-                    result.add(FacilitiesStatusNoti(facilitiesId = facility.facilitiesId, STATUS = facility.status!!))
+                    result.add(FacilitiesStatusNoti(facilitiesId = data.facilitiesId, STATUS = facility.status!!))
                     // close 상태 수신 시 error 상태 check
                     if (facility.status == "DOWN") {
                         saveFailure(
@@ -117,8 +117,8 @@ class RelayService {
                                 sn = null,
                                 issueDateTime = LocalDateTime.now(),
 //                                        expireDateTime = LocalDateTime.now(),
-                                facilitiesId = facility.facilitiesId,
-                                fName = parkinglotService.getFacility(facility.facilitiesId)!!.fname,
+                                facilitiesId = facility.dtFacilitiesId,
+                                fName = data.fname,
                                 failureCode = "crossingGateLongTimeOpen",
                                 failureType = "NORMAL"
                             )
@@ -129,8 +129,8 @@ class RelayService {
                                 sn = null,
                                 issueDateTime = LocalDateTime.now(),
 //                                        expireDateTime = LocalDateTime.now(),
-                                facilitiesId = facility.facilitiesId,
-                                fName = parkinglotService.getFacility(facility.facilitiesId)!!.fname,
+                                facilitiesId = facility.dtFacilitiesId,
+                                fName = data.fname,
                                 failureCode = "crossingGateBarDamageDoubt",
                                 failureType = "NORMAL"
                             )
@@ -151,13 +151,13 @@ class RelayService {
         logger.info { "failureAlarm $request" }
         try {
             request.facilitiesList.forEach { failure ->
-                parkinglotService.getFacility(facilityId = failure.facilitiesId)?.let { facility ->
+                parkinglotService.getFacilityByDtFacilityId(failure.dtFacilitiesId)?.let { facility ->
                     // 정산기 정상, 비정상
                     saveFailure(
                         Failure(sn = null,
                             issueDateTime = LocalDateTime.now(),
 //                                        expireDateTime = LocalDateTime.now(),
-                            facilitiesId = failure.facilitiesId,
+                            facilitiesId = failure.dtFacilitiesId,
                             fName = facility.fname,
                             failureCode = failure.failureAlarm,
                             failureType = failure.status)
@@ -197,7 +197,7 @@ class RelayService {
 //                        }
 //                    }
                     if (parkinglotService.isTmapSend() && failure.status != "normal")
-                        tmapSendService.sendFacilitiesFailureAlarm(FacilitiesFailureAlarm(facilitiesId = failure.facilitiesId, failureAlarm = failure.failureAlarm!!), null)
+                        tmapSendService.sendFacilitiesFailureAlarm(FacilitiesFailureAlarm(facilitiesId = facility.facilitiesId, failureAlarm = failure.failureAlarm!!), null)
                 }
             }
 
@@ -278,25 +278,26 @@ class RelayService {
     }
 
     @Throws(CustomException::class)
-    fun resultPayment(request: reqApiTmapCommon, facilityId: String){
-        logger.info { "resultPayment request $request facilityId $facilityId" }
+    fun resultPayment(request: reqApiTmapCommon, dtFacilityId: String){
+        logger.info { "resultPayment request $request facilityId $dtFacilityId" }
 //        request.contents = JSONUtil.getJsObject(request.contents)
         val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqPaymentResult::class.java)
+        val gateId = parkinglotService.getFacilityByDtFacilityId(dtFacilityId)!!.gateId
         facilityService.sendPaystation(
             reqPaymentResponse(
                 chargingId = contents.transactionId,
                 vehicleNumber = contents.vehicleNumber
             ),
-            gate = parkingFacilityRepository.findByFacilitiesId(facilityId)!!.gateId,
+            gate = gateId,
             requestId = request.requestId!!,
             type = "paymentResponse"
         )
-        val result = inoutService.paymentResult(contents, request.requestId!!, parkingFacilityRepository.findByFacilitiesId(facilityId)!!.gateId)
+        val result = inoutService.paymentResult(contents, request.requestId!!, gateId)
     }
 
     @Throws(CustomException::class)
-    fun searchCarNumber(request: reqApiTmapCommon, facilityId: String){
-        logger.info { "searchCarNumber request $request facilityId $facilityId" }
+    fun searchCarNumber(request: reqApiTmapCommon, dtFacilityId: String){
+        logger.info { "searchCarNumber request $request facilityId $dtFacilityId" }
 //        request.contents = JSONUtil.getJsObject(request.contents)
         val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqSendVehicleListSearch::class.java)
         request.requestId = parkinglotService.generateRequestId()
@@ -304,7 +305,7 @@ class RelayService {
         if (parkinglotService.isTmapSend()) {
             // table db insert
             val requestId = parkinglotService.generateRequestId()
-            vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = facilityId))
+            vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = parkinglotService.getFacilityByDtFacilityId(dtFacilityId)!!.facilitiesId))
             tmapSendService.sendTmapInterface(request, requestId, "vehicleListSearch")
         } else {
             val parkins = inoutService.searchParkInByVehicleNo(contents.vehicleNumber, "")
@@ -330,7 +331,7 @@ class RelayService {
                     vehicleList = data,
                     result = "SUCCESS"
                 ),
-                gate = parkingFacilityRepository.findByFacilitiesId(facilityId)!!.gateId,
+                gate = parkinglotService.getFacilityByDtFacilityId(dtFacilityId)!!.gateId,
                 requestId = request.requestId!!,
                 type = "vehicleListSearchResponse"
             )
@@ -338,8 +339,8 @@ class RelayService {
     }
 
     @Throws(CustomException::class)
-    fun requestAdjustment(request: reqApiTmapCommon, facilityId: String){
-        logger.info { "requestAdjustment request $request facilityId $facilityId" }
+    fun requestAdjustment(request: reqApiTmapCommon, dtFacilityId: String){
+        logger.info { "requestAdjustment request $request facilityId $dtFacilityId" }
         try {
             val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqAdjustmentRequest::class.java)
             request.requestId = parkinglotService.generateRequestId()
@@ -350,7 +351,7 @@ class RelayService {
 //                vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = facilityId))
 //                tmapSendService.sendTmapInterface(request, requestId, "vehicleListSearch")
             } else {
-                val gateId = parkingFacilityRepository.findByFacilitiesId(facilityId)!!.gateId
+                val gateId = parkinglotService.getGateInfoByDtFacilityId(dtFacilityId)!!.gateId
                 inoutService.parkOut(reqAddParkOut(vehicleNo = contents.vehicleNumber,
                                                    dtFacilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, "LPR")!![0].facilitiesId!!,
                                                    date = LocalDateTime.now(),

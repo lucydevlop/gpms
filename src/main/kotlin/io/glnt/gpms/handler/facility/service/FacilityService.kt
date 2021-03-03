@@ -245,17 +245,21 @@ class FacilityService {
         return gates.filter { it.gateId == gateId }[0].relaySvr!!
     }
 
-    fun sendDisplayMessage(data: Any, gate: String) {
-        logger.info { "sendPaystation request $data $gate" }
-        parkinglotService.getFacilityByGateAndCategory(gate, "DISPLAY")?.let { its ->
-            its.forEach {
-                restAPIManager.sendPostRequest(
-                    getRelaySvrUrl(gate)+"/display/show",
-                    reqSendDisplay(it.facilitiesId!!, data as ArrayList<reqDisplayMessage>)
-                )
-            }
-        }
+    fun getGateByGateId(gateId: String) : Gate? {
+        return gates.filter { it.gateId == gateId }[0]
     }
+
+//    fun sendDisplayMessage(data: Any, gate: String) {
+//        logger.info { "sendPaystation request $data $gate" }
+//        parkinglotService.getFacilityByGateAndCategory(gate, "DISPLAY")?.let { its ->
+//            its.forEach {
+//                restAPIManager.sendPostRequest(
+//                    getRelaySvrUrl(gate)+"/display/show",
+//                    reqSendDisplay(it.facilitiesId!!, data as ArrayList<reqDisplayMessage>)
+//                )
+//            }
+//        }
+//    }
 
     fun sendPaystation(data: Any, gate: String, requestId: String, type: String) {
         logger.info { "sendPaystation request $data $gate $requestId $type" }
@@ -342,6 +346,16 @@ class FacilityService {
         )
     }
 
+    fun createFacility(facility: Facility): CommonResult {
+        logger.info{"createFacility request : $facility"}
+        try {
+            return CommonResult.data(facilityRepository.save(facility))
+        } catch (e: RuntimeException) {
+            logger.error { "createFacility error $e" }
+            return CommonResult.error("createFacility failed ")
+        }
+    }
+
     fun allUpdateFacilities(request: reqUpdateFacilities): CommonResult {
         logger.info("allUpdateFacilities request : $request")
         try {
@@ -370,10 +384,10 @@ class FacilityService {
         return facilityRepository.save(facility)
     }
 
-    fun updateHealthCheck(facilitiesId: String, status: String) {
-        logger.info { "updateHealthCheck facility $facilitiesId status $status" }
+    fun updateHealthCheck(dtFacilitiesId: String, status: String) {
+        logger.info { "updateHealthCheck facility $dtFacilitiesId status $status" }
         try {
-            facilityRepository.findByFacilitiesId(facilitiesId)?.let { facility ->
+            facilityRepository.findByDtFacilitiesId(dtFacilitiesId)?.let { facility ->
                 facility.health = status
                 facility.healthDate = LocalDateTime.now()
                 facilityRepository.save(facility)
@@ -383,10 +397,10 @@ class FacilityService {
         }
     }
 
-    fun updateStatusCheck(facilitiesId: String, status: String) : Facility? {
-        logger.info { "updateStatusCheck facility $facilitiesId status $status" }
+    fun updateStatusCheck(dtFacilitiesId: String, status: String) : Facility? {
+        logger.info { "updateStatusCheck facility $dtFacilitiesId status $status" }
         try {
-            facilityRepository.findByFacilitiesId(facilitiesId)?.let { facility ->
+            facilityRepository.findByDtFacilitiesId(dtFacilitiesId)?.let { facility ->
 //                if (facility.category == "BREAKER") {
                     facility.status = status
                     facility.statusDate = LocalDateTime.now()

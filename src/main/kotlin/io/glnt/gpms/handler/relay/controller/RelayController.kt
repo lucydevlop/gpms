@@ -43,22 +43,22 @@ class RelayController {
         relayService.paymentHealthCheck()
     }
 
-    @RequestMapping(value=["/paystation/result/{facilityId}"], method=[RequestMethod.POST])
-    fun resultPayment(@RequestBody request: reqApiTmapCommon, @PathVariable facilityId: String) {
+    @RequestMapping(value=["/paystation/result/{dtFacilityId}"], method=[RequestMethod.POST])
+    fun resultPayment(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String) {
         logger.info { "resultPayment $request " }
-        relayService.resultPayment(request, facilityId)
+        relayService.resultPayment(request, dtFacilityId)
     }
 
-    @RequestMapping(value = ["/paystation/search/vehicle/{facilityId}"], method = [RequestMethod.POST])
-    fun searchCarNumber(@RequestBody request: reqApiTmapCommon, @PathVariable facilityId: String) {
+    @RequestMapping(value = ["/paystation/search/vehicle/{dtFacilityId}"], method = [RequestMethod.POST])
+    fun searchCarNumber(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String) {
         logger.info { "searchCarNumber $request " }
-        relayService.searchCarNumber(request, facilityId)
+        relayService.searchCarNumber(request, dtFacilityId)
     }
 
-    @RequestMapping(value = ["/paystation/request/adjustment/{facilityId}"], method = [RequestMethod.POST])
-    fun requestAdjustment(@RequestBody request: reqApiTmapCommon, @PathVariable facilityId: String) {
+    @RequestMapping(value = ["/paystation/request/adjustment/{dtFacilityId}"], method = [RequestMethod.POST])
+    fun requestAdjustment(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String) {
         logger.info { "requestAdjustment $request " }
-        relayService.requestAdjustment(request, facilityId)
+        relayService.requestAdjustment(request, dtFacilityId)
     }
 
     @RequestMapping(value = ["/display/init/message"], method = [RequestMethod.GET])

@@ -3,12 +3,14 @@ package io.glnt.gpms.handler.dashboard.admin.service
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.dashboard.admin.model.reqCreateFacility
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.relay.service.RelayService
+import io.glnt.gpms.model.entity.Facility
 import io.glnt.gpms.model.entity.Gate
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -87,6 +89,40 @@ class DashboardAdminService {
         try {
             relayService.actionGate(gateId, "GATE", action)
             return CommonResult.data()
+        }catch (e: CustomException){
+            logger.error { "Admin gateAction failed ${e.message}" }
+            return CommonResult.error("Admin gateAction failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun createFacility(request: reqCreateFacility): CommonResult {
+        try {
+            val gate = facilityService.getGateByGateId(request.gateId)
+            val result = facilityService.createFacility(
+                Facility(sn = null,
+                    fname = request.fname,
+                    category = request.category,
+                    modelid = request.modelid,
+                    dtFacilitiesId = request.dtFacilitiesId,
+                    facilitiesId = request.facilitiesId,
+                    gateId = request.gateId,
+                    udpGateid = gate!!.udpGateid,
+                    ip = request.ip,
+                    port = request.port,
+                    sortCount = request.sortCount,
+                    resetPort = request.resetPort,
+                    lprType = request.lprType,
+                    imagePath = request.imagePath
+                ))
+            when (result.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(result.data)
+                }
+                else -> {
+                    return CommonResult.data()
+                }
+            }
         }catch (e: CustomException){
             logger.error { "Admin gateAction failed ${e.message}" }
             return CommonResult.error("Admin gateAction failed ${e.message}")
