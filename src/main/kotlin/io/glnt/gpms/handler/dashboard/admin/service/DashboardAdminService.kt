@@ -8,6 +8,7 @@ import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.model.entity.Gate
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,6 +26,9 @@ class DashboardAdminService {
 
     @Autowired
     lateinit var facilityService: FacilityService
+
+    @Autowired
+    lateinit var relayService: RelayService
 
 
     @Throws(CustomException::class)
@@ -81,7 +85,7 @@ class DashboardAdminService {
     @Throws(CustomException::class)
     fun gateAction(action: String, gateId: String) : CommonResult {
         try {
-            facilityService.actionGate(gateId, "GATE", action)
+            relayService.actionGate(gateId, "GATE", action)
             return CommonResult.data()
         }catch (e: CustomException){
             logger.error { "Admin gateAction failed ${e.message}" }

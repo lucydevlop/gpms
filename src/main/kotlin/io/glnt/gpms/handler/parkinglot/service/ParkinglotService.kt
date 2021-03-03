@@ -16,6 +16,7 @@ import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.OnOff
+import io.glnt.gpms.model.enums.SaleType
 import io.glnt.gpms.model.repository.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,7 +31,7 @@ import kotlin.collections.ArrayList
 class ParkinglotService {
     companion object : KLogging()
 
-    lateinit var parkSite: ParkSiteInfo
+    var parkSite: ParkSiteInfo? = null
 
     @Autowired
     lateinit var enviroment: Environment
@@ -238,7 +239,11 @@ class ParkinglotService {
     }
 
     fun parkSiteId() : String? {
-        return parkSite.parkId
+        return parkSite!!.parkId
+    }
+
+    fun parkSiteSiteId(): String? {
+        return parkSite!!.siteid
     }
 
     fun getFacility(facilityId: String) : Facility? {
@@ -249,6 +254,21 @@ class ParkinglotService {
 
     fun getGateInfoByFacilityId(facilityId: String) : Gate? {
         parkFacilityRepository.findByFacilitiesId(facilityId)?.let {
+            parkGateRepository.findByGateId(it.gateId)?.let {
+                return it
+            }
+        }
+        return null
+    }
+
+    fun getFacilityByDtFacilityId(dtFacilityId: String) : Facility? {
+        return parkFacilityRepository.findByDtFacilitiesId(dtFacilityId) ?: run {
+            null
+        }
+    }
+
+    fun getGateInfoByDtFacilityId(dtFacilityId: String) : Gate? {
+        parkFacilityRepository.findByDtFacilitiesId(dtFacilityId)?.let {
             parkGateRepository.findByGateId(it.gateId)?.let {
                 return it
             }
@@ -322,7 +342,7 @@ class ParkinglotService {
 
     @Transactional
     fun updateParkinglot(request: reqCreateParkinglot): CommonResult = with(request) {
-        logger.trace { "updateParkinglot request $request" }
+        logger.info { "updateParkinglot request $request" }
         try {
             parkSiteInfoRepository.findBySiteid(request.siteId)?.let { it ->
                 val data = parkSiteInfoRepository.save(
@@ -346,13 +366,44 @@ class ParkinglotService {
                         facilitiesStatusNotiCycle = facilitiesStatusNotiCycle,
                         flagMessage = flagMessage,
                         businame = businame,
-                        parkId = parkId
+                        parkId = parkId,
+                        vehicleDayOption =vehicleDayOption,
+                        tmapSend = tmapSend,
+                        saleType = saleType
                     )
                 )
                 initalizeData()
                 return CommonResult.data(data)
             } ?: run {
-                return CommonResult.notfound("parkinglot data not found")
+                val data = parkSiteInfoRepository.save(
+                    ParkSiteInfo(
+                        siteid = siteId,
+                        sitename = siteName,
+                        limitqty = limitqty,
+                        saupno = saupno,
+                        tel = tel,
+                        ceoname = ceoname,
+                        postcode = postcode,
+                        address = address,
+                        firsttime = firsttime,
+                        firstfee = firstfee,
+                        returntime = returntime,
+                        overtime = overtime,
+                        overfee = overfee,
+                        addtime = addtime,
+                        dayfee = dayfee,
+                        parkingSpotStatusNotiCycle = parkingSpotStatusNotiCycle,
+                        facilitiesStatusNotiCycle = facilitiesStatusNotiCycle,
+                        flagMessage = flagMessage,
+                        businame = businame,
+                        parkId = parkId,
+                        vehicleDayOption =vehicleDayOption,
+                        tmapSend = tmapSend,
+                        saleType = saleType
+                    )
+                )
+                initalizeData()
+                return CommonResult.data(data)
             }
         } catch(e: CustomException) {
             logger.error { "updateParkinglot error ${e.message}" }
@@ -373,7 +424,7 @@ class ParkinglotService {
     }
 
     fun isTmapSend(): Boolean {
-        return parkSite.tmapSend!! == OnOff.ON
+        return parkSite!!.tmapSend!! == OnOff.ON
     }
 
 //    fun JsonArray<*>.writeJSON(pathName: String, filename: String) {

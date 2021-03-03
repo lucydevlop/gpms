@@ -13,7 +13,7 @@ import javax.persistence.Enumerated
 data class reqAddParkIn(
     /* 입차 차량 연계 시 필수 param */
     var vehicleNo: String,
-    var facilitiesId: String,
+    var dtFacilitiesId: String,
     @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd HH:mm:ss")
     var date: LocalDateTime,
     var resultcode: String,
@@ -41,7 +41,7 @@ data class reqAddParkIn(
 data class reqAddParkOut(
     /* 입차 차량 연계 시 필수 param */
     var vehicleNo: String,
-    var facilitiesId: String,
+    var dtFacilitiesId: String,
     @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd HH:mm:ss")
     var date: LocalDateTime,
     var resultcode: String,

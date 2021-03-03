@@ -14,6 +14,7 @@ import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.model.reqCreateProduct
 import io.glnt.gpms.handler.product.service.ProductService
+import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.model.entity.TmapCommand
 import io.glnt.gpms.model.enums.*
@@ -46,6 +47,9 @@ class TmapCommandService {
 
     @Autowired
     private lateinit var inoutService: InoutService
+
+    @Autowired
+    private lateinit var relayService: RelayService
 
     fun getRequestCommand(request: reqApiTmapCommon) {
         val response = request //.commandData
@@ -84,13 +88,13 @@ class TmapCommandService {
 
     fun commandParkingSiteInfo() {
         val contents = reqParkingSiteInfo(
-            parkingSiteName = parkinglotService.parkSite.sitename,
+            parkingSiteName = parkinglotService.parkSite!!.sitename,
             lotNumberAddress = "--",
-            roadNameAddress = parkinglotService.parkSite.address!!,
+            roadNameAddress = parkinglotService.parkSite!!.address!!,
             detailsAddress = "**",
-            telephoneNumber = parkinglotService.parkSite.tel!!,
-            saupno = parkinglotService.parkSite.saupno!!,
-            businessName = parkinglotService.parkSite.ceoname!!
+            telephoneNumber = parkinglotService.parkSite!!.tel!!,
+            saupno = parkinglotService.parkSite!!.saupno!!,
+            businessName = parkinglotService.parkSite!!.ceoname!!
         )
 
         parkinglotService.getFacilityByCategory("PAYSTATION")?.let { its ->
@@ -116,7 +120,7 @@ class TmapCommandService {
             when(it) {
                 "OPEN" -> {
                     // gate
-                    facilityService.actionGate(contents.facilitiesId, "FACILITY", "open")
+                    relayService.actionGate(contents.facilitiesId, "FACILITY", "open")
                     // display
                     val facility = parkinglotService.getFacility(contents.facilitiesId)
                     facilityService.displayOutGate(facility!!.gateId, "감사합니다", "안녕히가세요")
@@ -137,9 +141,9 @@ class TmapCommandService {
         val contents = readValue(request.contents.toString(), reqCommandProfileSetup::class.java)
 
         // parksite update
-        contents.facilitiesStatusNotiCycle?.let {  parkinglotService.parkSite.facilitiesStatusNotiCycle = contents.facilitiesStatusNotiCycle!!.toInt() }
-        contents.parkingSpotStatusnotiCycle?.let {  parkinglotService.parkSite.parkingSpotStatusNotiCycle = contents.parkingSpotStatusnotiCycle!!.toInt() }
-        if (!parkinglotService.saveParkSiteInfo(parkinglotService.parkSite)) {
+        contents.facilitiesStatusNotiCycle?.let {  parkinglotService.parkSite!!.facilitiesStatusNotiCycle = contents.facilitiesStatusNotiCycle!!.toInt() }
+        contents.parkingSpotStatusnotiCycle?.let {  parkinglotService.parkSite!!.parkingSpotStatusNotiCycle = contents.parkingSpotStatusnotiCycle!!.toInt() }
+        if (!parkinglotService.saveParkSiteInfo(parkinglotService.parkSite!!)) {
             tmapSendService.sendTmapInterface(reqSendResultResponse(result = "FAIL"), request.requestId!!, "profileSetupResponse")
         }
 

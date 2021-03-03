@@ -43,8 +43,9 @@ class GPMSApplication(
 //        parkinglotService.fetchParkSiteInfo()
 //        facilityService.fetchDisplayColor()
 //        facilityService.fetchGate()
-        relayService.fetchParkAlarmSetting(parkinglotService.parkSite.siteid)
-        feeCalculation.init()
+//        relayService.fetchParkAlarmSetting(parkinglotService.parkSiteSiteId()!!)
+
+//        feeCalculation.init()
 
         if (activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT) && activeProfiles.contains(
                 JHipsterConstants.SPRING_PROFILE_PRODUCTION

@@ -61,7 +61,7 @@ class CorpService {
             if (request.corpId != null)
                 return CommonResult.data(corpRepository.save(request))
             corpRepository.save(request)
-            request.corpId = parkinglotService.parkSite.siteid+"_"+ format("%05d", request.sn!!)
+            request.corpId = parkinglotService.parkSiteSiteId()+"_"+ format("%05d", request.sn!!)
             return CommonResult.data(corpRepository.save(request))
         }catch (e: CustomException) {
             logger.error("createCorp error {} ", e.message)

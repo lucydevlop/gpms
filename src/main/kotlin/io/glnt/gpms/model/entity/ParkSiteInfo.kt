@@ -81,9 +81,10 @@ data class ParkSiteInfo(
     @Column(name = "park_id", nullable = true)
     var parkId: String? = null,
 
-    @Type(type = "jsonb")
+    @Lob
+//    @Type(type = "jsonb")
     @Column(name = "space", nullable = true)
-    var space: spaceAttributes? = null,
+    var space: String? = null,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "sale_type", nullable = true)

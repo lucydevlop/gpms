@@ -10,11 +10,13 @@ import io.glnt.gpms.handler.facility.model.*
 import io.glnt.gpms.handler.inout.model.reqUpdatePayment
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.io.glnt.gpms.common.utils.JacksonUtil
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DisplayMessageClass
+import io.glnt.gpms.model.enums.DisplayMessageType
 import io.glnt.gpms.model.repository.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -58,6 +60,9 @@ class FacilityService {
     private lateinit var parkinglotService: ParkinglotService
 
     @Autowired
+    private lateinit var relayService: RelayService
+
+    @Autowired
     private lateinit var restAPIManager: RestAPIManagerUtil
 
     @Autowired
@@ -83,6 +88,31 @@ class FacilityService {
         defaultDisplayColor.forEach { displayColor ->
             displayColorRepository.findByColorCode(displayColor.colorCode)?:run {
                 displayColorRepository.save(displayColor)
+            }
+        }
+
+        // 입차/출차 reset 메세지 구성
+        val defaultDisplayMessages = ArrayList<DisplayMessage>()
+        defaultDisplayMessages.add(
+            DisplayMessage(
+                messageClass = DisplayMessageClass.IN, messageType = DisplayMessageType.INIT, messageCode = "ALL", order = 1, lineNumber = 1, colorCode = "C1", messageDesc = "안녕하세요", sn = null)
+        )
+        defaultDisplayMessages.add(
+            DisplayMessage(
+                messageClass = DisplayMessageClass.IN, messageType = DisplayMessageType.INIT, messageCode = "ALL", order = 2, lineNumber = 2, colorCode = "C3", messageDesc = "환영합니다", sn = null)
+        )
+        defaultDisplayMessages.add(
+            DisplayMessage(
+                messageClass = DisplayMessageClass.OUT, messageType = DisplayMessageType.INIT, messageCode = "ALL", order = 1, lineNumber = 1, colorCode = "C1", messageDesc = "감사합니다", sn = null)
+        )
+        defaultDisplayMessages.add(
+            DisplayMessage(
+                messageClass = DisplayMessageClass.OUT, messageType = DisplayMessageType.INIT, messageCode = "ALL", order = 2, lineNumber = 2, colorCode = "C3", messageDesc = "안녕히가세요", sn = null)
+        )
+
+        defaultDisplayMessages.forEach { message ->
+            displayMessageRepository.findByMessageClassAndMessageTypeAndOrder(message.messageClass!!, message.messageType, message.order!!)?:run {
+                displayMessageRepository.save(message)
             }
         }
 
@@ -113,33 +143,6 @@ class FacilityService {
 
         displayMessageRepository.findByMessageClass(DisplayMessageClass.WAIT)?.let { meessages ->
             displayMessagesWait = meessages
-        }
-
-    }
-
-    fun actionGate(id: String, type: String, action: String) {
-        logger.info { "actionGate request $type $id $action" }
-        try {
-            when (type) {
-                "GATE" -> {
-                    parkinglotService.getFacilityByGateAndCategory(id, "BREAKER")?.let { its ->
-                        its.forEach {
-                            val url = getRelaySvrUrl(id)
-                            restAPIManager.sendGetRequest(
-                                url+"/breaker/${it.facilitiesId}/$action"
-                            )
-                        }
-                    }
-                }
-                else -> {
-                    val url = getRelaySvrUrl(parkinglotService.getFacility(id)!!.gateId)
-                    restAPIManager.sendGetRequest(
-                        url+"/breaker/${id}/$action"
-                    )
-                }
-            }
-        } catch (e: RuntimeException) {
-            logger.error {  "$action Gate $type $id error ${e.message}"}
         }
     }
 
@@ -261,7 +264,7 @@ class FacilityService {
             its.forEach {
                 restAPIManager.sendPostRequest(
                     getRelaySvrUrl(gate)+"/parkinglot/paystation",
-                    reqPaystation(facilityId = it.facilitiesId!!, data = setPaystationRequest(type, requestId, data))
+                    reqPaystation(facilityId = it.dtFacilitiesId!!, data = setPaystationRequest(type, requestId, data))
                 )
             }
         }
@@ -289,7 +292,7 @@ class FacilityService {
                 )
             )?.let { it ->
                 // gate open
-                actionGate(it.gateId!!, "GATE", "open")
+                relayService.actionGate(it.gateId!!, "GATE", "open")
                 // todo tmap-payment
                 tmapSendService.sendTmapInterface(
                     reqSendPayment(

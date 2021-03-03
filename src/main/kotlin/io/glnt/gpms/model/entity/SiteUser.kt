@@ -32,14 +32,14 @@ data class SiteUser(
     @Column(name = "user_phone", nullable = false)
     var userPhone: String?,
 
-    @Column(name = "user_email", nullable = false)
+    @Column(name = "user_email", nullable = true)
     var userEmail: String? = null,
 
     @Column(name = "check_use", nullable = false, columnDefinition = "varchar(1) default 'Y'")
     @Enumerated(value = EnumType.STRING)
     var checkUse: checkUseStatus? = checkUseStatus.Y,
 
-    @Column(name = "wrong_count", nullable = false, columnDefinition = "tinyint(1) default 0")
+    @Column(name = "wrong_count", nullable = true, columnDefinition = "tinyint(1) default 0")
     var wrongCount: Int? = 0,
 
     @Column(name = "password_date")
