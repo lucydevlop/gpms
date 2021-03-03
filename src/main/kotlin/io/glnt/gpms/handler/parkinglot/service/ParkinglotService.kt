@@ -98,7 +98,7 @@ class ParkinglotService {
 
             return CommonResult.created("parkinglot feature add success")
         } catch (e: CustomException) {
-            logger.error("createParkinglot error {} ", e.message)
+            logger.error{"createParkinglot error ${e.msg} "}
             return CommonResult.error("Parkinglot db creatae failed ")
         }
     }
@@ -112,7 +112,7 @@ class ParkinglotService {
                 return CommonResult.notfound("parkinglot site info")
             }
         }catch (e: CustomException) {
-            logger.error { "getParkinglot error ${e.message}" }
+            logger.error { "getParkinglot error $e" }
             return CommonResult.error("parkinglot fetch failed ")
         }
     }
