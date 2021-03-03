@@ -73,7 +73,7 @@ class ParkinglotService {
             val facilitiesList: ArrayList<facilitiesLists> = ArrayList()
             val gateData = parkGateRepository.findByDelYn(DelYn.N)
             gateData.forEach { gate ->
-                val facilities = parkFacilityRepository.findByGateIdAndFlagUse(gate.gateId, 1)!!
+                val facilities = parkFacilityRepository.findByGateIdAndDelYn(gate.gateId, DelYn.Y)!!
                 val FacilitiesId = facilities.map { it.dtFacilitiesId }.toTypedArray()
                 facilities.map {
                     facility -> facilitiesList.add(facilitiesLists(category = facility.category, modelId = facility.modelid, dtFacilitiesId = facility.dtFacilitiesId, facilitiesName = facility.fname))
@@ -196,7 +196,7 @@ class ParkinglotService {
             requet.relaySvrKey?.let {
                 parkGateRepository.findByRelaySvrKey(it).let { gates ->
                     gates.forEach { gate ->
-                        parkFacilityRepository.findByGateIdAndFlagUse(gate.gateId, 0)?.let { facilities ->
+                        parkFacilityRepository.findByGateIdAndDelYn(gate.gateId, DelYn.N)?.let { facilities ->
                             facilities.forEach { facility ->
                                 result.add(
                                     resRelaySvrFacility(sn = facility.sn,
@@ -216,7 +216,7 @@ class ParkinglotService {
             } ?: run {
                 parkGateRepository.findAll().let { gates ->
                     gates.forEach { gate ->
-                        parkFacilityRepository.findByGateIdAndFlagUse(gate.gateId, 0)?.let { facilities ->
+                        parkFacilityRepository.findByGateIdAndDelYn(gate.gateId, DelYn.N)?.let { facilities ->
                             facilities.forEach { facility ->
                                 result.add(
                                     resRelaySvrFacility(sn = facility.sn,
