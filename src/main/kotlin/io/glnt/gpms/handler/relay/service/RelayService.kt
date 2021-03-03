@@ -7,11 +7,9 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.JSONUtil
+import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.facility.model.reqPayData
-import io.glnt.gpms.handler.facility.model.reqPaymentResponse
-import io.glnt.gpms.handler.facility.model.reqPaymentResult
-import io.glnt.gpms.handler.facility.model.reqVehicleSearchList
+import io.glnt.gpms.handler.facility.model.*
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqAddParkOut
 import io.glnt.gpms.handler.inout.service.InoutService
@@ -39,6 +37,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.LocalDateTime
+import javax.annotation.PostConstruct
 
 @Service
 class RelayService {
@@ -61,6 +60,9 @@ class RelayService {
     private lateinit var inoutService: InoutService
 
     @Autowired
+    private lateinit var restAPIManager: RestAPIManagerUtil
+
+    @Autowired
     private lateinit var parkAlarmSettingRepository: ParkAlarmSetttingRepository
 
     @Autowired
@@ -72,8 +74,9 @@ class RelayService {
     @Autowired
     private lateinit var vehicleListSearchRepository: VehicleListSearchRepository
 
-    fun fetchParkAlarmSetting(parkId: String) {
-        parkAlarmSettingRepository.findBySiteid(parkId)?.let { it ->
+    @PostConstruct
+    fun fetchParkAlarmSetting() {
+        parkAlarmSettingRepository.findTopByOrderBySiteid()?.let { it ->
             parkAlarmSetting = it
         }
     }
@@ -349,7 +352,7 @@ class RelayService {
             } else {
                 val gateId = parkingFacilityRepository.findByFacilitiesId(facilityId)!!.gateId
                 inoutService.parkOut(reqAddParkOut(vehicleNo = contents.vehicleNumber,
-                                                   facilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, "LPR")!![0].facilitiesId!!,
+                                                   dtFacilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, "LPR")!![0].facilitiesId!!,
                                                    date = LocalDateTime.now(),
                                                    resultcode = "0",
                                                    uuid = JSONUtil.generateRandomBasedUUID()))
@@ -359,6 +362,65 @@ class RelayService {
             logger.error { "saveFailure failed ${e.message}" }
         }
     }
+
+    fun actionGate(id: String, type: String, action: String) {
+        logger.info { "actionGate request $type $id $action" }
+        try {
+            when (type) {
+                "GATE" -> {
+                    parkinglotService.getFacilityByGateAndCategory(id, "BREAKER")?.let { its ->
+                        its.forEach {
+                            val url = getRelaySvrUrl(id)
+                            restAPIManager.sendGetRequest(
+                                url+"/breaker/${it.facilitiesId}/$action"
+                            )
+                        }
+                    }
+                }
+                else -> {
+                    val url = getRelaySvrUrl(parkinglotService.getFacility(id)!!.gateId)
+                    restAPIManager.sendGetRequest(
+                        url+"/breaker/${id}/$action"
+                    )
+                }
+            }
+        } catch (e: RuntimeException) {
+            logger.error {  "$action Gate $type $id error ${e.message}"}
+        }
+    }
+
+    fun sendDisplayInitMessage(): CommonResult {
+        try {
+            val result = ArrayList<HashMap<String, Any>>()
+
+            result.add(hashMapOf<String, Any>(
+                "in" to inoutService.makeParkPhrase("INIT", "-", "-", "IN"),
+                "out" to inoutService.makeParkPhrase("INIT", "-", "-", "OUT")
+            ))
+            return CommonResult.data(result)
+        }catch (e: RuntimeException) {
+            logger.error { "sendDisplayInitMessage $e"}
+            return CommonResult.notfound("init message not found")
+        }
+    }
+
+    fun sendDisplayMessage(data: Any, gate: String) {
+        logger.info { "sendPaystation request $data $gate" }
+        parkinglotService.getFacilityByGateAndCategory(gate, "DISPLAY")?.let { its ->
+            its.forEach {
+                restAPIManager.sendPostRequest(
+                    getRelaySvrUrl(gate)+"/display/show",
+                    reqSendDisplay(it.facilitiesId!!, data as ArrayList<reqDisplayMessage>)
+                )
+            }
+        }
+    }
+
+    private fun getRelaySvrUrl(gateId: String): String {
+        return facilityService.gates.filter { it.gateId == gateId }[0].relaySvr!!
+    }
+
+
 
 
 //    fun searchCarNumber(request: reqSendVehicleListSearch): CommonResult? {

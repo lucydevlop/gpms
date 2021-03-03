@@ -5,6 +5,7 @@ spring:
     show-sql: false
     properties:
       hibernate:
+        dialect: io.glnt.gpms.common.configs.DbCustomDialect
         format_sql: false
     generate-ddl: true
     hibernate:
@@ -15,7 +16,7 @@ spring:
     username: glnt-user
     password: glnt123!@#
     driver-class-name: org.mariadb.jdbc.Driver
-    jdbc-url: jdbc:mariadb://test-db.cwvvhmqatlkn.ap-northeast-2.rds.amazonaws.com:3306/glnt_parking?useSSL=false
+    jdbc-url: jdbc:mariadb://test-db.cwvvhmqatlkn.ap-northeast-2.rds.amazonaws.com:3306/glnt_parking_stg?useSSL=false
 
 server:
   port: 11000
@@ -23,9 +24,9 @@ server:
 logging:
   config: classpath:logback-glnt.xml
   level:
-    ROOT: INFO
-    io.github.jhipster: INFO
-    thesis: INFO
+    ROOT: WARN
+    io.github.jhipster: WARN
+    thesis: WARN
 
 image:
   filepath: C://park//save

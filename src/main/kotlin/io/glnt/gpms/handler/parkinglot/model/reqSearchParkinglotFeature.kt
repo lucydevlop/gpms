@@ -1,6 +1,8 @@
 package io.glnt.gpms.handler.parkinglot.model
 
 import io.glnt.gpms.model.entity.Gate
+import io.glnt.gpms.model.enums.OnOff
+import io.glnt.gpms.model.enums.SaleType
 
 data class reqSearchParkinglotFeature(
     var fromDate: String? = null,
@@ -31,7 +33,11 @@ data class reqCreateParkinglot(
     var facilitiesStatusNotiCycle: Int? = null,
     var flagMessage: Int? = null,
     var businame: String? = null,
-    var parkId: String? = null
+    var parkId: String? = null,
+    var vehicleDayOption: OnOff? = OnOff.OFF,
+    var tmapSend: OnOff? = OnOff.OFF,
+    var saleType: SaleType? = SaleType.FREE
+
 )
 
 data class reqUpdateGates(

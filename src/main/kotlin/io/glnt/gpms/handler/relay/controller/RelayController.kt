@@ -1,11 +1,13 @@
 package io.glnt.gpms.handler.relay.controller
 
+import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -57,6 +59,12 @@ class RelayController {
     fun requestAdjustment(@RequestBody request: reqApiTmapCommon, @PathVariable facilityId: String) {
         logger.info { "requestAdjustment $request " }
         relayService.requestAdjustment(request, facilityId)
+    }
+
+    @RequestMapping(value = ["/display/init/message"], method = [RequestMethod.GET])
+    fun sendDisplayInitMessage(): ResponseEntity<CommonResult> {
+        logger.info { "sendDisplayInitMessage" }
+        return CommonResult.returnResult(relayService.sendDisplayInitMessage())
     }
 
     companion object : KLogging()

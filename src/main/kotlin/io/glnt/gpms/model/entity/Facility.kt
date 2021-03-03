@@ -2,6 +2,7 @@ package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.GateTypeStatus
 import io.glnt.gpms.model.enums.LprTypeStatus
 import org.springframework.format.annotation.DateTimeFormat
@@ -78,7 +79,11 @@ data class Facility (
 
     @Column(name = "status_date")
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    var statusDate: LocalDateTime? = null
+    var statusDate: LocalDateTime? = null,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "del_yn", nullable = false)
+    var delYn: DelYn? = DelYn.N
 //    ,
 //    @ManyToOne(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "gate_id", nullable = false)

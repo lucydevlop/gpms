@@ -15,11 +15,13 @@ interface ParkSiteInfoRepository: JpaRepository<ParkSiteInfo, String> {
 @Repository
 interface ParkAlarmSetttingRepository: JpaRepository<ParkAlarmSetting, String> {
     fun findBySiteid(siteid: String): ParkAlarmSetting?
+    fun findTopByOrderBySiteid(): ParkAlarmSetting?
 }
 
 @Repository
 interface ParkFacilityRepository: JpaRepository<Facility, Long> {
     fun findByFacilitiesId(facilitiesId: String): Facility?
+    fun findByDtFacilitiesId(dtFacilitiesId: String): Facility?
     @Query("SELECT v from Facility v where v.category != 'LPR' or (v.category = 'LPR' and v.imagePath is not null)")
     fun findByGateSvrKey(gateSvrKey: String): List<Facility>?
     fun findByGateIdAndFlagUse(gateId: String, flagUse: Int): List<Facility>?

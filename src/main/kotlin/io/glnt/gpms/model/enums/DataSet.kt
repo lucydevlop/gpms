@@ -38,6 +38,7 @@ enum class DisplayMessageClass(val code: String, val desc: String) {
 }
 
 enum class DisplayMessageType(val code: String, val desc: String) {
+    INIT("INIT", "RESET"),
     MEMBER("MEMBER", "Tmap(회원)차량"),
     NONMEMBER("NONMEMBER", "일반차량"),
     VIP("VIP", "정기권차량"),

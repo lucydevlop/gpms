@@ -158,7 +158,7 @@ class AuthService {
                 sn = null, corpName = corpName, form = form!!, resident = resident!!,
                 dong = dong, ho = ho, ceoName = userName, tel = userPhone, corpId = null
             ))
-            corp.corpId = parkinglotService.parkSite.siteid+"_"+ format("%05d", corp.sn!!)
+            corp.corpId = parkinglotService.parkSiteSiteId()+"_"+ format("%05d", corp.sn!!)
             corp = corpRepository.save(corp)
             return CommonResult.data(userRepository.save(
                 SiteUser(
