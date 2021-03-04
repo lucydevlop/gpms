@@ -3,6 +3,7 @@ package io.glnt.gpms.handler.dashboard.admin.service
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.dashboard.admin.model.reqChangeUseFacility
 import io.glnt.gpms.handler.dashboard.admin.model.reqChangeUseGate
 import io.glnt.gpms.handler.dashboard.admin.model.reqCreateFacility
 import io.glnt.gpms.handler.dashboard.admin.model.reqCreateMessage
@@ -107,7 +108,6 @@ class DashboardAdminService {
         }
     }
 
-
     @Throws(CustomException::class)
     fun gateAction(action: String, gateId: String) : CommonResult {
         try {
@@ -151,6 +151,16 @@ class DashboardAdminService {
         }catch (e: CustomException){
             logger.error { "Admin createFacility failed ${e.message}" }
             return CommonResult.error("Admin createFacility failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun changeFacilityUse(request: reqChangeUseFacility): CommonResult {
+        try {
+            return CommonResult.data(parkinglotService.changeDelYnFacility(request.dtFacilitiesId, request.delYn).data)
+        }catch (e: CustomException){
+            logger.error { "Admin getParkInLists failed ${e.message}" }
+            return CommonResult.error("Admin getParkInLists failed ${e.message}")
         }
     }
 

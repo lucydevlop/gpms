@@ -4,6 +4,7 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.dashboard.admin.model.reqChangeUseFacility
 import io.glnt.gpms.handler.dashboard.admin.model.reqChangeUseGate
 import io.glnt.gpms.handler.dashboard.admin.model.reqCreateFacility
 import io.glnt.gpms.handler.dashboard.admin.model.reqCreateMessage
@@ -65,6 +66,14 @@ class DashboardAdminController {
         logger.info { "createFacility $request " }
         return CommonResult.returnResult(dashboardAdminService.createFacility(request))
     }
+
+    @RequestMapping(value = ["/facility/change/use"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun changeFacilityUse(@RequestBody request: reqChangeUseFacility): ResponseEntity<CommonResult> {
+        logger.info("parkinglot facility use change : $request")
+        return CommonResult.returnResult(dashboardAdminService.changeFacilityUse(request))
+    }
+
 
     @RequestMapping(value = ["/message/create"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
