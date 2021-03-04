@@ -3,7 +3,10 @@ package io.glnt.gpms.handler.dashboard.admin.service
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.dashboard.admin.model.reqChangeUseGate
 import io.glnt.gpms.handler.dashboard.admin.model.reqCreateFacility
+import io.glnt.gpms.handler.dashboard.admin.model.reqCreateMessage
+import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.inout.service.InoutService
@@ -85,6 +88,27 @@ class DashboardAdminService {
     }
 
     @Throws(CustomException::class)
+    fun getGates(): CommonResult {
+        try {
+            return CommonResult.data(parkinglotService.getParkinglotGates(reqSearchParkinglotFeature()).data)
+        }catch (e: CustomException){
+            logger.error { "Admin getParkInLists failed ${e.message}" }
+            return CommonResult.error("Admin getParkInLists failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun changeGateUse(request: reqChangeUseGate): CommonResult {
+        try {
+            return CommonResult.data(parkinglotService.changeDelYnGate(request.gateId, request.delYn).data)
+        }catch (e: CustomException){
+            logger.error { "Admin getParkInLists failed ${e.message}" }
+            return CommonResult.error("Admin getParkInLists failed ${e.message}")
+        }
+    }
+
+
+    @Throws(CustomException::class)
     fun gateAction(action: String, gateId: String) : CommonResult {
         try {
             relayService.actionGate(gateId, "GATE", action)
@@ -113,7 +137,8 @@ class DashboardAdminService {
                     sortCount = request.sortCount,
                     resetPort = request.resetPort,
                     lprType = request.lprType,
-                    imagePath = request.imagePath
+                    imagePath = request.imagePath,
+                    gateType = gate.gateType
                 ))
             when (result.code) {
                 ResultCode.SUCCESS.getCode() -> {
@@ -124,8 +149,35 @@ class DashboardAdminService {
                 }
             }
         }catch (e: CustomException){
-            logger.error { "Admin gateAction failed ${e.message}" }
-            return CommonResult.error("Admin gateAction failed ${e.message}")
+            logger.error { "Admin createFacility failed ${e.message}" }
+            return CommonResult.error("Admin createFacility failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun createMessage(request: reqCreateMessage): CommonResult {
+        try {
+            val data = ArrayList<reqSetDisplayMessage>()
+            data.add(reqSetDisplayMessage(
+                messageClass = request.messageClass,
+                messageType = request.messageType,
+                colorCode = request.colorCode,
+                messageDesc = request.messageDesc,
+                line = request.lineNumber,
+                order = request.order
+            ))
+            val result = facilityService.setDisplayMessage(data)
+            when (result.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(result.data)
+                }
+                else -> {
+                    return CommonResult.data()
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin createMessage failed ${e.message}" }
+            return CommonResult.error("Admin createMessage failed ${e.message}")
         }
     }
 

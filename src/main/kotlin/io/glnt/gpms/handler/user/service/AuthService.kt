@@ -88,6 +88,10 @@ class AuthService {
             return CommonResult.data(resLogin(token = tokenProvider.createToken(authentication), userInfo = admin))
         } catch (exception: AuthenticationException) {
             logger.error{ "Invalid username or password id ${id}"}
+            searchUserId(id)?.let {
+                it.wrongCount = it.wrongCount?.plus(1)
+                userRepository.save(it)
+            }
             return CommonResult.unprocessable()
         }
     }
@@ -143,6 +147,10 @@ class AuthService {
             return CommonResult.data(resLogin(token = tokenProvider.createToken(authentication), userInfo = user, corpInfo =  corpRepository.findBySn(user.corpSn!!)))
         } catch (exception: AuthenticationException) {
             logger.error{ "Invalid username or password id ${id}"}
+            searchUserId(id)?.let {
+                it.wrongCount = it.wrongCount?.plus(1)
+                userRepository.save(it)
+            }
             return CommonResult.unprocessable()
         }
     }

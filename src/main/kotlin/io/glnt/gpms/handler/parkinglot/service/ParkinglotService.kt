@@ -125,9 +125,9 @@ class ParkinglotService {
                 val gate = parkGateRepository.findByGateId(gateId = it)
                 return if (gate == null) CommonResult.notfound("gate"+requet.gateId) else CommonResult.data(gate)
             } ?: run {
-                parkGateRepository.findByDelYn(DelYn.N).let {
-                    return CommonResult.data(it)
-                }
+//                parkGateRepository.findByDelYn(DelYn.N).let {
+                return CommonResult.data(parkGateRepository.findAll())
+//                }
             }
         }catch (e: CustomException) {
             logger.error("getParkinglotGates error {} ", e.message)
@@ -170,6 +170,19 @@ class ParkinglotService {
             logger.error("deleteGate error {} ", e.message)
         }
         return CommonResult.error("deleteGate failed ")
+    }
+
+    fun changeDelYnGate(gateId: String, delYn: DelYn) : CommonResult {
+        logger.info { "changeDelYnGate $gateId $delYn" }
+        try{
+            parkGateRepository.findByGateId(gateId)?.let { gate ->
+                gate.delYn = delYn
+                return CommonResult.data(parkGateRepository.save(gate))
+            }
+        }catch (e: CustomException) {
+            logger.error("changeDelYnGate error {} ", e.message)
+        }
+        return CommonResult.error("changeDelYnGate failed ")
     }
 
     fun getParkinglotfacilities(requet: reqSearchParkinglotFeature): CommonResult {
@@ -234,7 +247,8 @@ class ParkinglotService {
                     }
                 }
             }
-            return if (result.isNullOrEmpty()) CommonResult.notfound("parkinglot facilities") else CommonResult.data(result)
+//            return if (result.isNullOrEmpty()) CommonResult.notfound("parkinglot facilities") else CommonResult.data(result)
+            return CommonResult.data(result)
         }
     }
 

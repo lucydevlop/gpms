@@ -208,9 +208,7 @@ class FacilityService {
             }
             // static upload
             initalizeData()
-
-            return CommonResult.created("display message setting success")
-
+            return CommonResult.data("display message setting success")
         } catch (e: RuntimeException) {
             logger.error("set display color error {} ", e.message)
             return CommonResult.error("parkinglot display setting failed ")

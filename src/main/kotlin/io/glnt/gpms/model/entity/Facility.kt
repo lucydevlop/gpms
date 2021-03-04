@@ -11,8 +11,7 @@ import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
-@Table(schema = "glnt_parking", name="tb_facilities",
-    indexes = [Index(columnList = "FacilitiesId", unique = true)])
+@Table(schema = "glnt_parking", name="tb_facilities")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Facility (
@@ -83,7 +82,11 @@ data class Facility (
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
-    var delYn: DelYn? = DelYn.N
+    var delYn: DelYn? = DelYn.N,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gate_type", nullable = false)
+    var gateType: GateTypeStatus
 //    ,
 //    @ManyToOne(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "gate_id", nullable = false)
