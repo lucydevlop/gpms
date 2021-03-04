@@ -16,6 +16,7 @@ import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.model.entity.Facility
 import io.glnt.gpms.model.entity.Gate
+import io.glnt.gpms.model.enums.DelYn
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -48,25 +49,29 @@ class DashboardAdminService {
                     gates.data?.let {
                         val lists = gates.data as List<Gate>
                         lists.forEach {
-                            // gate 당 입출차 내역 조회
-                            val inout = inoutService.getLastInout(it.gateType, it.gateId)
-                            // 각 장비 상태 조회
-                            val gateStatus = facilityService.getStatusByGate(it.gateId)
-                            result.add(hashMapOf<String, Any?>(
-                                "gateId" to it.gateId,
-                                "gateName" to it.gateName,
-                                "gateType" to it.gateType,
-                                "image" to inout!!["image"],
-                                "vehicleNo" to inout["vehicleNo"],
-                                "date" to inout["date"],
-                                "carType" to inout["carType"],
-                                "breakerAction" to gateStatus!!["breakerAction"],
-                                "breakerStatus" to gateStatus["breakerStatus"],
-                                "displayStatus" to gateStatus["displayStatus"],
-                                "paystationStatus" to gateStatus["paystationStatus"],
-                                "paystationAction" to gateStatus["paystationAction"],
-                                "lprStatus" to gateStatus["lprStatus"]
-                            ))
+                            if (it.delYn == DelYn.N) {
+                                // gate 당 입출차 내역 조회
+                                val inout = inoutService.getLastInout(it.gateType, it.gateId)
+                                // 각 장비 상태 조회
+                                val gateStatus = facilityService.getStatusByGate(it.gateId)
+                                result.add(
+                                    hashMapOf<String, Any?>(
+                                        "gateId" to it.gateId,
+                                        "gateName" to it.gateName,
+                                        "gateType" to it.gateType,
+                                        "image" to inout!!["image"],
+                                        "vehicleNo" to inout["vehicleNo"],
+                                        "date" to inout["date"],
+                                        "carType" to inout["carType"],
+                                        "breakerAction" to gateStatus!!["breakerAction"],
+                                        "breakerStatus" to gateStatus["breakerStatus"],
+                                        "displayStatus" to gateStatus["displayStatus"],
+                                        "paystationStatus" to gateStatus["paystationStatus"],
+                                        "paystationAction" to gateStatus["paystationAction"],
+                                        "lprStatus" to gateStatus["lprStatus"]
+                                    )
+                                )
+                            }
                         }
                     }
                 }

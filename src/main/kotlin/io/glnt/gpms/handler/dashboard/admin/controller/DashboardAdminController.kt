@@ -29,7 +29,7 @@ class DashboardAdminController {
 
     @RequestMapping(value=["/main/gate"], method = [RequestMethod.GET])
     fun getMainGates() : ResponseEntity<CommonResult> {
-        logger.info { "admin dashboard Gates info" }
+        logger.debug { "admin dashboard Gates info" }
         return CommonResult.returnResult(dashboardAdminService.getMainGates())
     }
 
