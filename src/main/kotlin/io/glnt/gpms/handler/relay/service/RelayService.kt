@@ -25,6 +25,7 @@ import io.glnt.gpms.model.entity.Failure
 import io.glnt.gpms.model.entity.ParkAlarmSetting
 import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.entity.VehicleListSearch
+import io.glnt.gpms.model.enums.SaleType
 import io.glnt.gpms.model.enums.checkUseStatus
 import io.glnt.gpms.model.repository.FailureRepository
 import io.glnt.gpms.model.repository.ParkAlarmSetttingRepository
@@ -209,6 +210,8 @@ class RelayService {
     fun paymentHealthCheck() {
         logger.info { "paymentHealthCheck" }
         try {
+            // 무료 주차장은 정산여부 CHECK skip
+            if (parkinglotService.parkSite!!.saleType == SaleType.FREE) return
             val result = ArrayList<FacilitiesFailureAlarm>()
             parkinglotService.getFacilityByCategory("PAYSTATION")?.let { facilities ->
                 facilities.forEach { facility ->
@@ -292,7 +295,7 @@ class RelayService {
             requestId = request.requestId!!,
             type = "paymentResponse"
         )
-        val result = inoutService.paymentResult(contents, request.requestId!!, gateId)
+        inoutService.paymentResult(contents, request.requestId!!, gateId)
     }
 
     @Throws(CustomException::class)
@@ -411,7 +414,7 @@ class RelayService {
             its.forEach {
                 restAPIManager.sendPostRequest(
                     getRelaySvrUrl(gate)+"/display/show",
-                    reqSendDisplay(it.facilitiesId!!, data as ArrayList<reqDisplayMessage>)
+                    reqSendDisplay(it.dtFacilitiesId, data as ArrayList<reqDisplayMessage>)
                 )
             }
         }
@@ -419,6 +422,7 @@ class RelayService {
 
     private fun getRelaySvrUrl(gateId: String): String {
         return facilityService.gates.filter { it.gateId == gateId }[0].relaySvr!!
+//        return "http://192.168.20.30:9999/v1"
     }
 
 

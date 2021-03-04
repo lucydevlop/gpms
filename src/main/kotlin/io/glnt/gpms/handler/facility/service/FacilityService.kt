@@ -266,7 +266,7 @@ class FacilityService {
             its.forEach {
                 restAPIManager.sendPostRequest(
                     getRelaySvrUrl(gate)+"/parkinglot/paystation",
-                    reqPaystation(facilityId = it.dtFacilitiesId!!, data = setPaystationRequest(type, requestId, data))
+                    reqPaystation(dtFacilityId = it.dtFacilitiesId, data = setPaystationRequest(type, requestId, data))
                 )
             }
         }
