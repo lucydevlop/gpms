@@ -34,3 +34,8 @@ data class reqChangeUseGate(
     var gateId: String,
     var delYn: DelYn
 )
+
+data class reqChangeUseFacility(
+    var dtFacilitiesId: String,
+    var delYn: DelYn
+)

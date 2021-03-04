@@ -376,7 +376,7 @@ class RelayService {
                         its.forEach {
                             val url = getRelaySvrUrl(id)
                             restAPIManager.sendGetRequest(
-                                url+"/breaker/${it.facilitiesId}/$action"
+                                url+"/breaker/${it.dtFacilitiesId}/$action"
                             )
                         }
                     }

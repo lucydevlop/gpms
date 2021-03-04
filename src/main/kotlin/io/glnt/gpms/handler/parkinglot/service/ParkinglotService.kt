@@ -185,6 +185,19 @@ class ParkinglotService {
         return CommonResult.error("changeDelYnGate failed ")
     }
 
+    fun changeDelYnFacility(dtFacilitiesId: String, delYn: DelYn) : CommonResult {
+        logger.info { "changeDelYnFacility $dtFacilitiesId $delYn" }
+        try{
+            getFacilityByDtFacilityId(dtFacilitiesId)?.let { facility ->
+                facility.delYn = delYn
+                return CommonResult.data(parkFacilityRepository.save(facility))
+            }
+        }catch (e: CustomException) {
+            logger.error("changeDelYnGate error {} ", e.message)
+        }
+        return CommonResult.error("changeDelYnGate failed ")
+    }
+
     fun getParkinglotfacilities(requet: reqSearchParkinglotFeature): CommonResult {
         requet.facilitiesId?.let {
             parkFacilityRepository.findByFacilitiesId(it)?.let { facility ->
@@ -198,7 +211,8 @@ class ParkinglotService {
                             ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
                             resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
                             imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey,
-                            checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0
+                            checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0,
+                            delYn = facility.delYn
                         ))
                 }
 
@@ -220,7 +234,8 @@ class ParkinglotService {
                                         ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
                                         resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
                                         imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey,
-                                        checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0
+                                        checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0,
+                                        delYn = facility.delYn
                                     ))
                             }
                         }
@@ -229,7 +244,7 @@ class ParkinglotService {
             } ?: run {
                 parkGateRepository.findAll().let { gates ->
                     gates.forEach { gate ->
-                        parkFacilityRepository.findByGateIdAndDelYn(gate.gateId, DelYn.N)?.let { facilities ->
+                        parkFacilityRepository.findByGateId(gate.gateId)?.let { facilities ->
                             facilities.forEach { facility ->
                                 result.add(
                                     resRelaySvrFacility(sn = facility.sn,
@@ -240,7 +255,8 @@ class ParkinglotService {
                                         ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
                                         resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
                                         imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey,
-                                        checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0
+                                        checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0,
+                                        delYn = facility.delYn
                                     ))
                             }
                         }
