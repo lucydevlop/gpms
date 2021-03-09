@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+    <springProperty name="LOG_PATH" source="logging.path"/>
+
+    <!--콘솔에 로그를 남깁니다.-->
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>
+                %d{yyyy-MM-dd HH:mm:ss} [%thread] [%-5level] %logger{36} - %msg%n
+            </Pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="File" class="ch.qos.logback.core.rolling.RollingFileAppender">
+<!--        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
+<!--            <level>INFO</level>-->
+<!--        </filter>-->
+        <file>log/gpms.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>
+                %d{yyyy-MM-dd HH:mm:ss} [%-5level] %logger{36} - %msg%n
+            </Pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>log/gpms-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+<!--            <timeBasedFileNamingAndTriggeringPolicy-->
+<!--                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">-->
+<!--                &lt;!&ndash; or whenever the file size reaches 100MB &ndash;&gt;-->
+<!--                <maxFileSize>100MB</maxFileSize>-->
+<!--            </timeBasedFileNamingAndTriggeringPolicy>-->
+        </rollingPolicy>
+    </appender>
+
+    <appender name="RelayFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
+        <!--            <level>INFO</level>-->
+        <!--        </filter>-->
+        <file>log/gpms_relay.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>
+                %d{yyyy-MM-dd HH:mm:ss} [%-5level] %logger{36} - %msg%n
+            </Pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>log/gpms-relay-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <!--            <timeBasedFileNamingAndTriggeringPolicy-->
+            <!--                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">-->
+            <!--                &lt;!&ndash; or whenever the file size reaches 100MB &ndash;&gt;-->
+            <!--                <maxFileSize>100MB</maxFileSize>-->
+            <!--            </timeBasedFileNamingAndTriggeringPolicy>-->
+        </rollingPolicy>
+    </appender>
+
+    <!--파일에 로그를 남깁니다. (Roling)-->
+    <appender name="RollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>log/gpms_roling.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%d{yyyy-MM-dd HH:mm:ss} [%-5level] %logger{36} - %msg%n</Pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+
+        <!-- 10MB가 넘어가면 새로운 압축파일이 생성 -->
+        <triggeringPolicy
+                class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <MaxFileSize>100MB</MaxFileSize>
+        </triggeringPolicy>
+
+        <!-- 파일을 덮어쓰는 정책 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <FileNamePattern>log/gpms_roling.%i.log.zip</FileNamePattern>
+            <!--
+                100MB단위로 로그 압축 파일이 생성된다. (1 ~ 10)
+                10개가 넘어가면 오래된순으로 덮어쓰기 됩니다.
+            -->
+            <MinIndex>1</MinIndex>
+            <MaxIndex>10</MaxIndex>
+        </rollingPolicy>
+    </appender>
+
+    <!--에러 일 경우 파일에 로그를 남깁니다-->
+    <appender name="Error" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>error</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <file>log/gpms-error.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>
+                %d{yyyy-MM-dd HH:mm:ss} [%-5level] %logger{36} - %msg%n
+            </Pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>log/gpms-error-error.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+    <!--
+        org.springframework.web 패키지 아래에서 발생하는 INFO 레벨 로그를 Console, File에 남깁니다.
+        root의 속성을 상속받지 않습니다.
+    -->
+<!--    <logger name="io.glnt.gpms" level="INFO" additivity="false">-->
+<!--        <appender-ref ref="Console"/>-->
+<!--        <appender-ref ref="File"/>-->
+<!--        <appender-ref ref="Error"/>-->
+<!--    </logger>-->
+
+    <logger name="io.glnt.gpms.handler.dashboard" level="INFO" additivity="false">
+        <appender-ref ref="Console"/>
+        <appender-ref ref="Error"/>
+    </logger>
+
+    <logger name="io.glnt.gpms.handler.relay" level="INFO" additivity="false">
+        <appender-ref ref="Console"/>
+        <appender-ref ref="RelayFile"/>
+        <appender-ref ref="Error"/>
+    </logger>
+
+    <logger name="org.apache.ibatis" level="DEBUG" additivity="false">
+        <appender-ref ref="Console"/>
+        <appender-ref ref="RollingFile"/>
+        <appender-ref ref="Error"/>
+    </logger>
+
+    <!--
+        DEBUG 레벨 로그를 Console, File, RollingFile에 남깁니다.
+        ERROR 인 경우 gpms-error.log에 남깁니다.
+    -->
+    <root level="${LOG_LEVEL}">
+        <appender-ref ref="Console"/>
+        <appender-ref ref="File"/>
+        <appender-ref ref="Error"/>
+    </root>
+
+</configuration>

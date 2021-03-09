@@ -139,17 +139,19 @@ class InoutService {
 
                 requestId = parkinglotService.generateRequestId()
 
-                // UUID 확인 후 Update
-                parkInRepository.findByUuid(uuid!!)?.let {
-                    deviceIF = "OFF"
-                    inSn = it.sn
-                    requestId = it.requestid
-                }
+
 
                 // Back 입차 시
                 if (uuid == null) {
-                    parkInRepository.findByVehicleNoEndsWithAndOutSnAndGateId(vehicleNo, 0, gate.gateId)?.let {
-                        return CommonResult.data(it)
+                    if (parkInRepository.findByVehicleNoEndsWithAndOutSnAndGateId(vehicleNo, 0, gate.gateId)!!.isNotEmpty()) {
+                        return CommonResult.data()
+                    }
+                } else {
+                    // UUID 확인 후 Update
+                    parkInRepository.findByUuid(uuid!!)?.let {
+                        deviceIF = "OFF"
+                        inSn = it.sn
+                        requestId = it.requestid
                     }
                 }
 
@@ -216,7 +218,7 @@ class InoutService {
             return CommonResult.error("parkin failed gateId is not found ")
 
         } catch (e: RuntimeException) {
-            logger.error("parkIn error {} ", e.message)
+            logger.error { "parkin error $e" }
             return CommonResult.error("parkinglot feature db add failed ")
         }
     }
@@ -636,7 +638,7 @@ class InoutService {
                                 inGateId = it.gateId, inDate = it.inDate!!,
                                 ticketCorpName = it.ticket?.corp?.corpName
                             )
-                            if (it.outSn!! > 0L || it.outSn != null) {
+                            if (it.outSn!! > 0L && it.outSn != null) {
                                 parkOutRepository.findBySn(it.outSn!!)?.let { out ->
                                     result.type = DisplayMessageClass.OUT
                                     result.parkoutSn = out.sn
@@ -647,6 +649,8 @@ class InoutService {
                                     result.payfee = out.payfee
                                     result.discountfee = out.discountfee
                                 }
+                            } else {
+                                result.parkoutSn = it.outSn
                             }
                             results.add(result)
                         }

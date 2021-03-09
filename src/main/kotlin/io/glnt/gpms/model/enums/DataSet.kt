@@ -13,7 +13,7 @@ enum class GateTypeStatus {
 }
 
 enum class LprTypeStatus {
-    INFRONT, INBACK, INASSIST, OUTFRONT, OUTBACK, OUTASSIST
+    FRONT, BACK, ASSIST, INFRONT, INBACK, OUTFRONT
 }
 
 enum class OnOff {
