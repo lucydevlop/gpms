@@ -8,8 +8,8 @@ data class reqSearchDiscount(
 
 data class reqDiscountableTicket(
     var corpId: String,
-    var date: LocalDateTime,
-    var inSn: Long
+    var date: LocalDateTime?,
+    var inSn: Long?
 )
 
 data class reqSearchInoutDiscount(

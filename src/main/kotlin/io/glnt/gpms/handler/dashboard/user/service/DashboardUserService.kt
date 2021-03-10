@@ -2,21 +2,27 @@ package io.glnt.gpms.handler.dashboard.user.service
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
-import io.glnt.gpms.common.utils.Base64Util
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.dashboard.user.model.*
 import io.glnt.gpms.handler.discount.model.reqDiscountableTicket
+import io.glnt.gpms.handler.discount.model.reqSearchDiscount
 import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.inout.service.checkItemsAre
-import io.glnt.gpms.handler.relay.model.paystationvehicleListSearch
 import io.glnt.gpms.model.entity.CorpTicket
+import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.entity.ParkIn
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.io.File
+import java.util.*
+import java.util.Comparator.comparing
+import java.util.stream.Collectors
+import java.util.stream.Collectors.maxBy
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
+
 
 @Service
 class DashboardUserService {
@@ -44,7 +50,8 @@ class DashboardUserService {
                                     sn = it.sn!!,
                                     vehicleNo = it.vehicleNo!!,
                                     inDate = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss"),
-                                    imImagePath = it.image!!.substring(it.image!!.indexOf("/park")) )
+                                    imImagePath = it.image!!.substring(it.image!!.indexOf("/park"))
+                                )
                             )
                         }
 
@@ -74,7 +81,8 @@ class DashboardUserService {
                                     sn = it.sn!!,
                                     vehicleNo = it.vehicleNo!!,
                                     inDate = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss"),
-                                    imImagePath = it.image!!.substring(it.image!!.indexOf("/park")) )
+                                    imImagePath = it.image!!.substring(it.image!!.indexOf("/park"))
+                                )
                             )
                         }
 
@@ -91,12 +99,38 @@ class DashboardUserService {
     @Throws(CustomException::class)
     fun parkingDiscountAbleTickets(request: reqParkingDiscountAbleTicketsSearch) : CommonResult {
         try {
-            val discountTickets = discountService.getDiscountableTickets(reqDiscountableTicket(corpId = request.corpId, date = request.inDate, inSn = request.inSn))
+            val discountTickets = if (request.inSn == null){
+                discountService.getByCorp(reqSearchDiscount(corpId = request.corpId))
+            } else {
+                discountService.getDiscountableTickets(
+                    reqDiscountableTicket(
+                        corpId = request.corpId,
+                        date = request.inDate,
+                        inSn = request.inSn
+                    )
+                )
+            }
+//            val discountTickets = discountService.getDiscountableTickets(reqDiscountableTicket(corpId = request.corpId, date = request.inDate, inSn = request.inSn))
             when(discountTickets.code) {
                 ResultCode.SUCCESS.getCode() -> {
                     discountTickets.data?.let {
                         val lists = discountTickets.data as List<CorpTicket>
-                        return CommonResult.data(lists)
+                        val groupedData: Map<DiscountClass, List<CorpTicket>> =
+                            lists.stream().collect(Collectors.groupingBy { it.discountClass!! })
+                        val result = ArrayList<HashMap<String, Any?>>()
+                        groupedData.forEach { data ->
+                            result.add(hashMapOf(
+                                "discountName" to data.key.discountNm,
+                                "dayRange" to data.key.dayRange,
+                                "timeRange" to data.key.timeRange,
+                                "timeTarget" to data.key.timeTarget,
+                                "onceMax" to data.key.disMaxNo,
+                                "dayMax" to data.key.disMaxDay,
+                                "monthMax" to data.key.disMaxMonth,
+                                "ableCnt" to data.value.sumBy { it.ableCnt!! }
+                            ))
+                        }
+                        return CommonResult.data(result)
                     }
                     return CommonResult.data()
                 }

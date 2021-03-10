@@ -110,6 +110,11 @@ enum class HolidayType(val code: String, val desc: String) {
     ETC("ETC", "기타")
 }
 
+enum class TimeTarget(val code: String, val desc: String) {
+    IN("IN", "입차"),
+    NOW("NOW", "현재")
+}
+
 
 
 //enum class parkCarType {

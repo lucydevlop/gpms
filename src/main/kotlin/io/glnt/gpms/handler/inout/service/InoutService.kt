@@ -411,7 +411,7 @@ class InoutService {
             }
 
             parkinglotService.getGateInfoByDtFacilityId(dtFacilitiesId)?.let { gate ->
-                var facility = parkinglotService.getFacilityByDtFacilityId(dtFacilitiesId)
+                val facility = parkinglotService.getFacilityByDtFacilityId(dtFacilitiesId)
                 // image 파일 저장
                 if (base64Str != null) {
                     fileFullPath = saveImage(base64Str!!, vehicleNo, gate.udpGateid!!)
