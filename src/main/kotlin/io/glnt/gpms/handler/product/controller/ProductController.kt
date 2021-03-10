@@ -36,17 +36,17 @@ class ProductController {
         }
     }
 
-    @RequestMapping(value = ["/create"], method = [RequestMethod.POST])
-    @Throws(CustomException::class)
-    fun createTicket(@RequestBody request: reqCreateProduct) : ResponseEntity<CommonResult> {
-        logger.trace("parkinglot product create : $request")
-        val result = productService.createProduct(request)
-        return when(result) {
-            true -> ResponseEntity(CommonResult.created(), HttpStatus.OK)
-            else -> ResponseEntity(CommonResult.error("createTicket failed"), HttpStatus.BAD_REQUEST)
-
-        }
-    }
+//    @RequestMapping(value = ["/create"], method = [RequestMethod.POST])
+//    @Throws(CustomException::class)
+//    fun createTicket(@RequestBody request: reqCreateProduct) : ResponseEntity<CommonResult> {
+//        logger.trace("parkinglot product create : $request")
+//        val result = productService.createProduct(request)
+//        return when(result) {
+//            true -> ResponseEntity(CommonResult.created(), HttpStatus.OK)
+//            else -> ResponseEntity(CommonResult.error("createTicket failed"), HttpStatus.BAD_REQUEST)
+//
+//        }
+//    }
 
     @RequestMapping(value = ["/delete/{request}"], method = [RequestMethod.DELETE])
     @Throws(CustomException::class)

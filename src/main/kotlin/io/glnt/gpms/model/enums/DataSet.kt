@@ -68,6 +68,7 @@ enum class TicketType(val code: String, val desc: String) {
     TIMETICKET("TIMETICKET", "시간권"),
     DAYTICKET("DAYTICKET", "일일권"),
     FREETICKET("FREETICKET", "무료주차권"),
+    CORPTICKET("CORPTICKET", "입주사할인권"),
     ETC("ETC", "기타"),
 }
 
@@ -114,6 +115,8 @@ enum class TimeTarget(val code: String, val desc: String) {
     IN("IN", "입차"),
     NOW("NOW", "현재")
 }
+
+
 
 
 

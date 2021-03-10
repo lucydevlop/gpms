@@ -13,6 +13,7 @@ import java.time.LocalDateTime
 interface CorpTicketRepository: JpaRepository<CorpTicket, Long> {
     fun findByCorpId(corpId: String) : List<CorpTicket>?
     fun findByCorpIdAndExpireDateGreaterThanEqualAndAbleCntIsGreaterThan(corpId: String, date: LocalDateTime, cnt: Int): List<CorpTicket>?
+    fun findTopByCorpSnAndCorpClassSnAndDelYnAndAbleCntIsGreaterThanOrderByCreateDateAsc(corpSn: Long, corpClassNo: Long, delYn: DelYn, ableCnt: Int): CorpTicket?
 }
 
 @Repository

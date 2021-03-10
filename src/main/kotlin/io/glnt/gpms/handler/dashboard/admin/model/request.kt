@@ -1,9 +1,8 @@
 package io.glnt.gpms.handler.dashboard.admin.model
 
-import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.DisplayMessageClass
-import io.glnt.gpms.model.enums.DisplayMessageType
-import io.glnt.gpms.model.enums.LprTypeStatus
+import com.fasterxml.jackson.annotation.JsonFormat
+import io.glnt.gpms.model.enums.*
+import java.time.LocalDateTime
 
 data class reqCreateFacility(
     var fname: String,
@@ -38,4 +37,16 @@ data class reqChangeUseGate(
 data class reqChangeUseFacility(
     var dtFacilitiesId: String,
     var delYn: DelYn
+)
+
+data class reqCreateProductTicket(
+    var sn: Long? = null,
+    var vehicleNo: String,
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var effectDate: LocalDateTime,
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var expireDate: LocalDateTime,
+    var userId: String? = null,
+    var gateId: MutableSet<String>? = null,
+    var ticketType: TicketType? = null,
+    var vehicleType: VehicleType? = null,
+    var corpSn: Long? = null
 )

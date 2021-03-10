@@ -4,13 +4,11 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.dashboard.admin.model.reqChangeUseFacility
-import io.glnt.gpms.handler.dashboard.admin.model.reqChangeUseGate
-import io.glnt.gpms.handler.dashboard.admin.model.reqCreateFacility
-import io.glnt.gpms.handler.dashboard.admin.model.reqCreateMessage
+import io.glnt.gpms.handler.dashboard.admin.model.*
 import io.glnt.gpms.handler.dashboard.admin.service.DashboardAdminService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
+import io.glnt.gpms.handler.product.model.reqCreateProduct
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -29,14 +27,14 @@ class DashboardAdminController {
 
     @RequestMapping(value=["/main/gate"], method = [RequestMethod.GET])
     fun getMainGates() : ResponseEntity<CommonResult> {
-        logger.debug { "admin dashboard Gates info" }
+        logger.trace { "admin dashboard Gates info" }
         return CommonResult.returnResult(dashboardAdminService.getMainGates())
     }
 
     @RequestMapping(value = ["/inout/list"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun getParkInLists(@RequestBody request: reqSearchParkin) : ResponseEntity<CommonResult> {
-        logger.info { "getParkInLists $request" }
+        logger.trace { "getParkInLists $request" }
         return CommonResult.returnResult(dashboardAdminService.getParkInLists(request))
     }
 
@@ -49,37 +47,43 @@ class DashboardAdminController {
     @RequestMapping(value = ["/gate/{action}/{gateId}"], method = [RequestMethod.GET])
     @Throws(CustomException::class)
     fun gateAction(@PathVariable action: String, @PathVariable gateId: String) : ResponseEntity<CommonResult> {
-        logger.info { "gateAction $gateId $action" }
+        logger.trace { "gateAction $gateId $action" }
         return CommonResult.returnResult(dashboardAdminService.gateAction(action, gateId))
     }
 
     @RequestMapping(value = ["/gate/change/use"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun changeGateUse(@RequestBody request: reqChangeUseGate): ResponseEntity<CommonResult> {
-        logger.info("parkinglot gate use change : $request")
+        logger.trace("parkinglot gate use change : $request")
         return CommonResult.returnResult(dashboardAdminService.changeGateUse(request))
     }
 
     @RequestMapping(value = ["/facility/create"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun createFacility(@RequestBody request: reqCreateFacility) : ResponseEntity<CommonResult> {
-        logger.info { "createFacility $request " }
+        logger.trace { "createFacility $request " }
         return CommonResult.returnResult(dashboardAdminService.createFacility(request))
     }
 
     @RequestMapping(value = ["/facility/change/use"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun changeFacilityUse(@RequestBody request: reqChangeUseFacility): ResponseEntity<CommonResult> {
-        logger.info("parkinglot facility use change : $request")
+        logger.trace("parkinglot facility use change : $request")
         return CommonResult.returnResult(dashboardAdminService.changeFacilityUse(request))
     }
-
 
     @RequestMapping(value = ["/message/create"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun createMessage(@RequestBody request: reqCreateMessage) : ResponseEntity<CommonResult> {
-        logger.info { "$request" }
+        logger.trace { "$request" }
         return CommonResult.returnResult(dashboardAdminService.createMessage(request))
+    }
+
+    @RequestMapping(value = ["/product/add/ticket"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun createProductTicket(@RequestBody request: reqCreateProductTicket) : ResponseEntity<CommonResult> {
+        logger.trace("parkinglot product create : $request")
+        return CommonResult.returnResult(dashboardAdminService.createProductTicket(request))
     }
 
     companion object : KLogging()

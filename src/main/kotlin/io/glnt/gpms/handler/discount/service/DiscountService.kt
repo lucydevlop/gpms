@@ -4,12 +4,10 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.discount.model.availableTicketClass
-import io.glnt.gpms.handler.discount.model.reqDiscountableTicket
-import io.glnt.gpms.handler.discount.model.reqSearchDiscount
-import io.glnt.gpms.handler.discount.model.reqSearchInoutDiscount
+import io.glnt.gpms.handler.discount.model.*
 import io.glnt.gpms.model.entity.CorpTicket
 import io.glnt.gpms.model.entity.DiscountClass
+import io.glnt.gpms.model.entity.InoutDiscount
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountRangeType
 import io.glnt.gpms.model.repository.CorpTicketRepository
@@ -48,8 +46,12 @@ class DiscountService {
         }
     }
 
-    fun getDiscountableTicketsByCorp(corp: String) {
-        return
+    fun getDiscountableTicketsByCorp(corpSn: Long, discountClassNo: Long): CorpTicket? {
+        return corpTicketRepository.findTopByCorpSnAndCorpClassSnAndDelYnAndAbleCntIsGreaterThanOrderByCreateDateAsc(corpSn, discountClassNo, DelYn.N, 0)
+    }
+
+    fun updateCorpTicket(corpTicket: CorpTicket): CorpTicket {
+        return corpTicketRepository.save(corpTicket)
     }
 
     fun createDiscountClass(request: DiscountClass): CommonResult {
@@ -117,6 +119,12 @@ class DiscountService {
             logger.error { "getInoutDiscount error ${e.message}" }
             return null//CommonResult.error("getInoutDiscount search failed")
         }
+    }
+
+    fun addInoutDiscount(request: reqAddInoutDiscount): InoutDiscount {
+        return inoutDiscountRepository.save(
+            InoutDiscount(sn = null, discontType = request.discountType,
+                          ticketSn = request.ticketSn, inSn = request.inSn, quantity = request.quantity, delYn = DelYn.N))
     }
 
 }
