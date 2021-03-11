@@ -193,37 +193,37 @@ class TmapCommandService {
         val contents = readValue(request.contents.toString(), reqCommandGateTakeActionSetup::class.java)
 
         try {
-            contents.gateList.forEach { gate ->
-                val ticketType = when (gate.takeActionType) {
-                    "whiteList" -> TicketType.WHITELIST
-                    "seasonTicket" -> TicketType.SEASONTICKET
-                    else -> TicketType.ETC
-                }
-                when (gate.setupOption) {
-                    SetupOption.ADD -> {
-                        gate.vehicleList.forEach { vehicle ->
-                            if (!productService.createProduct(
-                                    reqCreateProduct(
-                                        vehicleNo = vehicle.vehicleNumber, userId = vehicle.messageType,
-                                        effectDate = DateUtil.stringToLocalDateTime(vehicle.startDateTime),
-                                        expireDate = DateUtil.stringToLocalDateTime(vehicle.endDateTime),
-                                        gateId = mutableSetOf(parkinglotService.getGateInfoByUdpGateId(gate.gateId)!!.gateId),
-                                        ticketType = ticketType
-                                    )
-                                )
-                            ) {
-                                logger.error { "createProduct is failed" }
-                            }
-                        }
-                    }
-                    SetupOption.UPDATE -> {
-                    }
-                    else -> {
-
-                    }
-                }
-
-            }
+//            contents.gateList.forEach { gate ->
+//                val ticketType = when (gate.takeActionType) {
+//                    "whiteList" -> TicketType.WHITELIST
+//                    "seasonTicket" -> TicketType.SEASONTICKET
+//                    else -> TicketType.ETC
+//                }
+//                when (gate.setupOption) {
+//                    SetupOption.ADD -> {
+//                        gate.vehicleList.forEach { vehicle ->
+//                            if (!productService.createProduct(
+//                                    reqCreateProduct(
+//                                        vehicleNo = vehicle.vehicleNumber, userId = vehicle.messageType,
+//                                        effectDate = DateUtil.stringToLocalDateTime(vehicle.startDateTime),
+//                                        expireDate = DateUtil.stringToLocalDateTime(vehicle.endDateTime),
+//                                        gateId = mutableSetOf(parkinglotService.getGateInfoByUdpGateId(gate.gateId)!!.gateId),
+//                                        ticketType = ticketType
+//                                    )
+//                                )
+//                            ) {
+//                                logger.error { "createProduct is failed" }
+//                            }
+//                        }
+//                    }
+//                    SetupOption.UPDATE -> {
+//                    }
+//                    else -> {
+//
+//                    }
+//                }
+//
+//            }
         } catch (e: RuntimeException) {
             logger.error { "commandGateTakeActionSetup is failed ${e.message}" }
             tmapSendService.sendTmapInterface(

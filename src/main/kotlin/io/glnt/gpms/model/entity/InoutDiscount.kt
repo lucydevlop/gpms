@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.entity.Auditable
 import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.TicketType
 import java.io.Serializable
 import java.time.LocalDateTime
 import javax.persistence.*
@@ -18,8 +19,9 @@ data class InoutDiscount(
     @Column(name = "sn", unique = true, nullable = false)
     var sn: Long?,
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "discount_type", nullable = false)
-    var discontType: String,
+    var discontType: TicketType? = TicketType.CORPTICKET,
 
     @Column(name = "ticket_sn", nullable = true)
     var ticketSn: Long? = null,

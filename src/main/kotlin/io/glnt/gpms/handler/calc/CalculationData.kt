@@ -30,28 +30,6 @@ class CalculationData {
     @Autowired
     private lateinit var cgBasicRepository: CgBasicRepository
 
-
-
-//    // 13. 주차장 정기권 리스트 API에 대한 결과값
-//    //    public ArrayList<API_13_MonthProductOut> mMonthProductList;
-//    // 14. 무료기간권 리스트 API에 대한 결과값
-//    var mFreeProductList: ArrayList<API_14_FreeProductOut>? = null
-//
-////    // 15. 공휴일/특근일 리스트 API에 대한 결과값
-////    var mParkHoliday: API_15_ParkHolidayOut? = null
-//
-//    // 10. 주차장 상품 정보 API에 대한 결과값
-//    var mSeasonTicketItemInfo // 조회를 요청받은 차량의 정기권 상품 정보
-//            : API_10_ParkingProductInfoOut? = null
-//
-//    fun fetchData() {
-//
-//    }
-//
-//    fun initData(vehicleNo: String) {
-//
-//    }
-
     /**
      * 요금 계산 시작전 필수 데이터 세팅
      * 해당 데이터들은 상속해주는 CalculationData에 세팅되어 있음
@@ -60,13 +38,6 @@ class CalculationData {
     fun init() {
         parkingFareInfo = farePolicyRepository.findAll()
         cgBasic = cgBasicRepository.findByDelYn(DelYn.N)!!
-
-//        mParkingBaseInfo = mData.getmParkingBaseInfo()
-//        mParkingFareInfo = mData.getmParkingFareInfo()
-//        //        mMonthProductList = mData.getmMonthProductList();
-//        mFreeProductList = mData.getmFreeProductList()
-//        mParkHoliday = mData.getmParkHoliday()
-//        mSeasonTicketItemInfo = mData.getmSeasonTicketItemInfo()
     }
 
     fun getBizHourInfoForDate(date: String, vehicleType: VehicleType): List<FarePolicy> {

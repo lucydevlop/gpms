@@ -6,11 +6,14 @@ import io.glnt.gpms.model.entity.InoutDiscount
 import io.glnt.gpms.model.enums.DelYn
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Repository
 interface CorpTicketRepository: JpaRepository<CorpTicket, Long> {
     fun findByCorpId(corpId: String) : List<CorpTicket>?
+    fun findByCorpIdAndExpireDateGreaterThanEqualAndAbleCntIsGreaterThan(corpId: String, date: LocalDateTime, cnt: Int): List<CorpTicket>?
+    fun findTopByCorpSnAndCorpClassSnAndDelYnAndAbleCntIsGreaterThanOrderByCreateDateAsc(corpSn: Long, corpClassNo: Long, delYn: DelYn, ableCnt: Int): CorpTicket?
 }
 
 @Repository

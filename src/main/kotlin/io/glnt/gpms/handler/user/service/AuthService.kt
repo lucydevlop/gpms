@@ -207,7 +207,7 @@ class AuthService {
             val token = jwtTokenProvider.resolveTokenOrNull(servlet)
             idx = jwtTokenProvider.userIdFromJwt(token!!)
             val user = searchUserByIdx(idx) ?: return CommonResult.notfound("User not found")
-            return CommonResult.data(resLogin(userInfo = user, token = token))
+            return CommonResult.data(resLogin(userInfo = user, token = token, corpInfo = if (user.role==UserRole.STORE) corpRepository.findBySn(user.corpSn!!) else null))
         } catch (e: RuntimeException) {
             logger.error{"search user $idx error ${e.message}"}
             return CommonResult.unprocessable()

@@ -2,7 +2,7 @@ package io.glnt.gpms.handler.corp.service
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.corp.model.reqSearchCorp
+import io.glnt.gpms.handler.dashboard.admin.model.reqSearchCorp
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.model.entity.Corp
 import io.glnt.gpms.model.enums.DelYn
@@ -28,6 +28,16 @@ class CorpService {
     fun getCorp(request: reqSearchCorp): CommonResult {
         logger.info { "getCorp $request" }
         try {
+            request.searchLabel?.let {
+                val list : Any? =
+                    when (it) {
+                        "CORPID" -> corpRepository.findByCorpId(request.searchText!!)
+                        "CORPNAME" -> corpRepository.findByCorpName(request.searchText!!)
+                        else -> null
+
+                    }
+                return CommonResult.data(list)
+            }
             request.corpId?.let {
                 val list = corpRepository.findByCorpId(it)
                 return if (list == null) CommonResult.notfound("corp") else CommonResult.data(list)

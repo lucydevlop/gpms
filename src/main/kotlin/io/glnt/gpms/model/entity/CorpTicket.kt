@@ -3,6 +3,7 @@ package io.glnt.gpms.model.entity
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.model.enums.DelYn
 import org.hibernate.annotations.Where
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
@@ -29,7 +30,7 @@ data class CorpTicket(
     var corpClassSn: Long,
 
     @Column(name = "corpSn", nullable = false)
-    var corpSn: Int,
+    var corpSn: Long,
 
     @Column(name = "disUse", nullable = false)
     var disUse: String,
@@ -58,7 +59,11 @@ data class CorpTicket(
 
     @Column(name = "expireDate", nullable = true)
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    var expireDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59")
+    var expireDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59"),
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "del_yn", nullable = true)
+    var delYn: DelYn? = DelYn.N
 ) : Auditable(), Serializable {
 
     @OneToOne//(mappedBy = "serviceProduct", cascade = arrayOf(CascadeType.ALL), fetch = FetchType.EAGER)

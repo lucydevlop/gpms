@@ -8,6 +8,7 @@ import io.glnt.gpms.model.entity.Auditable
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountRangeType
 import io.glnt.gpms.model.enums.SaleType
+import io.glnt.gpms.model.enums.TimeTarget
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -30,8 +31,15 @@ data class DiscountClass(
     var discountNm: String,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "range1", nullable = false)
-    var range1: DiscountRangeType? = DiscountRangeType.ALL,
+    @Column(name = "time_target", nullable = true)
+    var timeTarget: TimeTarget? = TimeTarget.NOW,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "day_range", nullable = true)
+    var dayRange: DiscountRangeType? = DiscountRangeType.ALL,
+
+    @Column(name = "time_range", nullable = true)
+    var timeRange: String? = null,
 
     @Column(name = "unitTime")
     var unitTime: Int,
@@ -66,3 +74,8 @@ data class DiscountClass(
 ): Auditable(), Serializable {
 
 }
+
+data class timeRange(
+    var startTime: String? = "0000",
+    var endTime: String? = "2400"
+)

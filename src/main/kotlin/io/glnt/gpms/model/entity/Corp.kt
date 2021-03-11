@@ -46,7 +46,7 @@ data class Corp(
 //    @Column(name = "password", nullable = false)
 //    var password: String,
 
-    @Column(name = "corpName", nullable = false)
+    @Column(name = "corpName", nullable = false, unique = true)
     var corpName: String,
 
 //    @Column(name = "login_date")

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository
 interface CorpRepository: JpaRepository<Corp, Long> {
     fun findBySn(sn: Long): Corp?
     fun findByCorpId(corpId: String) : Corp?
+    fun findByCorpName(corpName: String): Corp?
     fun findByCorpNameAndCeoName(corpName: String, ceoName: String) : Corp?
     fun findAll(specification: Specification<Corp>): List<Corp>?
 }

@@ -3,16 +3,16 @@ package io.glnt.gpms.handler.dashboard.admin.service
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.dashboard.admin.model.reqChangeUseFacility
-import io.glnt.gpms.handler.dashboard.admin.model.reqChangeUseGate
-import io.glnt.gpms.handler.dashboard.admin.model.reqCreateFacility
-import io.glnt.gpms.handler.dashboard.admin.model.reqCreateMessage
+import io.glnt.gpms.handler.corp.service.CorpService
+import io.glnt.gpms.handler.dashboard.admin.model.*
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.product.model.reqCreateProduct
+import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.model.entity.Facility
 import io.glnt.gpms.model.entity.Gate
@@ -37,6 +37,11 @@ class DashboardAdminService {
     @Autowired
     lateinit var relayService: RelayService
 
+    @Autowired
+    lateinit var productService: ProductService
+
+    @Autowired
+    lateinit var corpService: CorpService
 
     @Throws(CustomException::class)
     fun getMainGates(): CommonResult {
@@ -193,6 +198,45 @@ class DashboardAdminService {
         }catch (e: CustomException){
             logger.error { "Admin createMessage failed ${e.message}" }
             return CommonResult.error("Admin createMessage failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun createProductTicket(request: reqCreateProductTicket): CommonResult {
+        try{
+            val data = productService.createProduct(
+                reqCreateProduct(sn = request.sn, vehicleNo = request.vehicleNo,
+                                 effectDate = request.effectDate, expireDate = request.expireDate,
+                                 userId = request.userId, gateId = request.gateId, ticketType = request.ticketType, vehicleType = request.vehicleType, corpSn = request.corpSn))
+            when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(data.data)
+                }
+                else -> {
+                    return CommonResult.data()
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin createProductTicket failed $e" }
+            return CommonResult.error("Admin createProductTicket failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun searchCorpList(request: reqSearchCorp): CommonResult {
+        try {
+            val data = corpService.getCorp(request)
+            when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(data.data)
+                }
+                else -> {
+                    return CommonResult.data()
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin searchCorpList failed $e" }
+            return CommonResult.error("Admin searchCorpList failed $e")
         }
     }
 
