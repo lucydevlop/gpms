@@ -83,7 +83,7 @@ class RelayService {
     }
 
     fun facilitiesHealthCheck(request: reqRelayHealthCheck) {
-        logger.info { "facilitiesHealthCheck $request" }
+        logger.trace { "facilitiesHealthCheck $request" }
         try {
             if (parkinglotService.isTmapSend())
                 tmapSendService.sendHealthCheckRequest(request, "")
@@ -103,7 +103,7 @@ class RelayService {
     }
 
     fun statusNoti(request: reqRelayHealthCheck) {
-        logger.info { "statusNoti $request" }
+        logger.trace { "statusNoti $request" }
         try {
             val result = ArrayList<FacilitiesStatusNoti>()
 
@@ -208,7 +208,7 @@ class RelayService {
     }
 
     fun paymentHealthCheck() {
-        logger.info { "paymentHealthCheck" }
+        logger.trace { "paymentHealthCheck" }
         try {
             // 무료 주차장은 정산여부 CHECK skip
             if (parkinglotService.parkSite!!.saleType == SaleType.FREE) return
@@ -253,7 +253,6 @@ class RelayService {
     }
 
     fun saveFailure(request: Failure) {
-        logger.info { "saveFailure $request" }
         try {
             if (request.failureType!!.toUpperCase() == "NORMAL") {
                 failureRepository.findTopByFacilitiesIdAndFailureCodeAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(
@@ -264,6 +263,7 @@ class RelayService {
                     failureRepository.save(it)
                 }
             } else {
+                logger.info { "saveFailure $request" }
                 failureRepository.findTopByFacilitiesIdAndFailureCodeAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(
                     request.facilitiesId!!,
                     request.failureCode!!

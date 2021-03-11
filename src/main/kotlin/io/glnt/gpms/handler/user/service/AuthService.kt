@@ -164,7 +164,7 @@ class AuthService {
             }
             var corp = corpRepository.save(Corp( 
                 sn = null, corpName = corpName, form = form!!, resident = resident!!,
-                dong = dong, ho = ho, ceoName = userName, tel = userPhone, corpId = null
+                dong = dong, ho = ho, ceoName = userName, tel = userPhone, corpId = " "
             ))
             corp.corpId = parkinglotService.parkSiteSiteId()+"_"+ format("%05d", corp.sn!!)
             corp = corpRepository.save(corp)

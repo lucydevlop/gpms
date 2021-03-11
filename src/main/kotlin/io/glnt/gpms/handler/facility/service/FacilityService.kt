@@ -396,7 +396,7 @@ class FacilityService {
     }
 
     fun updateStatusCheck(dtFacilitiesId: String, status: String) : Facility? {
-        logger.info { "updateStatusCheck facility $dtFacilitiesId status $status" }
+        logger.trace { "updateStatusCheck facility $dtFacilitiesId status $status" }
         try {
             facilityRepository.findByDtFacilitiesId(dtFacilitiesId)?.let { facility ->
 //                if (facility.category == "BREAKER") {

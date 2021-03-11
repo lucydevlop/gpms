@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.GateTypeStatus
+import io.glnt.gpms.model.enums.OpenActionType
 import org.hibernate.annotations.Where
 import java.io.Serializable
 import javax.persistence.*
@@ -47,8 +48,9 @@ data class Gate(
     @Column(name = "upload_ct", nullable = false)
     var uploadCt: Int? = 0,
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "open_action", nullable = false)
-    var openAction: String? = "ALL",
+    var openAction: OpenActionType? = OpenActionType.NONE,
 
     @Column(name = "relay_svr_key", nullable = false)
     var relaySvrKey: String? = "RELAYSVR1",

@@ -110,6 +110,12 @@ enum class HolidayType(val code: String, val desc: String) {
     ETC("ETC", "기타")
 }
 
+enum class OpenActionType(val code: String, val desc: String) {
+    NONE("NONE", "제한없음"),
+    RECOGNITION("RECOGNITION", "인식"),
+    RESTRICT("RESTRICT", "제한")
+}
+
 
 
 //enum class parkCarType {
