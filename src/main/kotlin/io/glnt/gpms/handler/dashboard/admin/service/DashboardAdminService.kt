@@ -3,6 +3,7 @@ package io.glnt.gpms.handler.dashboard.admin.service
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.corp.service.CorpService
 import io.glnt.gpms.handler.dashboard.admin.model.*
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
@@ -38,6 +39,9 @@ class DashboardAdminService {
 
     @Autowired
     lateinit var productService: ProductService
+
+    @Autowired
+    lateinit var corpService: CorpService
 
     @Throws(CustomException::class)
     fun getMainGates(): CommonResult {
@@ -215,6 +219,24 @@ class DashboardAdminService {
         }catch (e: CustomException){
             logger.error { "Admin createProductTicket failed $e" }
             return CommonResult.error("Admin createProductTicket failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun searchCorpList(request: reqSearchCorp): CommonResult {
+        try {
+            val data = corpService.getCorp(request)
+            when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(data.data)
+                }
+                else -> {
+                    return CommonResult.data()
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin searchCorpList failed $e" }
+            return CommonResult.error("Admin searchCorpList failed $e")
         }
     }
 

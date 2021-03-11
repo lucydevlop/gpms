@@ -3,6 +3,8 @@ package io.glnt.gpms.handler.dashboard.admin.model
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.enums.*
 import java.time.LocalDateTime
+import javax.persistence.EnumType
+import javax.persistence.Enumerated
 
 data class reqCreateFacility(
     var fname: String,
@@ -49,4 +51,11 @@ data class reqCreateProductTicket(
     var ticketType: TicketType? = null,
     var vehicleType: VehicleType? = null,
     var corpSn: Long? = null
+)
+
+data class reqSearchCorp(
+    var corpId: String? = null,
+    var searchLabel: String? = null,
+    var searchText: String? = null,
+    @Enumerated(EnumType.STRING) var useStatus: DelYn? = null
 )

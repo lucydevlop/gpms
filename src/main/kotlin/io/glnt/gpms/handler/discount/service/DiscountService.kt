@@ -99,16 +99,16 @@ class DiscountService {
         try {
             val result = ArrayList<Int>()
             discountClassRepository.findBySn(request.ticketSn).let { discountClass ->
-                var no = inoutDiscountRepository.findByTicketSnAndInSnAndDelYn(request.ticketSn, request.inSn, DelYn.N)?.sumBy { it -> it.quantity!! }.also {
+                inoutDiscountRepository.findByTicketSnAndInSnAndDelYn(request.ticketSn, request.inSn, DelYn.N)?.sumBy { it -> it.quantity!! }.also {
                     if (it!! > discountClass.disMaxNo!!) return 0
                     if (it == 0) result.add(discountClass.disMaxNo!!) else  result.add(it)
                 }
-                var day = inoutDiscountRepository.findByTicketSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(
+                inoutDiscountRepository.findByTicketSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(
                     request.ticketSn, DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate), DateUtil.lastTimeToLocalDateTime(DateUtil.nowDate), DelYn.N )?.sumBy { it -> it.quantity!! }.also {
                     if (it!! > discountClass.disMaxDay!!) return 0
                     if (it == 0) result.add(discountClass.disMaxDay!!) else  result.add(it)
                 }
-                val month = inoutDiscountRepository.findByTicketSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(
+                inoutDiscountRepository.findByTicketSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(
                     request.ticketSn, DateUtil.firstDayToLocalDateTime(DateUtil.nowDate), DateUtil.lastDayToLocalDateTime(DateUtil.nowDate), DelYn.N )?.sumBy { it -> it.quantity!! }.also {
                     if (it!! > discountClass.disMaxMonth!!) return 0
                     if (it == 0) result.add(discountClass.disMaxMonth!!) else  result.add(it)

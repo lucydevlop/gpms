@@ -906,7 +906,7 @@ class InoutService {
                 parkinglotService.getFacilityByGateAndCategory(request.inGateId!!, "LPR")?.let { its ->
                     its.filter { it.lprType == LprTypeStatus.OUTFRONT }
                 }?.let { facilies ->
-                    var newOut = parkOut(
+                    parkOut(
                         reqAddParkOut(vehicleNo = request.vehicleNo!!,
                             dtFacilitiesId = facilies[0].dtFacilitiesId,
                             date = request.outDate!!,

@@ -86,5 +86,12 @@ class DashboardAdminController {
         return CommonResult.returnResult(dashboardAdminService.createProductTicket(request))
     }
 
+    @RequestMapping(value = ["/corp/list"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun searchCorpList(@RequestBody request: reqSearchCorp) : ResponseEntity<CommonResult> {
+        logger.trace("corp search : $request")
+        return CommonResult.returnResult(dashboardAdminService.searchCorpList(request))
+    }
+
     companion object : KLogging()
 }

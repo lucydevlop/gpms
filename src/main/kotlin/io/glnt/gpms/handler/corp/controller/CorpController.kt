@@ -5,8 +5,8 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.parkinglot.controller.ParkinglotController
-import io.glnt.gpms.handler.corp.model.reqSearchCorp
 import io.glnt.gpms.handler.corp.service.CorpService
+import io.glnt.gpms.handler.dashboard.admin.model.reqSearchCorp
 import io.glnt.gpms.handler.discount.model.reqSearchDiscount
 import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.model.entity.Corp
