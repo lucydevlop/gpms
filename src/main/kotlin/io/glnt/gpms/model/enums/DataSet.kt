@@ -116,12 +116,15 @@ enum class TimeTarget(val code: String, val desc: String) {
     NOW("NOW", "현재")
 }
 
-
-
 enum class OpenActionType(val code: String, val desc: String) {
     NONE("NONE", "제한없음"),
     RECOGNITION("RECOGNITION", "인식"),
     RESTRICT("RESTRICT", "제한")
+}
+
+enum class DiscountApplyType(val code: String, val desc: String) {
+    TIME("TIME", "시간"),
+    WON("WON", "금액"),
 }
 
 

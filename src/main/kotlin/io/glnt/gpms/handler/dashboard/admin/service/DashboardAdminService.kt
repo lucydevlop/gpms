@@ -5,6 +5,7 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.corp.service.CorpService
 import io.glnt.gpms.handler.dashboard.admin.model.*
+import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
@@ -42,6 +43,9 @@ class DashboardAdminService {
 
     @Autowired
     lateinit var corpService: CorpService
+
+    @Autowired
+    lateinit var discountService: DiscountService
 
     @Throws(CustomException::class)
     fun getMainGates(): CommonResult {
@@ -240,5 +244,21 @@ class DashboardAdminService {
         }
     }
 
-
+    @Throws(CustomException::class)
+    fun createCorpTicket(request: reqCreateCorpTicket): CommonResult {
+        try {
+            val data = discountService.createCorpTicket(request)
+            when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(data.data)
+                }
+                else -> {
+                    return CommonResult.data()
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin createCorpTicket failed $e" }
+            return CommonResult.error("Admin createCorpTicket failed $e")
+        }
+    }
 }

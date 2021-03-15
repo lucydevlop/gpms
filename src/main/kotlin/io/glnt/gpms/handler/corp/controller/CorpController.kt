@@ -7,7 +7,6 @@ import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.parkinglot.controller.ParkinglotController
 import io.glnt.gpms.handler.corp.service.CorpService
 import io.glnt.gpms.handler.dashboard.admin.model.reqSearchCorp
-import io.glnt.gpms.handler.discount.model.reqSearchDiscount
 import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.model.entity.Corp
 import mu.KLogging
@@ -65,19 +64,19 @@ class CorpController {
         }
     }
 
-    @RequestMapping(value = ["/ticket"], method = [RequestMethod.POST])
-    @Throws(CustomException::class)
-    fun getCorpTicket(@RequestBody request: reqSearchDiscount) : ResponseEntity<CommonResult> {
-        logger.debug("list corp = $request")
-        val result = discountService.getByCorp(request)
-
-        return when(result.code) {
-            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
-            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
-            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
-
-        }
-    }
+//    @RequestMapping(value = ["/ticket"], method = [RequestMethod.POST])
+//    @Throws(CustomException::class)
+//    fun getCorpTicket(@RequestBody request: reqSearchDiscount) : ResponseEntity<CommonResult> {
+//        logger.debug("list corp = $request")
+//        val result = discountService.getByCorp(request)
+//
+//        return when(result.code) {
+//            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+//            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+//            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+//
+//        }
+//    }
 
 
     companion object : KLogging()

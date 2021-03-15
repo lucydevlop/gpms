@@ -93,5 +93,12 @@ class DashboardAdminController {
         return CommonResult.returnResult(dashboardAdminService.searchCorpList(request))
     }
 
+    @RequestMapping(value = ["/corp/ticket/create"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun createCorpTicket(@RequestBody request: reqCreateCorpTicket) : ResponseEntity<CommonResult> {
+        logger.trace("corp create ticket : $request")
+        return CommonResult.returnResult(dashboardAdminService.createCorpTicket(request))
+    }
+
     companion object : KLogging()
 }

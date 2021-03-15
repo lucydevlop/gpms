@@ -59,3 +59,9 @@ data class reqSearchCorp(
     var searchText: String? = null,
     @Enumerated(EnumType.STRING) var useStatus: DelYn? = null
 )
+
+data class reqCreateCorpTicket(
+    var corpSn: Long,
+    var discountClassSn: Long,
+    var quantity: Int? = 1
+)

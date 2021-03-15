@@ -12,4 +12,5 @@ interface CorpRepository: JpaRepository<Corp, Long> {
     fun findByCorpName(corpName: String): Corp?
     fun findByCorpNameAndCeoName(corpName: String, ceoName: String) : Corp?
     fun findAll(specification: Specification<Corp>): List<Corp>?
+    fun findByCorpNameContaining(corpName: String): List<Corp>?
 }

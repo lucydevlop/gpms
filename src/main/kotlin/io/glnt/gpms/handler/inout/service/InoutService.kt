@@ -469,7 +469,7 @@ class InoutService {
 //                if (gate.takeAction == "GATE") {
 
                 if (parkinglotService.parkSite!!.saleType == SaleType.PAID && parkIn != null) {
-                    price = feeCalculation.getBasicPayment(parkIn!!.inDate!!, date, VehicleType.SMALL, vehicleNo, 1, 0)
+                    price = feeCalculation.getBasicPayment(parkIn!!.inDate!!, date, VehicleType.SMALL, vehicleNo, 1, 0, parkIn!!.sn)
                     logger.info { "-------------------getBasicPayment Result -------------------" }
                     logger.info { "입차시간 : $parkIn!!.inDate!! / 출차시간 : $date / 주차시간: ${price!!.parkTime}" }
                     logger.info { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price!!.totalPrice}" }

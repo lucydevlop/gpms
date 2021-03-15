@@ -49,9 +49,10 @@ class CalcController {
 
     @RequestMapping(value = ["/inout"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
-    fun calcInout(@RequestBody request: reqCalc) {
+    fun calcInout(@RequestBody request: reqCalc) : ResponseEntity<*> {
         feeCalculation.init()
-        feeCalculation.getBasicPayment(request.inTime, request.outTime, request.vehicleType, request.vehicleNo, request.type, request.discountMin)
+        return ResponseEntity(feeCalculation.getBasicPayment(request.inTime, request.outTime, request.vehicleType, request.vehicleNo, request.type, request.discountMin, request.inSn), HttpStatus.OK)
+
     }
 
     companion object : KLogging()

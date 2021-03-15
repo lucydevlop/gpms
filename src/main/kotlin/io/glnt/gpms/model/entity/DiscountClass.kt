@@ -5,10 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.entity.Auditable
-import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.DiscountRangeType
-import io.glnt.gpms.model.enums.SaleType
-import io.glnt.gpms.model.enums.TimeTarget
+import io.glnt.gpms.model.enums.*
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -29,6 +26,10 @@ data class DiscountClass(
 
     @Column(name = "class", nullable = false)
     var discountNm: String,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "discount_apply_type", nullable = true)
+    var discountApplyType: DiscountApplyType? = DiscountApplyType.TIME,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "time_target", nullable = true)

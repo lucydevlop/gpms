@@ -29,14 +29,9 @@ class CorpService {
         logger.info { "getCorp $request" }
         try {
             request.searchLabel?.let {
-                val list : Any? =
-                    when (it) {
-                        "CORPID" -> corpRepository.findByCorpId(request.searchText!!)
-                        "CORPNAME" -> corpRepository.findByCorpName(request.searchText!!)
-                        else -> null
-
-                    }
-                return CommonResult.data(list)
+                corpRepository.findAll(findAllCorpSpecification(request)).let {
+                    return CommonResult.data(it)
+                }
             }
             request.corpId?.let {
                 val list = corpRepository.findByCorpId(it)
@@ -83,14 +78,14 @@ class CorpService {
         val spec = Specification<Corp> { root, query, criteriaBuilder ->
             val clues = mutableListOf<Predicate>()
 
-            if (request.searchLabel == "ID" && request.searchText != null) {
+            if ((request.searchLabel == "ID" || request.searchLabel == "CORPID") && request.searchText != null) {
                 val likeValue = "%" + request.searchText + "%"
                 clues.add(
                     criteriaBuilder.like(criteriaBuilder.upper(root.get<String>("corpId")), likeValue)
                 )
             }
 
-            if (request.searchLabel == "NAME" && request.searchText != null) {
+            if ((request.searchLabel == "NAME"|| request.searchLabel == "CORPNAME") && request.searchText != null) {
                 val likeValue = "%" + request.searchText + "%"
                 clues.add(
                     criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("corpName")), likeValue)
