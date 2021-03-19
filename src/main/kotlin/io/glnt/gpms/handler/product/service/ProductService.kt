@@ -3,6 +3,7 @@ package io.glnt.gpms.handler.product.service
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.dashboard.admin.model.reqSearchProductTicket
 import io.glnt.gpms.handler.product.model.reqCreateProduct
 import io.glnt.gpms.handler.product.model.reqSearchProduct
 import io.glnt.gpms.model.entity.ProductTicket
@@ -114,10 +115,10 @@ class ProductService {
 
     @Transactional
     fun saveProductTicket(data: ProductTicket) : ProductTicket {
-        return productTicketRepository.save(data)
+        return productTicketRepository.saveAndFlush(data)
     }
 
-    fun getProducts(request: reqSearchProduct): CommonResult {
+    fun getProducts(request: reqSearchProductTicket): CommonResult {
         return CommonResult.data(productTicketRepository.findAll(findAllProductSpecification(request)))
     }
 
@@ -134,7 +135,7 @@ class ProductService {
         return CommonResult.error("deleteTicket failed")
     }
 
-    private fun findAllProductSpecification(request: reqSearchProduct): Specification<ProductTicket> {
+    private fun findAllProductSpecification(request: reqSearchProductTicket): Specification<ProductTicket> {
         val spec = Specification<ProductTicket> { root, query, criteriaBuilder ->
             val clues = mutableListOf<Predicate>()
 

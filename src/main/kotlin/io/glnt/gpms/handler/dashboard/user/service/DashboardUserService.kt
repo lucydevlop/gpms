@@ -127,7 +127,8 @@ class DashboardUserService {
                                 "dayMax" to data.discountClass!!.disMaxDay,
                                 "monthMax" to data.discountClass!!.disMaxMonth,
                                 "totalCnt" to data.totalQuantity,
-                                "ableCnt" to data.totalQuantity - data.useQuantity
+                                "ableCnt" to data.totalQuantity - data.useQuantity,
+                                "unit" to data.discountClass!!.unitTime
                             ))
                         }
                         return CommonResult.data(result)

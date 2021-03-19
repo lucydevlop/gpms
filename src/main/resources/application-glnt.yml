@@ -31,6 +31,9 @@ logging:
 image:
   filepath: C://park//save
 
+file:
+  filepath: C://park//data
+
 tmap:
   send: "OFF"
   url: http://127.0.0.1:10000/api/v1/manage/devices/events

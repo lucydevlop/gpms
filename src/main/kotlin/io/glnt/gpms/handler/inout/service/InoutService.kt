@@ -83,12 +83,30 @@ class InoutService {
     fun parkIn(request: reqAddParkIn) : CommonResult = with(request){
         logger.info{"parkIn service car_num:${request.vehicleNo} facility_id:${request.dtFacilitiesId} in_date:${request.date} result_code:${request.resultcode} uuid:${request.uuid}"}
         try {
-            // UUID 없을 경우(Back 입차) deviceIF -> OFF 로 전환
-            if (uuid == null) deviceIF = "OFF"
 
             // gate up(option check)
             // todo 요일제 차량 옵션 적용
             parkinglotService.getGateInfoByDtFacilityId(dtFacilitiesId) ?.let { gate ->
+                // UUID 없을 경우(Back 입차) deviceIF -> OFF 로 전환
+                // 동입 입차 처리 skip
+                if (uuid!!.isEmpty()) {
+                    deviceIF = "OFF"
+                    if (parkInRepository.findByVehicleNoEndsWithAndOutSnAndGateId(vehicleNo, 0, gate.gateId)!!.isNotEmpty()) {
+                        return CommonResult.data()
+                    }
+                } else {
+                    requestId = parkinglotService.generateRequestId()
+                    // UUID 확인 후 Update
+                    parkInRepository.findByUuid(uuid!!)?.let {
+                        deviceIF = "OFF"
+                        inSn = it.sn
+                        requestId = it.requestid
+                        if (it.vehicleNo == vehicleNo) return CommonResult.data()
+                        if (resultcode == "0" || resultcode.toInt() >= 100) { return CommonResult.data() }
+
+                    }
+                }
+
                 val facility = parkinglotService.getFacilityByDtFacilityId(dtFacilitiesId)
                 // 만차 제어 설정 시 count 확인 후 skip
                 if (parkinglotService.parkSite!!.space != null) {
@@ -135,24 +153,6 @@ class InoutService {
                 } else {
                     parkingtype = "UNRECOGNIZED"
                     recognitionResult = "NOTRECOGNITION"
-                }
-
-                requestId = parkinglotService.generateRequestId()
-
-
-
-                // Back 입차 시
-                if (uuid == null) {
-                    if (parkInRepository.findByVehicleNoEndsWithAndOutSnAndGateId(vehicleNo, 0, gate.gateId)!!.isNotEmpty()) {
-                        return CommonResult.data()
-                    }
-                } else {
-                    // UUID 확인 후 Update
-                    parkInRepository.findByUuid(uuid!!)?.let {
-                        deviceIF = "OFF"
-                        inSn = it.sn
-                        requestId = it.requestid
-                    }
                 }
 
                 // 입차 정보 DB insert
@@ -203,11 +203,11 @@ class InoutService {
                             }
                         }
                         else -> {
-                            relayService.actionGate(gate.gateId, "GATE", "open")
-                            displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+
                         }
                     }
-
+                    displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+                    relayService.actionGate(gate.gateId, "GATE", "open")
 
 //                    if (gate.openAction != OpenActionType.NONE) {
 //                        if ("NORMAL" == parkingtype || "UNRECOGNIZED" == parkingtype) {
@@ -916,7 +916,7 @@ class InoutService {
                     else -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, type)
                 }
             }
-            "SEASONTICKET", "WHITELIST" -> {
+            "SEASONTICKET", "WHITELIST", "FREETICKET" -> {
                 val days = productService.calcRemainDayProduct(vehicleNo)
                 if (days in 1..7)
                     makeParkPhrase("VIP", vehicleNo, "잔여 0${days}일", type)

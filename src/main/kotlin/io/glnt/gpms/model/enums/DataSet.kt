@@ -69,7 +69,11 @@ enum class TicketType(val code: String, val desc: String) {
     DAYTICKET("DAYTICKET", "일일권"),
     FREETICKET("FREETICKET", "무료주차권"),
     CORPTICKET("CORPTICKET", "입주사할인권"),
-    ETC("ETC", "기타"),
+    ETC("ETC", "기타");
+
+    companion object {
+        fun from(s: String): TicketType? = values().find { it.desc == s }
+    }
 }
 
 enum class DiscountRangeType(val code: String, val desc: String) {
@@ -127,7 +131,12 @@ enum class DiscountApplyType(val code: String, val desc: String) {
     WON("WON", "금액"),
 }
 
-
+enum class ErrorCode {
+    NOT_FOUND,
+    ALREADY_EXISTS,
+    ACCESS_DENIED,
+    INCORRECT_VALUE
+}
 
 //enum class parkCarType {
 //    "일반차량", "정기권차량", "미인식차량"

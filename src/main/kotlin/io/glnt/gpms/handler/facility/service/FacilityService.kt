@@ -383,7 +383,7 @@ class FacilityService {
     }
 
     fun updateHealthCheck(dtFacilitiesId: String, status: String) {
-        logger.info { "updateHealthCheck facility $dtFacilitiesId status $status" }
+        logger.trace { "updateHealthCheck facility $dtFacilitiesId status $status" }
         try {
             facilityRepository.findByDtFacilitiesId(dtFacilitiesId)?.let { facility ->
                 facility.health = status

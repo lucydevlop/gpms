@@ -31,6 +31,9 @@ logging:
 image:
   filepath: /Users/lucy/project/glnt/park
 
+file:
+  filepath: /Users/lucy/project/glnt/park/data
+
 tmap:
   send: off
   url: http://127.0.0.1:10000/api/v1/manage/devices/events

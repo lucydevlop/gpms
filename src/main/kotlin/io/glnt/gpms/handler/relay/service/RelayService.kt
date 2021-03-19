@@ -409,7 +409,7 @@ class RelayService {
     }
 
     fun sendDisplayMessage(data: Any, gate: String) {
-        logger.info { "sendPaystation request $data $gate" }
+        logger.warn { "sendPaystation request $data $gate" }
         parkinglotService.getFacilityByGateAndCategory(gate, "DISPLAY")?.let { its ->
             its.forEach {
                 restAPIManager.sendPostRequest(

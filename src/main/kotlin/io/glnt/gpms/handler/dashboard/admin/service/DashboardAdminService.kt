@@ -15,12 +15,16 @@ import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.model.reqCreateProduct
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.relay.service.RelayService
+import io.glnt.gpms.io.glnt.gpms.handler.file.service.ExcelUploadService
 import io.glnt.gpms.model.entity.Facility
 import io.glnt.gpms.model.entity.Gate
+import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.model.enums.DelYn
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 
 @Service
 class DashboardAdminService {
@@ -46,6 +50,9 @@ class DashboardAdminService {
 
     @Autowired
     lateinit var discountService: DiscountService
+
+    @Autowired
+    lateinit var excelService: ExcelUploadService
 
     @Throws(CustomException::class)
     fun getMainGates(): CommonResult {
@@ -261,4 +268,64 @@ class DashboardAdminService {
             return CommonResult.error("Admin createCorpTicket failed $e")
         }
     }
+
+    @Throws(CustomException::class)
+    @Transactional
+    fun createProductTicketByFiles(file: MultipartFile): CommonResult {
+        try{
+            //todo validate
+            val data = excelService.loadExcel(file, "SEASONTICKET")
+            when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(data.data)
+                }
+                else -> {
+                    return CommonResult.error("file upload failed")
+                }
+            }
+
+        } catch (e: CustomException){
+            logger.error { "Admin createProductTicketByFiles failed $e" }
+            return CommonResult.error("Admin createProductTicketByFiles failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
+    @Transactional
+    fun createTemplateOfProductTicket(): CommonResult {
+        try{
+            val data = productService.getProducts(reqSearchProductTicket(searchLabel = "", searchText = ""))
+            when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(excelService.downloadTemplateOfProductTicket(data.data as List<ProductTicket>))
+                }
+                else -> {
+                    return CommonResult.error("file upload failed")
+                }
+            }
+
+        } catch (e: CustomException){
+            logger.error { "Admin createProductTicketByFiles failed $e" }
+            return CommonResult.error("Admin createProductTicketByFiles failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun searchProductTicket(request: reqSearchProductTicket): CommonResult {
+        try{
+            val data = productService.getProducts(request)
+            when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(data.data)
+                }
+                else -> {
+                    return CommonResult.error("file upload failed")
+                }
+            }
+        } catch (e: CustomException){
+            logger.error { "Admin searcgParkinglotProduct failed $e" }
+            return CommonResult.error("Admin searcgParkinglotProduct failed $e")
+        }
+    }
+
 }

@@ -9,12 +9,19 @@ import io.glnt.gpms.handler.dashboard.admin.service.DashboardAdminService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.product.model.reqCreateProduct
+import io.glnt.gpms.handler.product.model.reqSearchProduct
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.InputStreamResource
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import retrofit2.http.Path
+import java.io.File
 
 @RestController
 @RequestMapping(
@@ -79,11 +86,61 @@ class DashboardAdminController {
         return CommonResult.returnResult(dashboardAdminService.createMessage(request))
     }
 
-    @RequestMapping(value = ["/product/add/ticket"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/product/ticket/list"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun searchProductTicket(@RequestBody request: reqSearchProductTicket) : ResponseEntity<CommonResult> {
+        logger.trace("parkinglot product list = $request")
+        return CommonResult.returnResult(dashboardAdminService.searchProductTicket(request))
+    }
+
+    @RequestMapping(value = ["/product/ticket/download"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @Throws(CustomException::class)
+    fun downloadTemplateOfProductTicket() : ResponseEntity<*> {
+        logger.trace("parkinglot product list download")
+        val result = dashboardAdminService.createTemplateOfProductTicket()
+        val headers = HttpHeaders()
+        headers.add("Cache-Control", "no-cache, no-store, must-revalidate")
+        headers.add("content-disposition", String.format("attachment; filename=product.csv"))
+        headers.add("filename", String.format("attachment; filename=product.csv"))
+        headers.add("Pragma", "no-cache")
+        headers.add("Expires", "0")
+        when (result.code) {
+            ResultCode.SUCCESS.getCode() -> {
+
+                val file: File = result.data as File
+                val filePath = file.absolutePath
+                val excelFile = FileSystemResource(filePath)
+                return ResponseEntity
+                    .ok()
+                    .header("Content-type", "application/octet-stream")
+                    .header("Content-disposition", "attachment; filename=product.csv")
+                    .contentLength(excelFile.contentLength())
+//                        .contentType(MediaType.parseMediaType("application/octet-stream"))
+                    .body(excelFile)
+            }
+        }
+        return ResponseEntity
+            .badRequest()
+            .headers(headers)
+            .contentLength(0)
+            .contentType(MediaType.parseMediaType("application/octet-stream"))
+            .body(null)
+
+//        return CommonResult.returnFile(dashboardAdminService.createTemplateOfProductTicket(), "product")
+    }
+
+    @RequestMapping(value = ["/product/ticket/add"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun createProductTicket(@RequestBody request: reqCreateProductTicket) : ResponseEntity<CommonResult> {
         logger.trace("parkinglot product create : $request")
         return CommonResult.returnResult(dashboardAdminService.createProductTicket(request))
+    }
+
+    @RequestMapping(value = ["/product/add/file"], method = [RequestMethod.POST], consumes = ["multipart/form-data"])
+    @Throws(CustomException::class)
+    fun createProductTicketByFiles(@RequestParam("file") file: MultipartFile) : ResponseEntity<CommonResult> {
+        logger.trace("parkinglot product create file : ${file.name}")
+        return CommonResult.returnResult(dashboardAdminService.createProductTicketByFiles(file))
     }
 
     @RequestMapping(value = ["/corp/list"], method = [RequestMethod.POST])

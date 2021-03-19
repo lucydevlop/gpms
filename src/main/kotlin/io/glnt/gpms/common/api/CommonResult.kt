@@ -2,8 +2,14 @@ package io.glnt.gpms.common.api
 
 import io.glnt.gpms.common.api.IErrorCode
 import io.glnt.gpms.common.api.ResultCode
+import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.InputStreamResource
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import java.io.File
+import java.io.InputStream
 
 class CommonResult {
     var code : Any? = 200
@@ -89,6 +95,35 @@ class CommonResult {
                 ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.OK)
                 ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
                 else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+            }
+        }
+        fun returnFile(result: CommonResult, name: String): ResponseEntity<FileSystemResource?> {
+            val headers = HttpHeaders()
+            headers.add("Cache-Control", "no-cache, no-store, must-revalidate")
+            headers.add("content-disposition", String.format("attachment; filename=$name.csv"))
+            headers.add("filename", String.format("attachment; filename=$name.csv"))
+            headers.add("Pragma", "no-cache")
+            headers.add("Expires", "0")
+
+            when(result.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    val file: File = result.data as File
+                    val filePath = file.absolutePath
+                    val excelFile = FileSystemResource(filePath)
+                    return ResponseEntity
+                        .ok()
+                        .header("Content-type", "application/octet-stream")
+                        .header("Content-disposition", "attachment; filename=\"$name.csv\"")
+                        .contentLength(excelFile.contentLength())
+//                        .contentType(MediaType.parseMediaType("application/octet-stream"))
+                        .body(excelFile)
+                }
+                else -> return ResponseEntity
+                    .badRequest()
+                    .headers(headers)
+                    .contentLength(0)
+                    .contentType(MediaType.parseMediaType("application/octet-stream"))
+                    .body(null)
             }
         }
     }
