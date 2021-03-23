@@ -15,11 +15,13 @@ import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.model.reqCreateProduct
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.relay.service.RelayService
+import io.glnt.gpms.handler.user.service.AuthService
 import io.glnt.gpms.io.glnt.gpms.handler.file.service.ExcelUploadService
 import io.glnt.gpms.model.entity.Facility
 import io.glnt.gpms.model.entity.Gate
 import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.UserRole
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -53,6 +55,9 @@ class DashboardAdminService {
 
     @Autowired
     lateinit var excelService: ExcelUploadService
+
+    @Autowired
+    lateinit var userService: AuthService
 
     @Throws(CustomException::class)
     fun getMainGates(): CommonResult {
@@ -314,17 +319,35 @@ class DashboardAdminService {
     fun searchProductTicket(request: reqSearchProductTicket): CommonResult {
         try{
             val data = productService.getProducts(request)
-            when (data.code) {
+            return when (data.code) {
                 ResultCode.SUCCESS.getCode() -> {
-                    return CommonResult.data(data.data)
+                    CommonResult.data(data.data)
                 }
                 else -> {
-                    return CommonResult.error("file upload failed")
+                    CommonResult.error("file upload failed")
                 }
             }
         } catch (e: CustomException){
             logger.error { "Admin searcgParkinglotProduct failed $e" }
             return CommonResult.error("Admin searcgParkinglotProduct failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun searchAdminUsers(request: reqSearchItem): CommonResult {
+        try{
+            val data = userService.searchUsers(reqSearchItem(searchLabel = request.searchLabel, searchText = request.searchText, searchRole = UserRole.ADMIN))
+            return when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    CommonResult.data(data.data)
+                }
+                else -> {
+                    CommonResult.error("file upload failed")
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin searchAdminUsers failed $e" }
+            return CommonResult.error("Admin searchAdminUsers failed $e")
         }
     }
 

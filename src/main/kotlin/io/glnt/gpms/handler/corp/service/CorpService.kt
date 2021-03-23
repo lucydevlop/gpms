@@ -78,6 +78,12 @@ class CorpService {
         val spec = Specification<Corp> { root, query, criteriaBuilder ->
             val clues = mutableListOf<Predicate>()
 
+            if ((request.searchLabel == "SN" || request.searchLabel == "CORPSN") && request.searchText != null) {
+                clues.add(
+                    criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("sn")), request.searchText!!.toLong())
+                )
+            }
+
             if ((request.searchLabel == "ID" || request.searchLabel == "CORPID") && request.searchText != null) {
                 val likeValue = "%" + request.searchText + "%"
                 clues.add(

@@ -24,6 +24,9 @@ data class InoutDiscount(
     @Column(name = "discount_type", nullable = false)
     var discontType: TicketType? = TicketType.CORPTICKET,
 
+    @Column(name = "discount_class_sn")
+    var discountClassSn: Long? = null,
+
     @Column(name = "ticket_hist_sn", nullable = true)
     var ticketHistSn: Long? = null,
 
@@ -52,4 +55,9 @@ data class InoutDiscount(
     @JoinColumn(name = "ticket_hist_sn", referencedColumnName = "sn", insertable = false, updatable = false)
     @Where(clause = "del_yn = 'N'")
     var ticketHist: CorpTicketHistory? = null
+
+    @OneToOne//(mappedBy = "serviceProduct", cascade = arrayOf(CascadeType.ALL), fetch = FetchType.EAGER)
+    @JoinColumn(name = "corp_class_sn", referencedColumnName = "sn", insertable = false, updatable = false)
+    @Where(clause = "del_yn = 'N'")
+    var discountClass: DiscountClass? = null
 }

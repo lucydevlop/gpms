@@ -7,20 +7,14 @@ import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.dashboard.admin.model.*
 import io.glnt.gpms.handler.dashboard.admin.service.DashboardAdminService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
-import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
-import io.glnt.gpms.handler.product.model.reqCreateProduct
-import io.glnt.gpms.handler.product.model.reqSearchProduct
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.FileSystemResource
-import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import retrofit2.http.Path
 import java.io.File
 
 @RestController
@@ -31,6 +25,13 @@ import java.io.File
 class DashboardAdminController {
     @Autowired
     private lateinit var dashboardAdminService: DashboardAdminService
+
+    @RequestMapping(value = ["/list"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun searchAdminUsers(@RequestBody request: reqSearchItem) : ResponseEntity<CommonResult> {
+        logger.trace("searchAdminUsers $request")
+        return CommonResult.returnResult(dashboardAdminService.searchAdminUsers(request))
+    }
 
     @RequestMapping(value=["/main/gate"], method = [RequestMethod.GET])
     fun getMainGates() : ResponseEntity<CommonResult> {

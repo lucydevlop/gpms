@@ -49,6 +49,8 @@ data class CorpTicketInfo(
     @JoinColumn(name = "corp_sn", referencedColumnName = "sn", insertable = false, updatable = false)
     @Where(clause = "del_yn = 'N'")
     var corp: Corp? = null
+
+    var ableCnt: Int? = 0
 }
 
 @Entity

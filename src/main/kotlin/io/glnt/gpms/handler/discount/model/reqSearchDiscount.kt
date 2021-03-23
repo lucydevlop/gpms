@@ -4,7 +4,7 @@ import io.glnt.gpms.model.enums.TicketType
 import java.time.LocalDateTime
 
 data class reqDiscountableTicket(
-    var corpId: String,
+    var corpSn: Long,
     var date: LocalDateTime?,
     var inSn: Long?
 )
@@ -24,5 +24,6 @@ data class reqAddInoutDiscount(
     var inSn: Long,
     var ticketSn: Long,
     var discountType: TicketType,
-    var quantity: Int? = 1
+    var quantity: Int? = 1,
+    var discountClassSn: Long
 )

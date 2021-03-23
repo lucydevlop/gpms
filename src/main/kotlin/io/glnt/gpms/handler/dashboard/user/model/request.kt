@@ -16,7 +16,7 @@ data class reqParkingDiscounTicketSearch(
 data class reqParkingDiscountAbleTicketsSearch(
     var inSn: Long? = null,
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss") var inDate: LocalDateTime? = null,
-    var corpId: String
+    var corpSn: Long
 )
 
 data class reqParkingDiscountAddTicket(

@@ -137,32 +137,37 @@ class DiscountService {
 
 
     fun getDiscountableTickets(request: reqDiscountableTicket): CommonResult {
-//        logger.info { "getDiscountableTickets $request" }
-//        try {
-//            val tickets = searchCorpTicketByCorp(reqParkingDiscountSearchTicket(searchLabel = "CORPID", searchText=request.corpId))
-//            val weekRange = DateUtil.getWeekRange(DateUtil.formatDateTime(request.date!!, "yyyy-MM-dd"))
-//
-//            if (tickets.code == ResultCode.SUCCESS.getCode() && tickets.data != null) {
-//                val data = ArrayList<CorpTicket>()
-//                for (ticket in tickets.data as List<CorpTicket>) {
-//                    ticket.ableCnt = getInoutDiscount(reqSearchInoutDiscount(ticketSn = ticket.discountClass!!.sn!!, inSn = request.inSn!!))
-//                    if (ticket.ableCnt != null) {
-//                        if (ticket.ableCnt!! > 0 ) data.add(ticket)
-//                    }
-//                }
-//
-//                val result = data.filter {
-//                    // 입차 요일 확인
-//                    ( it.discountClass!!.dayRange == weekRange || it.discountClass!!.dayRange == DiscountRangeType.ALL)
-//                }
-//                if (result.isNullOrEmpty()) return CommonResult.data()
-//                return CommonResult.data(result)
-//            }
+        logger.info { "getDiscountableTickets $request" }
+        try {
+            val tickets = searchCorpTicketByCorp(reqParkingDiscountSearchTicket(searchLabel = "CORPSN", searchText=request.corpSn.toString()))
+            val weekRange = DateUtil.getWeekRange(DateUtil.formatDateTime(request.date!!, "yyyy-MM-dd"))
+
+            if (tickets.code == ResultCode.SUCCESS.getCode() && tickets.data != null) {
+                val data = ArrayList<CorpTicketInfo>()
+
+
+                for (ticket in tickets.data as List<CorpTicketInfo>) {
+                    corpTicketHistoryRepository.findByTicketSnAndDelYn(ticket.sn!!, DelYn.N)?.let { hist ->
+                        ticket.ableCnt = getAbleDiscountCnt(reqSearchInoutDiscount(ticketSn = ticket.discountClass!!.sn!!, inSn = request.inSn!!))
+                        if (ticket.ableCnt != null) {
+                            if (ticket.ableCnt!! > 0 ) data.add(ticket)
+                        }
+                    }
+
+                }
+
+                val result = data.filter {
+                    // 입차 요일 확인
+                    ( it.discountClass!!.dayRange == weekRange || it.discountClass!!.dayRange == DiscountRangeType.ALL)
+                }
+                if (result.isNullOrEmpty()) return CommonResult.data()
+                return CommonResult.data(result)
+            }
             return CommonResult.data()
-//        }catch (e: CustomException){
-//            logger.error { "getDiscountableTickets error ${e.message}" }
-//            return CommonResult.error("getDiscountableTickets search failed")
-//        }
+        }catch (e: CustomException){
+            logger.error { "getDiscountableTickets error ${e.message}" }
+            return CommonResult.error("getDiscountableTickets search failed")
+        }
     }
 
     fun getAbleDiscountCnt(request: reqSearchInoutDiscount) : Int? {
@@ -170,19 +175,19 @@ class DiscountService {
         try {
             val result = ArrayList<Int>()
             discountClassRepository.findBySn(request.ticketSn).let { discountClass ->
-                inoutDiscountRepository.findByTicketHistSnAndInSnAndDelYn(request.ticketSn, request.inSn, DelYn.N)?.sumBy { it -> it.quantity!! }.also {
+                inoutDiscountRepository.findByInSnAndDiscountClassSnAndDelYn(request.inSn, request.ticketSn, DelYn.N)?.sumBy { it -> it.quantity!! }.also {
                     if (it!! > discountClass.disMaxNo!!) return 0
-                    if (it == 0) result.add(discountClass.disMaxNo!!) else  result.add(it)
+                    if (it == 0) result.add(discountClass.disMaxNo!!) else  result.add(discountClass.disMaxNo!!-it)
                 }
-                inoutDiscountRepository.findByTicketHistSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(
+                inoutDiscountRepository.findByDiscountClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(
                     request.ticketSn, DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate), DateUtil.lastTimeToLocalDateTime(DateUtil.nowDate), DelYn.N )?.sumBy { it -> it.quantity!! }.also {
                     if (it!! > discountClass.disMaxDay!!) return 0
-                    if (it == 0) result.add(discountClass.disMaxDay!!) else  result.add(it)
+                    if (it == 0) result.add(discountClass.disMaxDay!!) else  result.add(discountClass.disMaxDay!!-it)
                 }
-                inoutDiscountRepository.findByTicketHistSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(
+                inoutDiscountRepository.findByDiscountClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(
                     request.ticketSn, DateUtil.firstDayToLocalDateTime(DateUtil.nowDate), DateUtil.lastDayToLocalDateTime(DateUtil.nowDate), DelYn.N )?.sumBy { it -> it.quantity!! }.also {
                     if (it!! > discountClass.disMaxMonth!!) return 0
-                    if (it == 0) result.add(discountClass.disMaxMonth!!) else  result.add(it)
+                    if (it == 0) result.add(discountClass.disMaxMonth!!) else  result.add(discountClass.disMaxMonth!!-it)
                 }
             }
             return result.min()
@@ -194,7 +199,7 @@ class DiscountService {
 
     fun addInoutDiscount(request: reqAddInoutDiscount): InoutDiscount {
         return inoutDiscountRepository.save(
-            InoutDiscount(sn = null, discontType = request.discountType,
+            InoutDiscount(sn = null, discontType = request.discountType, discountClassSn = request.discountClassSn,
                           ticketHistSn = request.ticketSn, inSn = request.inSn, quantity = request.quantity, delYn = DelYn.N))
     }
 

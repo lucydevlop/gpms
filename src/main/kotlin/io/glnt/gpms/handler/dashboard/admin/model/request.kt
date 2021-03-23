@@ -70,6 +70,12 @@ data class reqSearchCorp(
     @Enumerated(EnumType.STRING) var useStatus: DelYn? = null
 )
 
+data class reqSearchItem(
+    var searchLabel: String? = null,
+    var searchText: String? = null,
+    var searchRole: UserRole? = null
+)
+
 data class reqCreateCorpTicket(
     var corpSn: Long,
     var discountClassSn: Long,

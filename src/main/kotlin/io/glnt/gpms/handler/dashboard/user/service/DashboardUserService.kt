@@ -7,6 +7,7 @@ import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.dashboard.common.model.reqParkingDiscountSearchTicket
 import io.glnt.gpms.handler.dashboard.user.model.*
 import io.glnt.gpms.handler.discount.model.reqAddInoutDiscount
+import io.glnt.gpms.handler.discount.model.reqDiscountableTicket
 import io.glnt.gpms.handler.discount.model.reqSearchInoutDiscount
 import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.inout.service.InoutService
@@ -98,7 +99,18 @@ class DashboardUserService {
     @Throws(CustomException::class)
     fun parkingDiscountAbleTickets(request: reqParkingDiscountAbleTicketsSearch) : CommonResult {
         try {
-            val discountTickets = discountService.searchCorpTicketByCorp(reqParkingDiscountSearchTicket(searchLabel = "CORPID", searchText=request.corpId))
+            val discountTickets = if (request.inSn == null){
+                discountService.searchCorpTicketByCorp(reqParkingDiscountSearchTicket(searchLabel = "CORPSN", searchText=request.corpSn.toString()))
+            } else {
+                discountService.getDiscountableTickets(
+                    reqDiscountableTicket(
+                        corpSn = request.corpSn,
+                        date = request.inDate,
+                        inSn = request.inSn
+                    )
+                )
+            }
+
 //            val discountTickets = if (request.inSn == null){
 //                discountService.searchCorpTicketByCorp(reqParkingDiscountSearchTicket(searchLabel = "CORPID", searchText=request.corpId))
 //            } else {
@@ -119,6 +131,7 @@ class DashboardUserService {
                         val result = ArrayList<HashMap<String, Any?>>()
                         lists.forEach { data ->
                             result.add(hashMapOf(
+                                "discountClassSn" to data.discountClassSn,
                                 "discountName" to data.discountClass!!.discountNm,
                                 "dayRange" to data.discountClass!!.dayRange,
                                 "timeRange" to data.discountClass!!.timeRange,
@@ -127,7 +140,7 @@ class DashboardUserService {
                                 "dayMax" to data.discountClass!!.disMaxDay,
                                 "monthMax" to data.discountClass!!.disMaxMonth,
                                 "totalCnt" to data.totalQuantity,
-                                "ableCnt" to data.totalQuantity - data.useQuantity,
+                                "ableCnt" to if (request.inSn == null) data.totalQuantity - data.useQuantity else data.ableCnt, //,
                                 "unit" to data.discountClass!!.unitTime
                             ))
                         }
@@ -148,41 +161,50 @@ class DashboardUserService {
     }
 
     @Throws(CustomException::class)
-    fun parkingDiscountAddTicket(request: reqParkingDiscountAddTicket): CommonResult {
+    fun parkingDiscountAddTicket(request: ArrayList<reqParkingDiscountAddTicket>): CommonResult {
         try{
-            // 적합여부 확인
-            // Once 가능 횟수 > Day > Month
-            var useCnt = request.cnt
-            discountService.getAbleDiscountCnt(reqSearchInoutDiscount(ticketSn = request.discountClassSn, inSn = request.inSn))?.let {
-                if (it < request.cnt) return CommonResult.error("Exceeded the number of possible discounts")
-                // 보유 할인 확인
-                val data = discountService.searchCorpTicketByCorpAndDiscountClass(request.corpSn, request.discountClassSn)
-                when(data.code) {
-                    ResultCode.SUCCESS.getCode() -> {
-                        val corps: CorpTicketInfo? = data.data as? CorpTicketInfo
-                        corps?.let { ticket ->
-                            if (ticket.totalQuantity-ticket.useQuantity < request.cnt) return CommonResult.error("Exceeded the number of possible discounts")
-                            val cnt = request.cnt
-                            do {
-                                discountService.getDiscountableTicketsBySn(ticket.sn!!)?.let { history ->
-                                    useCnt = min(history.totalQuantity - history.useQuantity, request.cnt)
-                                    discountService.addInoutDiscount(reqAddInoutDiscount(inSn = request.inSn, discountType = TicketType.CORPTICKET, ticketSn = history.sn!!, quantity = useCnt))
-//                                    history.ableCnt = history.ableCnt.minus(useCnt)
-                                    history.useQuantity = history.useQuantity.plus(useCnt)
-                                    discountService.updateCorpTicketHistory(history)
-                                }
-                                request.cnt = request.cnt - useCnt
-                            }while(request.cnt > 0)
-                            ticket.useQuantity = ticket.useQuantity.plus(cnt)
-                            discountService.updateCorpTicketInfo(ticket)
-                        } ?: run{
-                            return CommonResult.notfound("corp ticket not found")
+            request.forEach { addTicket ->
+                // 적합여부 확인
+                // Once 가능 횟수 > Day > Month
+                var useCnt = addTicket.cnt
+                discountService.getAbleDiscountCnt(reqSearchInoutDiscount(ticketSn = addTicket.discountClassSn, inSn = addTicket.inSn))?.let {
+                    if (it < addTicket.cnt) return CommonResult.error("Exceeded the number of possible discounts")
+                    // 보유 할인 확인
+                    val data = discountService.searchCorpTicketByCorpAndDiscountClass(addTicket.corpSn, addTicket.discountClassSn)
+                    when(data.code) {
+                        ResultCode.SUCCESS.getCode() -> {
+                            val corps: CorpTicketInfo? = data.data as? CorpTicketInfo
+                            corps?.let { ticket ->
+                                if (ticket.totalQuantity-ticket.useQuantity < addTicket.cnt) return CommonResult.error("Exceeded the number of possible discounts")
+                                val cnt = addTicket.cnt
+                                do {
+                                    discountService.getDiscountableTicketsBySn(ticket.sn!!)?.let { history ->
+                                        useCnt = min(history.totalQuantity - history.useQuantity, addTicket.cnt)
+                                        discountService.addInoutDiscount(
+                                            reqAddInoutDiscount(
+                                                inSn = addTicket.inSn,
+                                                discountType = TicketType.CORPTICKET,
+                                                ticketSn = history.sn!!,
+                                                quantity = useCnt,
+                                                discountClassSn = corps.discountClassSn
+                                            )
+                                        )
+                                        history.useQuantity = history.useQuantity.plus(useCnt)
+                                        discountService.updateCorpTicketHistory(history)
+                                    }
+                                    addTicket.cnt = addTicket.cnt - useCnt
+                                }while(addTicket.cnt > 0)
+                                ticket.useQuantity = ticket.useQuantity.plus(cnt)
+                                discountService.updateCorpTicketInfo(ticket)
+                            } ?: run{
+                                return CommonResult.notfound("corp ticket not found")
+                            }
                         }
                     }
+                    return CommonResult.data()
+                }?.run {
+                    return CommonResult.Companion.error("No discount available")
                 }
-                return CommonResult.data()
-            }?.run {
-                return CommonResult.Companion.error("No discount available")
             }
             return CommonResult.data()
         }catch (e: CustomException){

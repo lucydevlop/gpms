@@ -38,7 +38,7 @@ class DashboardUserController {
     }
 
     @RequestMapping(value=["/parking/discount/add/ticket"], method = [RequestMethod.POST])
-    fun parkingDiscountAddTicket(@RequestBody request: reqParkingDiscountAddTicket): ResponseEntity<CommonResult> {
+    fun parkingDiscountAddTicket(@RequestBody request: ArrayList<reqParkingDiscountAddTicket>): ResponseEntity<CommonResult> {
         return returnResult(dashboardUserService.parkingDiscountAddTicket(request))
     }
 

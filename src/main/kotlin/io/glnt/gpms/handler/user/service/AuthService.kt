@@ -1,14 +1,18 @@
 package io.glnt.gpms.handler.user.service
 
 import io.glnt.gpms.common.api.CommonResult
+import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.dashboard.admin.model.reqSearchItem
 import io.glnt.gpms.handler.user.model.reqLogin
 import io.glnt.gpms.handler.user.model.reqRegister
 import io.glnt.gpms.handler.user.model.reqUserRegister
 import io.glnt.gpms.handler.user.model.resLogin
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.model.entity.Corp
+import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.entity.SiteUser
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.UserRole
 import io.glnt.gpms.model.repository.CorpRepository
 import io.glnt.gpms.model.repository.UserRepository
@@ -16,6 +20,7 @@ import io.glnt.gpms.security.jwt.JwtTokenProvider
 import mu.KLogging
 import okhttp3.internal.format
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.AuthenticationException
@@ -24,6 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import javax.annotation.PostConstruct
+import javax.persistence.criteria.Predicate
 import javax.servlet.http.HttpServletRequest
 
 @Service
@@ -61,7 +67,8 @@ class AuthService {
                     password = passwordEncoder.encode("glnt123!@#"),
                     userName = "glnt",
                     userPhone = "0100000000",
-                    role = UserRole.SUPER_ADMIN
+                    role = UserRole.SUPER_ADMIN,
+                    delYn = DelYn.N
                 )
             )
         }
@@ -118,7 +125,8 @@ class AuthService {
                     password = passwordEncoder.encode(password),
                     userName = userName,
                     userPhone = userPhone,
-                    role = userRole!!)))
+                    role = userRole!!,
+                    delYn = DelYn.N )))
 
         } catch (e: CustomException) {
             logger.error { "admin register error $request ${e.message}" }
@@ -212,6 +220,43 @@ class AuthService {
             logger.error{"search user $idx error ${e.message}"}
             return CommonResult.unprocessable()
         }
+    }
+
+    fun searchUsers(request: reqSearchItem) : CommonResult {
+        try {
+            return CommonResult.data(findAllUserSpecification(request))
+        }catch (e: RuntimeException) {
+            logger.error{"search user ${request.searchRole} error $e"}
+            return CommonResult.error("search user ${request.searchRole} error")
+        }
+    }
+
+    private fun findAllUserSpecification(request: reqSearchItem) : Specification<SiteUser> {
+        val spec = Specification<SiteUser> { root, query, criteriaBuilder ->
+            val clues = mutableListOf<Predicate>()
+
+            if(request.searchLabel == "USERID" && request.searchText != null) {
+                val likeValue = "%" + request.searchText + "%"
+                clues.add(
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("id")), likeValue)
+                )
+            }
+
+            if(request.searchLabel == "USERNAME" && request.searchText != null) {
+                val likeValue = "%" + request.searchText + "%"
+                clues.add(
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("userName")), likeValue)
+                )
+            }
+
+            if (request.searchRole != null) {
+                clues.add(
+                    criteriaBuilder.equal(criteriaBuilder.lower(root.get<String>("role")), request.searchRole)
+                )
+            }
+            criteriaBuilder.and(*clues.toTypedArray())
+        }
+        return spec
     }
 
 //    fun generateUserId(): String {

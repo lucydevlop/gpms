@@ -2,6 +2,7 @@ package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.UserRole
 import io.glnt.gpms.model.enums.checkUseStatus
 import org.springframework.format.annotation.DateTimeFormat
@@ -55,7 +56,11 @@ data class SiteUser(
     var loginDate: LocalDateTime? = null,
 
     @Column(name = "corp_sn")
-    var corpSn: Long? = null
+    var corpSn: Long? = null,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "del_yn", nullable = false)
+    var delYn: DelYn? = DelYn.N
 ): Auditable(), Serializable {
 
 }
