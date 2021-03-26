@@ -7,6 +7,7 @@ import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.dashboard.common.model.reqParkingDiscountSearchTicket
 import io.glnt.gpms.handler.dashboard.user.model.*
 import io.glnt.gpms.handler.discount.model.reqAddInoutDiscount
+import io.glnt.gpms.handler.discount.model.reqApplyInoutDiscountSearch
 import io.glnt.gpms.handler.discount.model.reqDiscountableTicket
 import io.glnt.gpms.handler.discount.model.reqSearchInoutDiscount
 import io.glnt.gpms.handler.discount.service.DiscountService
@@ -14,6 +15,7 @@ import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.inout.service.checkItemsAre
 import io.glnt.gpms.model.entity.Corp
 import io.glnt.gpms.model.entity.CorpTicketInfo
+import io.glnt.gpms.model.entity.InoutDiscount
 import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.enums.TicketType
 import mu.KLogging
@@ -211,6 +213,44 @@ class DashboardUserService {
         }catch (e: CustomException){
             logger.error { "parkingDiscountAbleTickets failed $e" }
             return CommonResult.error("parkingDiscountAddTicket failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun parkingDiscountSearchApplyTicket(request: reqParkingDiscountApplyTicketSearch) : CommonResult {
+        try {
+            val tickets = discountService.searchCorpTicketByCorp(reqParkingDiscountSearchTicket(searchLabel = "CORPSN", searchText=request.corpSn.toString()))
+            when(tickets.code) {
+                ResultCode.SUCCESS.getCode() -> {
+//                    val result = ArrayList<InoutDiscount>()
+                    val result = ArrayList<ResDiscountTicetsApplyList>()
+                    val lists = tickets.data as List<CorpTicketInfo>
+                    lists.forEach { it ->
+                        discountService.searchInoutDiscount(
+                            reqApplyInoutDiscountSearch(ticketSn = it.sn!!,startDate=request.startDate, endDate = request.endDate,
+                                                        ticketType = request.ticketType!!, applyStatus = request.applyStatus))?.let { its ->
+                            its.forEach {
+                                result.add(
+                                    ResDiscountTicetsApplyList(sn = it.sn!!,
+                                        discountType = it.discontType!!,
+                                        discountClassSn = it.discountClassSn!!,
+                                        discountNm = it.ticketHist!!.ticketInfo!!.discountClass!!.discountNm,
+                                        calcYn = it.calcYn!!,
+                                        delYn = it.delYn!!,
+                                        createDate = it.createDate!!,
+                                        quantity = it.quantity!!
+                                    )
+                                )
+                            }
+                        }
+                    }
+                    return CommonResult.data(result.sortedByDescending { it.createDate })
+                }
+            }
+            return CommonResult.data()
+        }catch (e: CustomException){
+            logger.error { "parkingDiscountSearchApplyTicket failed $e" }
+            return CommonResult.error("parkingDiscountSearchApplyTicket failed ${e.message}")
         }
     }
 }

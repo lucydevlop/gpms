@@ -5,6 +5,7 @@ import io.glnt.gpms.model.entity.CorpTicketInfo
 import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.entity.InoutDiscount
 import io.glnt.gpms.model.enums.DelYn
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
@@ -43,4 +44,5 @@ interface InoutDiscountRepository: JpaRepository<InoutDiscount, Long> {
     fun findByInSnAndDiscountClassSnAndDelYn(inSn: Long, discountClassSn: Long, delYn: DelYn): List<InoutDiscount>?
     fun findByDiscountClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(discountClassSn: Long, startDate: LocalDateTime, endDate: LocalDateTime, delYn: DelYn): List<InoutDiscount>?
     fun findByInSnAndDelYnAndCalcYn(inSn: Long, delYn: DelYn, calcYn: DelYn): List<InoutDiscount>?
+    fun findAll(specification: Specification<InoutDiscount>): List<InoutDiscount>?
 }

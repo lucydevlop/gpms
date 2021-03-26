@@ -12,14 +12,17 @@ import io.glnt.gpms.handler.discount.model.*
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountRangeType
+import io.glnt.gpms.model.enums.TicketType
 import io.glnt.gpms.model.repository.CorpTicketHistoryRepository
 import io.glnt.gpms.model.repository.CorpTicketRepository
 import io.glnt.gpms.model.repository.DiscountClassRepository
 import io.glnt.gpms.model.repository.InoutDiscountRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
+import javax.persistence.criteria.Predicate
 
 @Service
 class DiscountService {
@@ -203,10 +206,6 @@ class DiscountService {
                           ticketHistSn = request.ticketSn, inSn = request.inSn, quantity = request.quantity, delYn = DelYn.N))
     }
 
-    fun searchInoutDiscount(inSn: Long) : List<InoutDiscount>? {
-        return inoutDiscountRepository.findByInSnAndDelYn(inSn, DelYn.N)
-    }
-
     fun saveInoutDiscount(discount: InoutDiscount) : InoutDiscount {
         return inoutDiscountRepository.save(discount)
     }
@@ -223,6 +222,74 @@ class DiscountService {
         }catch (e: CustomException) {
             logger.error { "applyInoutDiscount error $e" }
         }
+    }
+
+    fun searchInoutDiscount(inSn: Long) : List<InoutDiscount>? {
+        return inoutDiscountRepository.findByInSnAndDelYn(inSn, DelYn.N)
+    }
+
+    fun searchInoutDiscount(request: reqApplyInoutDiscountSearch): List<InoutDiscount>? {
+        try{
+            val ticketHists = ArrayList<Long>()
+            corpTicketHistoryRepository.findByTicketSnAndDelYn(request.ticketSn, DelYn.N)?.let { tickets ->
+                tickets.forEach { ticket ->
+                    ticketHists.add(ticket.sn!!)
+                }
+            }
+            request.ticketsSn = ticketHists
+            return inoutDiscountRepository.findAll(findAllInoutDiscountSpecification(request))
+
+        }catch (e: CustomException) {
+            logger.error { "searchInoutDiscount error $e" }
+        }
+        return null
+    }
+
+    fun findAllInoutDiscountSpecification(request: reqApplyInoutDiscountSearch): Specification<InoutDiscount> {
+        val spec = Specification<InoutDiscount> { root, query, criteriaBuilder ->
+            val clues = mutableListOf<Predicate>()
+
+            clues.add(
+                //criteriaBuilder.and(criteriaBuilder.`in`(root.get<Long>("ticketHistSn")), request.ticketsSn)
+                criteriaBuilder.and(root.get<Long>("ticketHistSn").`in`(request.ticketsSn!!.map { it }))
+            )
+
+            clues.add(
+                criteriaBuilder.between(
+                    root.get("createDate"),
+                    DateUtil.beginTimeToLocalDateTime(request.startDate.toString()),
+                    DateUtil.lastTimeToLocalDateTime(request.endDate.toString())
+                )
+            )
+            if (request.ticketType != TicketType.ALL) {
+                clues.add(
+                    criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("ticketType")), request.ticketType.code)
+                )
+            }
+            if (request.applyStatus != null) {
+                when (request.applyStatus) {
+                    "DO" -> {
+                        clues.add(
+                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("calcYn")), DelYn.N)
+                        )
+                    }
+                    "DONE" -> {
+                        clues.add(
+                            criteriaBuilder.isNotNull(root.get<LocalDateTime>("applyDate"))
+                        )
+                    }
+                    "CANCEL" -> {
+                        clues.add(
+                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N)
+                        )
+                    }
+                }
+            }
+            query.orderBy(criteriaBuilder.desc(root.get<LocalDateTime>("createDate")))
+            criteriaBuilder.and(*clues.toTypedArray())
+
+        }
+        return spec
     }
 
 }

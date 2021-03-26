@@ -1,6 +1,7 @@
 package io.glnt.gpms.handler.discount.model
 
 import io.glnt.gpms.model.enums.TicketType
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class reqDiscountableTicket(
@@ -26,4 +27,13 @@ data class reqAddInoutDiscount(
     var discountType: TicketType,
     var quantity: Int? = 1,
     var discountClassSn: Long
+)
+
+data class reqApplyInoutDiscountSearch(
+    var ticketSn: Long,
+    var startDate: LocalDate,
+    var endDate: LocalDate,
+    var ticketType: TicketType,
+    var applyStatus: String?,
+    var ticketsSn: List<Long>? = null
 )

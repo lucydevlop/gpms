@@ -1,6 +1,8 @@
 package io.glnt.gpms.handler.dashboard.user.model
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import io.glnt.gpms.model.enums.TicketType
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class reqVehicleSearch(
@@ -24,4 +26,15 @@ data class reqParkingDiscountAddTicket(
     var corpSn: Long,
     var discountClassSn: Long,
     var cnt: Int
+)
+
+data class reqParkingDiscountApplyTicketSearch(
+    var corpSn: Long,
+    @JsonFormat(pattern="yyyy-MM-dd") var startDate: LocalDate,
+    @JsonFormat(pattern="yyyy-MM-dd") var endDate: LocalDate,
+    var ticketType: TicketType? = TicketType.ALL,
+    var applyStatus: String?,
+    var vehicleNo: String?
+
+
 )
