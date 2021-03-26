@@ -7,6 +7,7 @@ import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.calc.service.FeeCalculation
+import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.model.reqDisplayMessage
 import io.glnt.gpms.handler.facility.model.reqPayData
 import io.glnt.gpms.handler.facility.model.reqPayStationData
@@ -66,6 +67,9 @@ class InoutService {
 
     @Autowired
     lateinit var relayService: RelayService
+
+    @Autowired
+    lateinit var discountService: DiscountService
 
     @Autowired
     private lateinit var parkFacilityRepository: ParkFacilityRepository
@@ -1054,6 +1058,13 @@ class InoutService {
                 it.approveDatetime = request.approveDatetime
                 it.cardNumber = request.cardNumber
                 parkOutRepository.save(it)
+
+                //할인 데이터도 적용 완료 처리
+                parkInRepository.findByOutSnAndDelYn(it.sn!!, DelYn.N)?.let { parkin->
+                    parkin.forEach {
+                        discountService.applyInoutDiscount(it.sn!!)
+                    }
+                }
 
                 relayService.actionGate(gateId, "GATE", "open")
                 displayMessage(

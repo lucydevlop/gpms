@@ -23,6 +23,7 @@ interface ParkInRepository: JpaRepository<ParkIn, Long> {
     fun findTopByGateIdAndDelYnOrderByInDateDesc(gateId: String, delYn: DelYn) : ParkIn?
     fun findTopByOutSnAndDelYnOrderByInDateDesc(outSn: Long, delYn: DelYn) : ParkIn?
     fun findByUuidAndOutSnAndDelYn(uuid: String, outSn: Long, delYn: DelYn): List<ParkIn>?
+    fun findByOutSnAndDelYn(outSn: Long, delYn: DelYn): List<ParkIn>?
 }
 
 @Repository

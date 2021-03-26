@@ -211,4 +211,18 @@ class DiscountService {
         return inoutDiscountRepository.save(discount)
     }
 
+    fun applyInoutDiscount(inSn: Long) {
+        try {
+            inoutDiscountRepository.findByInSnAndDelYnAndCalcYn(inSn, DelYn.N, DelYn.Y)?.let { discounts ->
+                discounts.forEach { it ->
+                    it.applyDate = LocalDateTime.now()
+                    inoutDiscountRepository.save(it)
+                    inoutDiscountRepository.flush()
+                }
+            }
+        }catch (e: CustomException) {
+            logger.error { "applyInoutDiscount error $e" }
+        }
+    }
+
 }
