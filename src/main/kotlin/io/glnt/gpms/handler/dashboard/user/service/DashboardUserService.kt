@@ -163,7 +163,7 @@ class DashboardUserService {
     @Throws(CustomException::class)
     fun parkingDiscountAddTicket(request: ArrayList<reqParkingDiscountAddTicket>): CommonResult {
         try{
-            request.forEach { addTicket ->
+            request.filter { it.cnt > 0 }.forEach { addTicket ->
                 // 적합여부 확인
                 // Once 가능 횟수 > Day > Month
                 var useCnt = addTicket.cnt
@@ -196,13 +196,14 @@ class DashboardUserService {
                                 }while(addTicket.cnt > 0)
                                 ticket.useQuantity = ticket.useQuantity.plus(cnt)
                                 discountService.updateCorpTicketInfo(ticket)
-                            } ?: run{
-                                return CommonResult.notfound("corp ticket not found")
                             }
+//                                ?: run {
+//                                return CommonResult.notfound("corp ticket not found")
+//                            }
                         }
+                        else -> return CommonResult.error("No discount available")
                     }
-                    return CommonResult.data()
-                }?.run {
+                }?: run {
                     return CommonResult.Companion.error("No discount available")
                 }
             }

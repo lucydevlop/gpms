@@ -24,7 +24,7 @@ logging:
   path: /Users/lucy/project/glnt/park
   config: classpath:logback-development.xml
   level:
-    ROOT: DEBUG
+    ROOT: INFO
     io.github.jhipster: INFO
     thesis: INFO
 

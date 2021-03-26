@@ -1,6 +1,7 @@
 package io.glnt.gpms.handler.calc
 
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.model.entity.CgBasic
 import io.glnt.gpms.model.repository.FarePolicyRepository
 import io.glnt.gpms.model.entity.FarePolicy
@@ -10,6 +11,7 @@ import io.glnt.gpms.model.repository.CgBasicRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
+import javax.annotation.PostConstruct
 
 /**
  */
@@ -30,14 +32,22 @@ class CalculationData {
     @Autowired
     private lateinit var cgBasicRepository: CgBasicRepository
 
+//    @Autowired
+//    lateinit var parkinglotService: ParkinglotService
+
     /**
      * 요금 계산 시작전 필수 데이터 세팅
      * 해당 데이터들은 상속해주는 CalculationData에 세팅되어 있음
      * @param mData 객체 생성을 요청하는 곳에서 미리 만들어와야 함
      */
+    @PostConstruct
     fun init() {
-        parkingFareInfo = farePolicyRepository.findAll()
-        cgBasic = cgBasicRepository.findByDelYn(DelYn.N)!!
+//        if (parkinglotService.isPaid()) {
+            parkingFareInfo = farePolicyRepository.findAll()
+            cgBasicRepository.findByDelYn(DelYn.N)?.let {
+                cgBasic = it
+            }
+//        }
     }
 
     fun getBizHourInfoForDate(date: String, vehicleType: VehicleType): List<FarePolicy> {

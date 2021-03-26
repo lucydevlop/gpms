@@ -46,6 +46,10 @@ data class InoutDiscount(
     @Column(name = "apply_date")
     var applyDate: LocalDateTime? = null,
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "calc_yn")
+    var calcYn: DelYn? = DelYn.N,
+
     @Column(name = "out_sn")
     var outSn: Long? = null
 

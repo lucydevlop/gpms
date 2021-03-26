@@ -207,4 +207,8 @@ class DiscountService {
         return inoutDiscountRepository.findByInSnAndDelYn(inSn, DelYn.N)
     }
 
+    fun saveInoutDiscount(discount: InoutDiscount) : InoutDiscount {
+        return inoutDiscountRepository.save(discount)
+    }
+
 }

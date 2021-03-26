@@ -64,6 +64,12 @@ class ParkinglotService {
         }
     }
 
+    fun isPaid(): Boolean {
+        return parkSiteInfoRepository.findTopByOrderBySiteid()?.let {
+            it.saleType == SaleType.PAID
+        }?: kotlin.run { false }
+    }
+
     fun createParkinglot(): CommonResult {
         logger.debug { "createParkinglot service" }
         try {

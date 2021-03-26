@@ -8,6 +8,7 @@ import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.holiday.service.HolidayService
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.model.entity.FareInfo
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountApplyType
 import io.glnt.gpms.model.enums.VehicleType
 import mu.KLogging
@@ -222,12 +223,14 @@ class FeeCalculation {
                             }
                         }
                     }
+                    discount.calcYn = DelYn.Y
+                    discountService.saveInoutDiscount(discount)
                 }
             }
         }
 
         val dailyPrices = ArrayList<DailyPrice>()
-        for (i in 0 until DateUtil.diffDays(inTime, outTime)+1) {
+        for (i in 0..DateUtil.diffDays(inTime, outTime)+1) {
             val dailyData = retPrice.dailySplits!!.filter {
                 it.date == DateUtil.LocalDateTimeToDateString(DateUtil.getAddDays(inTime, i.toLong()))
             }

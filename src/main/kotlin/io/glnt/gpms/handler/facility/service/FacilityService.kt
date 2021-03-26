@@ -391,7 +391,7 @@ class FacilityService {
                 facilityRepository.save(facility)
             }
         }catch (e: RuntimeException) {
-            logger.error { "allUpdateFacilities error ${e.message}" }
+            logger.error { "updateHealthCheck error ${e.message}" }
         }
     }
 
@@ -406,7 +406,7 @@ class FacilityService {
 //                }
             }
         }catch (e: RuntimeException) {
-            logger.error { "allUpdateFacilities error ${e.message}" }
+            logger.error { "updateStatusCheck error ${e.message}" }
         }
         return null
     }
@@ -438,7 +438,7 @@ class FacilityService {
             }
             return result
         }catch (e: RuntimeException) {
-            logger.error { "allUpdateFacilities error ${e.message}" }
+            logger.error { "getStatusByGateAndCategory error $e" }
         }
         return null
     }
@@ -447,6 +447,7 @@ class FacilityService {
         try {
             var result = HashMap<String, Any?>()
             facilityRepository.findByGateIdAndCategory(gateId, category)?.let { facilities ->
+                if (facilities.isNullOrEmpty()) return result
                 facilities.forEach { facility ->
                     // 장애 상태 확인
                     failureRepository.findTopByFacilitiesIdAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(facility.facilitiesId!!)?.let {
@@ -463,7 +464,7 @@ class FacilityService {
             }
             return result
         }catch (e: RuntimeException) {
-            logger.error { "allUpdateFacilities error ${e.message}" }
+            logger.error { "getActionByGateAndCategory error $e" }
         }
         return null
     }
@@ -489,8 +490,8 @@ class FacilityService {
             return hashMapOf<String, Any?>(
                 "lprStatus" to lpr!!["status"],
                 "breakerStatus" to breaker!!["status"],
-                "breakerAction" to breakerAction!!["status"],
-                "breakerFailure" to breakerAction["failure"],
+                "breakerAction" to if (breakerAction==null) "NONE" else breakerAction["status"],
+                "breakerFailure" to if (breakerAction==null) null else breakerAction["failure"],
                 "displayStatus" to display!!["status"],
                 "paystationStatus" to paystation!!["status"],
                 "paystationAction" to paystationAction!!["status"],

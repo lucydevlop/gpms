@@ -224,7 +224,7 @@ class AuthService {
 
     fun searchUsers(request: reqSearchItem) : CommonResult {
         try {
-            return CommonResult.data(findAllUserSpecification(request))
+            return CommonResult.data(userRepository.findAll(findAllUserSpecification(request)))
         }catch (e: RuntimeException) {
             logger.error{"search user ${request.searchRole} error $e"}
             return CommonResult.error("search user ${request.searchRole} error")
