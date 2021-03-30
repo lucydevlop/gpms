@@ -16,6 +16,7 @@ class WebConfig {
                 registry.addMapping("/**")
                     .allowedOrigins("*")
                     .allowedMethods("HEAD", "OPTIONS", "GET", "POST", "PUT", "PATCH", "DELETE")
+                    .exposedHeaders("jwt-token")
                     .maxAge(MAX_AGE_SECS)
             }
         }

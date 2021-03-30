@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: glnt
+    active: product
   jpa:
     show-sql: false
     properties:
@@ -13,16 +13,16 @@ spring:
     database-platform: org.hibernate.dialect.MariaDB103Dialect
 
   datasource:
-    username: glnt-user
-    password: glnt123!@#
+    username: root
+    password: Parking1234!@#$
     driver-class-name: org.mariadb.jdbc.Driver
-    jdbc-url: jdbc:mariadb://test-db.cwvvhmqatlkn.ap-northeast-2.rds.amazonaws.com:3306/glnt_parking_stg?useSSL=false
+    jdbc-url: jdbc:mariadb://127.0.0.1:3306/glnt_parking?useSSL=false&characterEncoding=utf8
 
 server:
-  port: 13000
+  port: 11000
 
 logging:
-  config: classpath:logback-glnt.xml
+  config: classpath:logback-product.xml
   level:
     ROOT: WARN
     io.github.jhipster: WARN

@@ -2,7 +2,7 @@ package io.glnt.gpms.handler.corp.service
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.corp.model.reqSearchCorp
+import io.glnt.gpms.handler.dashboard.admin.model.reqSearchCorp
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.model.entity.Corp
 import io.glnt.gpms.model.enums.DelYn
@@ -28,6 +28,11 @@ class CorpService {
     fun getCorp(request: reqSearchCorp): CommonResult {
         logger.info { "getCorp $request" }
         try {
+            request.searchLabel?.let {
+                corpRepository.findAll(findAllCorpSpecification(request)).let {
+                    return CommonResult.data(it)
+                }
+            }
             request.corpId?.let {
                 val list = corpRepository.findByCorpId(it)
                 return if (list == null) CommonResult.notfound("corp") else CommonResult.data(list)
@@ -61,7 +66,7 @@ class CorpService {
             if (request.corpId != null)
                 return CommonResult.data(corpRepository.save(request))
             corpRepository.save(request)
-            request.corpId = parkinglotService.parkSite.siteid+"_"+ format("%05d", request.sn!!)
+            request.corpId = parkinglotService.parkSiteSiteId()+"_"+ format("%05d", request.sn!!)
             return CommonResult.data(corpRepository.save(request))
         }catch (e: CustomException) {
             logger.error("createCorp error {} ", e.message)
@@ -73,14 +78,20 @@ class CorpService {
         val spec = Specification<Corp> { root, query, criteriaBuilder ->
             val clues = mutableListOf<Predicate>()
 
-            if (request.searchLabel == "ID" && request.searchText != null) {
+            if ((request.searchLabel == "SN" || request.searchLabel == "CORPSN") && request.searchText != null) {
+                clues.add(
+                    criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("sn")), request.searchText!!.toLong())
+                )
+            }
+
+            if ((request.searchLabel == "ID" || request.searchLabel == "CORPID") && request.searchText != null) {
                 val likeValue = "%" + request.searchText + "%"
                 clues.add(
                     criteriaBuilder.like(criteriaBuilder.upper(root.get<String>("corpId")), likeValue)
                 )
             }
 
-            if (request.searchLabel == "NAME" && request.searchText != null) {
+            if ((request.searchLabel == "NAME"|| request.searchLabel == "CORPNAME") && request.searchText!!.isNotEmpty()) {
                 val likeValue = "%" + request.searchText + "%"
                 clues.add(
                     criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("corpName")), likeValue)

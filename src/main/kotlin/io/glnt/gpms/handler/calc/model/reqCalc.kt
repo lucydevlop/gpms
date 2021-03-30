@@ -10,5 +10,6 @@ data class reqCalc(
     var vehicleType: VehicleType,
     var vehicleNo: String?,
     var type: Int,
-    var discountMin: Int
+    var discountMin: Int,
+    val inSn: Long?
 )

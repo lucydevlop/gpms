@@ -3,15 +3,30 @@ package io.glnt.gpms.handler.dashboard.admin.service
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.corp.service.CorpService
+import io.glnt.gpms.handler.dashboard.admin.model.*
+import io.glnt.gpms.handler.discount.service.DiscountService
+import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.product.model.reqCreateProduct
+import io.glnt.gpms.handler.product.service.ProductService
+import io.glnt.gpms.handler.relay.service.RelayService
+import io.glnt.gpms.handler.user.service.AuthService
+import io.glnt.gpms.io.glnt.gpms.handler.file.service.ExcelUploadService
+import io.glnt.gpms.model.entity.Facility
 import io.glnt.gpms.model.entity.Gate
+import io.glnt.gpms.model.entity.ProductTicket
+import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.UserRole
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 
 @Service
 class DashboardAdminService {
@@ -26,6 +41,23 @@ class DashboardAdminService {
     @Autowired
     lateinit var facilityService: FacilityService
 
+    @Autowired
+    lateinit var relayService: RelayService
+
+    @Autowired
+    lateinit var productService: ProductService
+
+    @Autowired
+    lateinit var corpService: CorpService
+
+    @Autowired
+    lateinit var discountService: DiscountService
+
+    @Autowired
+    lateinit var excelService: ExcelUploadService
+
+    @Autowired
+    lateinit var userService: AuthService
 
     @Throws(CustomException::class)
     fun getMainGates(): CommonResult {
@@ -38,25 +70,29 @@ class DashboardAdminService {
                     gates.data?.let {
                         val lists = gates.data as List<Gate>
                         lists.forEach {
-                            // gate 당 입출차 내역 조회
-                            val inout = inoutService.getLastInout(it.gateType, it.gateId)
-                            // 각 장비 상태 조회
-                            val gateStatus = facilityService.getStatusByGate(it.gateId)
-                            result.add(hashMapOf<String, Any?>(
-                                "gateId" to it.gateId,
-                                "gateName" to it.gateName,
-                                "gateType" to it.gateType,
-                                "image" to inout!!["image"],
-                                "vehicleNo" to inout["vehicleNo"],
-                                "date" to inout["date"],
-                                "carType" to inout["carType"],
-                                "breakerAction" to gateStatus!!["breakerAction"],
-                                "breakerStatus" to gateStatus["breakerStatus"],
-                                "displayStatus" to gateStatus["displayStatus"],
-                                "paystationStatus" to gateStatus["paystationStatus"],
-                                "paystationAction" to gateStatus["paystationAction"],
-                                "lprStatus" to gateStatus["lprStatus"]
-                            ))
+                            if (it.delYn == DelYn.N) {
+                                // gate 당 입출차 내역 조회
+                                val inout = inoutService.getLastInout(it.gateType, it.gateId)
+                                // 각 장비 상태 조회
+                                val gateStatus = facilityService.getStatusByGate(it.gateId)
+                                result.add(
+                                    hashMapOf<String, Any?>(
+                                        "gateId" to it.gateId,
+                                        "gateName" to it.gateName,
+                                        "gateType" to it.gateType,
+                                        "image" to inout!!["image"],
+                                        "vehicleNo" to inout["vehicleNo"],
+                                        "date" to inout["date"],
+                                        "carType" to inout["carType"],
+                                        "breakerAction" to gateStatus!!["breakerAction"],
+                                        "breakerStatus" to gateStatus["breakerStatus"],
+                                        "displayStatus" to gateStatus["displayStatus"],
+                                        "paystationStatus" to gateStatus["paystationStatus"],
+                                        "paystationAction" to gateStatus["paystationAction"],
+                                        "lprStatus" to gateStatus["lprStatus"]
+                                    )
+                                )
+                            }
                         }
                     }
                 }
@@ -79,9 +115,29 @@ class DashboardAdminService {
     }
 
     @Throws(CustomException::class)
+    fun getGates(): CommonResult {
+        try {
+            return CommonResult.data(parkinglotService.getParkinglotGates(reqSearchParkinglotFeature()).data)
+        }catch (e: CustomException){
+            logger.error { "Admin getParkInLists failed ${e.message}" }
+            return CommonResult.error("Admin getParkInLists failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun changeGateUse(request: reqChangeUseGate): CommonResult {
+        try {
+            return CommonResult.data(parkinglotService.changeDelYnGate(request.gateId, request.delYn).data)
+        }catch (e: CustomException){
+            logger.error { "Admin getParkInLists failed ${e.message}" }
+            return CommonResult.error("Admin getParkInLists failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
     fun gateAction(action: String, gateId: String) : CommonResult {
         try {
-            facilityService.actionGate(gateId, "GATE", action)
+            relayService.actionGate(gateId, "GATE", action)
             return CommonResult.data()
         }catch (e: CustomException){
             logger.error { "Admin gateAction failed ${e.message}" }
@@ -89,5 +145,210 @@ class DashboardAdminService {
         }
     }
 
+    @Throws(CustomException::class)
+    fun createFacility(request: reqCreateFacility): CommonResult {
+        try {
+            val gate = facilityService.getGateByGateId(request.gateId)
+            val result = facilityService.createFacility(
+                Facility(sn = null,
+                    fname = request.fname,
+                    category = request.category,
+                    modelid = request.modelid,
+                    dtFacilitiesId = request.dtFacilitiesId,
+                    facilitiesId = request.facilitiesId,
+                    gateId = request.gateId,
+                    udpGateid = gate!!.udpGateid,
+                    ip = request.ip,
+                    port = request.port,
+                    sortCount = request.sortCount,
+                    resetPort = request.resetPort,
+                    lprType = request.lprType,
+                    imagePath = request.imagePath,
+                    gateType = gate.gateType
+                ))
+            when (result.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(result.data)
+                }
+                else -> {
+                    return CommonResult.data()
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin createFacility failed ${e.message}" }
+            return CommonResult.error("Admin createFacility failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun changeFacilityUse(request: reqChangeUseFacility): CommonResult {
+        try {
+            return CommonResult.data(parkinglotService.changeDelYnFacility(request.dtFacilitiesId, request.delYn).data)
+        }catch (e: CustomException){
+            logger.error { "Admin getParkInLists failed ${e.message}" }
+            return CommonResult.error("Admin getParkInLists failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun createMessage(request: reqCreateMessage): CommonResult {
+        try {
+            val data = ArrayList<reqSetDisplayMessage>()
+            data.add(reqSetDisplayMessage(
+                messageClass = request.messageClass,
+                messageType = request.messageType,
+                colorCode = request.colorCode,
+                messageDesc = request.messageDesc,
+                line = request.lineNumber,
+                order = request.order
+            ))
+            val result = facilityService.setDisplayMessage(data)
+            when (result.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(result.data)
+                }
+                else -> {
+                    return CommonResult.data()
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin createMessage failed ${e.message}" }
+            return CommonResult.error("Admin createMessage failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun createProductTicket(request: reqCreateProductTicket): CommonResult {
+        try{
+            val data = productService.createProduct(
+                reqCreateProduct(sn = request.sn, vehicleNo = request.vehicleNo,
+                                 effectDate = request.effectDate, expireDate = request.expireDate,
+                                 userId = request.userId, gateId = request.gateId, ticketType = request.ticketType, vehicleType = request.vehicleType, corpSn = request.corpSn))
+            when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(data.data)
+                }
+                else -> {
+                    return CommonResult.data()
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin createProductTicket failed $e" }
+            return CommonResult.error("Admin createProductTicket failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun searchCorpList(request: reqSearchCorp): CommonResult {
+        try {
+            val data = corpService.getCorp(request)
+            when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(data.data)
+                }
+                else -> {
+                    return CommonResult.data()
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin searchCorpList failed $e" }
+            return CommonResult.error("Admin searchCorpList failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun createCorpTicket(request: reqCreateCorpTicket): CommonResult {
+        try {
+            val data = discountService.createCorpTicket(request)
+            when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(data.data)
+                }
+                else -> {
+                    return CommonResult.data()
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin createCorpTicket failed $e" }
+            return CommonResult.error("Admin createCorpTicket failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
+    @Transactional
+    fun createProductTicketByFiles(file: MultipartFile): CommonResult {
+        try{
+            //todo validate
+            val data = excelService.loadExcel(file, "SEASONTICKET")
+            when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(data.data)
+                }
+                else -> {
+                    return CommonResult.error("file upload failed")
+                }
+            }
+
+        } catch (e: CustomException){
+            logger.error { "Admin createProductTicketByFiles failed $e" }
+            return CommonResult.error("Admin createProductTicketByFiles failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
+    @Transactional
+    fun createTemplateOfProductTicket(): CommonResult {
+        try{
+            val data = productService.getProducts(reqSearchProductTicket(searchLabel = "", searchText = ""))
+            when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(excelService.downloadTemplateOfProductTicket(data.data as List<ProductTicket>))
+                }
+                else -> {
+                    return CommonResult.error("file upload failed")
+                }
+            }
+
+        } catch (e: CustomException){
+            logger.error { "Admin createProductTicketByFiles failed $e" }
+            return CommonResult.error("Admin createProductTicketByFiles failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun searchProductTicket(request: reqSearchProductTicket): CommonResult {
+        try{
+            val data = productService.getProducts(request)
+            return when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    CommonResult.data(data.data)
+                }
+                else -> {
+                    CommonResult.error("file upload failed")
+                }
+            }
+        } catch (e: CustomException){
+            logger.error { "Admin searcgParkinglotProduct failed $e" }
+            return CommonResult.error("Admin searcgParkinglotProduct failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun searchAdminUsers(request: reqSearchItem): CommonResult {
+        try{
+            val data = userService.searchUsers(reqSearchItem(searchLabel = request.searchLabel, searchText = request.searchText, searchRole = UserRole.ADMIN))
+            return when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    CommonResult.data(data.data)
+                }
+                else -> {
+                    CommonResult.error("file upload failed")
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin searchAdminUsers failed $e" }
+            return CommonResult.error("Admin searchAdminUsers failed $e")
+        }
+    }
 
 }

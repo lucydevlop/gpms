@@ -83,7 +83,6 @@ object DateUtil {
         return date.format(DateTimeFormatter.ofPattern("HHmm"))
     }
 
-
     fun getAddDays(date: LocalDate, amount: Long): LocalDate {
         return date.plusDays(amount)
     }
@@ -186,5 +185,13 @@ object DateUtil {
             WeekType.MON,WeekType.TUE,WeekType.WED,WeekType.THU,WeekType.FRI -> DiscountRangeType.WEEKDAY
             else -> null
         }
+    }
+
+    fun getMinByDates(date1: LocalDateTime, date2: LocalDateTime): LocalDateTime {
+        return if (date1 > date2) date2 else date1
+    }
+
+    fun getMaxByDates(date1: LocalDateTime, date2: LocalDateTime): LocalDateTime {
+        return if (date1 > date2) date1 else date2
     }
 }

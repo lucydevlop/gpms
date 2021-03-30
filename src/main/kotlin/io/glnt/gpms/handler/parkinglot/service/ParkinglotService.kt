@@ -9,12 +9,14 @@ import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.common.utils.FileUtils
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.facility.model.resRelaySvrFacility
+import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.OnOff
+import io.glnt.gpms.model.enums.SaleType
 import io.glnt.gpms.model.repository.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,7 +31,7 @@ import kotlin.collections.ArrayList
 class ParkinglotService {
     companion object : KLogging()
 
-    lateinit var parkSite: ParkSiteInfo
+    var parkSite: ParkSiteInfo? = null
 
     @Autowired
     lateinit var enviroment: Environment
@@ -39,6 +41,9 @@ class ParkinglotService {
 
     @Autowired
     lateinit var relayService: RelayService
+
+    @Autowired
+    lateinit var facilityService: FacilityService
 
     @Autowired
     private lateinit var parkFacilityRepository: ParkFacilityRepository
@@ -59,6 +64,12 @@ class ParkinglotService {
         }
     }
 
+    fun isPaid(): Boolean {
+        return parkSiteInfoRepository.findTopByOrderBySiteid()?.let {
+            it.saleType == SaleType.PAID
+        }?: kotlin.run { false }
+    }
+
     fun createParkinglot(): CommonResult {
         logger.debug { "createParkinglot service" }
         try {
@@ -68,8 +79,8 @@ class ParkinglotService {
             val facilitiesList: ArrayList<facilitiesLists> = ArrayList()
             val gateData = parkGateRepository.findByDelYn(DelYn.N)
             gateData.forEach { gate ->
-                val facilities = parkFacilityRepository.findByGateIdAndFlagUse(gate.gateId, 1)!!
-                val FacilitiesId = facilities.map { it.dtFacilitiesId.toString() }.toTypedArray()
+                val facilities = parkFacilityRepository.findByGateIdAndDelYn(gate.gateId, DelYn.Y)!!
+                val FacilitiesId = facilities.map { it.dtFacilitiesId }.toTypedArray()
                 facilities.map {
                     facility -> facilitiesList.add(facilitiesLists(category = facility.category, modelId = facility.modelid, dtFacilitiesId = facility.dtFacilitiesId, facilitiesName = facility.fname))
                 }
@@ -94,7 +105,7 @@ class ParkinglotService {
 
             return CommonResult.created("parkinglot feature add success")
         } catch (e: CustomException) {
-            logger.error("createParkinglot error {} ", e.message)
+            logger.error{"createParkinglot error ${e.msg} "}
             return CommonResult.error("Parkinglot db creatae failed ")
         }
     }
@@ -108,7 +119,7 @@ class ParkinglotService {
                 return CommonResult.notfound("parkinglot site info")
             }
         }catch (e: CustomException) {
-            logger.error { "getParkinglot error ${e.message}" }
+            logger.error { "getParkinglot error $e" }
             return CommonResult.error("parkinglot fetch failed ")
         }
     }
@@ -120,9 +131,9 @@ class ParkinglotService {
                 val gate = parkGateRepository.findByGateId(gateId = it)
                 return if (gate == null) CommonResult.notfound("gate"+requet.gateId) else CommonResult.data(gate)
             } ?: run {
-                parkGateRepository.findByDelYn(DelYn.N).let {
-                    return CommonResult.data(it)
-                }
+//                parkGateRepository.findByDelYn(DelYn.N).let {
+                return CommonResult.data(parkGateRepository.findAll())
+//                }
             }
         }catch (e: CustomException) {
             logger.error("getParkinglotGates error {} ", e.message)
@@ -136,7 +147,8 @@ class ParkinglotService {
             request.gates.forEach {
                 parkGateRepository.save(it)
             }
-            return CommonResult.data(parkGateRepository.findAll())
+            facilityService.initalizeData()
+            return CommonResult.data(parkGateRepository.findByDelYn(DelYn.N))
         } catch (e: CustomException) {
             logger.error("updateGates error {} ", e.message)
             return CommonResult.error("updateGates failed ")
@@ -166,6 +178,32 @@ class ParkinglotService {
         return CommonResult.error("deleteGate failed ")
     }
 
+    fun changeDelYnGate(gateId: String, delYn: DelYn) : CommonResult {
+        logger.info { "changeDelYnGate $gateId $delYn" }
+        try{
+            parkGateRepository.findByGateId(gateId)?.let { gate ->
+                gate.delYn = delYn
+                return CommonResult.data(parkGateRepository.save(gate))
+            }
+        }catch (e: CustomException) {
+            logger.error("changeDelYnGate error {} ", e.message)
+        }
+        return CommonResult.error("changeDelYnGate failed ")
+    }
+
+    fun changeDelYnFacility(dtFacilitiesId: String, delYn: DelYn) : CommonResult {
+        logger.info { "changeDelYnFacility $dtFacilitiesId $delYn" }
+        try{
+            getFacilityByDtFacilityId(dtFacilitiesId)?.let { facility ->
+                facility.delYn = delYn
+                return CommonResult.data(parkFacilityRepository.save(facility))
+            }
+        }catch (e: CustomException) {
+            logger.error("changeDelYnGate error {} ", e.message)
+        }
+        return CommonResult.error("changeDelYnGate failed ")
+    }
+
     fun getParkinglotfacilities(requet: reqSearchParkinglotFeature): CommonResult {
         requet.facilitiesId?.let {
             parkFacilityRepository.findByFacilitiesId(it)?.let { facility ->
@@ -179,7 +217,8 @@ class ParkinglotService {
                             ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
                             resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
                             imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey,
-                            checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0
+                            checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0,
+                            delYn = facility.delYn
                         ))
                 }
 
@@ -190,7 +229,7 @@ class ParkinglotService {
             requet.relaySvrKey?.let {
                 parkGateRepository.findByRelaySvrKey(it).let { gates ->
                     gates.forEach { gate ->
-                        parkFacilityRepository.findByGateIdAndFlagUse(gate.gateId, 0)?.let { facilities ->
+                        parkFacilityRepository.findByGateIdAndDelYn(gate.gateId, DelYn.N)?.let { facilities ->
                             facilities.forEach { facility ->
                                 result.add(
                                     resRelaySvrFacility(sn = facility.sn,
@@ -201,7 +240,8 @@ class ParkinglotService {
                                         ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
                                         resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
                                         imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey,
-                                        checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0
+                                        checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0,
+                                        delYn = facility.delYn
                                     ))
                             }
                         }
@@ -210,7 +250,7 @@ class ParkinglotService {
             } ?: run {
                 parkGateRepository.findAll().let { gates ->
                     gates.forEach { gate ->
-                        parkFacilityRepository.findByGateIdAndFlagUse(gate.gateId, 0)?.let { facilities ->
+                        parkFacilityRepository.findByGateId(gate.gateId)?.let { facilities ->
                             facilities.forEach { facility ->
                                 result.add(
                                     resRelaySvrFacility(sn = facility.sn,
@@ -221,19 +261,25 @@ class ParkinglotService {
                                         ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
                                         resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
                                         imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey,
-                                        checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0
+                                        checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0,
+                                        delYn = facility.delYn
                                     ))
                             }
                         }
                     }
                 }
             }
-            return if (result.isNullOrEmpty()) CommonResult.notfound("parkinglot facilities") else CommonResult.data(result)
+//            return if (result.isNullOrEmpty()) CommonResult.notfound("parkinglot facilities") else CommonResult.data(result)
+            return CommonResult.data(result)
         }
     }
 
     fun parkSiteId() : String? {
-        return parkSite.parkId
+        return parkSite!!.parkId
+    }
+
+    fun parkSiteSiteId(): String? {
+        return parkSite!!.siteid
     }
 
     fun getFacility(facilityId: String) : Facility? {
@@ -244,6 +290,21 @@ class ParkinglotService {
 
     fun getGateInfoByFacilityId(facilityId: String) : Gate? {
         parkFacilityRepository.findByFacilitiesId(facilityId)?.let {
+            parkGateRepository.findByGateId(it.gateId)?.let {
+                return it
+            }
+        }
+        return null
+    }
+
+    fun getFacilityByDtFacilityId(dtFacilityId: String) : Facility? {
+        return parkFacilityRepository.findByDtFacilitiesId(dtFacilityId) ?: run {
+            null
+        }
+    }
+
+    fun getGateInfoByDtFacilityId(dtFacilityId: String) : Gate? {
+        parkFacilityRepository.findByDtFacilitiesId(dtFacilityId)?.let {
             parkGateRepository.findByGateId(it.gateId)?.let {
                 return it
             }
@@ -317,36 +378,68 @@ class ParkinglotService {
 
     @Transactional
     fun updateParkinglot(request: reqCreateParkinglot): CommonResult = with(request) {
-        logger.trace { "updateParkinglot request $request" }
+        logger.info { "updateParkinglot request $request" }
         try {
             parkSiteInfoRepository.findBySiteid(request.siteId)?.let { it ->
-                return CommonResult.data(
-                    data = parkSiteInfoRepository.save(
-                        ParkSiteInfo(
-                            siteid = it.siteid,
-                            sitename = siteName,
-                            limitqty = limitqty,
-                            saupno = saupno,
-                            tel = tel,
-                            ceoname = ceoname,
-                            postcode = postcode,
-                            address = address,
-                            firsttime = firsttime,
-                            firstfee = firstfee,
-                            returntime = returntime,
-                            overtime = overtime,
-                            overfee = overfee,
-                            addtime = addtime,
-                            dayfee = dayfee,
-                            parkingSpotStatusNotiCycle = parkingSpotStatusNotiCycle,
-                            facilitiesStatusNotiCycle = facilitiesStatusNotiCycle,
-                            flagMessage = flagMessage,
-                            businame = businame,
-                            parkId = parkId
-                        )
-                ))
+                val data = parkSiteInfoRepository.save(
+                    ParkSiteInfo(
+                        siteid = it.siteid,
+                        sitename = siteName,
+                        limitqty = limitqty,
+                        saupno = saupno,
+                        tel = tel,
+                        ceoname = ceoname,
+                        postcode = postcode,
+                        address = address,
+                        firsttime = firsttime,
+                        firstfee = firstfee,
+                        returntime = returntime,
+                        overtime = overtime,
+                        overfee = overfee,
+                        addtime = addtime,
+                        dayfee = dayfee,
+                        parkingSpotStatusNotiCycle = parkingSpotStatusNotiCycle,
+                        facilitiesStatusNotiCycle = facilitiesStatusNotiCycle,
+                        flagMessage = flagMessage,
+                        businame = businame,
+                        parkId = parkId,
+                        vehicleDayOption =vehicleDayOption,
+                        tmapSend = tmapSend,
+                        saleType = saleType
+                    )
+                )
+                initalizeData()
+                return CommonResult.data(data)
             } ?: run {
-                return CommonResult.notfound("parkinglot data not found")
+                val data = parkSiteInfoRepository.save(
+                    ParkSiteInfo(
+                        siteid = siteId,
+                        sitename = siteName,
+                        limitqty = limitqty,
+                        saupno = saupno,
+                        tel = tel,
+                        ceoname = ceoname,
+                        postcode = postcode,
+                        address = address,
+                        firsttime = firsttime,
+                        firstfee = firstfee,
+                        returntime = returntime,
+                        overtime = overtime,
+                        overfee = overfee,
+                        addtime = addtime,
+                        dayfee = dayfee,
+                        parkingSpotStatusNotiCycle = parkingSpotStatusNotiCycle,
+                        facilitiesStatusNotiCycle = facilitiesStatusNotiCycle,
+                        flagMessage = flagMessage,
+                        businame = businame,
+                        parkId = parkId,
+                        vehicleDayOption =vehicleDayOption,
+                        tmapSend = tmapSend,
+                        saleType = saleType
+                    )
+                )
+                initalizeData()
+                return CommonResult.data(data)
             }
         } catch(e: CustomException) {
             logger.error { "updateParkinglot error ${e.message}" }
@@ -367,7 +460,7 @@ class ParkinglotService {
     }
 
     fun isTmapSend(): Boolean {
-        return parkSite.tmapSend!! == OnOff.ON
+        return parkSite!!.tmapSend!! == OnOff.ON
     }
 
 //    fun JsonArray<*>.writeJSON(pathName: String, filename: String) {

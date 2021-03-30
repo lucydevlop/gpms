@@ -3,6 +3,7 @@ package io.glnt.gpms.handler.product.service
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.dashboard.admin.model.reqSearchProductTicket
 import io.glnt.gpms.handler.product.model.reqCreateProduct
 import io.glnt.gpms.handler.product.model.reqSearchProduct
 import io.glnt.gpms.model.entity.ProductTicket
@@ -40,7 +41,7 @@ class ProductService {
     }
 
     @Throws(CustomException::class)
-    fun createProduct(request: reqCreateProduct): Boolean {
+    fun createProduct(request: reqCreateProduct): CommonResult {
         logger.info { "createProduct request $request" }
         try {
             if (request.sn != null) {
@@ -57,9 +58,9 @@ class ProductService {
                         vehicleType = request.vehicleType?.let { request.vehicleType } ?: run { it.vehicleType },
                         corpSn = request.corpSn?.let { request.corpSn } ?: run { it.corpSn }
                     )
-                    saveProductTicket(new)
+                    return CommonResult.data(saveProductTicket(new))
                 } ?: run {
-                    return false
+                    return CommonResult.error("product ticket create failed")
                 }
             } else {
                 productTicketRepository.findByVehicleNoAndValidDateGreaterThanEqualAndDelYn(request.vehicleNo, request.effectDate, DelYn.N
@@ -102,22 +103,22 @@ class ProductService {
                         vehicleType = request.vehicleType,
                         corpSn = request.corpSn
                     )
-                    saveProductTicket(new)
+                    return CommonResult.data(saveProductTicket(new))
                 }
             }
         } catch (e: RuntimeException) {
-            logger.info { "createProduct error ${e.message}" }
-            return false
+            logger.info { "createProduct error $e" }
+            return CommonResult.error("product ticket create failed")
         }
-        return true
+        return CommonResult.data()
     }
 
     @Transactional
     fun saveProductTicket(data: ProductTicket) : ProductTicket {
-        return productTicketRepository.save(data)
+        return productTicketRepository.saveAndFlush(data)
     }
 
-    fun getProducts(request: reqSearchProduct): CommonResult {
+    fun getProducts(request: reqSearchProductTicket): CommonResult {
         return CommonResult.data(productTicketRepository.findAll(findAllProductSpecification(request)))
     }
 
@@ -134,7 +135,7 @@ class ProductService {
         return CommonResult.error("deleteTicket failed")
     }
 
-    private fun findAllProductSpecification(request: reqSearchProduct): Specification<ProductTicket> {
+    private fun findAllProductSpecification(request: reqSearchProductTicket): Specification<ProductTicket> {
         val spec = Specification<ProductTicket> { root, query, criteriaBuilder ->
             val clues = mutableListOf<Predicate>()
 

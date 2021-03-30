@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.entity.Auditable
 import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.TicketType
+import org.hibernate.annotations.Where
 import java.io.Serializable
 import java.time.LocalDateTime
 import javax.persistence.*
@@ -18,11 +20,15 @@ data class InoutDiscount(
     @Column(name = "sn", unique = true, nullable = false)
     var sn: Long?,
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "discount_type", nullable = false)
-    var discontType: String,
+    var discontType: TicketType? = TicketType.CORPTICKET,
 
-    @Column(name = "ticket_sn", nullable = true)
-    var ticketSn: Long? = null,
+    @Column(name = "discount_class_sn")
+    var discountClassSn: Long? = null,
+
+    @Column(name = "ticket_hist_sn", nullable = true)
+    var ticketHistSn: Long? = null,
 
     @Column(name = "in_sn", nullable = false)
     var inSn: Long,
@@ -40,9 +46,27 @@ data class InoutDiscount(
     @Column(name = "apply_date")
     var applyDate: LocalDateTime? = null,
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "calc_yn")
+    var calcYn: DelYn? = DelYn.N,
+
     @Column(name = "out_sn")
     var outSn: Long? = null
 
 ): Auditable(), Serializable {
 
+    @OneToOne//(mappedBy = "serviceProduct", cascade = arrayOf(CascadeType.ALL), fetch = FetchType.EAGER)
+    @JoinColumn(name = "ticket_hist_sn", referencedColumnName = "sn", insertable = false, updatable = false)
+    @Where(clause = "del_yn = 'N'")
+    var ticketHist: CorpTicketHistory? = null
+
+    @OneToOne//(mappedBy = "serviceProduct", cascade = arrayOf(CascadeType.ALL), fetch = FetchType.EAGER)
+    @JoinColumn(name = "corp_class_sn", referencedColumnName = "sn", insertable = false, updatable = false)
+    @Where(clause = "del_yn = 'N'")
+    var discountClass: DiscountClass? = null
+
+    @OneToOne//(mappedBy = "serviceProduct", cascade = arrayOf(CascadeType.ALL), fetch = FetchType.EAGER)
+    @JoinColumn(name = "in_sn", referencedColumnName = "sn", insertable = false, updatable = false)
+    @Where(clause = "del_yn = 'N'")
+    var parkIn: ParkIn? = null
 }

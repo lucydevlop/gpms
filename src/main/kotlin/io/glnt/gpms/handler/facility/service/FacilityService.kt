@@ -10,11 +10,13 @@ import io.glnt.gpms.handler.facility.model.*
 import io.glnt.gpms.handler.inout.model.reqUpdatePayment
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.io.glnt.gpms.common.utils.JacksonUtil
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DisplayMessageClass
+import io.glnt.gpms.model.enums.DisplayMessageType
 import io.glnt.gpms.model.repository.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -58,6 +60,9 @@ class FacilityService {
     private lateinit var parkinglotService: ParkinglotService
 
     @Autowired
+    private lateinit var relayService: RelayService
+
+    @Autowired
     private lateinit var restAPIManager: RestAPIManagerUtil
 
     @Autowired
@@ -74,31 +79,70 @@ class FacilityService {
         parkGateRepository.findAll().let {
             gates = it
         }
+
+        val defaultDisplayColor = ArrayList<DisplayColor>()
+        defaultDisplayColor.add(DisplayColor(colorCode = "C1", colorDesc = "초록색", sn = null))
+        defaultDisplayColor.add(DisplayColor(colorCode = "C3", colorDesc = "하늘색", sn = null))
+        defaultDisplayColor.add(DisplayColor(colorCode = "C4", colorDesc = "빨강색", sn = null))
+        defaultDisplayColor.add(DisplayColor(colorCode = "C5", colorDesc = "핑크색", sn = null))
+        defaultDisplayColor.forEach { displayColor ->
+            displayColorRepository.findByColorCode(displayColor.colorCode)?:run {
+                displayColorRepository.save(displayColor)
+            }
+        }
+
+        // 입차/출차 reset 메세지 구성
+        val defaultDisplayMessages = ArrayList<DisplayMessage>()
+        defaultDisplayMessages.add(
+            DisplayMessage(
+                messageClass = DisplayMessageClass.IN, messageType = DisplayMessageType.INIT, messageCode = "ALL", order = 1, lineNumber = 1, colorCode = "C1", messageDesc = "안녕하세요", sn = null)
+        )
+        defaultDisplayMessages.add(
+            DisplayMessage(
+                messageClass = DisplayMessageClass.IN, messageType = DisplayMessageType.INIT, messageCode = "ALL", order = 2, lineNumber = 2, colorCode = "C3", messageDesc = "환영합니다", sn = null)
+        )
+        defaultDisplayMessages.add(
+            DisplayMessage(
+                messageClass = DisplayMessageClass.OUT, messageType = DisplayMessageType.INIT, messageCode = "ALL", order = 1, lineNumber = 1, colorCode = "C1", messageDesc = "감사합니다", sn = null)
+        )
+        defaultDisplayMessages.add(
+            DisplayMessage(
+                messageClass = DisplayMessageClass.OUT, messageType = DisplayMessageType.INIT, messageCode = "ALL", order = 2, lineNumber = 2, colorCode = "C3", messageDesc = "안녕히가세요", sn = null)
+        )
+
+        defaultDisplayMessages.forEach { message ->
+            displayMessageRepository.findByMessageClassAndMessageTypeAndOrder(message.messageClass!!, message.messageType, message.order!!)?:run {
+                displayMessageRepository.save(message)
+            }
+        }
+
+        displayMessageRepository.findByMessageClass(DisplayMessageClass.IN)?.let { meessages ->
+            displayMessagesIn = meessages
+
+        }
+
+        displayMessageRepository.findByMessageClass(DisplayMessageClass.OUT)?.let { meessages ->
+            displayMessagesOut = meessages
+        }
+
+        displayMessageRepository.findByMessageClass(DisplayMessageClass.WAIT)?.let { meessages ->
+            displayMessagesWait = meessages
+        }
     }
 
-    fun actionGate(id: String, type: String, action: String) {
-        logger.info { "actionGate request $type $id $action" }
-        try {
-            when (type) {
-                "GATE" -> {
-                    parkinglotService.getFacilityByGateAndCategory(id, "BREAKER")?.let { its ->
-                        its.forEach {
-                            val url = getRelaySvrUrl(id)
-                            restAPIManager.sendGetRequest(
-                                url+"/breaker/${it.facilitiesId}/$action"
-                            )
-                        }
-                    }
-                }
-                else -> {
-                    val url = getRelaySvrUrl(parkinglotService.getFacility(id)!!.gateId)
-                    restAPIManager.sendGetRequest(
-                        url+"/breaker/${id}/$action"
-                    )
-                }
-            }
-        } catch (e: RuntimeException) {
-            logger.error {  "$action Gate $type $id error ${e.message}"}
+    // @PostConstruct
+    fun fetchDisplayColor() {
+        displayMessageRepository.findByMessageClass(DisplayMessageClass.IN)?.let { meessages ->
+            displayMessagesIn = meessages
+
+        }
+
+        displayMessageRepository.findByMessageClass(DisplayMessageClass.OUT)?.let { meessages ->
+            displayMessagesOut = meessages
+        }
+
+        displayMessageRepository.findByMessageClass(DisplayMessageClass.WAIT)?.let { meessages ->
+            displayMessagesWait = meessages
         }
     }
 
@@ -163,10 +207,8 @@ class FacilityService {
                 }
             }
             // static upload
-            fetchDisplayColor()
-
-            return CommonResult.created("display message setting success")
-
+            initalizeData()
+            return CommonResult.data("display message setting success")
         } catch (e: RuntimeException) {
             logger.error("set display color error {} ", e.message)
             return CommonResult.error("parkinglot display setting failed ")
@@ -196,52 +238,26 @@ class FacilityService {
         }
     }
 
-    fun fetchDisplayColor() {
-        displayMessageRepository.findByMessageClass(DisplayMessageClass.IN)?.let { meessages ->
-            displayMessagesIn = meessages
 
-//            displayMessagesIn.forEach { it ->
-//                displayColorRepository.findByMessageClassAndColorType(DisplayMessageClass.IN, it.colorType!!)?.let { color ->
-//                    it.displayColor = color
-//                }
-//            }
-        }
-
-        displayMessageRepository.findByMessageClass(DisplayMessageClass.OUT)?.let { meessages ->
-            displayMessagesOut = meessages
-
-//            displayMessagesOut.forEach { it ->
-//                displayColorRepository.findByMessageClassAndColorType(DisplayMessageClass.OUT, it.colorType!!)?.let { color ->
-//                    it.displayColor = color
-//                }
-//            }
-        }
-
-        displayMessageRepository.findByMessageClass(DisplayMessageClass.WAIT)?.let { meessages ->
-            displayMessagesWait = meessages
-
-//            displayMessagesWait.forEach { it ->
-//                displayColorRepository.findByMessageClassAndColorType(DisplayMessageClass.OUT, it.colorType!!)?.let { color ->
-//                    it.displayColor = color
-//                }
-//            }
-        }
-    }
     private fun getRelaySvrUrl(gateId: String): String {
         return gates.filter { it.gateId == gateId }[0].relaySvr!!
     }
 
-    fun sendDisplayMessage(data: Any, gate: String) {
-        logger.info { "sendPaystation request $data $gate" }
-        parkinglotService.getFacilityByGateAndCategory(gate, "DISPLAY")?.let { its ->
-            its.forEach {
-                restAPIManager.sendPostRequest(
-                    getRelaySvrUrl(gate)+"/display/show",
-                    reqSendDisplay(it.facilitiesId!!, data as ArrayList<reqDisplayMessage>)
-                )
-            }
-        }
+    fun getGateByGateId(gateId: String) : Gate? {
+        return gates.filter { it.gateId == gateId }[0]
     }
+
+//    fun sendDisplayMessage(data: Any, gate: String) {
+//        logger.info { "sendPaystation request $data $gate" }
+//        parkinglotService.getFacilityByGateAndCategory(gate, "DISPLAY")?.let { its ->
+//            its.forEach {
+//                restAPIManager.sendPostRequest(
+//                    getRelaySvrUrl(gate)+"/display/show",
+//                    reqSendDisplay(it.facilitiesId!!, data as ArrayList<reqDisplayMessage>)
+//                )
+//            }
+//        }
+//    }
 
     fun sendPaystation(data: Any, gate: String, requestId: String, type: String) {
         logger.info { "sendPaystation request $data $gate $requestId $type" }
@@ -250,7 +266,7 @@ class FacilityService {
             its.forEach {
                 restAPIManager.sendPostRequest(
                     getRelaySvrUrl(gate)+"/parkinglot/paystation",
-                    reqPaystation(facilityId = it.facilitiesId!!, data = setPaystationRequest(type, requestId, data))
+                    reqPaystation(dtFacilityId = it.dtFacilitiesId, data = setPaystationRequest(type, requestId, data))
                 )
             }
         }
@@ -278,7 +294,7 @@ class FacilityService {
                 )
             )?.let { it ->
                 // gate open
-                actionGate(it.gateId!!, "GATE", "open")
+                relayService.actionGate(it.gateId!!, "GATE", "open")
                 // todo tmap-payment
                 tmapSendService.sendTmapInterface(
                     reqSendPayment(
@@ -328,6 +344,16 @@ class FacilityService {
         )
     }
 
+    fun createFacility(facility: Facility): CommonResult {
+        logger.info{"createFacility request : $facility"}
+        try {
+            return CommonResult.data(facilityRepository.save(facility))
+        } catch (e: RuntimeException) {
+            logger.error { "createFacility error $e" }
+            return CommonResult.error("createFacility failed ")
+        }
+    }
+
     fun allUpdateFacilities(request: reqUpdateFacilities): CommonResult {
         logger.info("allUpdateFacilities request : $request")
         try {
@@ -356,23 +382,23 @@ class FacilityService {
         return facilityRepository.save(facility)
     }
 
-    fun updateHealthCheck(facilitiesId: String, status: String) {
-        logger.info { "updateHealthCheck facility $facilitiesId status $status" }
+    fun updateHealthCheck(dtFacilitiesId: String, status: String) {
+        logger.trace { "updateHealthCheck facility $dtFacilitiesId status $status" }
         try {
-            facilityRepository.findByFacilitiesId(facilitiesId)?.let { facility ->
+            facilityRepository.findByDtFacilitiesId(dtFacilitiesId)?.let { facility ->
                 facility.health = status
                 facility.healthDate = LocalDateTime.now()
                 facilityRepository.save(facility)
             }
         }catch (e: RuntimeException) {
-            logger.error { "allUpdateFacilities error ${e.message}" }
+            logger.error { "updateHealthCheck error ${e.message}" }
         }
     }
 
-    fun updateStatusCheck(facilitiesId: String, status: String) : Facility? {
-        logger.info { "updateStatusCheck facility $facilitiesId status $status" }
+    fun updateStatusCheck(dtFacilitiesId: String, status: String) : Facility? {
+        logger.trace { "updateStatusCheck facility $dtFacilitiesId status $status" }
         try {
-            facilityRepository.findByFacilitiesId(facilitiesId)?.let { facility ->
+            facilityRepository.findByDtFacilitiesId(dtFacilitiesId)?.let { facility ->
 //                if (facility.category == "BREAKER") {
                     facility.status = status
                     facility.statusDate = LocalDateTime.now()
@@ -380,7 +406,7 @@ class FacilityService {
 //                }
             }
         }catch (e: RuntimeException) {
-            logger.error { "allUpdateFacilities error ${e.message}" }
+            logger.error { "updateStatusCheck error ${e.message}" }
         }
         return null
     }
@@ -412,7 +438,7 @@ class FacilityService {
             }
             return result
         }catch (e: RuntimeException) {
-            logger.error { "allUpdateFacilities error ${e.message}" }
+            logger.error { "getStatusByGateAndCategory error $e" }
         }
         return null
     }
@@ -421,6 +447,7 @@ class FacilityService {
         try {
             var result = HashMap<String, Any?>()
             facilityRepository.findByGateIdAndCategory(gateId, category)?.let { facilities ->
+                if (facilities.isNullOrEmpty()) return result
                 facilities.forEach { facility ->
                     // 장애 상태 확인
                     failureRepository.findTopByFacilitiesIdAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(facility.facilitiesId!!)?.let {
@@ -437,7 +464,7 @@ class FacilityService {
             }
             return result
         }catch (e: RuntimeException) {
-            logger.error { "allUpdateFacilities error ${e.message}" }
+            logger.error { "getActionByGateAndCategory error $e" }
         }
         return null
     }
@@ -463,8 +490,8 @@ class FacilityService {
             return hashMapOf<String, Any?>(
                 "lprStatus" to lpr!!["status"],
                 "breakerStatus" to breaker!!["status"],
-                "breakerAction" to breakerAction!!["status"],
-                "breakerFailure" to breakerAction["failure"],
+                "breakerAction" to if (breakerAction==null) "NONE" else breakerAction["status"],
+                "breakerFailure" to if (breakerAction==null) null else breakerAction["failure"],
                 "displayStatus" to display!!["status"],
                 "paystationStatus" to paystation!!["status"],
                 "paystationAction" to paystationAction!!["status"],

@@ -47,7 +47,7 @@ class ParkinglotController {
 
     @RequestMapping(value= ["/update"], method = [RequestMethod.POST])
     fun updateParkinglot(@RequestBody request: reqCreateParkinglot) : ResponseEntity<CommonResult> {
-        logger.trace { "updateParkinglot request $request" }
+        logger.info { "updateParkinglot request $request" }
         val result = parkinglotService.updateParkinglot(request)
         return when (result.code) {
             ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)

@@ -7,7 +7,7 @@ import javax.persistence.EnumType
 import javax.persistence.Enumerated
 
 data class reqSendDisplay(
-    var facilityId: String,
+    var dtFacilityId: String,
     var messages: ArrayList<reqDisplayMessage>
 )
 

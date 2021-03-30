@@ -41,7 +41,7 @@ data class reqPayData(
 )
 
 data class reqPaystation(
-    var facilityId: String,
+    var dtFacilityId: String,
     var data: Any
 )
 

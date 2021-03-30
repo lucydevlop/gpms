@@ -21,13 +21,16 @@ interface ParkInRepository: JpaRepository<ParkIn, Long> {
     fun countByGateIdAndOutSn(gateId: String, outSn: Long): Int
     fun findTopByGateIdAndDelYnAndInDateGreaterThanEqualOrderByInDateDesc(gateId: String, delYn: DelYn, inDate: LocalDateTime ) : ParkIn?
     fun findTopByGateIdAndDelYnOrderByInDateDesc(gateId: String, delYn: DelYn) : ParkIn?
+    fun findTopByOutSnAndDelYnOrderByInDateDesc(outSn: Long, delYn: DelYn) : ParkIn?
+    fun findByUuidAndOutSnAndDelYn(uuid: String, outSn: Long, delYn: DelYn): List<ParkIn>?
+    fun findByOutSnAndDelYn(outSn: Long, delYn: DelYn): List<ParkIn>?
 }
 
 @Repository
 interface ParkOutRepository: JpaRepository<ParkOut, Long> {
     fun findBySn(sn: Long): ParkOut?
     fun findByVehicleNoEndsWith(vehicleNo: String) : List<ParkOut>?
-    fun findAll(specification: Specification<ParkOut>, pageable: Pageable): List<ParkOut>?
+    fun findAll(specification: Specification<ParkOut>): List<ParkOut>?
     fun findByRequestid(requestId: String): ParkOut?
     fun findByUuid(uuid: String): ParkOut?
     fun findTopByPaystationAndApproveDatetimeIsNotNullOrderByOutDateDesc(paystation: String): ParkOut?

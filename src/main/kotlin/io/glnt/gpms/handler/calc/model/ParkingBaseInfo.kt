@@ -43,18 +43,21 @@ data class BasicPrice(
 )
 
 data class DailyPrice(
-    var originStartTime: LocalDateTime?,
-    var originEndTime: LocalDateTime?,
+//    var originStartTime: LocalDateTime?,
+//    var originEndTime: LocalDateTime?,
     var date: String,
     var week: WeekType?,
     var dateType: String? = "Normal", //Holiday(휴일), Overday(특근일), Normal(보통일)
+    var originPrice: Int? = 0,
     var price: Int? = 0,
     var priceType: String? = "Normal", //payType Month(정기권무료), Month_half(정기권일부할인), Free(무료), Free_half(무료일부할인), Normal(보통결제)
-    var startTime: LocalDateTime?,
-    var endTime: LocalDateTime?,
-    var dailySplits: ArrayList<DailySplit>? = null,
-    var serviceTime: Int = 0,
-    var diffTime: Int = 0
+    var discount: Int? = 0,
+    var dayMaxDiscount: Int? = 0,
+    var parkTime: Int? = 0
+//    var startTime: LocalDateTime?,
+//    var endTime: LocalDateTime?,
+//    var serviceTime: Int = 0,
+//    var diffTime: Int = 0
 )
 
 data class DailySplit(
@@ -70,7 +73,8 @@ data class DailySplit(
     var fareAmt: Int? = 0,
     var fareInfo: FareInfo? = null,
     var farePolicy: FarePolicy? = null,
-    var seasonTicketRange: TimeRange? = null
+    var seasonTicketRange: TimeRange? = null,
+    var discountRange: TimeRange? = null
 )
 
 data class TimeRange(

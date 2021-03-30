@@ -15,16 +15,19 @@ interface ParkSiteInfoRepository: JpaRepository<ParkSiteInfo, String> {
 @Repository
 interface ParkAlarmSetttingRepository: JpaRepository<ParkAlarmSetting, String> {
     fun findBySiteid(siteid: String): ParkAlarmSetting?
+    fun findTopByOrderBySiteid(): ParkAlarmSetting?
 }
 
 @Repository
 interface ParkFacilityRepository: JpaRepository<Facility, Long> {
     fun findByFacilitiesId(facilitiesId: String): Facility?
-    @Query("SELECT v from Facility v where v.category != 'LPR' or (v.category = 'LPR' and v.imagePath is not null)")
-    fun findByGateSvrKey(gateSvrKey: String): List<Facility>?
-    fun findByGateIdAndFlagUse(gateId: String, flagUse: Int): List<Facility>?
+    fun findByDtFacilitiesId(dtFacilitiesId: String): Facility?
+//    @Query("SELECT v from Facility v where v.category != 'LPR' or (v.category = 'LPR' and v.imagePath is not null)")
+//    fun findByGateSvrKey(gateSvrKey: String): List<Facility>?
+    fun findByGateIdAndDelYn(gateId: String, delYn: DelYn): List<Facility>?
     fun findByGateIdAndCategory(gateId: String, category: String): List<Facility>?
     fun findByCategory(category: String): List<Facility>?
+    fun findByGateId(gateId: String): List<Facility>?
 //    fun getDistinctByCategoryAndGateId(gateId: String): List<Facility>?
 //    fun countByGateIdAndCategoryAndHealth(gateId: String): List<Facility>?
     fun findTopByGateIdAndCategoryOrderByStatusDate(gateId: String, category: String): Facility

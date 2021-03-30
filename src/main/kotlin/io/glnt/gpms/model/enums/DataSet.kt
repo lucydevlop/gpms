@@ -13,7 +13,7 @@ enum class GateTypeStatus {
 }
 
 enum class LprTypeStatus {
-    INFRONT, INBACK, INASSIST, OUTFRONT, OUTBACK, OUTASSIST
+    FRONT, BACK, ASSIST, INFRONT, INBACK, OUTFRONT
 }
 
 enum class OnOff {
@@ -38,6 +38,7 @@ enum class DisplayMessageClass(val code: String, val desc: String) {
 }
 
 enum class DisplayMessageType(val code: String, val desc: String) {
+    INIT("INIT", "RESET"),
     MEMBER("MEMBER", "Tmap(회원)차량"),
     NONMEMBER("NONMEMBER", "일반차량"),
     VIP("VIP", "정기권차량"),
@@ -67,7 +68,13 @@ enum class TicketType(val code: String, val desc: String) {
     TIMETICKET("TIMETICKET", "시간권"),
     DAYTICKET("DAYTICKET", "일일권"),
     FREETICKET("FREETICKET", "무료주차권"),
-    ETC("ETC", "기타"),
+    CORPTICKET("CORPTICKET", "입주사할인권"),
+    ALL("ALL", "전체할인권"),
+    ETC("ETC", "기타");
+
+    companion object {
+        fun from(s: String): TicketType? = values().find { it.desc == s }
+    }
 }
 
 enum class DiscountRangeType(val code: String, val desc: String) {
@@ -109,7 +116,28 @@ enum class HolidayType(val code: String, val desc: String) {
     ETC("ETC", "기타")
 }
 
+enum class TimeTarget(val code: String, val desc: String) {
+    IN("IN", "입차"),
+    NOW("NOW", "현재")
+}
 
+enum class OpenActionType(val code: String, val desc: String) {
+    NONE("NONE", "제한없음"),
+    RECOGNITION("RECOGNITION", "인식"),
+    RESTRICT("RESTRICT", "제한")
+}
+
+enum class DiscountApplyType(val code: String, val desc: String) {
+    TIME("TIME", "시간"),
+    WON("WON", "금액"),
+}
+
+enum class ErrorCode {
+    NOT_FOUND,
+    ALREADY_EXISTS,
+    ACCESS_DENIED,
+    INCORRECT_VALUE
+}
 
 //enum class parkCarType {
 //    "일반차량", "정기권차량", "미인식차량"

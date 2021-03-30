@@ -13,6 +13,17 @@ spring:
     database-platform: org.hibernate.dialect.MariaDB103Dialect
 
   datasource:
+    hikari:
+      minimumIdle: 5
+      maximumPoolSize: 10
+      poolName: HikariCP
+      readOnly: false
+      connectionTestQuery: SELECT 1
+      idle-timeout: 10000
+      connection-timeout: 10000
+      validation-timeout: 10000
+      max-lifetime: 580000
+
     username: glnt-user
     password: glnt123!@#
     driver-class-name: org.mariadb.jdbc.Driver
@@ -22,7 +33,7 @@ server:
   port: 13000
 
 logging:
-  config: classpath:logback-glnt.xml
+  config: classpath:logback-staging.xml
   level:
     ROOT: WARN
     io.github.jhipster: WARN
