@@ -64,4 +64,9 @@ data class InoutDiscount(
     @JoinColumn(name = "corp_class_sn", referencedColumnName = "sn", insertable = false, updatable = false)
     @Where(clause = "del_yn = 'N'")
     var discountClass: DiscountClass? = null
+
+    @OneToOne//(mappedBy = "serviceProduct", cascade = arrayOf(CascadeType.ALL), fetch = FetchType.EAGER)
+    @JoinColumn(name = "in_sn", referencedColumnName = "sn", insertable = false, updatable = false)
+    @Where(clause = "del_yn = 'N'")
+    var parkIn: ParkIn? = null
 }

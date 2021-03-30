@@ -17,6 +17,7 @@ interface CorpTicketRepository: JpaRepository<CorpTicketInfo, Long> {
     fun findByCorpSn(corpSn: Long) : List<CorpTicketInfo>?
     fun findByCorpSnAndDelYn(corpSn: Long, delYn: DelYn): List<CorpTicketInfo>?
     fun findByCorpSnAndDiscountClassSnAndDelYn(corpSn: Long, discountClassSn: Long, delYn: DelYn): CorpTicketInfo?
+    fun findBySnAndDelYn(sn: Long, delYn: DelYn): CorpTicketInfo?
 //    fun findByCorpIdAndExpireDateGreaterThanEqualAndAbleCntIsGreaterThan(corpId: String, date: LocalDateTime, cnt: Int): List<CorpTicket>?
 //    fun findTopByCorpSnAndCorpClassSnAndDelYnAndAbleCntIsGreaterThanOrderByCreateDateAsc(corpSn: Long, corpClassNo: Long, delYn: DelYn, ableCnt: Int): CorpTicket?
 }
@@ -26,6 +27,7 @@ interface CorpTicketHistoryRepository: JpaRepository<CorpTicketHistory, Long> {
     @Query(value = "SELECT h.* from tb_corp_ticket_history h where h.ticket_sn =:ticketSn And h.total_quantity > h.use_quantity And h.del_Yn = 'N' order by h.create_date Limit 1", nativeQuery = true)
     fun findTopByTicket(ticketSn: Long): CorpTicketHistory?
     fun findByTicketSnAndDelYn(ticketSn: Long, delYn: DelYn): List<CorpTicketHistory>?
+    fun findBySnAndDelYn(sn: Long, delYn: DelYn): CorpTicketHistory?
 }
 
 @Repository
@@ -37,6 +39,7 @@ interface DiscountClassRepository: JpaRepository<DiscountClass, Long>{
 
 @Repository
 interface InoutDiscountRepository: JpaRepository<InoutDiscount, Long> {
+    fun findBySnAndDelYn(Sn: Long, delYn: DelYn): InoutDiscount?
     fun findByTicketHistSn(ticketSn: Long): List<InoutDiscount>?
     fun findByInSnAndDelYn(inSn: Long, delYn: DelYn): List<InoutDiscount>?
     fun findByTicketHistSnAndInSnAndDelYn(ticketHistSn: Long, inSn: Long, delYn: DelYn): List<InoutDiscount>?

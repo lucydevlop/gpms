@@ -15,6 +15,7 @@ data class resVehicleSearch(
 data class ResDiscountTicetsApplyList(
     var sn: Long,
     var discountType: TicketType,
+    var vehicleNo: String,
     var discountClassSn: Long,
     var discountNm: String,
     var calcYn: DelYn,

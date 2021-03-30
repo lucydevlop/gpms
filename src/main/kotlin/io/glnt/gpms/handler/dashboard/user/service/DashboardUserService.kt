@@ -226,21 +226,28 @@ class DashboardUserService {
                     val result = ArrayList<ResDiscountTicetsApplyList>()
                     val lists = tickets.data as List<CorpTicketInfo>
                     lists.forEach { it ->
-                        discountService.searchInoutDiscount(
-                            reqApplyInoutDiscountSearch(ticketSn = it.sn!!,startDate=request.startDate, endDate = request.endDate,
-                                                        ticketType = request.ticketType!!, applyStatus = request.applyStatus))?.let { its ->
-                            its.forEach {
-                                result.add(
-                                    ResDiscountTicetsApplyList(sn = it.sn!!,
-                                        discountType = it.discontType!!,
-                                        discountClassSn = it.discountClassSn!!,
-                                        discountNm = it.ticketHist!!.ticketInfo!!.discountClass!!.discountNm,
-                                        calcYn = it.calcYn!!,
-                                        delYn = it.delYn!!,
-                                        createDate = it.createDate!!,
-                                        quantity = it.quantity!!
-                                    )
+                        if ( (request.discountClassSn != null && it.discountClassSn == request.discountClassSn) || request.discountClassSn == null ) {
+                            discountService.searchInoutDiscount(
+                                reqApplyInoutDiscountSearch(
+                                    ticketSn = it.sn!!, startDate = request.startDate, endDate = request.endDate,
+                                    applyStatus = request.applyStatus
                                 )
+                            )?.let { its ->
+                                its.forEach {
+                                    result.add(
+                                        ResDiscountTicetsApplyList(
+                                            sn = it.sn!!,
+                                            vehicleNo = it.parkIn!!.vehicleNo!!,
+                                            discountType = it.discontType!!,
+                                            discountClassSn = it.discountClassSn!!,
+                                            discountNm = it.ticketHist!!.ticketInfo!!.discountClass!!.discountNm,
+                                            calcYn = it.calcYn!!,
+                                            delYn = it.delYn!!,
+                                            createDate = it.createDate!!,
+                                            quantity = it.quantity!!
+                                        )
+                                    )
+                                }
                             }
                         }
                     }
@@ -251,6 +258,20 @@ class DashboardUserService {
         }catch (e: CustomException){
             logger.error { "parkingDiscountSearchApplyTicket failed $e" }
             return CommonResult.error("parkingDiscountSearchApplyTicket failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun parkingDiscountCancelTicket(sn: Long) : CommonResult {
+        try {
+            if (discountService.cancelInoutDiscount(sn)) {
+                return CommonResult.data()
+            }
+            return CommonResult.error("parkingDiscountCancelTicket failed $sn")
+
+        }catch (e: CustomException){
+            logger.error { "parkingDiscountCancelTicket failed $e" }
+            return CommonResult.error("parkingDiscountCancelTicket failed ${e.message}")
         }
     }
 }

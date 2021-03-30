@@ -261,26 +261,35 @@ class DiscountService {
                     DateUtil.lastTimeToLocalDateTime(request.endDate.toString())
                 )
             )
-            if (request.ticketType != TicketType.ALL) {
-                clues.add(
-                    criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("ticketType")), request.ticketType.code)
-                )
-            }
+//            if (request.ticketType != TicketType.ALL) {
+//                clues.add(
+//                    criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("ticketType")), request.ticketType.code)
+//                )
+//            }
             if (request.applyStatus != null) {
                 when (request.applyStatus) {
                     "DO" -> {
                         clues.add(
                             criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("calcYn")), DelYn.N)
                         )
+                        clues.add(
+                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N)
+                        )
                     }
                     "DONE" -> {
                         clues.add(
-                            criteriaBuilder.isNotNull(root.get<LocalDateTime>("applyDate"))
+                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("calcYn")), DelYn.Y)
                         )
+                        clues.add(
+                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N)
+                        )
+//                        clues.add(
+//                            criteriaBuilder.isNotNull(root.get<LocalDateTime>("applyDate"))
+//                        )
                     }
                     "CANCEL" -> {
                         clues.add(
-                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N)
+                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.Y)
                         )
                     }
                 }
@@ -292,4 +301,25 @@ class DiscountService {
         return spec
     }
 
+    fun cancelInoutDiscount(inoutDiscountSn: Long): Boolean {
+        try {
+            inoutDiscountRepository.findBySnAndDelYn(inoutDiscountSn, DelYn.N)?.let { inoutDiscount ->
+                inoutDiscount.delYn = DelYn.Y
+                inoutDiscountRepository.save(inoutDiscount)
+                //수량 증가
+                corpTicketHistoryRepository.findBySnAndDelYn(inoutDiscount.ticketHistSn!!, DelYn.N)?.let { hist ->
+                    hist.useQuantity = hist.useQuantity.minus(inoutDiscount.quantity!!)
+                    corpTicketHistoryRepository.save(hist)
+                    corpTicketRepository.findBySnAndDelYn(hist.ticketSn, DelYn.N)?.let { info ->
+                        info.useQuantity = info.useQuantity.minus(inoutDiscount.quantity!!)
+                        corpTicketRepository.save(info)
+                    }
+                }
+            }
+        }catch (e: CustomException) {
+            logger.error { "cancelInoutDiscount error $e" }
+            return false
+        }
+        return true
+    }
 }
