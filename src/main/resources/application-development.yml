@@ -35,5 +35,7 @@ tmap:
 gateway:
   url: http://
 
+file:
+  filepath: /home/ubuntu/servers/glnt/gpms/park/data
 
 
