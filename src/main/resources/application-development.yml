@@ -25,6 +25,9 @@ logging:
     io.github.jhipster: INFO
     thesis: INFO
 
+server:
+  port: 13000
+
 image:
   filepath: /home/ubuntu/servers/glnt/gpms/park/save
 
