@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: local
+    active: development
   jpa:
     show-sql: true
     properties:
@@ -29,7 +29,7 @@ image:
   filepath: /home/ubuntu/servers/glnt/gpms/park/save
 
 tmap:
-  send: on
+  send: off
   url:
 
 gateway:
