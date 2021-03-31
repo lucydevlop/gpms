@@ -203,7 +203,7 @@ class DiscountService {
     fun addInoutDiscount(request: reqAddInoutDiscount): InoutDiscount {
         return inoutDiscountRepository.save(
             InoutDiscount(sn = null, discontType = request.discountType, discountClassSn = request.discountClassSn,
-                          ticketHistSn = request.ticketSn, inSn = request.inSn, quantity = request.quantity, delYn = DelYn.N))
+                          ticketHistSn = request.ticketSn, inSn = request.inSn, quantity = request.quantity, delYn = DelYn.N, corpSn = request.corpSn))
     }
 
     fun saveInoutDiscount(discount: InoutDiscount) : InoutDiscount {
@@ -215,7 +215,7 @@ class DiscountService {
             inoutDiscountRepository.findByInSnAndDelYnAndCalcYn(inSn, DelYn.N, DelYn.Y)?.let { discounts ->
                 discounts.forEach { it ->
                     it.applyDate = LocalDateTime.now()
-                    inoutDiscountRepository.save(it)
+                    saveInoutDiscount(it)
                     inoutDiscountRepository.flush()
                 }
             }
@@ -321,5 +321,19 @@ class DiscountService {
             return false
         }
         return true
+    }
+
+    fun getTodayUseDiscountTicket(corpSn: Long, discountClassSn: Long) : Int {
+        try {
+            inoutDiscountRepository.findByCorpSnAndDiscountClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(corpSn, discountClassSn, DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate), DateUtil.lastTimeToLocalDateTime(DateUtil.nowDate), DelYn.N)?.let {
+                return it.size
+            }?.run {
+                return 0
+            }
+            return 0
+        }catch (e: CustomException) {
+            logger.error { "getTodayUseDiscountTicket error $e" }
+            return 0
+        }
     }
 }
