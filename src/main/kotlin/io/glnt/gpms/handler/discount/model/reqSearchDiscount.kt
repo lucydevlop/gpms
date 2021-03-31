@@ -26,7 +26,8 @@ data class reqAddInoutDiscount(
     var ticketSn: Long,
     var discountType: TicketType,
     var quantity: Int? = 1,
-    var discountClassSn: Long
+    var discountClassSn: Long,
+    var corpSn: Long
 )
 
 data class reqApplyInoutDiscountSearch(

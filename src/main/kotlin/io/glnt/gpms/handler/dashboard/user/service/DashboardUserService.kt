@@ -113,17 +113,6 @@ class DashboardUserService {
                 )
             }
 
-//            val discountTickets = if (request.inSn == null){
-//                discountService.searchCorpTicketByCorp(reqParkingDiscountSearchTicket(searchLabel = "CORPID", searchText=request.corpId))
-//            } else {
-//                discountService.getDiscountableTickets(
-//                    reqDiscountableTicket(
-//                        corpId = request.corpId,
-//                        date = request.inDate,
-//                        inSn = request.inSn
-//                    )
-//                )
-//            }
             when(discountTickets.code) {
                 ResultCode.SUCCESS.getCode() -> {
                     discountTickets.data?.let {
@@ -143,7 +132,8 @@ class DashboardUserService {
                                 "monthMax" to data.discountClass!!.disMaxMonth,
                                 "totalCnt" to data.totalQuantity,
                                 "ableCnt" to if (request.inSn == null) data.totalQuantity - data.useQuantity else data.ableCnt, //,
-                                "unit" to data.discountClass!!.unitTime
+                                "unit" to data.discountClass!!.unitTime,
+                                "todayUse" to discountService.getTodayUseDiscountTicket(request.corpSn, data.discountClassSn)
                             ))
                         }
                         return CommonResult.data(result)
@@ -188,7 +178,8 @@ class DashboardUserService {
                                                 discountType = TicketType.CORPTICKET,
                                                 ticketSn = history.sn!!,
                                                 quantity = useCnt,
-                                                discountClassSn = corps.discountClassSn
+                                                discountClassSn = corps.discountClassSn,
+                                                corpSn = corps.corpSn
                                             )
                                         )
                                         history.useQuantity = history.useQuantity.plus(useCnt)
