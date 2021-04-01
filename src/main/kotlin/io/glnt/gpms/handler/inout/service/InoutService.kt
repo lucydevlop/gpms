@@ -819,6 +819,7 @@ class InoutService {
                     criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("gateId")), likeValue)
                 )
             }
+            clues.add(criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N))
             query.orderBy(criteriaBuilder.desc(root.get<LocalDateTime>("inDate")))
             criteriaBuilder.and(*clues.toTypedArray())
         }
@@ -845,7 +846,7 @@ class InoutService {
                     )
                 )
             }
-
+            clues.add(criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N))
             criteriaBuilder.and(*clues.toTypedArray())
         }
         return spec
@@ -1016,6 +1017,7 @@ class InoutService {
                 request.memo?.let{ parkIn.memo = request.memo}
 
                 parkInRepository.save(parkIn)
+                parkInRepository.flush()
             }
 //            var inResult: Any? = null
 //            parkinglotService.getFacilityByGateAndCategory(request.inGateId!!, "LPR")?.let { its ->
@@ -1057,6 +1059,29 @@ class InoutService {
         }catch (e: RuntimeException){
             logger.error { "updateInout failed ${e.message}" }
             return CommonResult.error("updateInout failed")
+        }
+    }
+
+    fun deleteInout(sn: Long) : CommonResult {
+        try{
+            parkInRepository.findBySn(sn)?.let { parkIn ->
+                parkIn.delYn = DelYn.Y
+                parkInRepository.save(parkIn)
+                parkInRepository.flush()
+                parkIn.outSn?.let {
+                    if (parkIn.outSn!! > 0L){
+                        parkOutRepository.findBySn(parkIn.outSn!!)?.let { parkOut ->
+                            parkOut.delYn = DelYn.Y
+                            parkOutRepository.save(parkOut)
+                            parkOutRepository.flush()
+                        }
+                    }
+                }
+            }
+            return CommonResult.data()
+        }catch (e: RuntimeException){
+            logger.error { "deleteInout failed $e" }
+            return CommonResult.error("deleteInout failed")
         }
     }
 

@@ -54,6 +54,13 @@ class DashboardAdminController {
         return CommonResult.returnResult(dashboardAdminService.editParkInout(request))
     }
 
+    @RequestMapping(value = ["/inout/delete/{sn}"], method = [RequestMethod.DELETE])
+    @Throws(CustomException::class)
+    fun deleteParkInout(@PathVariable sn: Long) : ResponseEntity<CommonResult> {
+        logger.trace { "deleteParkInout $sn" }
+        return CommonResult.returnResult(dashboardAdminService.deleteParkInout(sn))
+    }
+
     @RequestMapping(value = ["/gate/list"], method = [RequestMethod.GET])
     @Throws(CustomException::class)
     fun getGates(): ResponseEntity<CommonResult> {

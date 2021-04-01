@@ -126,6 +126,16 @@ class DashboardAdminService {
     }
 
     @Throws(CustomException::class)
+    fun deleteParkInout(sn: Long): CommonResult {
+        try {
+            return CommonResult.data(inoutService.deleteInout(sn).data)
+        }catch (e: CustomException){
+            logger.error { "Admin getParkInLists failed ${e.message}" }
+            return CommonResult.error("Admin getParkInLists failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
     fun getGates(): CommonResult {
         try {
             return CommonResult.data(parkinglotService.getParkinglotGates(reqSearchParkinglotFeature()).data)
