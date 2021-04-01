@@ -6,6 +6,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.utils.*
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.dashboard.admin.model.ReqCreateMessage
 import io.glnt.gpms.handler.facility.model.*
 import io.glnt.gpms.handler.inout.model.reqUpdatePayment
 import io.glnt.gpms.handler.inout.service.InoutService
@@ -215,6 +216,28 @@ class FacilityService {
         }
     }
 
+    fun updateDisplayMessage(request: ArrayList<ReqCreateMessage>): CommonResult = with(request) {
+        logger.info { "updateDisplayMessage request $request" }
+        try {
+            request.forEach { it ->
+                displayMessageRepository.findBySn(it.sn!!)?.let { display ->
+                    display.messageClass = it.messageClass
+                    display.messageType = it.messageType
+                    display.colorCode = it.colorCode
+                    display.order = it.order
+                    display.messageDesc = it.messageDesc
+                    display.lineNumber = it.lineNumber
+                    displayMessageRepository.save(display)
+                }
+            }
+            initalizeData()
+            return CommonResult.data("display message setting success")
+        }catch (e: CustomException){
+            logger.error("update display message error {} ", e)
+            return CommonResult.error("parkinglot display message update failed ")
+        }
+    }
+
     fun getDisplayColor() : CommonResult {
         logger.info { "getDisplayColor" }
         try {
@@ -226,6 +249,7 @@ class FacilityService {
             return CommonResult.error("getDisplayColor error")
         }
     }
+
     fun getDisplayMessage() : CommonResult {
         logger.info { "getDisplayMessage" }
         try {

@@ -95,6 +95,9 @@ data class ParkIn(
     @Column(name = "ticket_sn", nullable = true)
     var ticketSn: Long? = null,
 
+    @Column(name = "memo", nullable = true)
+    var memo: String? = null,
+
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
     var delYn: DelYn? = DelYn.N

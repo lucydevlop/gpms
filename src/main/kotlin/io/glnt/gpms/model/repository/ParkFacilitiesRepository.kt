@@ -18,4 +18,5 @@ interface DisplayColorRepository: JpaRepository<DisplayColor, Long> {
 interface DisplayMessageRepository: JpaRepository<DisplayMessage, Long> {
     fun findByMessageClassAndMessageTypeAndOrder(messageClass: DisplayMessageClass, messageType: DisplayMessageType, order: Int) : DisplayMessage?
     fun findByMessageClass(messageClass: DisplayMessageClass) : List<DisplayMessage>?
+    fun findBySn(sn: Long): DisplayMessage?
 }

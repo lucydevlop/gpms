@@ -9,6 +9,7 @@ import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
+import io.glnt.gpms.handler.inout.model.resParkInList
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
@@ -115,6 +116,16 @@ class DashboardAdminService {
     }
 
     @Throws(CustomException::class)
+    fun editParkInout(request: resParkInList): CommonResult {
+        try {
+            return CommonResult.data(inoutService.updateInout(request).data)
+        }catch (e: CustomException){
+            logger.error { "Admin getParkInLists failed ${e.message}" }
+            return CommonResult.error("Admin getParkInLists failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
     fun getGates(): CommonResult {
         try {
             return CommonResult.data(parkinglotService.getParkinglotGates(reqSearchParkinglotFeature()).data)
@@ -191,7 +202,7 @@ class DashboardAdminService {
     }
 
     @Throws(CustomException::class)
-    fun createMessage(request: reqCreateMessage): CommonResult {
+    fun createMessage(request: ReqCreateMessage): CommonResult {
         try {
             val data = ArrayList<reqSetDisplayMessage>()
             data.add(reqSetDisplayMessage(
@@ -203,6 +214,24 @@ class DashboardAdminService {
                 order = request.order
             ))
             val result = facilityService.setDisplayMessage(data)
+            when (result.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(result.data)
+                }
+                else -> {
+                    return CommonResult.data()
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin createMessage failed ${e.message}" }
+            return CommonResult.error("Admin createMessage failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun updateMessage(request: ArrayList<ReqCreateMessage>): CommonResult {
+        try {
+            val result = facilityService.updateDisplayMessage(request)
             when (result.code) {
                 ResultCode.SUCCESS.getCode() -> {
                     return CommonResult.data(result.data)
