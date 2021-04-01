@@ -7,6 +7,7 @@ import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.dashboard.admin.model.*
 import io.glnt.gpms.handler.dashboard.admin.service.DashboardAdminService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
+import io.glnt.gpms.handler.inout.model.resParkInList
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.FileSystemResource
@@ -46,6 +47,13 @@ class DashboardAdminController {
         return CommonResult.returnResult(dashboardAdminService.getParkInLists(request))
     }
 
+    @RequestMapping(value = ["/inout/edit"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun editParkInout(@RequestBody request: resParkInList) : ResponseEntity<CommonResult> {
+        logger.trace { "getParkInLists $request" }
+        return CommonResult.returnResult(dashboardAdminService.editParkInout(request))
+    }
+
     @RequestMapping(value = ["/gate/list"], method = [RequestMethod.GET])
     @Throws(CustomException::class)
     fun getGates(): ResponseEntity<CommonResult> {
@@ -82,9 +90,16 @@ class DashboardAdminController {
 
     @RequestMapping(value = ["/message/create"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
-    fun createMessage(@RequestBody request: reqCreateMessage) : ResponseEntity<CommonResult> {
+    fun createMessage(@RequestBody request: ReqCreateMessage) : ResponseEntity<CommonResult> {
         logger.trace { "$request" }
         return CommonResult.returnResult(dashboardAdminService.createMessage(request))
+    }
+
+    @RequestMapping(value = ["/message/update"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun updateMessage(@RequestBody request: ArrayList<ReqCreateMessage>) : ResponseEntity<CommonResult>{
+        logger.trace { "$request" }
+        return CommonResult.returnResult(dashboardAdminService.updateMessage(request))
     }
 
     @RequestMapping(value = ["/product/ticket/list"], method = [RequestMethod.POST])

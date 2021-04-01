@@ -22,14 +22,15 @@ data class reqCreateFacility(
     var imagePath: String? = null
 )
 
-data class reqCreateMessage(
+data class ReqCreateMessage(
     var messageClass: DisplayMessageClass,
     var messageType: DisplayMessageType,
     var messageCode: String,
     var order: Int,
     var lineNumber: Int,
     var colorCode: String,
-    var messageDesc: String
+    var messageDesc: String,
+    var sn: Long? = null
 )
 
 data class reqChangeUseGate(

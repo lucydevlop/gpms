@@ -746,7 +746,7 @@ class InoutService {
                                 type = DisplayMessageClass.IN,
                                 parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
                                 inGateId = it.gateId, inDate = it.inDate!!,
-                                ticketCorpName = it.ticket?.corp?.corpName
+                                ticketCorpName = it.ticket?.corp?.corpName, memo = it.memo
                             )
                             if (it.outSn!! > 0L && it.outSn != null) {
                                 parkOutRepository.findBySn(it.outSn!!)?.let { out ->
@@ -980,7 +980,8 @@ class InoutService {
                 val result = resParkInList(
                     type = DisplayMessageClass.IN,
                     parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
-                    inGateId = it.gateId, inDate = it.inDate!!, inImgBase64Str = it.image!!.substring(it.image!!.indexOf("/park"))
+                    inGateId = it.gateId, inDate = it.inDate!!, inImgBase64Str = it.image!!.substring(it.image!!.indexOf("/park")),
+                    memo = it.memo
                 )
                 if (it.outSn!! > 0L || it.outSn != null) {
                     parkOutRepository.findBySn(it.outSn!!)?.let { out ->
@@ -1007,42 +1008,51 @@ class InoutService {
     fun updateInout(request: resParkInList) : CommonResult {
         logger.info { "updateInout request $request" }
         try {
-            var inResult: Any? = null
-            parkinglotService.getFacilityByGateAndCategory(request.inGateId!!, "LPR")?.let { its ->
-                its.filter { it.lprType == LprTypeStatus.INFRONT }
-            }?.let { facilies ->
-                val result = parkIn(
-                    reqAddParkIn(vehicleNo = request.vehicleNo!!,
-                        dtFacilitiesId = facilies[0].dtFacilitiesId,
-                        date = request.inDate,
-                        resultcode = "0",
-                        base64Str = request.inImgBase64Str,
-                        uuid = UUID.randomUUID().toString(),
-                        inSn = if (request.parkinSn == 0L) null else request.parkinSn,
-                        deviceIF = "OFF"
-                    )).data!! as ParkIn
-                inResult = parkInRepository.findBySn(result.sn!!)!!
-            }?.run {
-                return CommonResult.error("updateInout failed")
+            parkInRepository.findBySn(request.parkinSn)?.let { parkIn ->
+                parkIn.inDate = request.inDate
+                request.inGateId?.let { parkIn.gateId = request.inGateId }
+                request.vehicleNo?.let { parkIn.vehicleNo = request.vehicleNo }
+                parkIn.parkcartype = request.parkcartype
+                request.memo?.let{ parkIn.memo = request.memo}
+
+                parkInRepository.save(parkIn)
             }
-            request.outDate?.let {
-                parkinglotService.getFacilityByGateAndCategory(request.inGateId!!, "LPR")?.let { its ->
-                    its.filter { it.lprType == LprTypeStatus.OUTFRONT }
-                }?.let { facilies ->
-                    parkOut(
-                        reqAddParkOut(vehicleNo = request.vehicleNo!!,
-                            dtFacilitiesId = facilies[0].dtFacilitiesId,
-                            date = request.outDate!!,
-                            base64Str = request.outImgBase64Str,
-                            uuid = UUID.randomUUID().toString(),
-                            resultcode = "0",
-                            outSn = request.parkoutSn,
-                            deviceIF = "OFF"
-                        ))
-                }?.run {
-                    return CommonResult.error("updateInout failed")
-                }
-            }
+//            var inResult: Any? = null
+//            parkinglotService.getFacilityByGateAndCategory(request.inGateId!!, "LPR")?.let { its ->
+//                its.filter { it.lprType == LprTypeStatus.INFRONT }
+//            }?.let { facilies ->
+//                val result = parkIn(
+//                    reqAddParkIn(vehicleNo = request.vehicleNo!!,
+//                        dtFacilitiesId = facilies[0].dtFacilitiesId,
+//                        date = request.inDate,
+//                        resultcode = "0",
+//                        base64Str = request.inImgBase64Str,
+//                        uuid = UUID.randomUUID().toString(),
+//                        inSn = if (request.parkinSn == 0L) null else request.parkinSn,
+//                        deviceIF = "OFF"
+//                    )).data!! as ParkIn
+//                inResult = parkInRepository.findBySn(result.sn!!)!!
+//            }?.run {
+//                return CommonResult.error("updateInout failed")
+//            }
+//            request.outDate?.let {
+//                parkinglotService.getFacilityByGateAndCategory(request.inGateId!!, "LPR")?.let { its ->
+//                    its.filter { it.lprType == LprTypeStatus.OUTFRONT }
+//                }?.let { facilies ->
+//                    parkOut(
+//                        reqAddParkOut(vehicleNo = request.vehicleNo!!,
+//                            dtFacilitiesId = facilies[0].dtFacilitiesId,
+//                            date = request.outDate!!,
+//                            base64Str = request.outImgBase64Str,
+//                            uuid = UUID.randomUUID().toString(),
+//                            resultcode = "0",
+//                            outSn = request.parkoutSn,
+//                            deviceIF = "OFF"
+//                        ))
+//                }?.run {
+//                    return CommonResult.error("updateInout failed")
+//                }
+//            }
             return CommonResult.data()
         }catch (e: RuntimeException){
             logger.error { "updateInout failed ${e.message}" }
