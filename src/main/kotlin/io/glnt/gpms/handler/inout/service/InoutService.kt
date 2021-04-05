@@ -1005,7 +1005,7 @@ class InoutService {
         return CommonResult.error("getParkInOutDetail inseq $request failed")
     }
 
-    @Transactional(readOnly = true)
+    @Throws(CustomException::class)
     fun updateInout(request: resParkInList) : CommonResult {
         logger.info { "updateInout request $request" }
         try {

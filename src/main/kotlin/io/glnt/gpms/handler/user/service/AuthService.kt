@@ -195,6 +195,7 @@ class AuthService {
         return when(role) {
             UserRole.SUPER_ADMIN -> true
             UserRole.ADMIN -> true
+            UserRole.OPERATION -> true
             else -> false
         }
     }
