@@ -24,5 +24,6 @@ data class reqCreateProduct(
     var gateId: MutableSet<String>? = null,
     var ticketType: TicketType? = null,
     var vehicleType: VehicleType? = null,
-    var corpSn: Long? = null
+    var corpSn: Long? = null,
+    var etc: String? = null
 )

@@ -266,7 +266,8 @@ class DashboardAdminService {
             val data = productService.createProduct(
                 reqCreateProduct(sn = request.sn, vehicleNo = request.vehicleNo,
                                  effectDate = request.effectDate, expireDate = request.expireDate,
-                                 userId = request.userId, gateId = request.gateId, ticketType = request.ticketType, vehicleType = request.vehicleType, corpSn = request.corpSn))
+                                 userId = request.userId, gateId = request.gateId, ticketType = request.ticketType,
+                                 vehicleType = request.vehicleType, corpSn = request.corpSn, etc = request.etc))
             when (data.code) {
                 ResultCode.SUCCESS.getCode() -> {
                     return CommonResult.data(data.data)

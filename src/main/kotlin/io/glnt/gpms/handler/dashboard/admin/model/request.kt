@@ -61,7 +61,8 @@ data class reqCreateProductTicket(
     var gateId: MutableSet<String>? = null,
     var ticketType: TicketType? = null,
     var vehicleType: VehicleType? = null,
-    var corpSn: Long? = null
+    var corpSn: Long? = null,
+    var etc: String? = null
 )
 
 data class reqSearchCorp(

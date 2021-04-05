@@ -56,7 +56,8 @@ class ProductService {
                         gates = request.gateId?.let { request.gateId } ?: run { it.gates },
                         ticketType = request.ticketType?.let { request.ticketType } ?: run { it.ticketType },
                         vehicleType = request.vehicleType?.let { request.vehicleType } ?: run { it.vehicleType },
-                        corpSn = request.corpSn?.let { request.corpSn } ?: run { it.corpSn }
+                        corpSn = request.corpSn?.let { request.corpSn } ?: run { it.corpSn },
+                        etc = request.etc?.let { request.etc } ?: run { it.etc }
                     )
                     return CommonResult.data(saveProductTicket(new))
                 } ?: run {
@@ -76,7 +77,7 @@ class ProductService {
                             sn = null, vehicleNo = request.vehicleNo, delYn = DelYn.N,
                             effectDate = request.effectDate, expireDate = request.expireDate,
                             userId = request.userId, gates = request.gateId!!, ticketType = request.ticketType,
-                            vehicleType = request.vehicleType, corpSn = request.corpSn
+                            vehicleType = request.vehicleType, corpSn = request.corpSn, etc = request.etc
                         )
                         saveProductTicket(new)
                     } else {
@@ -101,7 +102,8 @@ class ProductService {
                         gates = request.gateId,
                         ticketType = request.ticketType,
                         vehicleType = request.vehicleType,
-                        corpSn = request.corpSn
+                        corpSn = request.corpSn,
+                        etc = request.etc
                     )
                     return CommonResult.data(saveProductTicket(new))
                 }
