@@ -36,6 +36,7 @@ data class reqSetDisplayMessage(
     var colorCode: String,
     var messageDesc: String,
     var order: Int,
-    var line: Int
+    var line: Int,
+    var sn: Long?=null,
 )
 

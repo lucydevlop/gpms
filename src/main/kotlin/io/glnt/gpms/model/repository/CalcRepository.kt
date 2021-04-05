@@ -18,11 +18,13 @@ interface HolidayRepository: JpaRepository<Holiday, Long> {
 @Repository
 interface FarePolicyRepository: JpaRepository<FarePolicy, Long> {
     fun findByFareNameAndVehicleTypeAndDelYn(fareName: String, vehicleType: VehicleType, delYn: DelYn): List<FarePolicy>?
+    fun findByDelYn(delYn: DelYn): List<FarePolicy>?
 }
 
 @Repository
 interface FareInfoRepository: JpaRepository<FareInfo, Long> {
     fun findByFareNameAndDelYn(fareName: String, delYn: DelYn): FareInfo?
+    fun findByDelYn(delYn: DelYn): List<FareInfo>?
 }
 
 @Repository

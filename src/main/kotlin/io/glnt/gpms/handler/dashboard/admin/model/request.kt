@@ -74,7 +74,7 @@ data class reqSearchCorp(
 data class reqSearchItem(
     var searchLabel: String? = null,
     var searchText: String? = null,
-    var searchRole: UserRole? = null
+    var searchRoles: List<UserRole>? = null
 )
 
 data class reqCreateCorpTicket(
