@@ -57,9 +57,11 @@ data class FarePolicy(
 
 
     @Type(type = "json")
-    @Enumerated(EnumType.STRING)
-    @Column(name = "week", nullable = false, columnDefinition = "json")
-    var week: MutableSet<WeekType>? = mutableSetOf(WeekType.ALL),
+//    @Enumerated(EnumType.STRING)
+//    @Column(columnDefinition = "jsonb")
+//    @ElementCollection(fetch = FetchType.EAGER)
+    @Column(name = "week", columnDefinition = "json")
+    var week: MutableSet<String>? = mutableSetOf(WeekType.ALL.toString()),
 
     @Column(name = "day_max_rate", nullable = true)
     var dayMaxRate: Int? = null,

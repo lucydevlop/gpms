@@ -70,7 +70,6 @@ class AuthController {
     @RequestMapping(value = ["/user/register"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun userRegister(@RequestBody request: reqUserRegister) : ResponseEntity<CommonResult> {
-        logger.debug("generate store Id")
         val result = authService.userRegister(request)
 
         return when(result.code) {

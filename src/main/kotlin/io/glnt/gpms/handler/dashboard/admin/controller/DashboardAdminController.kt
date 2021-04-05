@@ -180,5 +180,19 @@ class DashboardAdminController {
         return CommonResult.returnResult(dashboardAdminService.createCorpTicket(request))
     }
 
+    @RequestMapping(value = ["/fare/info"], method = [RequestMethod.GET])
+    @Throws(CustomException::class)
+    fun getFareInfo(): ResponseEntity<CommonResult> {
+        logger.trace("getFareInfo")
+        return CommonResult.returnResult(dashboardAdminService.getFareInfo())
+    }
+
+    @RequestMapping(value = ["/fare/policy"], method = [RequestMethod.GET])
+    @Throws(CustomException::class)
+    fun getFarePolicy(): ResponseEntity<CommonResult> {
+        logger.trace("getFarePolicy")
+        return CommonResult.returnResult(dashboardAdminService.getFarePolicy())
+    }
+
     companion object : KLogging()
 }

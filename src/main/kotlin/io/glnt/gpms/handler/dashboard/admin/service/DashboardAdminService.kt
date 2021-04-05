@@ -3,6 +3,7 @@ package io.glnt.gpms.handler.dashboard.admin.service
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.calc.service.FareRefService
 import io.glnt.gpms.handler.corp.service.CorpService
 import io.glnt.gpms.handler.dashboard.admin.model.*
 import io.glnt.gpms.handler.discount.service.DiscountService
@@ -59,6 +60,9 @@ class DashboardAdminService {
 
     @Autowired
     lateinit var userService: AuthService
+
+    @Autowired
+    lateinit var fareRefService: FareRefService
 
     @Throws(CustomException::class)
     fun getMainGates(): CommonResult {
@@ -375,18 +379,57 @@ class DashboardAdminService {
     @Throws(CustomException::class)
     fun searchAdminUsers(request: reqSearchItem): CommonResult {
         try{
-            val data = userService.searchUsers(reqSearchItem(searchLabel = request.searchLabel, searchText = request.searchText, searchRole = UserRole.ADMIN))
+            var roles = arrayListOf<UserRole>(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.OPERATION)
+            val data = userService.searchUsers(reqSearchItem(searchLabel = request.searchLabel, searchText = request.searchText, searchRoles = roles))
             return when (data.code) {
                 ResultCode.SUCCESS.getCode() -> {
                     CommonResult.data(data.data)
                 }
                 else -> {
-                    CommonResult.error("file upload failed")
+                    CommonResult.error("searchAdminUsers failed")
                 }
             }
         }catch (e: CustomException){
             logger.error { "Admin searchAdminUsers failed $e" }
             return CommonResult.error("Admin searchAdminUsers failed $e")
+        }
+    }
+
+    @Transactional(readOnly = true)
+    @Throws(CustomException::class)
+    fun getFareInfo() : CommonResult {
+        try {
+            val data = fareRefService.getFareInfo()
+            return when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    CommonResult.data(data.data)
+                }
+                else -> {
+                    CommonResult.error("getFareInfo failed")
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin getFareInfo failed $e" }
+            return CommonResult.error("Admin getFareInfo failed $e")
+        }
+    }
+
+    @Transactional(readOnly = true)
+    @Throws(CustomException::class)
+    fun getFarePolicy() : CommonResult {
+        try {
+            val data = fareRefService.getFarePolicy()
+            return when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    CommonResult.data(data.data)
+                }
+                else -> {
+                    CommonResult.error("getFarePolicy failed")
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin getFarePolicy failed $e" }
+            return CommonResult.error("Admin getFarePolicy failed $e")
         }
     }
 

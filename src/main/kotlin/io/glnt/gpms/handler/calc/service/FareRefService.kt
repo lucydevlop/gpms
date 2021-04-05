@@ -53,7 +53,12 @@ class FareRefService {
                     }
                 }
             }
-            farePolicyRepository.save(request)
+            farePolicyRepository.save(
+                FarePolicy(sn = null, fareName = request.fareName, vehicleType = request.vehicleType,
+                           startTime = request.startTime, endTime = request.endTime,
+                           basicFareSn = request.basicFareSn, addFareSn = request.addFareSn,
+                           effectDate = request.effectDate, expireDate = request.expireDate,
+                           week = request.week, delYn = DelYn.N))
         }catch (e: CustomException) {
             return CommonResult.error("fare policy create failed ${request.fareName}")
         }
@@ -69,6 +74,22 @@ class FareRefService {
                 ),
                 "%$`val`%"
             )
+        }
+    }
+
+    fun getFareInfo(): CommonResult {
+        try {
+            return CommonResult.data(fareInfoRepository.findByDelYn(DelYn.N))
+        }catch (e: CustomException) {
+            return CommonResult.error("get fare info failed $e")
+        }
+    }
+
+    fun getFarePolicy(): CommonResult {
+        try {
+            return CommonResult.data(farePolicyRepository.findByDelYn(DelYn.N))
+        }catch (e: CustomException) {
+            return CommonResult.error("get fare info failed $e")
         }
     }
 }

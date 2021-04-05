@@ -7,15 +7,9 @@ package io.glnt.gpms
 import io.github.jhipster.config.JHipsterConstants
 import io.glnt.gpms.common.configs.ApplicationProperties
 import io.glnt.gpms.common.utils.DefaultProfileUtil
-import io.glnt.gpms.handler.calc.service.FeeCalculation
-import io.glnt.gpms.handler.facility.service.FacilityService
-import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
-import io.glnt.gpms.handler.relay.service.RelayService
-import io.vertx.core.impl.VertxImpl.context
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties
-import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.ApplicationPidFileWriter
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
@@ -28,24 +22,13 @@ import javax.annotation.PostConstruct
 @SpringBootApplication
 @EnableConfigurationProperties(LiquibaseProperties::class, ApplicationProperties::class)
 class GPMSApplication(
-    private val env: Environment,
-    val parkinglotService: ParkinglotService,
-    val facilityService: FacilityService,
-    val relayService: RelayService,
-    val feeCalculation: FeeCalculation
+    private val env: Environment
 ) {
     private val log = LoggerFactory.getLogger(GPMSApplication::class.java)
 
     @PostConstruct
     fun initApplication() {
         val activeProfiles = env.activeProfiles
-        
-//        parkinglotService.fetchParkSiteInfo()
-//        facilityService.fetchDisplayColor()
-//        facilityService.fetchGate()
-//        relayService.fetchParkAlarmSetting(parkinglotService.parkSiteSiteId()!!)
-
-//        feeCalculation.init()
 
         if (activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT) && activeProfiles.contains(
                 JHipsterConstants.SPRING_PROFILE_PRODUCTION

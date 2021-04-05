@@ -226,8 +226,8 @@ class AuthService {
         try {
             return CommonResult.data(userRepository.findAll(findAllUserSpecification(request)))
         }catch (e: RuntimeException) {
-            logger.error{"search user ${request.searchRole} error $e"}
-            return CommonResult.error("search user ${request.searchRole} error")
+            logger.error{"search user ${request.searchRoles} error $e"}
+            return CommonResult.error("search user ${request.searchRoles} error")
         }
     }
 
@@ -249,11 +249,17 @@ class AuthService {
                 )
             }
 
-            if (request.searchRole != null) {
+            if (request.searchRoles != null) {
                 clues.add(
-                    criteriaBuilder.equal(criteriaBuilder.lower(root.get<String>("role")), request.searchRole)
+                    //criteriaBuilder.and(criteriaBuilder.`in`(root.get<Long>("ticketHistSn")), request.ticketsSn)
+                    criteriaBuilder.and(root.get<String>("role").`in`(request.searchRoles!!.map { it }))
                 )
+//                clues.add(
+//                    criteriaBuilder.equal(criteriaBuilder.lower(root.get<String>("role")), request.searchRole)
+//                )
             }
+
+
             criteriaBuilder.and(*clues.toTypedArray())
         }
         return spec
