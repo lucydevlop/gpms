@@ -34,6 +34,13 @@ class DashboardAdminController {
         return CommonResult.returnResult(dashboardAdminService.searchAdminUsers(request))
     }
 
+    @RequestMapping(value = ["/delete/{sn}"], method = [RequestMethod.DELETE])
+    @Throws(CustomException::class)
+    fun deleteAdminUser(@PathVariable sn: Long) : ResponseEntity<CommonResult> {
+        logger.trace("deleteAdminUser $sn")
+        return CommonResult.returnResult(dashboardAdminService.deleteAdminUser(sn))
+    }
+
     @RequestMapping(value=["/main/gate"], method = [RequestMethod.GET])
     fun getMainGates() : ResponseEntity<CommonResult> {
         logger.trace { "admin dashboard Gates info" }
@@ -46,6 +53,14 @@ class DashboardAdminController {
         logger.trace { "getParkInLists $request" }
         return CommonResult.returnResult(dashboardAdminService.getParkInLists(request))
     }
+
+    @RequestMapping(value = ["/inout/create"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun createParkInout(@RequestBody request: resParkInList) : ResponseEntity<CommonResult> {
+        logger.trace { "getParkInLists $request" }
+        return CommonResult.returnResult(dashboardAdminService.createInout(request))
+    }
+
 
     @RequestMapping(value = ["/inout/edit"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
@@ -157,6 +172,13 @@ class DashboardAdminController {
     fun createProductTicket(@RequestBody request: reqCreateProductTicket) : ResponseEntity<CommonResult> {
         logger.trace("parkinglot product create : $request")
         return CommonResult.returnResult(dashboardAdminService.createProductTicket(request))
+    }
+
+    @RequestMapping(value = ["/product/ticket/adds"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun createProductTicket(@RequestBody request: ArrayList<reqCreateProductTicket>) : ResponseEntity<CommonResult> {
+        logger.trace("parkinglot product create : $request")
+        return CommonResult.returnResult(dashboardAdminService.createProductTickets(request))
     }
 
     @RequestMapping(value = ["/product/add/file"], method = [RequestMethod.POST], consumes = ["multipart/form-data"])

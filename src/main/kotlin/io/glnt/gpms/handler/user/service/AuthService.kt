@@ -72,6 +72,19 @@ class AuthService {
                 )
             )
         }
+        if (userRepository.findUsersById("admin") == null) {
+            userRepository.save(
+                SiteUser(
+                    idx = null,
+                    id = "admin",
+                    password = passwordEncoder.encode("glnt11!!"),
+                    userName = "관리자",
+                    userPhone = "0100000000",
+                    role = UserRole.ADMIN,
+                    delYn = DelYn.N
+                )
+            )
+        }
     }
 
     fun adminLogin(request: reqLogin) : CommonResult = with(request) {
@@ -232,6 +245,19 @@ class AuthService {
         }
     }
 
+    fun  deleteUser(sn: Long): CommonResult {
+        try{
+            userRepository.findUserByIdx(sn)?.let {
+                it.delYn = DelYn.Y
+                userRepository.save(it)
+            }
+        }catch (e: CustomException) {
+            logger.error{"deleteUser error $e"}
+            return CommonResult.error("deleteUser user $sn error")
+        }
+        return CommonResult.data()
+    }
+
     private fun findAllUserSpecification(request: reqSearchItem) : Specification<SiteUser> {
         val spec = Specification<SiteUser> { root, query, criteriaBuilder ->
             val clues = mutableListOf<Predicate>()
@@ -259,6 +285,8 @@ class AuthService {
 //                    criteriaBuilder.equal(criteriaBuilder.lower(root.get<String>("role")), request.searchRole)
 //                )
             }
+
+            clues.add(criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N))
 
 
             criteriaBuilder.and(*clues.toTypedArray())

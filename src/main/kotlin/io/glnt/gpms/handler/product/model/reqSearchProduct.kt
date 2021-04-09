@@ -25,5 +25,9 @@ data class reqCreateProduct(
     var ticketType: TicketType? = null,
     var vehicleType: VehicleType? = null,
     var corpSn: Long? = null,
-    var etc: String? = null
+    var etc: String? = null,
+    var etc1: String? = null,
+    var name: String? = null,
+    var tel: String? = null,
+    var vehiclekind: String? = null
 )

@@ -46,8 +46,9 @@ data class reqChangeUseFacility(
 data class reqSearchProductTicket(
     var searchLabel: String? = null,
     var searchText: String? = null,
-    @JsonFormat(pattern = "yyyy-MM-dd") var from: LocalDate? = null,
-    @JsonFormat(pattern = "yyyy-MM-dd") var to: LocalDate? = null,
+    var searchDateLabel: DateType? = DateType.EFFECT,
+    @JsonFormat(pattern = "yyyy-MM-dd") var fromDate: LocalDate? = null,
+    @JsonFormat(pattern = "yyyy-MM-dd") var toDate: LocalDate? = null,
     var ticketType: TicketType? = null,
     var delYn: String? = "N"
 )
@@ -62,7 +63,12 @@ data class reqCreateProductTicket(
     var ticketType: TicketType? = null,
     var vehicleType: VehicleType? = null,
     var corpSn: Long? = null,
-    var etc: String? = null
+    var corpName: String? = null,
+    var etc: String? = null,
+    var name: String? = null,
+    var etc1: String? = null,
+    var tel: String? = null,
+    var vehiclekind: String? = null
 )
 
 data class reqSearchCorp(
