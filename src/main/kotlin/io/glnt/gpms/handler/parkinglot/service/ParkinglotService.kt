@@ -14,9 +14,7 @@ import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.model.entity.*
-import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.OnOff
-import io.glnt.gpms.model.enums.SaleType
+import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -62,6 +60,27 @@ class ParkinglotService {
         parkSiteInfoRepository.findTopByOrderBySiteid()?.let {
             parkSite = it
         }
+        parkGateRepository.findByGateId("GATE001")?: run {
+            parkGateRepository.saveAndFlush(
+                Gate(sn = null, gateId = "GATE001", gateName = "입구게이트1", gateType = GateTypeStatus.IN, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
+                    seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateid = "FCL0000001", delYn = DelYn.N))
+        }
+        parkGateRepository.findByGateId("GATE002")?: run {
+            parkGateRepository.saveAndFlush(
+                Gate(sn = null, gateId = "GATE002", gateName = "출구게이트1", gateType = GateTypeStatus.OUT, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
+                    seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateid = "FCL0000002", delYn = DelYn.N))
+        }
+        parkGateRepository.findByGateId("GATE003")?: run {
+            parkGateRepository.saveAndFlush(
+                Gate(sn = null, gateId = "GATE003", gateName = "입구게이트2", gateType = GateTypeStatus.IN, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
+                    seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateid = "FCL0000001", delYn = DelYn.N))
+        }
+        parkGateRepository.findByGateId("GATE004")?: run {
+            parkGateRepository.saveAndFlush(
+                Gate(sn = null, gateId = "GATE004", gateName = "출구게이트2", gateType = GateTypeStatus.OUT, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
+                    seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateid = "FCL0000002", delYn = DelYn.N))
+        }
+        facilityService.initFacilities()
     }
 
     fun isPaid(): Boolean {

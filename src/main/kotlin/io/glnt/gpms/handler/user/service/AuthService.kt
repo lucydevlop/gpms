@@ -59,7 +59,7 @@ class AuthService {
 
     @PostConstruct
     fun addFirstAdminUser() {
-        if (userRepository.findUsersById("glnt") == null) {
+        userRepository.findUsersById("glnt")?: run {
             userRepository.save(
                 SiteUser(
                     idx = null,
@@ -72,7 +72,7 @@ class AuthService {
                 )
             )
         }
-        if (userRepository.findUsersById("admin") == null) {
+        userRepository.findUsersById("admin")?: run {
             userRepository.save(
                 SiteUser(
                     idx = null,
