@@ -19,6 +19,7 @@ import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.user.service.AuthService
 import io.glnt.gpms.io.glnt.gpms.handler.file.service.ExcelUploadService
+import io.glnt.gpms.model.entity.Corp
 import io.glnt.gpms.model.entity.Facility
 import io.glnt.gpms.model.entity.Gate
 import io.glnt.gpms.model.entity.ProductTicket
@@ -113,6 +114,15 @@ class DashboardAdminService {
     fun getParkInLists(request: reqSearchParkin): CommonResult {
         try {
             return CommonResult.data(inoutService.getAllParkLists(request).data)
+        }catch (e: CustomException){
+            logger.error { "Admin getParkInLists failed ${e.message}" }
+            return CommonResult.error("Admin getParkInLists failed ${e.message}")
+        }
+    }
+    @Throws(CustomException::class)
+    fun createInout(request: resParkInList): CommonResult {
+        try {
+            return CommonResult.data(inoutService.createInout(request).data)
         }catch (e: CustomException){
             logger.error { "Admin getParkInLists failed ${e.message}" }
             return CommonResult.error("Admin getParkInLists failed ${e.message}")
@@ -266,7 +276,9 @@ class DashboardAdminService {
             val data = productService.createProduct(
                 reqCreateProduct(sn = request.sn, vehicleNo = request.vehicleNo,
                                  effectDate = request.effectDate, expireDate = request.expireDate,
-                                 userId = request.userId, gateId = request.gateId, ticketType = request.ticketType, vehicleType = request.vehicleType, corpSn = request.corpSn))
+                                 userId = request.userId, gateId = request.gateId, ticketType = request.ticketType,
+                                 vehicleType = request.vehicleType, corpSn = request.corpSn, etc = request.etc,
+                                 name = request.name, etc1 = request.etc1, vehiclekind = request.vehiclekind))
             when (data.code) {
                 ResultCode.SUCCESS.getCode() -> {
                     return CommonResult.data(data.data)
@@ -279,6 +291,30 @@ class DashboardAdminService {
             logger.error { "Admin createProductTicket failed $e" }
             return CommonResult.error("Admin createProductTicket failed $e")
         }
+    }
+
+    @Throws(CustomException::class)
+    fun createProductTickets(request: ArrayList<reqCreateProductTicket>): CommonResult {
+        try{
+            request.forEach{ it ->
+                val corpSn = it.corpName?.let {
+                    corpService.getCorp(reqSearchCorp(searchLabel = "CORPNAME", searchText = it)).data.let {
+                    val corp = it as List<Corp>
+                    if (corp.isNotEmpty()) corp[0].sn else null
+                } } ?: run { null }
+
+                createProductTicket(
+                    reqCreateProductTicket(corpSn = corpSn, vehicleNo = it.vehicleNo, effectDate = it.effectDate, expireDate = it.expireDate,
+                        ticketType = it.ticketType, name = it.name, tel = it.tel,
+                        vehiclekind = it.vehiclekind, etc = it.etc, etc1 = it.etc1, vehicleType = it.vehicleType
+                    )
+                )
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin createProductTicket failed $e" }
+            return CommonResult.error("Admin createProductTicket failed $e")
+        }
+        return CommonResult.data()
     }
 
     @Throws(CustomException::class)
@@ -379,7 +415,7 @@ class DashboardAdminService {
     @Throws(CustomException::class)
     fun searchAdminUsers(request: reqSearchItem): CommonResult {
         try{
-            var roles = arrayListOf<UserRole>(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.OPERATION)
+            val roles = arrayListOf<UserRole>(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.OPERATION)
             val data = userService.searchUsers(reqSearchItem(searchLabel = request.searchLabel, searchText = request.searchText, searchRoles = roles))
             return when (data.code) {
                 ResultCode.SUCCESS.getCode() -> {
@@ -392,6 +428,24 @@ class DashboardAdminService {
         }catch (e: CustomException){
             logger.error { "Admin searchAdminUsers failed $e" }
             return CommonResult.error("Admin searchAdminUsers failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun deleteAdminUser(sn: Long): CommonResult {
+        try {
+            val data = userService.deleteUser(sn)
+            return when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    CommonResult.data(data.data)
+                }
+                else -> {
+                    CommonResult.error("deleteAdminUser failed")
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin deleteAdminUser failed $e" }
+            return CommonResult.error("Admin deleteAdminUser failed $e")
         }
     }
 

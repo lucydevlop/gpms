@@ -139,6 +139,12 @@ enum class ErrorCode {
     INCORRECT_VALUE
 }
 
+enum class DateType(val code: String, val desc: String) {
+    EFFECT("EFFECT", "시작일"),
+    EXPIRE("EXPIRE", "종료일")
+
+}
+
 //enum class parkCarType {
 //    "일반차량", "정기권차량", "미인식차량"
 //}

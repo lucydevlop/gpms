@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 data class resParkInList(
     var type: DisplayMessageClass,
-    var parkinSn: Long,
+    var parkinSn: Long? = null,
     var vehicleNo: String? = null,
     var parkcartype: String,
     var inGateId: String? = null,

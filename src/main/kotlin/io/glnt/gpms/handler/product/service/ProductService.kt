@@ -7,6 +7,7 @@ import io.glnt.gpms.handler.dashboard.admin.model.reqSearchProductTicket
 import io.glnt.gpms.handler.product.model.reqCreateProduct
 import io.glnt.gpms.handler.product.model.reqSearchProduct
 import io.glnt.gpms.model.entity.ProductTicket
+import io.glnt.gpms.model.enums.DateType
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.repository.ProductTicketRepository
 import mu.KLogging
@@ -56,13 +57,23 @@ class ProductService {
                         gates = request.gateId?.let { request.gateId } ?: run { it.gates },
                         ticketType = request.ticketType?.let { request.ticketType } ?: run { it.ticketType },
                         vehicleType = request.vehicleType?.let { request.vehicleType } ?: run { it.vehicleType },
-                        corpSn = request.corpSn?.let { request.corpSn } ?: run { it.corpSn }
+                        corpSn = request.corpSn?.let { request.corpSn } ?: run { it.corpSn },
+                        etc = request.etc?.let { request.etc } ?: run { it.etc },
+                        etc1 = request.etc1?.let { request.etc1 } ?: run { it.etc1 },
+                        name = request.name?.let { request.name } ?: run { it.name },
+                        tel = request.tel?.let { request.tel } ?: run { it.tel },
+                        vehiclekind = request.vehiclekind?.let { request.vehiclekind } ?: run { it.vehiclekind }
                     )
                     return CommonResult.data(saveProductTicket(new))
                 } ?: run {
                     return CommonResult.error("product ticket create failed")
                 }
             } else {
+                //동일 차량 등록 시 skip
+                productTicketRepository.findByVehicleNoAndEffectDateAndExpireDateAndTicketTypeAndDelYn(request.vehicleNo, request.effectDate, request.expireDate, request.ticketType!!, DelYn.N)?.let {
+                    if (it.isNotEmpty()) return CommonResult.data("product ticket exists")
+                }
+
                 productTicketRepository.findByVehicleNoAndValidDateGreaterThanEqualAndDelYn(request.vehicleNo, request.effectDate, DelYn.N
                 )?.let { ticket ->
                     // exists product
@@ -76,7 +87,8 @@ class ProductService {
                             sn = null, vehicleNo = request.vehicleNo, delYn = DelYn.N,
                             effectDate = request.effectDate, expireDate = request.expireDate,
                             userId = request.userId, gates = request.gateId!!, ticketType = request.ticketType,
-                            vehicleType = request.vehicleType, corpSn = request.corpSn
+                            vehicleType = request.vehicleType, corpSn = request.corpSn, etc = request.etc,
+                            name = request.name, etc1 = request.etc1, tel = request.tel, vehiclekind = request.vehiclekind
                         )
                         saveProductTicket(new)
                     } else {
@@ -101,7 +113,9 @@ class ProductService {
                         gates = request.gateId,
                         ticketType = request.ticketType,
                         vehicleType = request.vehicleType,
-                        corpSn = request.corpSn
+                        corpSn = request.corpSn,
+                        etc = request.etc,
+                        name = request.name , etc1 = request.etc1, tel = request.tel, vehiclekind = request.vehiclekind
                     )
                     return CommonResult.data(saveProductTicket(new))
                 }
@@ -145,15 +159,29 @@ class ProductService {
                     criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("vehicleNo")), likeValue)
                 )
             }
-            if (request.from != null && request.to != null) {
-                clues.add(
-                    criteriaBuilder.between(
-                        root.get("validDate"),
-                        DateUtil.beginTimeToLocalDateTime(request.from.toString()),
-                        DateUtil.lastTimeToLocalDateTime(request.to.toString())
+            if (request.searchDateLabel == DateType.EFFECT) {
+                if (request.fromDate != null && request.toDate != null) {
+                    clues.add(
+                        criteriaBuilder.between(
+                            root.get("effectDate"),
+                            DateUtil.beginTimeToLocalDateTime(request.fromDate.toString()),
+                            DateUtil.lastTimeToLocalDateTime(request.toDate.toString())
+                        )
                     )
-                )
+                }
             }
+            if (request.searchDateLabel == DateType.EXPIRE) {
+                if (request.fromDate != null && request.toDate != null) {
+                    clues.add(
+                        criteriaBuilder.between(
+                            root.get("expireDate"),
+                            DateUtil.beginTimeToLocalDateTime(request.fromDate.toString()),
+                            DateUtil.lastTimeToLocalDateTime(request.toDate.toString())
+                        )
+                    )
+                }
+            }
+
             if (request.ticketType != null) {
                 clues.add(
                     criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("ticketType")), request.ticketType)

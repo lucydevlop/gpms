@@ -951,7 +951,7 @@ class InoutService {
                     else -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, type)
                 }
             }
-            "SEASONTICKET", "WHITELIST", "FREETICKET" -> {
+            "SEASONTICKET", "WHITELIST", "FREETICKET", "VISITTICKET" -> {
                 val days = productService.calcRemainDayProduct(vehicleNo)
                 if (days in 1..7)
                     makeParkPhrase("VIP", vehicleNo, "잔여 0${days}일", type)
@@ -1006,10 +1006,39 @@ class InoutService {
     }
 
     @Throws(CustomException::class)
+    fun createInout(request: resParkInList): CommonResult {
+        logger.info { "createInout request $request" }
+        try {
+            var inResult: Any? = null
+            parkinglotService.getFacilityByGateAndCategory(request.inGateId!!, "LPR")?.let { its ->
+                its.filter { it.lprType == LprTypeStatus.FRONT }
+            }?.let { facilies ->
+                val result = parkIn(
+                    reqAddParkIn(vehicleNo = request.vehicleNo!!,
+                        dtFacilitiesId = facilies[0].dtFacilitiesId,
+                        date = request.inDate,
+                        resultcode = "0",
+                        base64Str = request.inImgBase64Str,
+                        uuid = UUID.randomUUID().toString(),
+                        inSn = if (request.parkinSn == 0L) null else request.parkinSn,
+                        deviceIF = "OFF"
+                    )).data!! as ParkIn
+                inResult = parkInRepository.findBySn(result.sn!!)!!
+            }?.run {
+                return CommonResult.error("updateInout failed")
+            }
+        }catch (e: RuntimeException){
+            logger.error { "createInout failed $e" }
+            return CommonResult.error("createInout failed")
+        }
+        return CommonResult.data()
+    }
+
+    @Throws(CustomException::class)
     fun updateInout(request: resParkInList) : CommonResult {
         logger.info { "updateInout request $request" }
         try {
-            parkInRepository.findBySn(request.parkinSn)?.let { parkIn ->
+            parkInRepository.findBySn(request.parkinSn!!)?.let { parkIn ->
                 parkIn.inDate = request.inDate
                 request.inGateId?.let { parkIn.gateId = request.inGateId }
                 request.vehicleNo?.let { parkIn.vehicleNo = request.vehicleNo }

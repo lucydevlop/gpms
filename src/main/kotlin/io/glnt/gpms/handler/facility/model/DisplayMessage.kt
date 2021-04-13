@@ -37,6 +37,6 @@ data class reqSetDisplayMessage(
     var messageDesc: String,
     var order: Int,
     var line: Int,
-    var sn: Long?=null,
+    var sn: Long?=null
 )
 
