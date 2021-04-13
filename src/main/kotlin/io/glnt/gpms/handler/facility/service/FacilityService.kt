@@ -128,13 +128,11 @@ class FacilityService {
         displayMessageRepository.findByMessageClass(DisplayMessageClass.WAIT)?.let { meessages ->
             displayMessagesWait = meessages
         }
-    }
 
-    fun initFacilities() {
         facilityRepository.findByDtFacilitiesId("LPR001101")?: run {
             facilityRepository.saveAndFlush(
                 Facility(sn = null, category = "LPR", modelid = "MDL0000029", fname = "입구1 LPR", dtFacilitiesId = "LPR001101", gateId = "GATE001",
-                         ip = "192.168.20.101", port = "0", resetPort = 1, gateType = GateTypeStatus.IN, imagePath = "C:\\park\\in_front", lprType = LprTypeStatus.FRONT, delYn = DelYn.N))
+                    ip = "192.168.20.101", port = "0", resetPort = 1, gateType = GateTypeStatus.IN, imagePath = "C:\\park\\in_front", lprType = LprTypeStatus.FRONT, delYn = DelYn.N))
         }
         facilityRepository.findByDtFacilitiesId("LPR001201")?: run {
             facilityRepository.saveAndFlush(
@@ -241,7 +239,6 @@ class FacilityService {
                 Facility(sn = null, category = "VOIP", modelid = "MDL0000032", fname = "출구2 VOIP", dtFacilitiesId = "VOP004201", gateId = "GATE004",
                     ip = "192.168.20.144", port = "0", resetPort = 0, gateType = GateTypeStatus.OUT, delYn = DelYn.N))
         }
-
     }
 
     // @PostConstruct
@@ -586,20 +583,24 @@ class FacilityService {
             facilityRepository.findByGateIdAndCategory(gateId, category)?.let { facilities ->
                 if (facilities.isNullOrEmpty()) return result
                 facilities.forEach { facility ->
+                    val id = facility.facilitiesId ?: run { facility.dtFacilitiesId }
+
                     // 장애 상태 확인
-                    failureRepository.findTopByFacilitiesIdAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(facility.facilitiesId!!)?.let {
+                    failureRepository.findTopByFacilitiesIdAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(id)?.let {
                         return hashMapOf(
                             "category" to category,
                             "status" to facility.status,
                             "failure" to it.failureCode)
+                    }?: run {
+                        result = hashMapOf(
+                            "category" to category,
+                            "status" to facility.status,
+                            "failure" to null)
                     }
-                    result = hashMapOf(
-                        "category" to category,
-                        "status" to facility.status,
-                        "failure" to null)
+
                 }
             }
-            return result
+             return result
         }catch (e: RuntimeException) {
             logger.error { "getActionByGateAndCategory error $e" }
         }

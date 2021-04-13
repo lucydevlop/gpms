@@ -5,6 +5,7 @@ import io.glnt.gpms.model.enums.DelYn
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
+import java.util.*
 
 @Repository
 interface ParkSiteInfoRepository: JpaRepository<ParkSiteInfo, String> {
@@ -48,4 +49,6 @@ interface FailureRepository: JpaRepository<Failure, Long> {
     fun findTopByFacilitiesIdAndFailureCodeOrderByIssueDateTimeDesc(facilityId: String, failureCode: String): Failure?
     fun findTopByFacilitiesIdAndFailureCodeAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(facilityId: String, failureCode: String): Failure?
     fun findTopByFacilitiesIdAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(facilityId: String): Failure?
+    fun countByFacilitiesIdAndExpireDateTimeIsNull(facilityId: String): Long
+    fun findByFacilitiesIdAndExpireDateTimeIsNull(facilityId: String): Optional<Failure>
 }
