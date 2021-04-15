@@ -8,6 +8,8 @@ import io.glnt.gpms.handler.dashboard.admin.model.*
 import io.glnt.gpms.handler.dashboard.admin.service.DashboardAdminService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.inout.model.resParkInList
+import io.glnt.gpms.model.dto.request.reqCreateProductTicket
+import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.FileSystemResource
@@ -87,6 +89,13 @@ class DashboardAdminController {
     fun gateAction(@PathVariable action: String, @PathVariable gateId: String) : ResponseEntity<CommonResult> {
         logger.trace { "gateAction $gateId $action" }
         return CommonResult.returnResult(dashboardAdminService.gateAction(action, gateId))
+    }
+
+    @RequestMapping(value = ["/gate/reset/{gateId}/{category}"], method = [RequestMethod.GET])
+    @Throws(CustomException::class)
+    fun gateResetAction(@PathVariable gateId: String, @PathVariable category: String) : ResponseEntity<CommonResult> {
+        logger.trace { "gateResetAction $gateId $category" }
+        return CommonResult.returnResult(dashboardAdminService.gateResetAction(gateId, category))
     }
 
     @RequestMapping(value = ["/gate/change/use"], method = [RequestMethod.POST])

@@ -81,4 +81,11 @@ class RestAPIManagerUtil {
             .body(jsonInString)
             .asJson()
     }
+
+    @Throws(UnirestException::class)
+    fun sendResetGetRequest(url: String?): HttpResponse<String?>? {
+        return Unirest.get(url)
+            .header("Authorization", "Basic YWRtaW46Z2xudDExISE=")
+            .asString()
+    }
 }

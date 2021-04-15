@@ -15,19 +15,3 @@ data class reqSearchProduct(
     var delYn: String? = "N"
 )
 
-data class reqCreateProduct(
-    var sn: Long? = null,
-    var vehicleNo: String,
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var effectDate: LocalDateTime,
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var expireDate: LocalDateTime,
-    var userId: String? = null,
-    var gateId: MutableSet<String>? = null,
-    var ticketType: TicketType? = null,
-    var vehicleType: VehicleType? = null,
-    var corpSn: Long? = null,
-    var etc: String? = null,
-    var etc1: String? = null,
-    var name: String? = null,
-    var tel: String? = null,
-    var vehiclekind: String? = null
-)

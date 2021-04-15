@@ -4,8 +4,6 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.product.model.reqCreateProduct
-import io.glnt.gpms.handler.product.model.reqSearchProduct
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.model.entity.ProductTicket
 import mu.KLogging

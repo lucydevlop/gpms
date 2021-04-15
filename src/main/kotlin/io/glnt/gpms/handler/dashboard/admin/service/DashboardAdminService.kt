@@ -1,7 +1,11 @@
 package io.glnt.gpms.handler.dashboard.admin.service
 
+import java.util.concurrent.TimeUnit
+import io.reactivex.Single
+import io.reactivex.Observable
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
+import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.calc.service.FareRefService
 import io.glnt.gpms.handler.corp.service.CorpService
@@ -14,11 +18,12 @@ import io.glnt.gpms.handler.inout.model.resParkInList
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
-import io.glnt.gpms.handler.product.model.reqCreateProduct
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.user.service.AuthService
 import io.glnt.gpms.io.glnt.gpms.handler.file.service.ExcelUploadService
+import io.glnt.gpms.model.dto.request.reqCreateProductTicket
+import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.entity.Corp
 import io.glnt.gpms.model.entity.Facility
 import io.glnt.gpms.model.entity.Gate
@@ -26,13 +31,17 @@ import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.UserRole
 import mu.KLogging
+import org.apache.http.HttpStatus
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
+
 @Service
-class DashboardAdminService {
+class DashboardAdminService(
+    private var restAPIManager: RestAPIManagerUtil
+) {
     companion object : KLogging()
 
     @Autowired
@@ -181,6 +190,39 @@ class DashboardAdminService {
     }
 
     @Throws(CustomException::class)
+    fun gateResetAction(gateId: String, category: String) : CommonResult {
+        try {
+            parkinglotService.getGate(gateId)?.let { gate ->
+                facilityService.getOneFacilityByGateIdAndCategory(gateId, category)?.let { facility ->
+                    facility.resetPort?.let { it ->
+                        var port = it.toInt()-1
+                        if (port < 0) return CommonResult.error("Admin gateResetAction failed")
+                        val url = gate.resetSvr+port
+                        restAPIManager.sendResetGetRequest(url).let { response ->
+                            singleTimer()
+                            logger.info { "reset response ${response!!.status} ${response.body.toString()}" }
+                            if (response!!.status == HttpStatus.SC_OK) {
+                                Observable.timer(2, TimeUnit.SECONDS).subscribe {
+                                    logger.info { "reset one more ${url}" }
+                                    restAPIManager.sendResetGetRequest(url).let { reResponse ->
+                                        logger.info { "reset re response ${reResponse!!.status} ${response.body.toString()}" }
+                                    }
+                                }
+
+                            }
+
+                        }
+                    }
+                }
+            }
+            return CommonResult.data()
+        }catch (e: CustomException){
+            logger.error { "Admin gateAction failed ${e.message}" }
+            return CommonResult.error("Admin gateAction failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
     fun createFacility(request: reqCreateFacility): CommonResult {
         try {
             val gate = facilityService.getGateByGateId(request.gateId)
@@ -273,12 +315,7 @@ class DashboardAdminService {
     @Throws(CustomException::class)
     fun createProductTicket(request: reqCreateProductTicket): CommonResult {
         try{
-            val data = productService.createProduct(
-                reqCreateProduct(sn = request.sn, vehicleNo = request.vehicleNo,
-                                 effectDate = request.effectDate, expireDate = request.expireDate,
-                                 userId = request.userId, gateId = request.gateId, ticketType = request.ticketType,
-                                 vehicleType = request.vehicleType, corpSn = request.corpSn, etc = request.etc,
-                                 name = request.name, etc1 = request.etc1, vehiclekind = request.vehiclekind))
+            val data = productService.createProduct(request)
             when (data.code) {
                 ResultCode.SUCCESS.getCode() -> {
                     return CommonResult.data(data.data)
@@ -297,18 +334,19 @@ class DashboardAdminService {
     fun createProductTickets(request: ArrayList<reqCreateProductTicket>): CommonResult {
         try{
             request.forEach{ it ->
-                val corpSn = it.corpName?.let {
-                    corpService.getCorp(reqSearchCorp(searchLabel = "CORPNAME", searchText = it)).data.let {
+                it.corpSn = if (it.corpName!!.isNotEmpty()){
+                    corpService.getCorp(reqSearchCorp(searchLabel = "CORPNAME", searchText = it.corpName)).data.let {
                     val corp = it as List<Corp>
                     if (corp.isNotEmpty()) corp[0].sn else null
-                } } ?: run { null }
+                } } else null
+                createProductTicket(it)
 
-                createProductTicket(
-                    reqCreateProductTicket(corpSn = corpSn, vehicleNo = it.vehicleNo, effectDate = it.effectDate, expireDate = it.expireDate,
-                        ticketType = it.ticketType, name = it.name, tel = it.tel,
-                        vehiclekind = it.vehiclekind, etc = it.etc, etc1 = it.etc1, vehicleType = it.vehicleType
-                    )
-                )
+//                createProductTicket(
+//                    reqCreateProductTicket(corpSn = corpSn, vehicleNo = it.vehicleNo, effectDate = it.effectDate, expireDate = it.expireDate,
+//                        ticketType = it.ticketType, name = it.name, tel = it.tel,
+//                        vehiclekind = it.vehiclekind, etc = it.etc, etc1 = it.etc1, vehicleType = it.vehicleType
+//                    )
+//                )
             }
         }catch (e: CustomException){
             logger.error { "Admin createProductTicket failed $e" }
@@ -488,3 +526,12 @@ class DashboardAdminService {
     }
 
 }
+
+inline fun singleTimer(delay: Long = 1000, unit: TimeUnit = TimeUnit.MILLISECONDS) =
+    Single.timer(delay, unit)
+
+inline fun interval(period: Long = 10000, unit: TimeUnit = TimeUnit.MILLISECONDS, initDelay: Long = -1) =
+    if (initDelay == -1L)
+        Observable.interval(period, unit)
+    else
+        Observable.interval(initDelay, period, unit)

@@ -12,7 +12,7 @@ import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
-import io.glnt.gpms.handler.product.model.reqCreateProduct
+import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.tmap.model.*

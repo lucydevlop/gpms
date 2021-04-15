@@ -60,7 +60,10 @@ data class Gate(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
-    var delYn: DelYn? = DelYn.N
+    var delYn: DelYn? = DelYn.N,
+
+    @Column(name = "reset_svr", nullable = false)
+    var resetSvr: String? = "http://192.168.20.211/io.cgi?relay="
 
 //    ,
 //    @JsonIgnore
