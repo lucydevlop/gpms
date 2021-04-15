@@ -2,7 +2,12 @@ package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.glnt.gpms.common.utils.StringPrefixedSequenceIdGenerator
 import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.DelYn
+import org.hibernate.annotations.GenerationTime
+import org.hibernate.annotations.GeneratorType
+import org.hibernate.annotations.GenericGenerator
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -19,23 +24,36 @@ data class Corp(
     @Column(name = "sn", unique = true, nullable = false)
     var sn: Long?,
 
-    @Column(name = "flag", nullable = false)
-    var flag: Int = 1,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "del_yn", nullable = false)
+    var delYn: DelYn? = DelYn.N,
 
+//    @Column(name = "flag", nullable = false)
+//    var flag: Int = 1,
+
+//    @GenericGenerator(
+//            name = "inovices",
+//            strategy = "io.glnt.gpms.common.utils.StringPrefixedSequenceIdGenerator"
+////            parameters = [
+////                    Parameter(name = StringPrefixedSequenceIdGenerator.INCREMENT_PARAM, value = "50"),
+////                    Parameter(name = StringPrefixedSequenceIdGenerator.VALUE_PREFIX_PARAMETER, value = "B_"),
+////                    Parameter(name = StringPrefixedSequenceIdGenerator.NUMBER_FORMAT_PARAMETER, value = "%05d")
+////            ]
+//    )
     @Column(name = "corpId", nullable = false)
-    var corpId: String,
+    var corpId: String?,
 
-    @Column(name = "password", nullable = false)
-    var password: String,
+//    @Column(name = "password", nullable = false)
+//    var password: String,
 
-    @Column(name = "corpName", nullable = false)
+    @Column(name = "corpName", nullable = false, unique = true)
     var corpName: String,
 
-    @Column(name = "login_date")
-    var loginDate: LocalDateTime? = null,
-
-    @Column(name = "passwd_chage_date")
-    var passwdChangeDate: LocalDateTime? = null,
+//    @Column(name = "login_date")
+//    var loginDate: LocalDateTime? = null,
+//
+//    @Column(name = "passwd_chage_date")
+//    var passwdChangeDate: LocalDateTime? = null,
 
     @Column(name = "form", nullable = false)
     var form: Int = 1,

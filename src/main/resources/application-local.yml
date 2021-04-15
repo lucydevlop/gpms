@@ -16,8 +16,18 @@ spring:
     password: glnt123!@#
     driver-class-name: org.mariadb.jdbc.Driver
     jdbc-url: jdbc:mariadb://test-db.cwvvhmqatlkn.ap-northeast-2.rds.amazonaws.com:3306/glnt_parking?useSSL=false
+#  datasource:
+#    username: root
+#    password: Parking1234!@#$
+#    driver-class-name: org.mariadb.jdbc.Driver
+#    jdbc-url: jdbc:mariadb://192.168.20.204:3306/glnt_parking?useSSL=false&characterEncoding=utf8
+
+server:
+  port: 11000
 
 logging:
+  path: /Users/lucy/project/glnt/park
+  config: classpath:logback-development.xml
   level:
     ROOT: INFO
     io.github.jhipster: INFO
@@ -26,12 +36,15 @@ logging:
 image:
   filepath: /Users/lucy/project/glnt/park
 
+file:
+  filepath: /Users/lucy/project/glnt/park/data
+
 tmap:
-  send: on
+  send: off
   url: http://127.0.0.1:10000/api/v1/manage/devices/events
 
 gateway:
-  url: http://
+  url: http://192.168.20.30:9999/v1
 
 
 

@@ -3,7 +3,9 @@ package io.glnt.gpms.model.entity
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.GateTypeStatus
+import io.glnt.gpms.model.enums.OpenActionType
 import org.hibernate.annotations.Where
 import java.io.Serializable
 import javax.persistence.*
@@ -22,7 +24,7 @@ data class Gate(
     var gateName: String? = "GATE",
 
     @Column(name = "gate_id", nullable = false)
-    var gateId: String? = "GATE",
+    var gateId: String = "GATE",
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gate_type", nullable = false)
@@ -32,7 +34,10 @@ data class Gate(
     var takeAction: String? = "GATE",
 
     @Column(name = "seasonTicketTakeAction", nullable = false)
-    var seasonTicketTakeAction: String? = "OFF",
+    var seasonTicketTakeAction: String? = "GATE",
+
+    @Column(name = "whiteListTakeAction", nullable = false)
+    var whiteListTakeAction: String? = "OFF",
 
     @Column(name = "flag_use", nullable = false)
     var flagUse: Int? = 1,
@@ -41,7 +46,25 @@ data class Gate(
     var udpGateid: String? = "GATE",
 
     @Column(name = "upload_ct", nullable = false)
-    var udloadCt: Int? = 0
+    var uploadCt: Int? = 0,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "open_action", nullable = false)
+    var openAction: OpenActionType? = OpenActionType.NONE,
+
+    @Column(name = "relay_svr_key", nullable = false)
+    var relaySvrKey: String? = "RELAYSVR1",
+
+    @Column(name = "relay_svr", nullable = false)
+    var relaySvr: String? = "http://192.168.20.30:9999/v1",
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "del_yn", nullable = false)
+    var delYn: DelYn? = DelYn.N,
+
+    @Column(name = "reset_svr", nullable = false)
+    var resetSvr: String? = "http://192.168.20.211/io.cgi?relay="
+
 //    ,
 //    @JsonIgnore
 //    @OneToMany(fetch = FetchType.LAZY, mappedBy = "gate_id")

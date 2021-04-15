@@ -1,5 +1,6 @@
 package io.glnt.gpms.security.jwt
 
+import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.SecurityConfig.TOKEN_EXPIRATION_TIME
 import io.glnt.gpms.common.configs.SecurityConfig.TOKEN_HEADER
 import io.glnt.gpms.common.configs.SecurityConfig.TOKEN_SECRET_KEY
@@ -35,7 +36,7 @@ class JwtTokenProvider {
         val expiredIn = Date(issuedAt.time + expirationTime)
 
         return Jwts.builder()
-            .setSubject(userPrincipal.id.toString())
+            .setSubject(userPrincipal.idx.toString())
             .setIssuedAt(issuedAt)
             .setExpiration(expiredIn)
             .signWith(SignatureAlgorithm.HS512, secretKey)
@@ -77,7 +78,7 @@ class JwtTokenProvider {
     fun resolveTokenOrThrow(
         request: HttpServletRequest
     ) = resolveTokenOrNull(request)
-        ?: throw CustomException("Invalid token", UNAUTHORIZED)
+        ?: throw CustomException("Invalid token", ResultCode.UNAUTHORIZED)
 
 
 

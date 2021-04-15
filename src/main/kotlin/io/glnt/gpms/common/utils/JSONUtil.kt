@@ -1,8 +1,12 @@
 package io.glnt.gpms.common.utils
 
+import com.fasterxml.jackson.core.JsonFactory
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.boot.configurationprocessor.json.JSONArray
 import org.springframework.boot.configurationprocessor.json.JSONException
 import org.springframework.boot.configurationprocessor.json.JSONObject
+import java.io.InputStream
 import java.time.LocalDateTime
 import java.util.*
 
@@ -16,6 +20,8 @@ object JSONUtil {
             getJsValue(obj)
         }
     }
+
+
 
     fun getJsMap(map: Map<*, *>): Any {
         val buf = StringBuffer()
@@ -64,9 +70,11 @@ object JSONUtil {
 
     fun getJsValue(objValue: Any?): Any {
         val buf = StringBuffer()
-        buf.append("'")
+//        buf.append("'")
+        buf.append("\"")
         buf.append(getJsString(objValue))
-        buf.append("'")
+//        buf.append("'")
+        buf.append("\"")
         return buf
     }
 
@@ -204,8 +212,10 @@ object JSONUtil {
         return UUID.randomUUID().toString()
     }
 
-
-
-
-
+    fun <T : Any> readValue(any: String, valueType: Class<T>): T {
+        val data = getJSONObject(any)
+        val factory = JsonFactory()
+        factory.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
+        return jacksonObjectMapper().readValue(data.toString(), valueType)
+    }
 }

@@ -1,9 +1,15 @@
 package io.glnt.gpms.model.entity
 
+//import androidx.room.*
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.vladmihalcea.hibernate.type.json.JsonStringType
 import io.glnt.gpms.common.utils.DateUtil
-import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.TicketType
+import io.glnt.gpms.model.enums.VehicleType
+import org.hibernate.annotations.Type
+import org.hibernate.annotations.TypeDef
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -13,6 +19,7 @@ import javax.persistence.*
 @Table(schema = "glnt_parking", name="tb_seasonticket")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@TypeDef(name = "json", typeClass = JsonStringType::class)
 data class ProductTicket(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,7 +27,7 @@ data class ProductTicket(
     var sn: Long?,
 
     @Column(name = "corp_sn", nullable = true)
-    var corpSn: Int? = null,
+    var corpSn: Long? = null,
 
     @Column(name = "corp_name", nullable = true)
     var corpName: String? = null,
@@ -36,10 +43,11 @@ data class ProductTicket(
 
     @Column(name = "valid_date", nullable = true)
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    var validDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59"),
+    var validDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59", "yyyy-MM-dd HH:mm:ss"),
 
-    @Column(name = "flag", nullable = true)
-    var flag: Int? = null,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "del_yn", nullable = false)
+    var delYn: DelYn? = DelYn.N,
 
     @Column(name = "cardnum", nullable = true)
     var cardNum: String? = null,
@@ -49,6 +57,10 @@ data class ProductTicket(
 
     @Column(name = "vehiclekind", nullable = true)
     var vehiclekind: String? = null,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "vehicle_type", nullable = true)
+    var vehicleType: VehicleType? = VehicleType.SMALL,
 
     @Column(name = "name", nullable = true)
     var name: String? = null,
@@ -76,7 +88,63 @@ data class ProductTicket(
 
     @Column(name = "reg_date", nullable = true)
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    var regDate: LocalDateTime? = null
+    var regDate: LocalDateTime? = null,
+
+    @Column(name = "effect_date", nullable = true)
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var effectDate: LocalDateTime? = DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate),
+
+    @Column(name = "expire_date", nullable = true)
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var expireDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59", "yyyy-MM-dd HH:mm:ss"),
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ticket_type", nullable = true)
+    var ticketType: TicketType? = TicketType.SEASONTICKET,
+
+    @Type(type = "json")
+    @Column(name = "gates", columnDefinition = "json")
+    var gates: MutableSet<String>? = mutableSetOf("ALL") // mutableListOf("ALL")
 ): Auditable(), Serializable {
 
+    @OneToOne
+    @JoinColumn(name = "corp_sn", referencedColumnName = "sn", insertable = false, updatable = false)
+    var corp: Corp? = null
 }
+
+//class ListConverter{
+//    private val moshi = Moshi.Builder().build()
+//    private val type = Types.newParameterizedType(List::class.java, String::class.java)
+//    private val listAdapter: JsonAdapter<List<String>> = moshi.adapter(type)
+//
+//    @TypeConverter
+//    fun fromList(list: List<String>?) : String? {
+//        return listAdapter.toJson(list)
+//    }
+//    @TypeConverter
+//    fun toList(jsonList: String?): List<String>? {
+//        return jsonList?.let { listAdapter.fromJson(jsonList) }
+//    }
+//}
+
+
+//class StringListTypeConverter {
+//    val moshi = Moshi.Builder().build()
+//
+//    val stringTypeAdapter: JsonAdapter<List<String>> = moshi.adapter(
+//        Types.newParameterizedType(
+//            MutableList::class.java,
+//            String::class.java
+//        )
+//    )
+//
+//    @TypeConverter
+//    fun convertListTo(types: List<String>): String {
+//        return stringTypeAdapter.toJson(types)
+//    }
+//
+//    @TypeConverter
+//    fun convertStringTo(json: String): List<String>? {
+//        return stringTypeAdapter.fromJson(json)
+//    }
+//}

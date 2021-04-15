@@ -3,6 +3,7 @@ package io.glnt.gpms.model.entity
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.model.enums.DelYn
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
 import java.time.LocalDate
@@ -65,7 +66,7 @@ data class ParkIn(
     var validate: LocalDateTime? = null,
 
     @Column(name = "out_sn", nullable = true)
-    var outSn: Int? = 0,
+    var outSn: Long? = 0,
 
     @Column(name = "back_sn", nullable = true)
     var backSn: Int? = 0,
@@ -86,8 +87,22 @@ data class ParkIn(
     var fileuploadid: String? = null,
 
     @Column(name = "invehicleRequestId", nullable = true)
-    var invehicleRequestId: String? = null
+    var invehicleRequestId: String? = null,
 
+    @Column(name = "uuid", nullable = true)
+    var uuid: String? = null,
+
+    @Column(name = "ticket_sn", nullable = true)
+    var ticketSn: Long? = null,
+
+    @Column(name = "memo", nullable = true)
+    var memo: String? = null,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "del_yn", nullable = false)
+    var delYn: DelYn? = DelYn.N
 ): Auditable(), Serializable {
-
+    @OneToOne
+    @JoinColumn(name = "ticket_sn", referencedColumnName = "sn", insertable = false, updatable = false)
+    var ticket: ProductTicket? = null
 }

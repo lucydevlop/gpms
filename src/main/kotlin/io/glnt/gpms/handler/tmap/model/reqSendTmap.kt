@@ -1,5 +1,12 @@
 package io.glnt.gpms.handler.tmap.model
 
+import io.glnt.gpms.handler.relay.model.FacilitiesFailureAlarm
+import io.glnt.gpms.handler.relay.model.FacilitiesStatusNoti
+
+data class reqApiTmapIF (
+    var eventType: String,
+    var eventData: reqApiTmapCommon
+)
 data class reqApiTmapCommon (
     var type: String? = null,
     var parkingSiteId: String? = null,
@@ -7,7 +14,7 @@ data class reqApiTmapCommon (
     var responseId: String? = null,
     var eventDateTime: String? = null,
     var commandDateTime: String? = null,
-    var contents: Any
+    var contents: Any? = null
 )
 
 data class reqTmapFacilitiesList (
@@ -19,10 +26,10 @@ data class reqTmapFacilitiesList (
 data class reqTmapInVehicle(
     var gateId: String,
     var sessionId: String? = null,
-    var inVehicleType: String,
+    var inVehicleType: String? = null,
     var vehicleNumber: String,
     var recognitionType: String,
-    var recognitorResult: String,
+    var recognitionResult: String,
     var fileUploadId: String
 )
 
@@ -41,10 +48,72 @@ data class reqTmapFailureAlarm(
     var failureAlarm: String?
 )
 
+data class reqTmapFacilitiesStatusNoti(
+    var facilitiesList: ArrayList<FacilitiesStatusNoti>
+)
+
+data class reqTmapFacilitiesFailureAlarm(
+    var facilitiesList: ArrayList<FacilitiesFailureAlarm>
+)
+
 data class reqFacilitiesRegist(
     var fileUploadId: String
 )
 
+data class reqOutVehicle(
+    var gateId: String,
+    var seasonTicketYn: String,
+    var vehicleNumber: String,
+    var recognitionType: String,
+    var recognitorResult: String,
+    var fileUploadId: String
+
+)
+
+data class reqAdjustmentRequest(
+    var vehicleNumber: String,
+    var paymentMachineType: String? = null,
+    var gateId: String? = null,
+    var facilitiesId: String? = null,
+    var recognitionType: String? = null,
+    var fileuploadId: String? = null,
+    var recognitionResult: String? = null,
+    var vehicleIntime: String? = null,
+    var parkTicketAmount: String? = null
+)
+
+data class reqSendResultResponse(
+    var result: String,
+    var errorMsg: String? = null
+)
+
+data class reqSendVehicleListSearch(
+    var vehicleNumber: String,
+    var facilityId: String?
+)
+
+data class reqSendPayment(
+    var gateId: String? = null,
+    var facilitiesId: String? = null,
+    var vehicleNumber: String,
+    var chargingId: String,
+    var paymentMachineType: String,
+    var transactionId: String,
+    var paymentType: String,
+    var paymentAmount: Int,
+    var businessOwnerName: String? = null,
+    var cardCompanyName: String? = null,
+    var cardNumber: String? = null,
+    var cardApprovalNumber: String? = null,
+    var tributaryDiscountList: ArrayList<tributaryDiscountItem>? = null
+)
+
+data class tributaryDiscountItem(
+    var tributaryDiscountTicketId: String? = null,
+    var tributaryDiscountTicketName: String? = null,
+    var tributaryDiscountTicketApplyDateTime: String? = null,
+    var discountAmount: Int? = null
+)
 
 data class parkinglotMap(
     var floor: ArrayList<floorMap> = ArrayList(),

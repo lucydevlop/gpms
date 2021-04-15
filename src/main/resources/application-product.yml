@@ -1,0 +1,45 @@
+spring:
+  profiles:
+    active: product
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: io.glnt.gpms.common.configs.DbCustomDialect
+        format_sql: false
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MariaDB103Dialect
+
+  datasource:
+    username: root
+    password: Parking1234!@#$
+    driver-class-name: org.mariadb.jdbc.Driver
+    jdbc-url: jdbc:mariadb://127.0.0.1:3306/glnt_parking?useSSL=false&characterEncoding=utf8
+
+server:
+  port: 11000
+
+logging:
+  config: classpath:logback-product.xml
+  level:
+    ROOT: WARN
+    io.github.jhipster: WARN
+    thesis: WARN
+
+image:
+  filepath: C://park//save
+
+file:
+  filepath: C://park//data
+
+tmap:
+  send: "OFF"
+  url: http://127.0.0.1:10000/api/v1/manage/devices/events
+
+gateway:
+  url: http://192.168.20.30:9999/v1
+
+
+

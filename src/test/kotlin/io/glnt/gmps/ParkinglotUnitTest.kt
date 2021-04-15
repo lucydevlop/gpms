@@ -1,7 +1,9 @@
 package io.glnt.gmps
 
 import io.glnt.gpms.common.utils.DataCheckUtil
+import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.relay.service.RelayService
 import io.vertx.core.Vertx
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.unit.junit.Timeout
@@ -11,6 +13,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.File
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 
 @RunWith(VertxUnitRunner::class)
@@ -24,6 +28,9 @@ class ParkinglotUnitTest {
 
     @Autowired
     private lateinit var parkinglotService: ParkinglotService
+
+    @Autowired
+    private lateinit var relayService: RelayService
 
 //    @Before
 //    fun setup(context: TestContext) {
@@ -63,4 +70,18 @@ class ParkinglotUnitTest {
 //        val m: Matcher = p.matcher("67라8183")
 //        assertTrue(m.matches())
     }
+
+    @Test
+    fun test_yesterday() {
+        val today = DateUtil.formatDateTime(DateUtil.stringToLocalDateTime("2018-10-01 00:00:00", "yyyy-MM-dd HH:mm:ss"), "yyyyMMddHHmmss").substring(0, 8)+"235959"
+        val yesterday = DateUtil.getAddDays(DateUtil.stringToLocalDateTime(today), -1)
+        println("Base64ImageString = $today $yesterday")
+    }
+
+    @Test
+    fun paymentHealthCheck() {
+        relayService.paymentHealthCheck()
+    }
+
+
 }

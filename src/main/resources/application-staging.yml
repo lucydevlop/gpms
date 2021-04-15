@@ -1,0 +1,56 @@
+spring:
+  profiles:
+    active: glnt
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: io.glnt.gpms.common.configs.DbCustomDialect
+        format_sql: false
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MariaDB103Dialect
+
+  datasource:
+    hikari:
+      minimumIdle: 5
+      maximumPoolSize: 10
+      poolName: HikariCP
+      readOnly: false
+      connectionTestQuery: SELECT 1
+      idle-timeout: 10000
+      connection-timeout: 10000
+      validation-timeout: 10000
+      max-lifetime: 580000
+
+    username: glnt-user
+    password: glnt123!@#
+    driver-class-name: org.mariadb.jdbc.Driver
+    jdbc-url: jdbc:mariadb://test-db.cwvvhmqatlkn.ap-northeast-2.rds.amazonaws.com:3306/glnt_parking_stg?useSSL=false
+
+server:
+  port: 13000
+
+logging:
+  config: classpath:logback-staging.xml
+  level:
+    ROOT: WARN
+    io.github.jhipster: WARN
+    thesis: WARN
+
+image:
+  filepath: C://park//save
+
+file:
+  filepath: C://park//data
+
+tmap:
+  send: "OFF"
+  url: http://127.0.0.1:10000/api/v1/manage/devices/events
+
+gateway:
+  url: http://192.168.20.30:9999/v1
+
+
+

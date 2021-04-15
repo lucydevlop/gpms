@@ -2,14 +2,16 @@ package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.GateTypeStatus
 import io.glnt.gpms.model.enums.LprTypeStatus
+import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
+import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
-@Table(schema = "glnt_parking", name="tb_facilities",
-    indexes = [Index(columnList = "FacilitiesId", unique = true)])
+@Table(schema = "glnt_parking", name="tb_facilities")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Facility (
@@ -25,7 +27,7 @@ data class Facility (
     var modelid: String,
 
     @Column(name = "f_name", nullable = false)
-    var fName: String,
+    var fname: String,
 
     @Column(name = "dtFacilitiesId", nullable = false)
     var dtFacilitiesId: String,
@@ -58,18 +60,33 @@ data class Facility (
     var flagConnect: Int? = 0,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "gate_type")
-    var gateType: GateTypeStatus,
-
-    @Enumerated(EnumType.STRING)
     @Column(name = "lpr_type")
     var lprType: LprTypeStatus? = null,
 
     @Column(name = "image_path")
     var imagePath: String? = null,
 
-    @Column(name = "gate_svr_key")
-    var gateSvrKey: String? = null
+    @Column(name = "health")
+    var health: String? = null,
+
+    @Column(name = "health_date")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var healthDate: LocalDateTime? = null,
+
+    @Column(name = "status")
+    var status: String? = null,
+
+    @Column(name = "status_date")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var statusDate: LocalDateTime? = null,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "del_yn", nullable = false)
+    var delYn: DelYn? = DelYn.N,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gate_type", nullable = false)
+    var gateType: GateTypeStatus
 //    ,
 //    @ManyToOne(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "gate_id", nullable = false)

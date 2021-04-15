@@ -1,13 +1,17 @@
 package io.glnt.gpms.common.utils
 
+import io.glnt.gpms.common.configs.EnvironmentConfig
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import okhttp3.internal.format
+import org.springframework.beans.factory.annotation.Autowired
 import java.lang.Exception
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import kotlin.random.Random
 
 object DataCheckUtil {
+
     var strIdx: Int = 65
 
     fun isValidCarNumber(vehicleNo: String) : Boolean {
@@ -31,9 +35,9 @@ object DataCheckUtil {
         }
     }
 
-    fun generateRequestId(parkId: String?): String {
+    fun generateRequestId(parkSiteId: String): String {
         if (strIdx > 97) strIdx = 65
-        val key = parkId+"_"+DateUtil.stringToNowDateTime()+"_"+strIdx.toChar()
+        val key = parkSiteId+"_"+DateUtil.stringToNowDateTime()+"_"+strIdx.toChar()
         strIdx++
         return key
     }
@@ -42,5 +46,9 @@ object DataCheckUtil {
         val r = Random
         return pre+DateUtil.stringToNowDateTime()+
                 format("%03d", r.nextInt(1, 999))
+    }
+
+    fun getFileName(fileFullPath: String) : String{
+        return fileFullPath.substring(fileFullPath.lastIndexOf("/")+1)
     }
 }
