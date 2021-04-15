@@ -3,9 +3,9 @@ package io.glnt.gpms.handler.product.service
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.dashboard.admin.model.reqSearchProductTicket
-import io.glnt.gpms.handler.product.model.reqCreateProduct
 import io.glnt.gpms.handler.product.model.reqSearchProduct
+import io.glnt.gpms.model.dto.request.reqCreateProductTicket
+import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.model.enums.DateType
 import io.glnt.gpms.model.enums.DelYn
@@ -42,7 +42,7 @@ class ProductService {
     }
 
     @Throws(CustomException::class)
-    fun createProduct(request: reqCreateProduct): CommonResult {
+    fun createProduct(request: reqCreateProductTicket): CommonResult {
         logger.info { "createProduct request $request" }
         try {
             if (request.sn != null) {
@@ -180,6 +180,18 @@ class ProductService {
                         )
                     )
                 }
+            }
+
+            if (request.effectDate != null) {
+                clues.add(
+                    criteriaBuilder.equal(root.get<String>("effectDate"), request.effectDate)
+                )
+            }
+
+            if (request.expireDate != null) {
+                clues.add(
+                    criteriaBuilder.equal(root.get<String>("expireDate"), request.expireDate)
+                )
             }
 
             if (request.ticketType != null) {

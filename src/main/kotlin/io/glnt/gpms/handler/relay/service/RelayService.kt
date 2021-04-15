@@ -271,7 +271,7 @@ class RelayService {
                     it.failureFlag = it.failureFlag!! + 1
                     it.expireDateTime = null
                     failureRepository.save(it)
-                } ?: run {
+                }?: run {
                     failureRepository.save(request)
                 }
             }

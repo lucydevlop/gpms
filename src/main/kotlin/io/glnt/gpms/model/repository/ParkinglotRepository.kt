@@ -5,6 +5,7 @@ import io.glnt.gpms.model.enums.DelYn
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
+import java.util.*
 
 @Repository
 interface ParkSiteInfoRepository: JpaRepository<ParkSiteInfo, String> {
@@ -26,6 +27,7 @@ interface ParkFacilityRepository: JpaRepository<Facility, Long> {
 //    fun findByGateSvrKey(gateSvrKey: String): List<Facility>?
     fun findByGateIdAndDelYn(gateId: String, delYn: DelYn): List<Facility>?
     fun findByGateIdAndCategory(gateId: String, category: String): List<Facility>?
+    fun findByGateIdAndCategoryAndDelYn(gateId: String, category: String, delYn: DelYn): List<Facility>?
     fun findByCategory(category: String): List<Facility>?
     fun findByGateId(gateId: String): List<Facility>?
 //    fun getDistinctByCategoryAndGateId(gateId: String): List<Facility>?
@@ -48,4 +50,6 @@ interface FailureRepository: JpaRepository<Failure, Long> {
     fun findTopByFacilitiesIdAndFailureCodeOrderByIssueDateTimeDesc(facilityId: String, failureCode: String): Failure?
     fun findTopByFacilitiesIdAndFailureCodeAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(facilityId: String, failureCode: String): Failure?
     fun findTopByFacilitiesIdAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(facilityId: String): Failure?
+    fun countByFacilitiesIdAndExpireDateTimeIsNull(facilityId: String): Long
+    fun findByFacilitiesIdAndExpireDateTimeIsNull(facilityId: String): Optional<Failure>
 }

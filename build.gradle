@@ -5,6 +5,7 @@ buildscript {
         mooworkVersion = "1.2.0"
         vertxVersion = "3.2.1"
         moshi_version = "1.9.3"
+        rxjava      = '2.1.9'
     }
 
     repositories {
@@ -109,5 +110,9 @@ dependencies {
     compile group: 'org.apache.poi', name: 'poi', version: '4.1.0'
     compile group: 'org.apache.poi', name: 'poi-ooxml', version: '4.1.0'
     compile group: 'org.apache.poi', name: 'poi-ooxml-schemas', version: '4.1.0'
+
+    //timer
+    implementation "io.reactivex.rxjava2:rxjava:$rxjava"
+
 
 }

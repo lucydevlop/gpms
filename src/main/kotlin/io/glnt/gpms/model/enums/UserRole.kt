@@ -7,6 +7,7 @@ enum class UserRole : GrantedAuthority {
     ADMIN,
     USER,
     OPERATION,
+    API,
     STORE;
     override fun getAuthority(): String = name
 }
