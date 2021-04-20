@@ -9,6 +9,7 @@ import com.vladmihalcea.hibernate.type.json.JsonStringType
 import io.glnt.gpms.model.entity.Auditable
 import io.glnt.gpms.model.enums.OnOff
 import io.glnt.gpms.model.enums.SaleType
+import io.glnt.gpms.model.enums.VehicleDayType
 import org.hibernate.annotations.Type
 import org.hibernate.annotations.TypeDef
 import java.io.Serializable
@@ -96,7 +97,7 @@ data class ParkSiteInfo(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "vehicle_day_option")
-    var vehicleDayOption: OnOff? = OnOff.OFF
+    var vehicleDayOption: VehicleDayType? = VehicleDayType.OFF
 ) : Auditable(), Serializable {
 
     data class spaceAttributes(
