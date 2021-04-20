@@ -172,7 +172,7 @@ class InoutService {
                     parkcartype = parkingtype,
                     userSn = 0,
                     vehicleNo = vehicleNo,
-                    image = "$fileFullPath",
+                    image = fileFullPath?.let { it },
                     flag = 0,
                     validate = validDate,
                     resultcode = resultcode.toInt(),
@@ -183,7 +183,8 @@ class InoutService {
                     inDate = date,
                     uuid = uuid,
                     udpssid = if (gate.takeAction == "PCC") "11111" else "00000",
-                    ticketSn = ticketSn
+                    ticketSn = ticketSn,
+                    memo = memo
                 )
                 parkInRepository.save(newData)
                 parkInRepository.flush()
@@ -734,7 +735,7 @@ class InoutService {
     }
 
     @Transactional(readOnly = true)
-    fun getAllParkLists(request: reqSearchParkin): CommonResult {
+    fun getAllParkLists(request: reqSearchParkin): ArrayList<resParkInList>? {
         logger.info { "getAllParkLists $request" }
         try {
             val results = ArrayList<resParkInList>()
@@ -746,7 +747,8 @@ class InoutService {
                                 type = DisplayMessageClass.IN,
                                 parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
                                 inGateId = it.gateId, inDate = it.inDate!!,
-                                ticketCorpName = it.ticket?.corp?.corpName, memo = it.memo
+                                ticketCorpName = it.ticket?.corp?.corpName, memo = it.memo,
+                                inImgBase64Str = it.image?.let { image -> image.substring(image.indexOf("/park")) }
                             )
                             if (it.outSn!! > 0L && it.outSn != null) {
                                 parkOutRepository.findBySn(it.outSn!!)?.let { out ->
@@ -758,6 +760,7 @@ class InoutService {
                                     result.parkfee = out.parkfee
                                     result.payfee = out.payfee
                                     result.discountfee = out.discountfee
+                                    result.outImgBase64Str = out.image!!.substring(out.image!!.indexOf("/park"))
                                 }
                             } else {
                                 result.parkoutSn = it.outSn
@@ -783,12 +786,12 @@ class InoutService {
                         }
                     }
                 }
-                else -> return CommonResult.error("getAllParkLists failed")
+                else -> return null
             }
-            return CommonResult.data(results)
+            return results
         } catch (e: RuntimeException) {
-            logger.error { "getAllParkLists ${e.message}" }
-            return CommonResult.error("getAllParkLists failed")
+            logger.error { "getAllParkLists $e" }
+            return null
         }
 //        val pageable: Pageable = PageRequest.of(request.page!!, request.pageSize!!.toInt())
 
@@ -1021,7 +1024,7 @@ class InoutService {
                         base64Str = request.inImgBase64Str,
                         uuid = UUID.randomUUID().toString(),
                         inSn = if (request.parkinSn == 0L) null else request.parkinSn,
-                        deviceIF = "OFF"
+                        deviceIF = "OFF", memo = request.memo
                     )).data!! as ParkIn
                 inResult = parkInRepository.findBySn(result.sn!!)!!
             }?.run {
@@ -1157,7 +1160,7 @@ class InoutService {
     }
 
     fun getImagePath(imagePath: String?): String? {
-        return if (imagePath!!.contains("/park", true)) { imagePath.substring(imagePath.indexOf("/park")).replace("//", "/") }
+        return if (imagePath != null && imagePath!!.contains("/park", true)) { imagePath.substring(imagePath.indexOf("/park")).replace("//", "/") }
             else null
     }
 

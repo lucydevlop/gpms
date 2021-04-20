@@ -21,6 +21,7 @@ data class reqAddParkIn(
     var base64Str: String? = null,
     var originFileName: String? = null,
     var uuid: String? = null,
+    var memo: String? = null,
 
     /* update 사용 */
     var inSn: Long? = null,
