@@ -122,7 +122,7 @@ class DashboardAdminService(
     @Throws(CustomException::class)
     fun getParkInLists(request: reqSearchParkin): CommonResult {
         try {
-            return CommonResult.data(inoutService.getAllParkLists(request).data)
+            return CommonResult.data(inoutService.getAllParkLists(request))
         }catch (e: CustomException){
             logger.error { "Admin getParkInLists failed ${e.message}" }
             return CommonResult.error("Admin getParkInLists failed ${e.message}")

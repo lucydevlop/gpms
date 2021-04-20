@@ -159,6 +159,12 @@ class ProductService {
                     criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("vehicleNo")), likeValue)
                 )
             }
+            if(request.searchLabel == "USERNAME" && request.searchText != null) {
+                val likeValue = "%" + request.searchText + "%"
+                clues.add(
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("name")), likeValue)
+                )
+            }
             if (request.searchDateLabel == DateType.EFFECT) {
                 if (request.fromDate != null && request.toDate != null) {
                     clues.add(
