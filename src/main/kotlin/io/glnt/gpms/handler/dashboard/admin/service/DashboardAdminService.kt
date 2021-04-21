@@ -24,10 +24,8 @@ import io.glnt.gpms.handler.user.service.AuthService
 import io.glnt.gpms.io.glnt.gpms.handler.file.service.ExcelUploadService
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
-import io.glnt.gpms.model.entity.Corp
-import io.glnt.gpms.model.entity.Facility
-import io.glnt.gpms.model.entity.Gate
-import io.glnt.gpms.model.entity.ProductTicket
+import io.glnt.gpms.model.dto.request.reqUserInfo
+import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.UserRole
 import mu.KLogging
@@ -484,6 +482,20 @@ class DashboardAdminService(
         }catch (e: CustomException){
             logger.error { "Admin deleteAdminUser failed $e" }
             return CommonResult.error("Admin deleteAdminUser failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun editAdminUser(request: reqUserInfo): CommonResult {
+        try {
+            return userService.editUser(request)?.let {
+                CommonResult.data(it)
+            }?: run {
+                CommonResult.error("Admin editAdminUser failed")
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin editAdminUser failed $e" }
+            return CommonResult.error("Admin editAdminUser failed $e")
         }
     }
 
