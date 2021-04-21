@@ -11,6 +11,7 @@ import io.glnt.gpms.handler.inout.model.resParkInList
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqDisplayInfo
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
+import io.glnt.gpms.model.dto.request.reqUserInfo
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.FileSystemResource
@@ -42,6 +43,13 @@ class DashboardAdminController {
     fun deleteAdminUser(@PathVariable sn: Long) : ResponseEntity<CommonResult> {
         logger.trace("deleteAdminUser $sn")
         return CommonResult.returnResult(dashboardAdminService.deleteAdminUser(sn))
+    }
+
+    @RequestMapping(value = ["/edit"], method = [RequestMethod.PUT])
+    @Throws(CustomException::class)
+    fun editAdminUser(@RequestBody request: reqUserInfo) : ResponseEntity<CommonResult> {
+        logger.trace("editAdminUser $request")
+        return CommonResult.returnResult(dashboardAdminService.editAdminUser(request))
     }
 
     @RequestMapping(value=["/main/gate"], method = [RequestMethod.GET])

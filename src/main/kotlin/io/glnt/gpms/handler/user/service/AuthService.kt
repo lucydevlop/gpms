@@ -9,9 +9,11 @@ import io.glnt.gpms.handler.user.model.reqRegister
 import io.glnt.gpms.handler.user.model.reqUserRegister
 import io.glnt.gpms.handler.user.model.resLogin
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.model.dto.request.reqUserInfo
 import io.glnt.gpms.model.entity.Corp
 import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.entity.SiteUser
+import io.glnt.gpms.model.entity.User
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.UserRole
 import io.glnt.gpms.model.repository.CorpRepository
@@ -256,6 +258,24 @@ class AuthService {
             return CommonResult.error("deleteUser user $sn error")
         }
         return CommonResult.data()
+    }
+
+    fun editUser(request: reqUserInfo): SiteUser?  {
+        try {
+            request.idx?.let { idx ->
+                userRepository.findUserByIdx(idx)?.let { user ->
+                    user.password = request.password?.let { passwordEncoder.encode(request.password) }?: run { user.password }
+                    user.userName = request.userName?.let { it }?: run { user.userName }
+                    user.role = request.role?.let { it }?: run { user.role }
+                    user.userPhone = request.userPhone?.let{ it }?: run { user.userPhone }
+                    return userRepository.saveAndFlush(user)
+                }
+            }
+            return null
+        }catch (e: CustomException) {
+            logger.error{"deleteUser error $e"}
+            return null
+        }
     }
 
     private fun findAllUserSpecification(request: reqSearchItem) : Specification<SiteUser> {
