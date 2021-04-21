@@ -164,10 +164,21 @@ class InoutService {
                     recognitionResult = "NOTRECOGNITION"
                 }
 
+                //차량 요일제 적용
+                parkinglotService.parkSite!!.vehicleDayOption?.let {
+                    if (recognitionResult == "RECOGNITION" && it != VehicleDayType.OFF) {
+                        if (DataCheckUtil.isRotation(it, vehicleNo)) {
+                        } else {
+                            displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
+                            return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
+                        }
+                    }
+                }
+
+
                 // 입차 정보 DB insert
                 val newData = ParkIn(
                     sn = request.inSn?.let { request.inSn } ?: run { null },
-//                gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.gateInfo.gateId,
                     gateId = gate.gateId,
                     parkcartype = parkingtype,
                     userSn = 0,
@@ -196,7 +207,6 @@ class InoutService {
                 // 2. 전광판
                 // 전광판 메세지 구성은 아래와 같이 진행한다.
                 // 'pcc' 인 경우 MEMBER -> MEMBER 로 아닌 경우 MEMBER -> NONMEMBER 로 정의
-
                 if (gate.takeAction != "PCC" && deviceIF == "ON") {
                     // todo GATE 옵션인 경우 정기권/WHITE OPEN 옵션 정의
                     when(gate.openAction){
@@ -219,15 +229,6 @@ class InoutService {
                     displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
                     relayService.actionGate(gate.gateId, "GATE", "open")
 
-//                    if (gate.openAction != OpenActionType.NONE) {
-//                        if ("NORMAL" == parkingtype || "UNRECOGNIZED" == parkingtype) {
-//                            displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
-//                            return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
-//                        }
-//                    }
-//                    // 전광판 메세지 출력, gate open
-//                    relayService.actionGate(gate.gateId, "GATE", "open")
-//                    displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
                 }
 
                 if (parkinglotService.isTmapSend()) {

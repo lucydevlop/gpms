@@ -144,10 +144,15 @@ enum class DateType(val code: String, val desc: String) {
     EXPIRE("EXPIRE", "종료일")
 }
 
-
 enum class DisplayStatus(val code: String, val desc: String) {
     FLOW("FLOW", "흐름"),
     FIX("FIX", "고정")
+}
+
+enum class VehicleDayType(val code: String, val desc: String) {
+    OFF("OFF", "OFF"),
+    DAY2("DAY2", "2부제"),
+    DAY5("DAY5", "5부제")
 }
 
 //enum class parkCarType {
