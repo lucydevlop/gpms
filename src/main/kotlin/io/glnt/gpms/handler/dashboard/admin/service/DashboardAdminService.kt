@@ -23,6 +23,7 @@ import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.user.service.AuthService
 import io.glnt.gpms.io.glnt.gpms.handler.file.service.ExcelUploadService
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
+import io.glnt.gpms.model.dto.request.reqDisplayInfo
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.entity.Corp
 import io.glnt.gpms.model.entity.Facility
@@ -309,6 +310,36 @@ class DashboardAdminService(
         }catch (e: CustomException){
             logger.error { "Admin createMessage failed ${e.message}" }
             return CommonResult.error("Admin createMessage failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun getDisplayInfo(): CommonResult {
+        try {
+            return facilityService.getDisplayInfo()?.let {
+                relayService.sendDisplayInfo()
+                CommonResult.data(it)
+            }?: kotlin.run {
+                CommonResult.notfound("Admin getDisplayInfo not found")
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin getDisplayInfo failed $e" }
+            return CommonResult.error("Admin getDisplayInfo failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun updateDisplayInfo(request: reqDisplayInfo): CommonResult {
+        try {
+            return facilityService.updateDisplayInfo(request)?.let {
+                relayService.sendUpdateDisplayInfo(it)
+                CommonResult.data(it)
+            }?: kotlin.run {
+                CommonResult.error("Admin updateDisplayInfo failed")
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin updateDisplayInfo failed $e" }
+            return CommonResult.error("Admin updateDisplayInfo failed ${e.message}")
         }
     }
 

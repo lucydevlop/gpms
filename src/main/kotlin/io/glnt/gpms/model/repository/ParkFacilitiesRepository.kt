@@ -1,6 +1,7 @@
 package io.glnt.gpms.model.repository
 
 import io.glnt.gpms.model.entity.DisplayColor
+import io.glnt.gpms.model.entity.DisplayInfo
 import io.glnt.gpms.model.entity.DisplayMessage
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayMessageType
@@ -19,4 +20,9 @@ interface DisplayMessageRepository: JpaRepository<DisplayMessage, Long> {
     fun findByMessageClassAndMessageTypeAndOrder(messageClass: DisplayMessageClass, messageType: DisplayMessageType, order: Int) : DisplayMessage?
     fun findByMessageClass(messageClass: DisplayMessageClass) : List<DisplayMessage>?
     fun findBySn(sn: Long): DisplayMessage?
+}
+
+@Repository
+interface DisplayInfoRepository: JpaRepository<DisplayInfo, Long> {
+    fun findBySn(sn: Long): DisplayInfo?
 }

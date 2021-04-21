@@ -67,5 +67,11 @@ class RelayController {
         return CommonResult.returnResult(relayService.sendDisplayInitMessage())
     }
 
+    @RequestMapping(value = ["/display/info"], method = [RequestMethod.GET])
+    fun sendDisplayInfo(): ResponseEntity<CommonResult> {
+        logger.info { "sendDisplayInitMessage" }
+        return CommonResult.returnResult(relayService.sendDisplayInfo())
+    }
+
     companion object : KLogging()
 }

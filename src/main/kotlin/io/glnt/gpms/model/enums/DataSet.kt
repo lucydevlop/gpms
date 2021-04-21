@@ -142,7 +142,12 @@ enum class ErrorCode {
 enum class DateType(val code: String, val desc: String) {
     EFFECT("EFFECT", "시작일"),
     EXPIRE("EXPIRE", "종료일")
+}
 
+
+enum class DisplayStatus(val code: String, val desc: String) {
+    FLOW("FLOW", "흐름"),
+    FIX("FIX", "고정")
 }
 
 //enum class parkCarType {

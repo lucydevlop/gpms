@@ -15,6 +15,7 @@ import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.io.glnt.gpms.common.utils.JacksonUtil
+import io.glnt.gpms.model.dto.request.reqDisplayInfo
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.*
@@ -26,7 +27,11 @@ import java.time.LocalDateTime
 import javax.annotation.PostConstruct
 
 @Service
-class FacilityService {
+class FacilityService(
+    private var displayInfoRepository: DisplayInfoRepository,
+    private var displayColorRepository: DisplayColorRepository,
+    private var displayMessageRepository: DisplayMessageRepository
+) {
     companion object : KLogging()
 
     lateinit var gates: List<Gate>
@@ -44,11 +49,11 @@ class FacilityService {
     @Value("\${tmap.send}")
     lateinit var tmapSend: String
 
-    @Autowired
-    private lateinit var displayColorRepository: DisplayColorRepository
-
-    @Autowired
-    private lateinit var displayMessageRepository: DisplayMessageRepository
+//    @Autowired
+//    private lateinit var displayColorRepository: DisplayColorRepository
+//
+//    @Autowired
+//    private lateinit var displayMessageRepository: DisplayMessageRepository
 
     @Autowired
     private lateinit var tmapSendService: TmapSendService
@@ -239,6 +244,11 @@ class FacilityService {
                 Facility(sn = null, category = "VOIP", modelid = "MDL0000032", fname = "출구2 VOIP", dtFacilitiesId = "VOP004201", gateId = "GATE004",
                     ip = "192.168.20.144", port = "0", resetPort = 0, gateType = GateTypeStatus.OUT, delYn = DelYn.N))
         }
+
+        displayInfoRepository.findBySn(1)?: run {
+            displayInfoRepository.saveAndFlush(DisplayInfo(sn = null, line1Status = DisplayStatus.FIX, line2Status = DisplayStatus.FIX))
+        }
+
     }
 
     // @PostConstruct
@@ -348,6 +358,22 @@ class FacilityService {
         }
     }
 
+    fun updateDisplayInfo(request: reqDisplayInfo) : DisplayInfo? {
+        logger.info { "updateDisplayInfo request $request" }
+        try {
+            displayInfoRepository.findBySn(1)?.let { info ->
+                info.line1Status = request.line1Status
+                info.line2Status = request.line2Status
+                return displayInfoRepository.saveAndFlush(info)
+            }?: kotlin.run {
+                return null
+            }
+        }catch (e: CustomException){
+            logger.error{"update display info error $e"}
+            return null
+        }
+    }
+
     fun getDisplayColor() : CommonResult {
         logger.info { "getDisplayColor" }
         try {
@@ -369,6 +395,19 @@ class FacilityService {
         }catch (e: RuntimeException){
             logger.error { "getDisplayColor error ${e.message}" }
             return CommonResult.error("getDisplayColor error")
+        }
+    }
+
+    fun getDisplayInfo() : DisplayInfo?  {
+        try {
+            return displayInfoRepository.findBySn(1)?.let { it ->
+                 it
+            }?: kotlin.run {
+                null
+            }
+        }catch (e: RuntimeException){
+            logger.error { "getDisplayColor error $e" }
+            return null
         }
     }
 

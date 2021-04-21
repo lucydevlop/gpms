@@ -2,6 +2,7 @@ package io.glnt.gpms.model.dto.request
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.enums.DateType
+import io.glnt.gpms.model.enums.DisplayStatus
 import io.glnt.gpms.model.enums.TicketType
 import io.glnt.gpms.model.enums.VehicleType
 import java.time.LocalDate
@@ -35,4 +36,10 @@ data class reqSearchProductTicket(
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var expireDate: LocalDateTime? = null,
     var ticketType: TicketType? = null,
     var delYn: String? = "N"
+)
+
+data class reqDisplayInfo(
+    var line1Status: DisplayStatus,
+    var line2Status: DisplayStatus
+
 )
