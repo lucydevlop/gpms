@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayMessageType
+import io.glnt.gpms.model.enums.DisplayStatus
 //import io.glnt.gpms.model.enums.DisplayType
 import org.hibernate.annotations.Where
 import java.io.Serializable
@@ -68,6 +69,25 @@ data class DisplayMessage(
     @JoinColumn(name = "color_code", referencedColumnName = "color_code", insertable = false, updatable = false)
     var displayColor: DisplayColor? = null
 //    constructor(sn: Nothing?, messageClass: DisplayMessageClass, messageType: DisplayMessageType, colorType: DisplayType, order: Int, messageDesc: String) : this()
+}
 
+@Entity
+@Table(schema = "glnt_parking", name="tb_display_info")
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class DisplayInfo(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "sn", unique = true, nullable = false)
+    var  sn : Long?,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "line1_status")
+    var line1Status: DisplayStatus = DisplayStatus.FIX,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "line2_status")
+    var line2Status: DisplayStatus = DisplayStatus.FIX
+): Auditable(), Serializable {
 
 }

@@ -21,10 +21,7 @@ import io.glnt.gpms.handler.relay.model.paystationvehicleListSearch
 import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
-import io.glnt.gpms.model.entity.Failure
-import io.glnt.gpms.model.entity.ParkAlarmSetting
-import io.glnt.gpms.model.entity.ParkIn
-import io.glnt.gpms.model.entity.VehicleListSearch
+import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.SaleType
 import io.glnt.gpms.model.enums.checkUseStatus
 import io.glnt.gpms.model.repository.FailureRepository
@@ -420,9 +417,49 @@ class RelayService {
         }
     }
 
+    fun sendDisplayInfo() : CommonResult {
+        try {
+            return facilityService.getDisplayInfo()?.let {
+                CommonResult.data(hashMapOf<String, Any?>(
+                    "line1" to it.line1Status,
+                    "line2" to it.line2Status
+                ))
+            }?: kotlin.run {
+                CommonResult.notfound("sendDisplayStatus not found")
+            }
+        }catch (e: RuntimeException) {
+            logger.error { "sendDisplayStatus $e"}
+            return CommonResult.notfound("sendDisplayStatus not found")
+        }
+    }
+
+    fun sendUpdateDisplayInfo(data: DisplayInfo) {
+        logger.warn { "sendUpdateDisplayInfo request $data" }
+        getAllRelaySvrUrl().let { its ->
+            its.forEach {
+                restAPIManager.sendPatchRequest(
+                    it+"/display/format",
+                    hashMapOf<String, Any?>(
+                        "line1" to data.line1Status,
+                        "line2" to data.line2Status
+                    )
+                )
+            }
+        }
+    }
+
     private fun getRelaySvrUrl(gateId: String): String {
         return facilityService.gates.filter { it.gateId == gateId }[0].relaySvr!!
 //        return "http://192.168.20.30:9999/v1"
+    }
+
+    private fun getAllRelaySvrUrl(): ArrayList<String> {
+        val svrs = ArrayList<String>()
+
+        facilityService.gates.forEach { svrs.add(it.relaySvr!!) }
+        svrs.sort()
+
+        return ArrayList(svrs.distinct())
     }
 
 

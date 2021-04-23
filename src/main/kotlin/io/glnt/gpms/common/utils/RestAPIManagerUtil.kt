@@ -40,6 +40,17 @@ class RestAPIManagerUtil {
     }
 
     @Throws(UnirestException::class, JsonProcessingException::class)
+    fun sendPatchRequest(url: String?, `object`: Any?): HttpResponse<JsonNode?>? {
+        val objectMapper = ObjectMapper()
+        val jsonInString = objectMapper.writeValueAsString(`object`)
+        println(jsonInString)
+        return Unirest.patch(url)
+            .header("Content-Type", "application/json")
+            .body(jsonInString)
+            .asJson()
+    }
+
+    @Throws(UnirestException::class, JsonProcessingException::class)
     fun sendFormPostRequest(url: String?, `object`: Any?): HttpResponse<JsonNode?>? {
         val objectMapper = ObjectMapper()
         val jsonInString = objectMapper.writeValueAsString(`object`)

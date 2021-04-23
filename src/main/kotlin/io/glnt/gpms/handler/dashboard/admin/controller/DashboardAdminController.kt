@@ -9,7 +9,9 @@ import io.glnt.gpms.handler.dashboard.admin.service.DashboardAdminService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.inout.model.resParkInList
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
+import io.glnt.gpms.model.dto.request.reqDisplayInfo
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
+import io.glnt.gpms.model.dto.request.reqUserInfo
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.FileSystemResource
@@ -41,6 +43,13 @@ class DashboardAdminController {
     fun deleteAdminUser(@PathVariable sn: Long) : ResponseEntity<CommonResult> {
         logger.trace("deleteAdminUser $sn")
         return CommonResult.returnResult(dashboardAdminService.deleteAdminUser(sn))
+    }
+
+    @RequestMapping(value = ["/edit"], method = [RequestMethod.PUT])
+    @Throws(CustomException::class)
+    fun editAdminUser(@RequestBody request: reqUserInfo) : ResponseEntity<CommonResult> {
+        logger.trace("editAdminUser $request")
+        return CommonResult.returnResult(dashboardAdminService.editAdminUser(request))
     }
 
     @RequestMapping(value=["/main/gate"], method = [RequestMethod.GET])
@@ -131,6 +140,20 @@ class DashboardAdminController {
     fun updateMessage(@RequestBody request: ArrayList<ReqCreateMessage>) : ResponseEntity<CommonResult>{
         logger.trace { "$request" }
         return CommonResult.returnResult(dashboardAdminService.updateMessage(request))
+    }
+
+    @RequestMapping(value = ["/message/info"], method = [RequestMethod.GET])
+    @Throws(CustomException::class)
+    fun getDisplayInfo() : ResponseEntity<CommonResult>{
+        logger.trace { "getDisplayInfo" }
+        return CommonResult.returnResult(dashboardAdminService.getDisplayInfo())
+    }
+
+    @RequestMapping(value = ["/message/info"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun updateDisplayInfo(@RequestBody request: reqDisplayInfo) : ResponseEntity<CommonResult>{
+        logger.trace { "updateDisplayInfo $request" }
+        return CommonResult.returnResult(dashboardAdminService.updateDisplayInfo(request))
     }
 
     @RequestMapping(value = ["/product/ticket/list"], method = [RequestMethod.POST])
