@@ -3,6 +3,8 @@ package io.glnt.gpms.common.utils
 import io.glnt.gpms.common.configs.EnvironmentConfig
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.model.enums.VehicleDayType
+import io.glnt.gpms.model.enums.WeekType
 import okhttp3.internal.format
 import org.springframework.beans.factory.annotation.Autowired
 import java.lang.Exception
@@ -50,5 +52,44 @@ object DataCheckUtil {
 
     fun getFileName(fileFullPath: String) : String{
         return fileFullPath.substring(fileFullPath.lastIndexOf("/")+1)
+    }
+
+    fun isRotation(type: VehicleDayType, vehicleNo: String): Boolean {
+        val num = vehicleNo.substring(vehicleNo.length-1).toInt()
+
+        when (type) {
+            VehicleDayType.DAY2 -> {
+                val date = DateUtil.nowDate
+                val dateNum = date.substring(date.length-1).toInt()
+                return (checkEven(num) == checkEven(dateNum))
+            }
+            VehicleDayType.DAY5 -> {
+                val day = DateUtil.getWeek(DateUtil.nowDate)
+                when (day) {
+                    WeekType.MON -> {
+                        return !(num == 1 || num == 6)
+                    }
+                    WeekType.TUE -> {
+                        return !(num == 2 || num == 7)
+                    }
+                    WeekType.WED -> {
+                        return !(num == 3 || num == 8)
+                    }
+                    WeekType.THU -> {
+                        return !(num == 4 || num == 9)
+                    }
+                    WeekType.FRI -> {
+                        return !(num == 5 || num == 0)
+                    }
+                    else -> true
+                }
+            }
+            else -> false
+        }
+        return false
+    }
+
+    fun checkEven(num: Int): Boolean {
+        return (num % 2 == 0)
     }
 }

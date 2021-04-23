@@ -164,15 +164,26 @@ class InoutService {
                     recognitionResult = "NOTRECOGNITION"
                 }
 
+                //차량 요일제 적용
+                parkinglotService.parkSite!!.vehicleDayOption?.let {
+                    if (recognitionResult == "RECOGNITION" && it != VehicleDayType.OFF) {
+                        if (DataCheckUtil.isRotation(it, vehicleNo)) {
+                        } else {
+                            displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
+                            return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
+                        }
+                    }
+                }
+
+
                 // 입차 정보 DB insert
                 val newData = ParkIn(
                     sn = request.inSn?.let { request.inSn } ?: run { null },
-//                gateId = parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.gateInfo.gateId,
                     gateId = gate.gateId,
                     parkcartype = parkingtype,
                     userSn = 0,
                     vehicleNo = vehicleNo,
-                    image = "$fileFullPath",
+                    image = fileFullPath?.let { it },
                     flag = 0,
                     validate = validDate,
                     resultcode = resultcode.toInt(),
@@ -183,7 +194,8 @@ class InoutService {
                     inDate = date,
                     uuid = uuid,
                     udpssid = if (gate.takeAction == "PCC") "11111" else "00000",
-                    ticketSn = ticketSn
+                    ticketSn = ticketSn,
+                    memo = memo
                 )
                 parkInRepository.save(newData)
                 parkInRepository.flush()
@@ -195,7 +207,6 @@ class InoutService {
                 // 2. 전광판
                 // 전광판 메세지 구성은 아래와 같이 진행한다.
                 // 'pcc' 인 경우 MEMBER -> MEMBER 로 아닌 경우 MEMBER -> NONMEMBER 로 정의
-
                 if (gate.takeAction != "PCC" && deviceIF == "ON") {
                     // todo GATE 옵션인 경우 정기권/WHITE OPEN 옵션 정의
                     when(gate.openAction){
@@ -218,15 +229,6 @@ class InoutService {
                     displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
                     relayService.actionGate(gate.gateId, "GATE", "open")
 
-//                    if (gate.openAction != OpenActionType.NONE) {
-//                        if ("NORMAL" == parkingtype || "UNRECOGNIZED" == parkingtype) {
-//                            displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
-//                            return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
-//                        }
-//                    }
-//                    // 전광판 메세지 출력, gate open
-//                    relayService.actionGate(gate.gateId, "GATE", "open")
-//                    displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
                 }
 
                 if (parkinglotService.isTmapSend()) {
@@ -734,7 +736,7 @@ class InoutService {
     }
 
     @Transactional(readOnly = true)
-    fun getAllParkLists(request: reqSearchParkin): CommonResult {
+    fun getAllParkLists(request: reqSearchParkin): ArrayList<resParkInList>? {
         logger.info { "getAllParkLists $request" }
         try {
             val results = ArrayList<resParkInList>()
@@ -746,7 +748,8 @@ class InoutService {
                                 type = DisplayMessageClass.IN,
                                 parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
                                 inGateId = it.gateId, inDate = it.inDate!!,
-                                ticketCorpName = it.ticket?.corp?.corpName, memo = it.memo
+                                ticketCorpName = it.ticket?.corp?.corpName, memo = it.memo,
+                                inImgBase64Str = it.image?.let { image -> image.substring(image.indexOf("/park")) }
                             )
                             if (it.outSn!! > 0L && it.outSn != null) {
                                 parkOutRepository.findBySn(it.outSn!!)?.let { out ->
@@ -758,6 +761,7 @@ class InoutService {
                                     result.parkfee = out.parkfee
                                     result.payfee = out.payfee
                                     result.discountfee = out.discountfee
+                                    result.outImgBase64Str = out.image!!.substring(out.image!!.indexOf("/park"))
                                 }
                             } else {
                                 result.parkoutSn = it.outSn
@@ -783,12 +787,12 @@ class InoutService {
                         }
                     }
                 }
-                else -> return CommonResult.error("getAllParkLists failed")
+                else -> return null
             }
-            return CommonResult.data(results)
+            return results
         } catch (e: RuntimeException) {
-            logger.error { "getAllParkLists ${e.message}" }
-            return CommonResult.error("getAllParkLists failed")
+            logger.error { "getAllParkLists $e" }
+            return null
         }
 //        val pageable: Pageable = PageRequest.of(request.page!!, request.pageSize!!.toInt())
 
@@ -1021,7 +1025,7 @@ class InoutService {
                         base64Str = request.inImgBase64Str,
                         uuid = UUID.randomUUID().toString(),
                         inSn = if (request.parkinSn == 0L) null else request.parkinSn,
-                        deviceIF = "OFF"
+                        deviceIF = "OFF", memo = request.memo
                     )).data!! as ParkIn
                 inResult = parkInRepository.findBySn(result.sn!!)!!
             }?.run {
@@ -1157,7 +1161,7 @@ class InoutService {
     }
 
     fun getImagePath(imagePath: String?): String? {
-        return if (imagePath!!.contains("/park", true)) { imagePath.substring(imagePath.indexOf("/park")).replace("//", "/") }
+        return if (imagePath != null && imagePath!!.contains("/park", true)) { imagePath.substring(imagePath.indexOf("/park")).replace("//", "/") }
             else null
     }
 
