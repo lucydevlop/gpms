@@ -8,10 +8,7 @@ import io.glnt.gpms.handler.dashboard.admin.model.*
 import io.glnt.gpms.handler.dashboard.admin.service.DashboardAdminService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.inout.model.resParkInList
-import io.glnt.gpms.model.dto.request.reqCreateProductTicket
-import io.glnt.gpms.model.dto.request.reqDisplayInfo
-import io.glnt.gpms.model.dto.request.reqSearchProductTicket
-import io.glnt.gpms.model.dto.request.reqUserInfo
+import io.glnt.gpms.model.dto.request.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.FileSystemResource
@@ -234,6 +231,13 @@ class DashboardAdminController {
         return CommonResult.returnResult(dashboardAdminService.createCorpTicket(request))
     }
 
+    @RequestMapping(value = ["/fare/basic"], method = [RequestMethod.GET])
+    @Throws(CustomException::class)
+    fun getFareBasic(): ResponseEntity<CommonResult> {
+        logger.trace("getFareInfo")
+        return CommonResult.returnResult(dashboardAdminService.getFareBasic())
+    }
+
     @RequestMapping(value = ["/fare/info"], method = [RequestMethod.GET])
     @Throws(CustomException::class)
     fun getFareInfo(): ResponseEntity<CommonResult> {
@@ -246,6 +250,27 @@ class DashboardAdminController {
     fun getFarePolicy(): ResponseEntity<CommonResult> {
         logger.trace("getFarePolicy")
         return CommonResult.returnResult(dashboardAdminService.getFarePolicy())
+    }
+
+    @RequestMapping(value = ["/fare/basic"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun updateFareBasic(@RequestBody request: reqFareBasic) : ResponseEntity<CommonResult> {
+        logger.trace("updateFareBasic $request")
+        return CommonResult.returnResult(dashboardAdminService.updateFareBasic(request))
+    }
+
+    @RequestMapping(value = ["/fare/info"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun createFareInfo(@RequestBody request: reqFareInfo) : ResponseEntity<CommonResult> {
+        logger.trace("createFareInfo $request")
+        return CommonResult.returnResult(dashboardAdminService.createFareInfo(request))
+    }
+
+    @RequestMapping(value = ["/fare/policy"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun createFarePolicy(@RequestBody request: reqFarePolicy) : ResponseEntity<CommonResult> {
+        logger.trace("createFarePolicy $request")
+        return CommonResult.returnResult(dashboardAdminService.createFarePolicy(request))
     }
 
     companion object : KLogging()

@@ -32,6 +32,7 @@ data class FarePolicy(
     @Column(name = "fare_name", unique = true, nullable = false)
     var fareName: String,
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "vehicle_type", nullable = false)
     var vehicleType: VehicleType? = VehicleType.SMALL,
 
@@ -49,7 +50,7 @@ data class FarePolicy(
 
     @Column(name = "effect_date", nullable = false)
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    var effectDate: LocalDateTime? = null,
+    var effectDate: LocalDateTime? = DateUtil.stringToLocalDateTime(DateUtil.nowDateTime, "yyyy-MM-dd HH:mm:ss"),
 
     @Column(name = "expire_date", nullable = false)
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
@@ -97,7 +98,7 @@ data class FareInfo(
 
     @Column(name = "effect_date", nullable = false)
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    var effectDate: LocalDateTime? = null,
+    var effectDate: LocalDateTime? = DateUtil.stringToLocalDateTime(DateUtil.nowDateTime, "yyyy-MM-dd HH:mm:ss"),
 
     @Column(name = "expire_date", nullable = false)
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.LocalDateTime
-import java.util.Collections.min
+import kotlin.math.ceil
 
 
 @Service
@@ -129,7 +129,7 @@ class FeeCalculation {
             }
         }
 
-        if (retPrice.basic!!.endTime!! < retPrice.origin.endTime) {
+        if (retPrice.basic!!.endTime!! <= retPrice.origin.endTime) {
             var startTime = retPrice.basic!!.endTime!!
             do {
                 val seasonTicket = getSeasonTicket(vehicleNo!!, startTime, outTime)
@@ -246,8 +246,8 @@ class FeeCalculation {
                 if (it.discountRange != null) {
                     totalMin -= DateUtil.diffMins(it.discountRange!!.startTime!!, it.discountRange!!.endTime!!)
                 }
-                originPrice += if (it.priceType == "Normal") originMin / it.fareInfo!!.time1!! * it.fareInfo!!.won1!! else 0
-                totalPrice += if (it.priceType == "Normal") totalMin / it.fareInfo!!.time1!! * it.fareInfo!!.won1!! else 0
+                originPrice += if (it.priceType == "Normal") { ceil(originMin.toFloat() / it.fareInfo!!.time1!!).toInt() * it.fareInfo!!.won1!! } else 0
+                totalPrice += if (it.priceType == "Normal") { ceil(totalMin.toFloat() / it.fareInfo!!.time1!!).toInt() * it.fareInfo!!.won1!! } else 0
                 dailyPrice.parkTime = dailyPrice.parkTime!!.plus(totalMin)
 
                 logger.debug { "pay range start ${it.startTime} end ${it.endTime} type ${it.priceType} min $originMin price $originPrice discount ${originPrice-totalPrice}"}
