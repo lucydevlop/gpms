@@ -86,14 +86,11 @@ class FeeCalculation {
         // 서비스 타임 endtime 으로 조회
         if (retPrice.dailySplits == null) {
             logger.debug { "basic fare is null" }
-            calcData.getBizHourInfoForDateTime(
-                DateUtil.LocalDateTimeToDateString(retPrice.service!!.endTime!!), DateUtil.getHourMinuteByLocalDateTime(
-                    retPrice.service!!.endTime!!
-                ), vehicleType
-            ).let {
+            calcData.getBizHourInfoForDateTime(DateUtil.LocalDateTimeToDateString(inTime), DateUtil.getHourMinuteByLocalDateTime(inTime), vehicleType).let {
                 val basic = getBasicFare(it.basicFare!!)
                 val basicTime = TimeRange()
-                basicTime.startTime = retPrice.service!!.endTime
+//                basicTime.startTime = retPrice.service!!.endTime
+                basicTime.startTime = inTime //retPrice.service!!.endTime
                 basicTime.endTime = if (DateUtil.getAddMinutes(basicTime.startTime!!, basic.toLong()) > retPrice.origin.endTime) retPrice.origin.endTime else DateUtil.getAddMinutes(
                     basicTime.startTime!!,
                     basic.toLong()

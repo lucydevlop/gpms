@@ -25,6 +25,7 @@ import io.glnt.gpms.io.glnt.gpms.handler.file.service.ExcelUploadService
 import io.glnt.gpms.model.dto.request.*
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.DiscountRangeType
 import io.glnt.gpms.model.enums.UserRole
 import mu.KLogging
 import org.apache.http.HttpStatus
@@ -634,6 +635,25 @@ class DashboardAdminService(
         }catch (e: CustomException){
             logger.error { "Admin createFarePolicy failed $e" }
             return CommonResult.error("Admin createFarePolicy failed $e")
+        }
+    }
+
+    fun createDiscountTicket(request: reqDiscountTicket): CommonResult {
+        try {
+            return discountService.createDiscountClass(
+                DiscountClass(sn = null, discountNm = request.discountNm,
+                              dayRange = request.dayRange, unitTime = request.unitTime!!,
+                              disUse = request.disUse, disMaxNo = request.disMaxNo,
+                              disMaxDay = request.disMaxDay,  disMaxMonth = request.disMaxMonth,
+                              disPrice = request.disPrice, effectDate = request.effectDate, expireDate = request.expireDate,
+                              delYn = DelYn.N))?.let {
+                                  CommonResult.data(it)
+            }?: kotlin.run {
+                CommonResult.error("Admin createDiscountTicket failed")
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin createDiscountTicket failed $e" }
+            return CommonResult.error("Admin createDiscountTicket failed $e")
         }
     }
 }

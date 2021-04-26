@@ -273,5 +273,12 @@ class DashboardAdminController {
         return CommonResult.returnResult(dashboardAdminService.createFarePolicy(request))
     }
 
+    @RequestMapping(value = ["/discount/ticket"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun createDiscountTicket(@RequestBody request: reqDiscountTicket) : ResponseEntity<CommonResult> {
+        logger.trace("createDiscountTicket $request")
+        return CommonResult.returnResult(dashboardAdminService.createDiscountTicket(request))
+    }
+
     companion object : KLogging()
 }

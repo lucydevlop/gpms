@@ -36,8 +36,7 @@ fun <T> List<T>.createPaginationResult(
 
 fun <T> List<T>.createPaginationResult(
     firstIndex: Int,
-    commonObjectsNumber: Long,
-    totlaSize: Long
+    commonObjectsNumber: Long
 ) = PaginationResult(
     calculatePage(firstIndex, size),
     calculatePagesNumber(
