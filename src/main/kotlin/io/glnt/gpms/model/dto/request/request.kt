@@ -79,3 +79,17 @@ data class reqFareBasic(
     var dayMaxAmt: Int? = 0,
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var effectDate: LocalDateTime? = DateUtil.stringToLocalDateTime(DateUtil.nowDateTime, "yyyy-MM-dd HH:mm:ss")
 )
+
+data class reqDiscountTicket(
+    var sn: Long? = null,
+    var discountNm: String,
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var effectDate: LocalDateTime? = DateUtil.stringToLocalDateTime(DateUtil.nowDateTime, "yyyy-MM-dd HH:mm:ss"),
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var expireDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59", "yyyy-MM-dd HH:mm:ss"),
+    var dayRange: DiscountRangeType? = DiscountRangeType.ALL,
+    var unitTime: Int? = 0,
+    var disUse: SaleType? = SaleType.FREE,
+    var disMaxNo: Int? = 1,
+    var disMaxDay: Int? = 9999,
+    var disMaxMonth: Int? = 9999,
+    var disPrice: Int? = 0
+)

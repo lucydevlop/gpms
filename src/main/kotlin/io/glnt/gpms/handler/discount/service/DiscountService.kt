@@ -47,14 +47,13 @@ class DiscountService {
         return CommonResult.data(discountClassRepository.findAll())
     }
 
-    fun createDiscountClass(request: DiscountClass): CommonResult {
+    fun createDiscountClass(request: DiscountClass): DiscountClass? {
         logger.info { "createDiscountClass $request" }
         try {
-            discountClassRepository.save(request)
-            return CommonResult.data(getDiscountClass())
+            return discountClassRepository.save(request)
         }catch (e: RuntimeException) {
-            logger.error { "createDiscountClass error ${e.message}" }
-            return CommonResult.Companion.error("tb_corpclass create failed")
+            logger.error { "createDiscountClass error $e" }
+            return null
         }
     }
 
