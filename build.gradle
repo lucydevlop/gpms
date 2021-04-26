@@ -104,7 +104,7 @@ dependencies {
     kapt ("com.squareup.moshi:moshi-kotlin-codegen:${moshi_version}")
 
     // kotlin serialization JVM dependency
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1"
+//    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1"
 
     //excel
     compile group: 'org.apache.poi', name: 'poi', version: '4.1.0'
