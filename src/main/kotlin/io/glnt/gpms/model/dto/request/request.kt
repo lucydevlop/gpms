@@ -1,11 +1,8 @@
 package io.glnt.gpms.model.dto.request
 
 import com.fasterxml.jackson.annotation.JsonFormat
-import io.glnt.gpms.model.enums.DateType
-import io.glnt.gpms.model.enums.DisplayStatus
-import io.glnt.gpms.model.enums.TicketType
-import io.glnt.gpms.model.enums.UserRole
-import io.glnt.gpms.model.enums.VehicleType
+import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.model.enums.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -42,6 +39,7 @@ data class reqSearchProductTicket(
 data class reqDisplayInfo(
     var line1Status: DisplayStatus,
     var line2Status: DisplayStatus
+)
 
 data class reqUserInfo(
     var idx: Long? = null,
@@ -51,4 +49,33 @@ data class reqUserInfo(
     var userPhone: String? = null,
     var role: UserRole? = null
 
+)
+
+data class reqFareInfo(
+    var fareName: String,
+    var type: FareType? = FareType.BASIC,
+    var time1: Int? = 30,
+    var won1: Int? = 1000,
+    var count1: Int? = 1,
+    var count: Int? = 1
+)
+
+data class reqFarePolicy(
+    var fareName: String,
+    var vehicleType: VehicleType? = VehicleType.SMALL,
+    var startTime: String? = "0000",
+    var endTime: String? = "2359",
+    var basicFareSn: Long,
+    var addFareSn: Long? = null,
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var effectDate: LocalDateTime? = DateUtil.stringToLocalDateTime(DateUtil.nowDateTime, "yyyy-MM-dd HH:mm:ss"),
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var expireDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59", "yyyy-MM-dd HH:mm:ss"),
+    var week: MutableSet<String>? = mutableSetOf(WeekType.ALL.toString())
+)
+
+data class reqFareBasic(
+    var sn: Long? = null,
+    var serviceTime: Int? = 0,
+    var regTime: Int? = 0,
+    var dayMaxAmt: Int? = 0,
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") var effectDate: LocalDateTime? = DateUtil.stringToLocalDateTime(DateUtil.nowDateTime, "yyyy-MM-dd HH:mm:ss")
 )

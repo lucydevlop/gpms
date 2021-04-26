@@ -25,27 +25,27 @@ class CalcController {
     @Autowired
     private lateinit var fareRefService: FareRefService
 
-    @RequestMapping(value = ["/fare/info"], method = [RequestMethod.POST])
-    @Throws(CustomException::class)
-    fun createFareInfo(@RequestBody request: FareInfo) : ResponseEntity<CommonResult> {
-        logger.trace { "createFareInfo : $request" }
-        val result = fareRefService.createFareInfo(request)
-        return when(result.code) {
-            ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.OK)
-            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
-        }
-    }
+//    @RequestMapping(value = ["/fare/info"], method = [RequestMethod.POST])
+//    @Throws(CustomException::class)
+//    fun createFareInfo(@RequestBody request: FareInfo) : ResponseEntity<CommonResult> {
+//        logger.trace { "createFareInfo : $request" }
+//        val result = fareRefService.createFareInfo(request)
+//        return when(result.code) {
+//            ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.OK)
+//            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+//        }
+//    }
 
-    @RequestMapping(value = ["/fare/policy"], method = [RequestMethod.POST])
-    @Throws(CustomException::class)
-    fun createFarePolicy(@RequestBody request: FarePolicy) : ResponseEntity<CommonResult> {
-        logger.trace { "createFareInfo : $request" }
-        val result = fareRefService.createFarePolicy(request)
-        return when(result.code) {
-            ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.OK)
-            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
-        }
-    }
+//    @RequestMapping(value = ["/fare/policy"], method = [RequestMethod.POST])
+//    @Throws(CustomException::class)
+//    fun createFarePolicy(@RequestBody request: FarePolicy) : ResponseEntity<CommonResult> {
+//        logger.trace { "createFareInfo : $request" }
+//        val result = fareRefService.createFarePolicy(request)
+//        return when(result.code) {
+//            ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.OK)
+//            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+//        }
+//    }
 
     @RequestMapping(value = ["/inout"], method = [RequestMethod.POST])
     @Throws(CustomException::class)

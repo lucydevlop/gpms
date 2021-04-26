@@ -16,24 +16,17 @@ import javax.annotation.PostConstruct
 /**
  */
 @Service
-class CalculationData {
-//    // 7. 주차장 기본 설정 API에 대한 결과값
-//    var mParkingBaseInfo: ParkingBaseInfoOut? = null
-
+class CalculationData(
     // 주차장 요금 설정
-    lateinit var parkingFareInfo: List<FarePolicy>
+    private var parkingFareInfo: List<FarePolicy>,
+    private var farePolicyRepository: FarePolicyRepository
+) {
 
     // 주차장 기본 설정
     lateinit var cgBasic: CgBasic
 
     @Autowired
-    private lateinit var farePolicyRepository: FarePolicyRepository
-
-    @Autowired
     private lateinit var cgBasicRepository: CgBasicRepository
-
-//    @Autowired
-//    lateinit var parkinglotService: ParkinglotService
 
     /**
      * 요금 계산 시작전 필수 데이터 세팅
@@ -42,11 +35,15 @@ class CalculationData {
      */
     @PostConstruct
     fun init() {
+        cgBasicRepository.findByDelYn(DelYn.N)?: kotlin.run {
+            cgBasicRepository.saveAndFlush(
+                CgBasic(sn = null, serviceTime = 0, regTime = 0, dayMaxAmt = 0, effectDate = DateUtil.stringToLocalDateTime(DateUtil.nowDateTime, "yyyy-MM-dd HH:mm:ss"), delYn = DelYn.N))
+        }
 //        if (parkinglotService.isPaid()) {
-            parkingFareInfo = farePolicyRepository.findAll()
-            cgBasicRepository.findByDelYn(DelYn.N)?.let {
-                cgBasic = it
-            }
+        parkingFareInfo = farePolicyRepository.findAll()
+        cgBasicRepository.findByDelYn(DelYn.N)?.let {
+            cgBasic = it
+        }
 //        }
     }
 
