@@ -638,6 +638,20 @@ class DashboardAdminService(
         }
     }
 
+    @Throws(CustomException::class)
+    fun deleteFarePolicy(request: Long) : CommonResult {
+        try {
+            return fareRefService.deleteFarePolicy(request)?.let {
+                CommonResult.data(it)
+            }?: kotlin.run {
+                CommonResult.Companion.error("deleteFarePolicy failed $request")
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin deleteFarePolicy failed $e" }
+            return CommonResult.error("Admin deleteFarePolicy failed $e")
+        }
+    }
+
     fun createDiscountTicket(request: reqDiscountTicket): CommonResult {
         try {
             return discountService.createDiscountClass(
