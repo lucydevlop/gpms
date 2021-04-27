@@ -273,6 +273,13 @@ class DashboardAdminController {
         return CommonResult.returnResult(dashboardAdminService.createFarePolicy(request))
     }
 
+    @RequestMapping(value = ["/fare/policy/{sn}"], method = [RequestMethod.DELETE])
+    @Throws(CustomException::class)
+    fun deleteFarePolicy(@PathVariable sn: Long) : ResponseEntity<CommonResult> {
+        logger.trace("deleteFarePolicy $sn")
+        return CommonResult.returnResult(dashboardAdminService.deleteFarePolicy(sn))
+    }
+
     @RequestMapping(value = ["/discount/ticket"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun createDiscountTicket(@RequestBody request: reqDiscountTicket) : ResponseEntity<CommonResult> {

@@ -73,6 +73,20 @@ class FareRefService(
         }
     }
 
+    fun deleteFarePolicy(sn: Long): FarePolicy? {
+        try {
+            farePolicyRepository.findBySn(sn)?.let {
+                it.delYn = DelYn.Y
+                return farePolicyRepository.saveAndFlush(it)
+            }
+            return null
+        }catch (e: CustomException) {
+            logger.error { "fare policy create failed $sn $e" }
+//            return CommonResult.error("fare policy create failed ${request.fareName}")
+            return null
+        }
+    }
+
     fun findAllFarePolicySpecification(key: String, `val`: String): Specification<FarePolicy?>? {
         return Specification<FarePolicy?> { root: Root<FarePolicy?>, query: CriteriaQuery<*>?, cb: CriteriaBuilder ->
             cb.like(
