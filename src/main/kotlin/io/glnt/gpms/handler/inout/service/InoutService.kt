@@ -479,9 +479,9 @@ class InoutService {
 
                 if (parkinglotService.parkSite!!.saleType == SaleType.PAID && parkIn != null) {
                     price = feeCalculation.getBasicPayment(parkIn!!.inDate!!, date, VehicleType.SMALL, vehicleNo, 1, 0, parkIn!!.sn)
-                    logger.info { "-------------------getBasicPayment Result -------------------" }
-                    logger.info { "입차시간 : $parkIn!!.inDate!! / 출차시간 : $date / 주차시간: ${price!!.parkTime}" }
-                    logger.info { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price!!.totalPrice}" }
+                    logger.warn { "-------------------getBasicPayment Result -------------------" }
+                    logger.warn { "입차시간 : $parkIn!!.inDate!! / 출차시간 : $date / 주차시간: ${price!!.parkTime}" }
+                    logger.warn { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price!!.totalPrice}" }
                 }
 
                 // 출차 정보 DB insert
@@ -503,7 +503,8 @@ class InoutService {
                     uuid = uuid,
                     parktime = if (price == null) DateUtil.diffMins(parkIn!!.inDate!!, date) else price!!.parkTime,
                     parkfee = if (price == null) null else price!!.orgTotalPrice,
-                    payfee = if (price == null) null else price!!.totalPrice
+                    payfee = if (price == null) null else price!!.totalPrice,
+                    discountfee = if (price == null) null else price!!.discountPrice
                 )
                 parkOutRepository.save(newData)
                 parkOutRepository.flush()
@@ -581,8 +582,9 @@ class InoutService {
                                     facilitiesId = gate.udpGateid!!,
                                     recognitionType = if (parkingtype == "NORMAL") "FREE" else "SEASON",
                                     recognitionResult = "RECOGNITION",
-                                    paymentAmount = if (price != null) price!!.totalPrice!!.toString() else "0",
+                                    paymentAmount = if (price != null) price!!.orgTotalPrice!!.toString() else "0",
                                     parktime = if (price != null) price!!.parkTime.toString() else newData.parktime?.let { newData.parktime.toString()}?.run { "0" },
+                                    parkTicketMoney = if (price != null) price!!.discountPrice!!.toString() else "0",  // 할인요금
                                     vehicleIntime = DateUtil.nowDateTimeHm
                                 ),
                                 gate = gate.gateId,
@@ -590,24 +592,24 @@ class InoutService {
                                 type = "adjustmentRequest"
                             )
 
-                            price?.let {
-                                if (price!!.discountPrice!! > 0) {
-                                    Thread.sleep(200)
-
-                                    facilityService.sendPaystation(
-                                        reqPayData(
-                                            paymentMachineType = "exit",
-                                            vehicleNumber = vehicleNo,
-                                            parkTicketType = "OK",
-                                            parkTicketMoney = price!!.discountPrice.toString(),  // 할인요금
-                                            facilitiesId = gate.udpGateid!!
-                                        ),
-                                        gate = gate.gateId,
-                                        requestId = newData.sn.toString(),
-                                        type = "adjustmentdataRequest"
-                                    )
-                                }
-                            }
+//                            price?.let {
+//                                if (price!!.discountPrice!! > 0) {
+//                                    Thread.sleep(200)
+//
+//                                    facilityService.sendPaystation(
+//                                        reqPayData(
+//                                            paymentMachineType = "exit",
+//                                            vehicleNumber = vehicleNo,
+//                                            parkTicketType = "OK",
+//                                            parkTicketMoney = price!!.discountPrice.toString(),  // 할인요금
+//                                            facilitiesId = gate.udpGateid!!
+//                                        ),
+//                                        gate = gate.gateId,
+//                                        requestId = newData.sn.toString(),
+//                                        type = "adjustmentdataRequest"
+//                                    )
+//                                }
+//                            }
                         }
                     }
                     // 전광판 display 전송
@@ -622,106 +624,6 @@ class InoutService {
                             relayService.actionGate(gate.gateId, "GATE", "open")
                         }
                     }
-
-//                    //todo 정산기 출차 전송
-//                    when (parkingtype) {
-//                        "UNRECOGNIZED" -> {
-//                            facilityService.sendPaystation(
-//                                reqPayStationData(
-//                                    paymentMachineType = "EXIT",
-//                                    vehicleNumber = vehicleNo,
-//                                    facilitiesId = gate.udpGateid!!,
-//                                    recognitionType = "NOTRECOGNITION",
-//                                    recognitionResult = recognitionResult!!,
-//                                    paymentAmount = "0",
-//                                    vehicleIntime = DateUtil.nowDateTimeHm
-//                                ),
-//                                gate = gate.gateId,
-//                                requestId = requestId!!,
-//                                type = "adjustmentRequest"
-//                            )
-//                            // displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
-//                        }
-//                        "SEASONTICKET", "WHITELIST" -> {
-//                            if (parkinglotService.parkSite!!.saleType == SaleType.FREE || price!!.totalPrice!! == 0) {
-//                                facilityService.sendPaystation(
-//                                    reqPayStationData(
-//                                        paymentMachineType = "SEASON",
-//                                        vehicleNumber = vehicleNo,
-//                                        facilitiesId = gate.udpGateid!!,
-//                                        recognitionType = "SEASON",
-//                                        recognitionResult = "RECOGNITION",
-//                                        paymentAmount = price?.let { price!!.totalPrice.toString() }?.run { "0" },
-//                                        parktime = price?.let { price!!.parkTime.toString() }?.run { "0" },
-//                                        vehicleIntime = DateUtil.nowDateTimeHm
-//                                    ),
-//                                    gate = gate.gateId,
-//                                    requestId = newData.sn.toString(),
-//                                    type = "adjustmentRequest"
-//                                )
-//                                displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
-//                                relayService.actionGate(gate.gateId, "GATE", "open")
-//                            } else {
-//                                facilityService.sendPaystation(
-//                                    reqPayStationData(
-//                                        paymentMachineType = "SEASON",
-//                                        vehicleNumber = vehicleNo,
-//                                        facilitiesId = gate.udpGateid!!,
-//                                        recognitionType = "SEASON",
-//                                        recognitionResult = recognitionResult!!,
-//                                        paymentAmount = "0",
-//                                        parktime = "0",
-//                                        vehicleIntime = DateUtil.nowDateTimeHm
-//                                    ),
-//                                    gate = gate.gateId,
-//                                    requestId = requestId!!,
-//                                    type = "adjustmentRequest"
-//                                )
-//                            }
-//                        }
-//                        "NORMAL" -> {
-//                            if (gate.takeAction != "PCC") {
-//                                facilityService.sendPaystation(
-//                                    reqPayStationData(
-//                                        paymentMachineType = "exit",
-//                                        vehicleNumber = vehicleNo,
-//                                        facilitiesId = gate.udpGateid!!,
-//                                        recognitionType = "FREE",
-//                                        recognitionResult = "RECOGNITION",
-//                                        paymentAmount = price?.let { price!!.totalPrice.toString() }?.run { "0" },
-//                                        parktime = price?.let { price!!.parkTime.toString() }?.run { newData.parktime!!.toString() },
-//                                        vehicleIntime = DateUtil.formatDateTime(parkIn!!.inDate!!),
-//                                        adjustmentDateTime = DateUtil.nowDateTime
-//                                    ),
-//                                    gate = gate.gateId,
-//                                    requestId = newData.sn.toString(),
-//                                    type = "adjustmentRequest"
-//                                )
-//
-//                                price?.let {
-//                                    if (price!!.discountPrice!! > 0) {
-//                                        Thread.sleep(200)
-//
-//                                        facilityService.sendPaystation(
-//                                            reqPayData(
-//                                                paymentMachineType = "exit",
-//                                                vehicleNumber = vehicleNo,
-//                                                parkTicketType = "OK",
-//                                                parkTicketMoney = price!!.discountPrice.toString(),  // 할인요금
-//                                                facilitiesId = gate.udpGateid!!
-//                                            ),
-//                                            gate = gate.gateId,
-//                                            requestId = newData.sn.toString(),
-//                                            type = "adjustmentdataRequest"
-//                                        )
-//                                    }
-//                                }
-//                            } else {
-//                                displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
-//                                relayService.actionGate(gate.gateId, "GATE", "open")
-//                            }
-//                        }
-//                    }
                 }
 
                 logger.warn { "parkout car_number: ${request.vehicleNo} 출차 성공" }
