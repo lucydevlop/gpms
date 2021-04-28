@@ -22,12 +22,10 @@ import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.user.service.AuthService
 import io.glnt.gpms.io.glnt.gpms.handler.file.service.ExcelUploadService
-import io.glnt.gpms.model.dto.request.reqCreateProductTicket
-import io.glnt.gpms.model.dto.request.reqDisplayInfo
-import io.glnt.gpms.model.dto.request.reqSearchProductTicket
-import io.glnt.gpms.model.dto.request.reqUserInfo
+import io.glnt.gpms.model.dto.request.*
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.DiscountRangeType
 import io.glnt.gpms.model.enums.UserRole
 import mu.KLogging
 import org.apache.http.HttpStatus
@@ -532,6 +530,21 @@ class DashboardAdminService(
 
     @Transactional(readOnly = true)
     @Throws(CustomException::class)
+    fun getFareBasic() : CommonResult {
+        try {
+            return fareRefService.getFareBasic()?.let {
+                CommonResult.data(it)
+            }?: kotlin.run {
+                CommonResult.notfound("cgBasic not found")
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin getFareBasic failed $e" }
+            return CommonResult.error("Admin getFareBasic failed $e")
+        }
+    }
+
+    @Transactional(readOnly = true)
+    @Throws(CustomException::class)
     fun getFareInfo() : CommonResult {
         try {
             val data = fareRefService.getFareInfo()
@@ -568,6 +581,95 @@ class DashboardAdminService(
         }
     }
 
+    @Throws(CustomException::class)
+    fun updateFareBasic(request: reqFareBasic) : CommonResult {
+        try {
+            return fareRefService.updateFareBasic(CgBasic(
+                sn = null,
+                serviceTime = request.serviceTime,
+                regTime = request.regTime,
+                effectDate = request.effectDate,
+                delYn = DelYn.N,
+                dayMaxAmt = request.dayMaxAmt)
+            )?.let {
+                fareRefService.init()
+                CommonResult.data(it)
+            }?: kotlin.run {
+                CommonResult.error("Admin updateFareBasic failed")
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin updateFareBasic failed $e" }
+            return CommonResult.error("Admin updateFareBasic failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun createFareInfo(request: reqFareInfo) : CommonResult {
+        try {
+            return fareRefService.createFareInfo(
+                FareInfo(sn = null, fareName = request.fareName, type = request.type,
+                         time1 = request.time1, won1 = request.won1, count = request.count, count1 = request.count1, delYn = DelYn.N))?.let {
+                CommonResult.data(it)
+            }?: kotlin.run {
+                CommonResult.Companion.error("Admin createFareInfo failed")
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin createFareInfo failed $e" }
+            return CommonResult.error("Admin createFareInfo failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun createFarePolicy(request: reqFarePolicy) : CommonResult {
+        try {
+            return fareRefService.createFarePolicy(
+                FarePolicy(sn = null, fareName = request.fareName, vehicleType = request.vehicleType,
+                    startTime = request.startTime, endTime = request.endTime, basicFareSn = request.basicFareSn, addFareSn = request.addFareSn,
+                    effectDate = request.effectDate, expireDate = request.expireDate,
+                    week = request.week, delYn = DelYn.N ))?.let {
+                fareRefService.init()
+                CommonResult.data(it)
+            }?: kotlin.run {
+                CommonResult.Companion.error("Admin createFarePolicy failed")
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin createFarePolicy failed $e" }
+            return CommonResult.error("Admin createFarePolicy failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun deleteFarePolicy(request: Long) : CommonResult {
+        try {
+            return fareRefService.deleteFarePolicy(request)?.let {
+                CommonResult.data(it)
+            }?: kotlin.run {
+                CommonResult.Companion.error("deleteFarePolicy failed $request")
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin deleteFarePolicy failed $e" }
+            return CommonResult.error("Admin deleteFarePolicy failed $e")
+        }
+    }
+
+    fun createDiscountTicket(request: reqDiscountTicket): CommonResult {
+        try {
+            return discountService.createDiscountClass(
+                DiscountClass(sn = null, discountNm = request.discountNm,
+                              dayRange = request.dayRange, unitTime = request.unitTime!!,
+                              disUse = request.disUse, disMaxNo = request.disMaxNo,
+                              disMaxDay = request.disMaxDay,  disMaxMonth = request.disMaxMonth,
+                              disPrice = request.disPrice, effectDate = request.effectDate, expireDate = request.expireDate,
+                              delYn = DelYn.N))?.let {
+                                  CommonResult.data(it)
+            }?: kotlin.run {
+                CommonResult.error("Admin createDiscountTicket failed")
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin createDiscountTicket failed $e" }
+            return CommonResult.error("Admin createDiscountTicket failed $e")
+        }
+    }
 }
 
 inline fun singleTimer(delay: Long = 1000, unit: TimeUnit = TimeUnit.MILLISECONDS) =

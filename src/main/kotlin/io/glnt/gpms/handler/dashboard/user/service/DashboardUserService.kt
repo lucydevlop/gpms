@@ -52,7 +52,7 @@ class DashboardUserService {
                                     sn = it.sn!!,
                                     vehicleNo = it.vehicleNo!!,
                                     inDate = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss"),
-                                    imImagePath = it.image!!.substring(it.image!!.indexOf("/park"))
+                                    imImagePath = it.image?.let { if (it.contains("/park")) it.substring(it.indexOf("/park")) else null }?: kotlin.run { null }
                                 )
                             )
                         }

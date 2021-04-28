@@ -2,11 +2,14 @@ package io.glnt.gpms.handler.calc.service
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.calc.CalculationData
+import io.glnt.gpms.model.entity.CgBasic
 import io.glnt.gpms.model.entity.FareInfo
 import io.glnt.gpms.model.entity.FarePolicy
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.VehicleType
 import io.glnt.gpms.model.enums.WeekType
+import io.glnt.gpms.model.repository.CgBasicRepository
 import io.glnt.gpms.model.repository.FareInfoRepository
 import io.glnt.gpms.model.repository.FarePolicyRepository
 import mu.KLogging
@@ -19,7 +22,10 @@ import javax.persistence.criteria.Root
 
 
 @Service
-class FareRefService {
+class FareRefService(
+    private var cgBasicRepository: CgBasicRepository,
+    private var calcculationData: CalculationData
+) {
     companion object : KLogging()
 
     @Autowired
@@ -28,41 +34,57 @@ class FareRefService {
     @Autowired
     private lateinit var farePolicyRepository: FarePolicyRepository
 
-    fun createFareInfo(request: FareInfo): CommonResult {
+    fun createFareInfo(request: FareInfo): FareInfo? {
         logger.info { "createFareInfo $request" }
         try {
             fareInfoRepository.findByFareNameAndDelYn(request.fareName, DelYn.N)?.let {
-                return CommonResult.exist(data = request, error = "fare info create failed ${request.fareName}")
+                return null
             }
-            fareInfoRepository.save(request)
+            return fareInfoRepository.saveAndFlush(request)
         }catch (e: CustomException) {
-            return CommonResult.error("fare info create failed ${request.fareName}")
+            logger.error { "fare info create failed ${request.fareName} $e" }
+            return null
         }
-        return CommonResult.created()
     }
 
-    fun createFarePolicy(request: FarePolicy): CommonResult {
+    fun createFarePolicy(request: FarePolicy): FarePolicy? {
         logger.info { "createFarePolicy $request" }
         try {
             farePolicyRepository.findByFareNameAndVehicleTypeAndDelYn(request.fareName, VehicleType.SMALL, DelYn.N)?.let { list ->
                 list.forEach { farePolicy ->
                     request.week!!.forEach { it ->
                         if (farePolicy.week!!.contains(it)) {
-                            return CommonResult.exist(data = request, error = "fare policy create failed $request")
+//                            return CommonResult.exist(data = request, error = "fare policy create failed $request")
+                            return null
                         }
                     }
                 }
             }
-            farePolicyRepository.save(
+            return farePolicyRepository.saveAndFlush(
                 FarePolicy(sn = null, fareName = request.fareName, vehicleType = request.vehicleType,
                            startTime = request.startTime, endTime = request.endTime,
                            basicFareSn = request.basicFareSn, addFareSn = request.addFareSn,
                            effectDate = request.effectDate, expireDate = request.expireDate,
                            week = request.week, delYn = DelYn.N))
         }catch (e: CustomException) {
-            return CommonResult.error("fare policy create failed ${request.fareName}")
+            logger.error { "fare policy create failed ${request.fareName} $e" }
+//            return CommonResult.error("fare policy create failed ${request.fareName}")
+            return null
         }
-        return CommonResult.created()
+    }
+
+    fun deleteFarePolicy(sn: Long): FarePolicy? {
+        try {
+            farePolicyRepository.findBySn(sn)?.let {
+                it.delYn = DelYn.Y
+                return farePolicyRepository.saveAndFlush(it)
+            }
+            return null
+        }catch (e: CustomException) {
+            logger.error { "fare policy create failed $sn $e" }
+//            return CommonResult.error("fare policy create failed ${request.fareName}")
+            return null
+        }
     }
 
     fun findAllFarePolicySpecification(key: String, `val`: String): Specification<FarePolicy?>? {
@@ -91,5 +113,35 @@ class FareRefService {
         }catch (e: CustomException) {
             return CommonResult.error("get fare info failed $e")
         }
+    }
+
+    fun getFareBasic(): CgBasic? {
+        try {
+            return cgBasicRepository.findByDelYn(DelYn.N)
+        }catch (e: CustomException) {
+            logger.error { "get fare basic failed $e" }
+            return null
+        }
+    }
+
+    fun updateFareBasic(new: CgBasic): CgBasic? {
+        try {
+            return cgBasicRepository.findByDelYn(DelYn.N)?.let { basic ->
+                basic.serviceTime = new.serviceTime?.let { it }?: kotlin.run { basic.serviceTime }
+                basic.regTime = new.regTime?.let { it }?: kotlin.run { basic.regTime }
+                basic.dayMaxAmt = new.dayMaxAmt?.let { it }?: kotlin.run { basic.dayMaxAmt }
+                basic.effectDate = new.effectDate?.let { it }?: kotlin.run { basic.effectDate }
+                cgBasicRepository.saveAndFlush(basic)
+            }?: kotlin.run {
+                cgBasicRepository.saveAndFlush(new)
+            }
+        }catch (e: CustomException) {
+            logger.error { "updateFareBasic failed $e" }
+            return null
+        }
+    }
+
+    fun init() {
+        calcculationData.init()
     }
 }

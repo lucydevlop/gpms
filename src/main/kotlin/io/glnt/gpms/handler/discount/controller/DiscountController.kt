@@ -27,17 +27,17 @@ class DiscountController {
         return ResponseEntity(discountService.getDiscountClass(), HttpStatus.OK)
     }
 
-    @RequestMapping(value = ["/create"], method = [RequestMethod.POST])
-    @Throws(CustomException::class)
-    fun createDiscountClass(@RequestBody request: DiscountClass) : ResponseEntity<CommonResult> {
-        logger.trace { "createDiscountClass $request" }
-        val result = discountService.createDiscountClass(request)
-        return when(result.code) {
-            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
-            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
-            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
-        }
-    }
+//    @RequestMapping(value = ["/create"], method = [RequestMethod.POST])
+//    @Throws(CustomException::class)
+//    fun createDiscountClass(@RequestBody request: DiscountClass) : ResponseEntity<CommonResult> {
+//        logger.trace { "createDiscountClass $request" }
+//        val result = discountService.createDiscountClass(request)
+//        return when(result.code) {
+//            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+//            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+//            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+//        }
+//    }
 
     companion object : KLogging()
 }

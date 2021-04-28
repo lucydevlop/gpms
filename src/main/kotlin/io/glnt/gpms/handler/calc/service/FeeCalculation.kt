@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.LocalDateTime
-import java.util.Collections.min
+import kotlin.math.ceil
 
 
 @Service
@@ -86,14 +86,11 @@ class FeeCalculation {
         // 서비스 타임 endtime 으로 조회
         if (retPrice.dailySplits == null) {
             logger.debug { "basic fare is null" }
-            calcData.getBizHourInfoForDateTime(
-                DateUtil.LocalDateTimeToDateString(retPrice.service!!.endTime!!), DateUtil.getHourMinuteByLocalDateTime(
-                    retPrice.service!!.endTime!!
-                ), vehicleType
-            ).let {
+            calcData.getBizHourInfoForDateTime(DateUtil.LocalDateTimeToDateString(inTime), DateUtil.getHourMinuteByLocalDateTime(inTime), vehicleType).let {
                 val basic = getBasicFare(it.basicFare!!)
                 val basicTime = TimeRange()
-                basicTime.startTime = retPrice.service!!.endTime
+//                basicTime.startTime = retPrice.service!!.endTime
+                basicTime.startTime = inTime //retPrice.service!!.endTime
                 basicTime.endTime = if (DateUtil.getAddMinutes(basicTime.startTime!!, basic.toLong()) > retPrice.origin.endTime) retPrice.origin.endTime else DateUtil.getAddMinutes(
                     basicTime.startTime!!,
                     basic.toLong()
@@ -129,7 +126,7 @@ class FeeCalculation {
             }
         }
 
-        if (retPrice.basic!!.endTime!! < retPrice.origin.endTime) {
+        if (retPrice.basic!!.endTime!! <= retPrice.origin.endTime) {
             var startTime = retPrice.basic!!.endTime!!
             do {
                 val seasonTicket = getSeasonTicket(vehicleNo!!, startTime, outTime)
@@ -246,8 +243,8 @@ class FeeCalculation {
                 if (it.discountRange != null) {
                     totalMin -= DateUtil.diffMins(it.discountRange!!.startTime!!, it.discountRange!!.endTime!!)
                 }
-                originPrice += if (it.priceType == "Normal") originMin / it.fareInfo!!.time1!! * it.fareInfo!!.won1!! else 0
-                totalPrice += if (it.priceType == "Normal") totalMin / it.fareInfo!!.time1!! * it.fareInfo!!.won1!! else 0
+                originPrice += if (it.priceType == "Normal") { ceil(originMin.toFloat() / it.fareInfo!!.time1!!).toInt() * it.fareInfo!!.won1!! } else 0
+                totalPrice += if (it.priceType == "Normal") { ceil(totalMin.toFloat() / it.fareInfo!!.time1!!).toInt() * it.fareInfo!!.won1!! } else 0
                 dailyPrice.parkTime = dailyPrice.parkTime!!.plus(totalMin)
 
                 logger.debug { "pay range start ${it.startTime} end ${it.endTime} type ${it.priceType} min $originMin price $originPrice discount ${originPrice-totalPrice}"}

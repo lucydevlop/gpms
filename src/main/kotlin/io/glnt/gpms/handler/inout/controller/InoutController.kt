@@ -6,7 +6,7 @@ import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.inout.model.reqAddParkIn
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
-import io.glnt.gpms.common.api.utils.paginate
+//import io.glnt.gpms.common.api.utils.paginate
 import io.glnt.gpms.handler.inout.model.resParkInList
 import io.glnt.gpms.handler.inout.model.reqAddParkOut
 import mu.KLogging

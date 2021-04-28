@@ -92,7 +92,7 @@ class InoutService {
             // todo 요일제 차량 옵션 적용
             parkinglotService.getGateInfoByDtFacilityId(dtFacilitiesId) ?.let { gate ->
                 // UUID 없을 경우(Back 입차) deviceIF -> OFF 로 전환
-                // 동입 입차 처리 skip
+                // 동일 입차 처리 skip
                 if (uuid!!.isEmpty()) {
                     deviceIF = "OFF"
                     if (parkInRepository.findByVehicleNoEndsWithAndOutSnAndGateId(vehicleNo, 0, gate.gateId)!!.isNotEmpty()) {
@@ -152,8 +152,8 @@ class InoutService {
                     // 기 입차 여부 확인 및 update
                     val parkins = searchParkInByVehicleNo(vehicleNo, gate.gateId)
                     if (parkins.code == ResultCode.SUCCESS.getCode()) {
-                        val lists = parkins.data as? List<*>?
-                        lists!!.checkItemsAre<ParkIn>()?.forEach {
+                        val lists = parkins.data as? List<ParkIn>?
+                        lists!!.filter { it.outSn == 0L }.forEach {
                             it.outSn = -1
                             parkInRepository.save(it)
                             parkInRepository.flush()
