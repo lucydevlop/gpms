@@ -1,5 +1,6 @@
 package io.glnt.gpms.model.repository
 
+import io.glnt.gpms.model.entity.InoutPayment
 import io.glnt.gpms.model.entity.ParkOut
 import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.enums.DelYn
@@ -37,4 +38,9 @@ interface ParkOutRepository: JpaRepository<ParkOut, Long> {
     fun findTopByPaystationOrderByOutDateDesc(paystation: String): ParkOut?
     fun findTopByGateIdAndDelYnAndOutDateGreaterThanEqualOrderByOutDateDesc(gateId: String, delYn: DelYn, inDate: LocalDateTime ) : ParkOut?
     fun findTopByGateIdAndDelYnOrderByOutDateDesc(gateId: String, delYn: DelYn) : ParkOut?
+}
+
+@Repository
+interface InoutPaymentRepository: JpaRepository<InoutPayment, Long> {
+
 }
