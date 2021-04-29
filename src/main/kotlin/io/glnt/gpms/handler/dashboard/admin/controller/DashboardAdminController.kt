@@ -231,6 +231,13 @@ class DashboardAdminController {
         return CommonResult.returnResult(dashboardAdminService.createCorpTicket(request))
     }
 
+    @RequestMapping(value = ["/corp/ticket/delete/{sn}"], method = [RequestMethod.DELETE])
+    @Throws(CustomException::class)
+    fun deleteCorpTicket(@PathVariable sn: Long) : ResponseEntity<CommonResult> {
+        logger.trace("corp delete ticket : $sn")
+        return CommonResult.returnResult(dashboardAdminService.deleteCorpTicket(sn))
+    }
+
     @RequestMapping(value = ["/fare/basic"], method = [RequestMethod.GET])
     @Throws(CustomException::class)
     fun getFareBasic(): ResponseEntity<CommonResult> {
@@ -280,11 +287,18 @@ class DashboardAdminController {
         return CommonResult.returnResult(dashboardAdminService.deleteFarePolicy(sn))
     }
 
-    @RequestMapping(value = ["/discount/ticket"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/discount/class"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun createDiscountTicket(@RequestBody request: reqDiscountTicket) : ResponseEntity<CommonResult> {
         logger.trace("createDiscountTicket $request")
         return CommonResult.returnResult(dashboardAdminService.createDiscountTicket(request))
+    }
+
+    @RequestMapping(value = ["/discount/class/{sn}"], method = [RequestMethod.DELETE])
+    @Throws(CustomException::class)
+    fun deleteDiscountTicket(@PathVariable sn: Long) : ResponseEntity<CommonResult> {
+        logger.trace("deleteDiscountTicket $sn")
+        return CommonResult.returnResult(dashboardAdminService.deleteDiscountTicket(sn))
     }
 
     companion object : KLogging()
