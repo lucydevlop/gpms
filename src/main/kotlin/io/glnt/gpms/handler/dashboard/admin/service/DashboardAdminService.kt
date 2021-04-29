@@ -419,6 +419,20 @@ class DashboardAdminService(
     }
 
     @Throws(CustomException::class)
+    fun deleteCorpTicket(request: Long) : CommonResult {
+        try {
+            return discountService.deleteCorpTicket(request)?.let {
+                CommonResult.data(it)
+            }?: kotlin.run {
+                CommonResult.error("deleteCorpTicket failed")
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin deleteCorpTicket failed $e" }
+            return CommonResult.error("Admin deleteCorpTicket failed $e")
+        }
+    }
+
+    @Throws(CustomException::class)
     @Transactional
     fun createProductTicketByFiles(file: MultipartFile): CommonResult {
         try{
@@ -668,6 +682,19 @@ class DashboardAdminService(
         }catch (e: CustomException){
             logger.error { "Admin createDiscountTicket failed $e" }
             return CommonResult.error("Admin createDiscountTicket failed $e")
+        }
+    }
+
+    fun deleteDiscountTicket(request: Long) : CommonResult {
+        try {
+            return discountService.deleteDiscountClass(request)?.let {
+                CommonResult.data(it)
+            }?: kotlin.run {
+                CommonResult.error("Admin deleteDiscountTicket failed")
+            }
+        }catch (e: CustomException){
+            logger.error { "Admin deleteDiscountTicket failed $e" }
+            return CommonResult.error("Admin deleteDiscountTicket failed $e")
         }
     }
 }

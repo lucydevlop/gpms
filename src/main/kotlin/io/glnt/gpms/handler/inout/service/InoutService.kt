@@ -21,10 +21,7 @@ import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
-import io.glnt.gpms.model.repository.ParkFacilityRepository
-import io.glnt.gpms.model.repository.ParkInRepository
-import io.glnt.gpms.model.repository.ParkOutRepository
-import io.glnt.gpms.model.repository.VehicleListSearchRepository
+import io.glnt.gpms.model.repository.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -41,7 +38,9 @@ import kotlin.collections.HashMap
 import kotlin.concurrent.timer
 
 @Service
-class InoutService {
+class InoutService(
+    private var inoutPaymentRepository: InoutPaymentRepository
+) {
     companion object : KLogging()
 
     @Value("\${image.filepath}")
@@ -618,7 +617,7 @@ class InoutService {
                         logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
                         relayService.actionGate(gate.gateId, "GATE", "open")
                     } else {
-                        if (gate.openAction == OpenActionType.NONE && parkingtype == "UNRECOGNIZED") {
+                        if (gate.openAction == OpenActionType.NONE && (parkingtype == "UNRECOGNIZED") || (price!!.totalPrice == 0)) {
                             displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
                             logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
                             relayService.actionGate(gate.gateId, "GATE", "open")
@@ -1029,12 +1028,22 @@ class InoutService {
                 it.cardNumber = request.cardNumber
                 parkOutRepository.save(it)
 
+                var inSn: Long? = null
+
                 //할인 데이터도 적용 완료 처리
                 parkInRepository.findByOutSnAndDelYn(it.sn!!, DelYn.N)?.let { parkin->
                     parkin.forEach {
                         discountService.applyInoutDiscount(it.sn!!)
                     }
+                    inSn = parkin[parkin.lastIndex].sn
                 }
+
+                //결제 테이블 적재
+                inoutPaymentRepository.save(
+                    InoutPayment(sn = null, inSn = inSn!!, outSn = it.sn, approveDateTime = request.approveDatetime,
+                        payType = PayType.CARD, amount = request.paymentAmount?.toInt() ?: kotlin.run { null }, cardCorp = request.cardCorp, cardNumber = request.cardNumber,
+                    transactionId = request.transactionId, result = if (request.failureMessage == null) ResultType.SUCCESS else ResultType.FAILURE, failureMessage = request.failureMessage)
+                )
 
                 relayService.actionGate(gateId, "GATE", "open")
                 displayMessage(

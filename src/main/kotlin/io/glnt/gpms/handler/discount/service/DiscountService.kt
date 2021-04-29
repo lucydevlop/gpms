@@ -57,6 +57,21 @@ class DiscountService {
         }
     }
 
+    fun deleteDiscountClass(sn: Long) : DiscountClass? {
+        logger.info { "deleteDiscountClass $sn" }
+        try {
+            return discountClassRepository.findBySn(sn)?.let {
+                it.delYn = DelYn.Y
+                discountClassRepository.saveAndFlush(it)
+            }?: kotlin.run {
+                return null
+            }
+        }catch (e: RuntimeException) {
+            logger.error { "deleteDiscountClass error $e" }
+            return null
+        }
+    }
+
     fun searchCorpTicketByCorp(request: reqParkingDiscountSearchTicket) : CommonResult {
         try{
             val result = ArrayList<Any>()
@@ -124,6 +139,21 @@ class DiscountService {
         }
     }
 
+    @Throws(CustomException::class)
+    fun deleteCorpTicket(sn: Long) : CorpTicketInfo? {
+        try {
+            return corpTicketRepository.findBySnAndDelYn(sn, DelYn.N)?.let {
+                it.delYn = DelYn.Y
+                corpTicketRepository.saveAndFlush(it)
+            }?: kotlin.run {
+                return null
+            }
+        }catch (e: CustomException){
+            logger.error { "deleteCorpTicket error $e" }
+            return null
+        }
+    }
+
     fun updateCorpTicketInfo(data: CorpTicketInfo) : CorpTicketInfo {
         return corpTicketRepository.save(data)
     }
@@ -135,8 +165,6 @@ class DiscountService {
     fun updateCorpTicketHistory(data: CorpTicketHistory): CorpTicketHistory {
         return corpTicketHistoryRepository.save(data)
     }
-
-
 
     fun getDiscountableTickets(request: reqDiscountableTicket): CommonResult {
         logger.info { "getDiscountableTickets $request" }
