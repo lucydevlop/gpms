@@ -652,6 +652,10 @@ class InoutService(
                                 ticketCorpName = it.ticket?.corp?.corpName, memo = it.memo,
                                 inImgBase64Str = it.image?.let { image -> image.substring(image.indexOf("/park")) }
                             )
+                            result.paymentAmount = inoutPaymentRepository.findByInSnAndResultAndDelYn(it.sn!!, ResultType.SUCCESS, DelYn.N)?.let { payment ->
+                                payment.sumBy { it.amount!! }
+                            }?: kotlin.run { 0 }
+
                             if (it.outSn!! > 0L && it.outSn != null) {
                                 parkOutRepository.findBySn(it.outSn!!)?.let { out ->
                                     result.type = DisplayMessageClass.OUT
@@ -1041,7 +1045,7 @@ class InoutService(
                 //결제 테이블 적재
                 inoutPaymentRepository.save(
                     InoutPayment(sn = null, inSn = inSn!!, outSn = it.sn, approveDateTime = request.approveDatetime,
-                        payType = PayType.CARD, amount = request.paymentAmount?.toInt() ?: kotlin.run { null }, cardCorp = request.cardCorp, cardNumber = request.cardNumber,
+                        payType = PayType.CARD, amount = request.cardAmount?.toInt() ?: kotlin.run { null }, cardCorp = request.cardCorp, cardNumber = request.cardNumber,
                     transactionId = request.transactionId, result = if (request.failureMessage == null) ResultType.SUCCESS else ResultType.FAILURE, failureMessage = request.failureMessage)
                 )
 

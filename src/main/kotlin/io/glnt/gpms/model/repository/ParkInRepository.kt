@@ -4,6 +4,7 @@ import io.glnt.gpms.model.entity.InoutPayment
 import io.glnt.gpms.model.entity.ParkOut
 import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.ResultType
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.repository.JpaRepository
@@ -42,5 +43,6 @@ interface ParkOutRepository: JpaRepository<ParkOut, Long> {
 
 @Repository
 interface InoutPaymentRepository: JpaRepository<InoutPayment, Long> {
+    fun findByInSnAndResultAndDelYn(sn: Long, resultType: ResultType, delYn: DelYn): List<InoutPayment>?
 
 }
