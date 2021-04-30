@@ -480,7 +480,7 @@ class InoutService(
                     price = feeCalculation.getBasicPayment(parkIn!!.inDate!!, date, VehicleType.SMALL, vehicleNo, 1, 0, parkIn!!.sn)
                     logger.warn { "-------------------getBasicPayment Result -------------------" }
                     logger.warn { "입차시간 : $parkIn!!.inDate!! / 출차시간 : $date / 주차시간: ${price!!.parkTime}" }
-                    logger.warn { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price!!.totalPrice}" }
+                    logger.warn { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price!!.totalPrice} / 할인 요금 : ${price!!.discountPrice} / 일최대할인요금 : ${price!!.dayilyMaxDiscount}" }
                 }
 
                 // 출차 정보 DB insert
@@ -581,7 +581,7 @@ class InoutService(
                                     facilitiesId = gate.udpGateid!!,
                                     recognitionType = if (parkingtype == "NORMAL") "FREE" else "SEASON",
                                     recognitionResult = "RECOGNITION",
-                                    paymentAmount = if (price != null) price!!.orgTotalPrice!!.toString() else "0",
+                                    paymentAmount = if (price != null) (price!!.orgTotalPrice!!-price!!.dayilyMaxDiscount!!).toString() else "0",
                                     parktime = if (price != null) price!!.parkTime.toString() else newData.parktime?.let { newData.parktime.toString()}?.run { "0" },
                                     parkTicketMoney = if (price != null) price!!.discountPrice!!.toString() else "0",  // 할인요금
                                     vehicleIntime = DateUtil.nowDateTimeHm
