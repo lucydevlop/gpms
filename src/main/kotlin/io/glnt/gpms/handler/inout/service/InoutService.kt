@@ -421,7 +421,7 @@ class InoutService(
     }
 
     fun parkOut(request: reqAddParkOut) : CommonResult = with(request){
-        logger.info{"parkOut service car_number: ${request.vehicleNo} out_date: ${request.date} facilityId: ${request.dtFacilitiesId} uuid: ${request.uuid}"}
+        logger.warn{"출차 event car_number: ${request.vehicleNo} out_date: ${request.date} facilityId: ${request.dtFacilitiesId} uuid: ${request.uuid}"}
         try {
             if (requestId.isNullOrEmpty()) {
                 requestId = parkinglotService.generateRequestId()
@@ -473,8 +473,11 @@ class InoutService(
                     }
 
                     if (parkIn == null && !parkOutRepository.findByVehicleNoEndsWith(vehicleNo).isNullOrEmpty()) {
-                        logger.error { "park out vehicleNo ${request.vehicleNo} exists" }
-                        return CommonResult.exist(request.vehicleNo, "park in vehicleNo exists")
+                        logger.error { "출차 데이터 입차 내역에 없음 ${request.vehicleNo} " }
+                        //전광판 내역 표기 추가
+                        displayMessage("CALL", vehicleNo, "WAIT", gate.gateId)
+                        // todo 정산기 번호 검색 추가
+                        return CommonResult.exist(request.vehicleNo, "출차 데이터 입차 내역에 없음 ${request.vehicleNo}")
                     }
 
                 } else {
@@ -489,7 +492,7 @@ class InoutService(
                     logger.warn { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price!!.totalPrice} / 할인 요금 : ${price!!.discountPrice} / 일최대할인요금 : ${price!!.dayilyMaxDiscount}" }
                 }
 
-                logger.warn { "미출차 확인 sn car_num ${request.outSn} car_num ${vehicleNo} " }
+//                logger.warn { "미출차 확인 sn car_num ${request.outSn} car_num ${vehicleNo} " }
 
                 // 출차 정보 DB insert
                 val newData = ParkOut(
@@ -508,30 +511,14 @@ class InoutService(
                     min = DateUtil.nowTimeDetail.substring(3, 5),
                     outDate = date,
                     uuid = uuid,
-                    parktime = if (price == null) DateUtil.diffMins(parkIn!!.inDate!!, date) else price!!.parkTime,
+                    parktime = if (price == null) parkIn?.let { DateUtil.diffMins(parkIn!!.inDate!!, date) }?: kotlin.run { 0 } else price!!.parkTime,
                     parkfee = if (price == null) null else price!!.orgTotalPrice,
                     payfee = if (price == null) null else price!!.totalPrice,
                     discountfee = if (price == null) null else price!!.discountPrice,
                     dayDiscountfee = if (price == null) null else price!!.dayilyMaxDiscount,
-                    inSn = parkIn!!.sn
+                    inSn = parkIn?.sn ?: kotlin.run { null }
                 )
                 parkOutRepository.saveAndFlush(newData)
-
-//                if (parkIn != null) {
-//                    parkIn!!.outSn = newData.sn
-//                    parkInRepository.save(parkIn!!)
-//                    parkInRepository.flush()
-//                    // 동일 UUID 에 대해서 del_ny 처리
-//                    parkIn!!.uuid?.let { inUuid ->
-//                        parkInRepository.findByUuidAndOutSnAndDelYn(inUuid, 0, DelYn.N)?.let { ins ->
-//                            ins.forEach {
-//                                it.delYn = DelYn.Y
-//                                parkInRepository.save(it)
-//                                parkInRepository.flush()
-//                            }
-//                        }
-//                    }
-//                }
 
                 // tmap 연동
                 if (parkinglotService.isTmapSend()) {
@@ -580,7 +567,7 @@ class InoutService(
                                 requestId = requestId!!,
                                 type = "adjustmentRequest"
                             )
-                            // displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+                            displayMessage(parkingtype!!, vehicleNo, "WAIT", gate.gateId)
                         }
                         else -> {
                             displayMessage(parkingtype!!, if (price != null) (price!!.orgTotalPrice!!-price!!.dayilyMaxDiscount!!).toString() else "0", "WAIT", gate.gateId)
@@ -628,7 +615,7 @@ class InoutService(
                         logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
                         relayService.actionGate(gate.gateId, "GATE", "open")
                     } else {
-                        if (gate.openAction == OpenActionType.NONE && (parkingtype == "UNRECOGNIZED") || (price!!.totalPrice == 0)) {
+                        if (gate.openAction == OpenActionType.NONE && (price!!.totalPrice == 0)) {
                             parkIn?.let { updateParkInExitComplete(it, newData.sn!! ) }
                             displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
                             logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
@@ -701,7 +688,7 @@ class InoutService(
                                     result.payfee = out.payfee
                                     result.discountfee = out.discountfee
                                     result.dayDiscountfee = out.dayDiscountfee
-                                    result.outImgBase64Str = out.image!!.substring(out.image!!.indexOf("/park"))
+                                    result.outImgBase64Str = if (out.image!!.contains("/park")) out.image!!.substring(out.image!!.indexOf("/park")) else null
                                 }
                             } else {
                                 result.parkoutSn = it.outSn
@@ -904,10 +891,11 @@ class InoutService(
                     makeParkPhrase("VIP", vehicleNo, vehicleNo, type)
                 }
             }
-            "MEMBER" -> makeParkPhrase("MEMBER", vehicleNo, vehicleNo, type)
-            "RESTRICTE" -> makeParkPhrase("RESTRICTE", vehicleNo, vehicleNo, type)
-            "FULL" -> makeParkPhrase("FULL", vehicleNo, vehicleNo, type)
-            "INIT" -> makeParkPhrase("INIT", vehicleNo, vehicleNo, type)
+            "MEMBER", "RESTRICTE", "FULL", "INIT", "CALL" -> makeParkPhrase(parkingtype, vehicleNo, vehicleNo, type)
+//             -> makeParkPhrase("RESTRICTE", vehicleNo, vehicleNo, type)
+//             -> makeParkPhrase("FULL", vehicleNo, vehicleNo, type)
+//             -> makeParkPhrase("INIT", vehicleNo, vehicleNo, type)
+//             -> makeParkPhrase("")
             else -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, type)
         }
         relayService.sendDisplayMessage(displayMessage, gateId)
