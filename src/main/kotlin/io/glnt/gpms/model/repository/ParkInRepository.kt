@@ -39,6 +39,7 @@ interface ParkOutRepository: JpaRepository<ParkOut, Long> {
     fun findTopByPaystationOrderByOutDateDesc(paystation: String): ParkOut?
     fun findTopByGateIdAndDelYnAndOutDateGreaterThanEqualOrderByOutDateDesc(gateId: String, delYn: DelYn, inDate: LocalDateTime ) : ParkOut?
     fun findTopByGateIdAndDelYnOrderByOutDateDesc(gateId: String, delYn: DelYn) : ParkOut?
+    fun findTopByInSnAndDelYnOrderByOutDateDesc(inSn: Long, delYn: DelYn): ParkOut?
 }
 
 @Repository
