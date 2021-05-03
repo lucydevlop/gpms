@@ -583,6 +583,8 @@ class InoutService(
                             // displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
                         }
                         else -> {
+                            displayMessage(parkingtype!!, if (price != null) (price!!.orgTotalPrice!!-price!!.dayilyMaxDiscount!!).toString() else "0", "WAIT", gate.gateId)
+
                             facilityService.sendPaystation(
                                 reqPayStationData(
                                     paymentMachineType = if (parkingtype == "NORMAL") "exit" else "SEASON",
@@ -599,7 +601,6 @@ class InoutService(
                                 requestId = newData.sn.toString(),
                                 type = "adjustmentRequest"
                             )
-
 //                            price?.let {
 //                                if (price!!.discountPrice!! > 0) {
 //                                    Thread.sleep(200)
