@@ -420,7 +420,6 @@ class InoutService(
         return "$fileFullPath/$fileName"
     }
 
-//    @Transactional(readOnly = true)
     fun parkOut(request: reqAddParkOut) : CommonResult = with(request){
         logger.info{"parkOut service car_number: ${request.vehicleNo} out_date: ${request.date} facilityId: ${request.dtFacilitiesId} uuid: ${request.uuid}"}
         try {
@@ -464,6 +463,13 @@ class InoutService(
                     parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, DelYn.N, date)?.let { it ->
                         logger.warn { "입차 확인 sn car_num ${it.sn} car_num ${it.vehicleNo} " }
                         parkIn = it
+
+                        parkOutRepository.findTopByInSnAndDelYnOrderByOutDateDesc(it.sn!!, DelYn.N)?.let { exist ->
+                            requestId = exist.requestid
+                            parkOut = exist
+                            outSn = exist.sn
+                            logger.warn { "미출차 확인 sn car_num ${request.outSn} car_num ${exist.vehicleNo} " }
+                        }
                     }
 
                     if (parkIn == null && !parkOutRepository.findByVehicleNoEndsWith(vehicleNo).isNullOrEmpty()) {
@@ -483,9 +489,11 @@ class InoutService(
                     logger.warn { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price!!.totalPrice} / 할인 요금 : ${price!!.discountPrice} / 일최대할인요금 : ${price!!.dayilyMaxDiscount}" }
                 }
 
+                logger.warn { "미출차 확인 sn car_num ${request.outSn} car_num ${vehicleNo} " }
+
                 // 출차 정보 DB insert
                 val newData = ParkOut(
-                    sn = request.outSn?.let { request.outSn }?.run { null },
+                    sn = request.outSn?.let { request.outSn }?: kotlin.run { null },
                     gateId = gate.gateId, //parkFacilityRepository.findByFacilitiesId(facilitiesId)!!.gateId,
                     parkcartype = parkingtype,
                     userSn = 0,
@@ -503,26 +511,27 @@ class InoutService(
                     parktime = if (price == null) DateUtil.diffMins(parkIn!!.inDate!!, date) else price!!.parkTime,
                     parkfee = if (price == null) null else price!!.orgTotalPrice,
                     payfee = if (price == null) null else price!!.totalPrice,
-                    discountfee = if (price == null) null else price!!.discountPrice
+                    discountfee = if (price == null) null else price!!.discountPrice,
+                    dayDiscountfee = if (price == null) null else price!!.dayilyMaxDiscount,
+                    inSn = parkIn!!.sn
                 )
-                parkOutRepository.save(newData)
-                parkOutRepository.flush()
+                parkOutRepository.saveAndFlush(newData)
 
-                if (parkIn != null) {
-                    parkIn!!.outSn = newData.sn
-                    parkInRepository.save(parkIn!!)
-                    parkInRepository.flush()
-                    // 동일 UUID 에 대해서 del_ny 처리
-                    parkIn!!.uuid?.let { inUuid ->
-                        parkInRepository.findByUuidAndOutSnAndDelYn(inUuid, 0, DelYn.N)?.let { ins ->
-                            ins.forEach {
-                                it.delYn = DelYn.Y
-                                parkInRepository.save(it)
-                                parkInRepository.flush()
-                            }
-                        }
-                    }
-                }
+//                if (parkIn != null) {
+//                    parkIn!!.outSn = newData.sn
+//                    parkInRepository.save(parkIn!!)
+//                    parkInRepository.flush()
+//                    // 동일 UUID 에 대해서 del_ny 처리
+//                    parkIn!!.uuid?.let { inUuid ->
+//                        parkInRepository.findByUuidAndOutSnAndDelYn(inUuid, 0, DelYn.N)?.let { ins ->
+//                            ins.forEach {
+//                                it.delYn = DelYn.Y
+//                                parkInRepository.save(it)
+//                                parkInRepository.flush()
+//                            }
+//                        }
+//                    }
+//                }
 
                 // tmap 연동
                 if (parkinglotService.isTmapSend()) {
@@ -613,11 +622,13 @@ class InoutService(
                     }
                     // 전광판 display 전송
                     if (parkinglotService.parkSite!!.saleType == SaleType.FREE) {
+                        parkIn?.let { updateParkInExitComplete(it, newData.sn!! ) }
                         displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
                         logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
                         relayService.actionGate(gate.gateId, "GATE", "open")
                     } else {
                         if (gate.openAction == OpenActionType.NONE && (parkingtype == "UNRECOGNIZED") || (price!!.totalPrice == 0)) {
+                            parkIn?.let { updateParkInExitComplete(it, newData.sn!! ) }
                             displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
                             logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
                             relayService.actionGate(gate.gateId, "GATE", "open")
@@ -633,6 +644,28 @@ class InoutService(
         } catch (e: CustomException) {
             logger.error { "parkout car_number: ${request.vehicleNo} 출차 failed $e" }
             return CommonResult.error("parkout add failed ")
+        }
+    }
+
+    fun updateParkInExitComplete(data: ParkIn, outSn: Long) : Boolean {
+        try {
+            data.outSn = outSn
+            parkInRepository.saveAndFlush(data)
+
+            // 동일 UUID 에 대해서 del_ny 처리
+            data.uuid?.let { inUuid ->
+                parkInRepository.findByUuidAndOutSnAndDelYn(inUuid, 0, DelYn.N)?.let { ins ->
+                    ins.forEach {
+                        it.delYn = DelYn.Y
+                        parkInRepository.save(it)
+                        parkInRepository.flush()
+                    }
+                }
+            }
+            return true
+        } catch (e: CustomException) {
+            logger.error { "tb_parkin car_number: ${data.vehicleNo} out_sn update failed $e" }
+            return false
         }
     }
 
@@ -666,6 +699,7 @@ class InoutService(
                                     result.parkfee = out.parkfee
                                     result.payfee = out.payfee
                                     result.discountfee = out.discountfee
+                                    result.dayDiscountfee = out.dayDiscountfee
                                     result.outImgBase64Str = out.image!!.substring(out.image!!.indexOf("/park"))
                                 }
                             } else {
@@ -1026,39 +1060,45 @@ class InoutService(
     fun paymentResult(request: reqPaymentResult, requestId: String, gateId: String) : CommonResult {
         logger.info { "paymentResult $request" }
         try {
-            parkOutRepository.findBySn(requestId.toLong())?.let { it ->
-                it.cardtransactionid = request.transactionId
-                it.approveDatetime = request.approveDatetime
-                it.cardNumber = request.cardNumber
-                parkOutRepository.save(it)
+            parkOutRepository.findBySn(requestId.toLong())?.let { out ->
+                out.cardtransactionid = request.transactionId
+                out.approveDatetime = request.approveDatetime
+                out.cardNumber = request.cardNumber
+                parkOutRepository.save(out)
 
-                var inSn: Long? = null
+                var inSn = out.inSn
 
                 //할인 데이터도 적용 완료 처리
-                parkInRepository.findByOutSnAndDelYn(it.sn!!, DelYn.N)?.let { parkin->
-                    parkin.forEach {
-                        discountService.applyInoutDiscount(it.sn!!)
-                    }
-                    inSn = parkin[parkin.lastIndex].sn
+//                parkInRepository.findByOutSnAndDelYn(out.sn!!, DelYn.N)?.let { parkin->
+//                    parkin.forEach {
+//                        discountService.applyInoutDiscount(it.sn!!)
+//                        updateParkInExitComplete(it, out.sn!! )
+//                    }
+//                    inSn = parkin[parkin.lastIndex].sn
+//                }
+                discountService.applyInoutDiscount(inSn!!)
+                parkInRepository.findBySn(inSn!!)?.let {
+                    updateParkInExitComplete(it, out.sn!! )
                 }
+
 
                 //결제 테이블 적재
                 inoutPaymentRepository.save(
-                    InoutPayment(sn = null, inSn = inSn!!, outSn = it.sn, approveDateTime = request.approveDatetime,
+                    InoutPayment(sn = null, inSn = inSn!!, outSn = out.sn, approveDateTime = request.approveDatetime,
                         payType = PayType.CARD, amount = request.cardAmount?.toInt() ?: kotlin.run { null }, cardCorp = request.cardCorp, cardNumber = request.cardNumber,
                     transactionId = request.transactionId, result = if (request.failureMessage == null) ResultType.SUCCESS else ResultType.FAILURE, failureMessage = request.failureMessage)
                 )
 
                 relayService.actionGate(gateId, "GATE", "open")
                 displayMessage(
-                    it.parkcartype!!,
+                    out.parkcartype!!,
                     request.vehicleNumber, "OUT", gateId)
 
                 if (parkinglotService.isTmapSend()) {
                     //todo tmap 전송
                     val data = reqSendPayment(
                         vehicleNumber = request.vehicleNumber,
-                        chargingId = it.chargingId!!,
+                        chargingId = out.chargingId!!,
                         paymentMachineType = "EXIT",
                         transactionId = request.transactionId!!,
                         paymentType = "CARD",

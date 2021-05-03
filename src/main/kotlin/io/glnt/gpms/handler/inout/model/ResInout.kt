@@ -25,5 +25,6 @@ data class resParkInList(
     var outImgBase64Str: String? = null,
     var ticketCorpName: String? = null,
     var memo: String? = null,
-    var paymentAmount: Int? = 0
+    var paymentAmount: Int? = 0,
+    var dayDiscountfee: Int? = 0
 )
