@@ -17,8 +17,8 @@ import io.glnt.gpms.handler.inout.model.*
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.relay.service.RelayService
-import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.handler.tmap.model.*
+import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.*
@@ -35,7 +35,6 @@ import java.util.*
 import javax.persistence.criteria.Predicate
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
-import kotlin.concurrent.timer
 
 @Service
 class InoutService(
@@ -94,7 +93,7 @@ class InoutService(
                 // 동일 입차 처리 skip
                 if (uuid!!.isEmpty()) {
                     deviceIF = "OFF"
-                    if (parkInRepository.findByVehicleNoEndsWithAndOutSnAndGateId(vehicleNo, 0, gate.gateId)!!.isNotEmpty()) {
+                    if (parkInRepository.findByVehicleNoEndsWithAndOutSnAndGateIdAndDelYn(vehicleNo, 0, gate.gateId, DelYn.N)!!.isNotEmpty()) {
                         logger.warn{" 기 입차 car_num:${request.vehicleNo} skip "}
                         return CommonResult.data()
                     }
@@ -182,7 +181,7 @@ class InoutService(
                     parkcartype = parkingtype,
                     userSn = 0,
                     vehicleNo = vehicleNo,
-                    image = fileFullPath?.let { it },
+                    image = fileFullPath,
                     flag = 0,
                     validate = validDate,
                     resultcode = resultcode.toInt(),
@@ -1073,7 +1072,7 @@ class InoutService(
 
                 //결제 테이블 적재
                 inoutPaymentRepository.save(
-                    InoutPayment(sn = null, inSn = inSn!!, outSn = out.sn, approveDateTime = request.approveDatetime,
+                    InoutPayment(sn = null, inSn = inSn, outSn = out.sn, approveDateTime = request.approveDatetime,
                         payType = PayType.CARD, amount = request.cardAmount?.toInt() ?: kotlin.run { null }, cardCorp = request.cardCorp, cardNumber = request.cardNumber,
                     transactionId = request.transactionId, result = if (request.failureMessage == null) ResultType.SUCCESS else ResultType.FAILURE, failureMessage = request.failureMessage)
                 )
@@ -1105,7 +1104,7 @@ class InoutService(
     }
 
     fun getImagePath(imagePath: String?): String? {
-        return if (imagePath != null && imagePath!!.contains("/park", true)) { imagePath.substring(imagePath.indexOf("/park")).replace("//", "/") }
+        return if (imagePath != null && imagePath.contains("/park", true)) { imagePath.substring(imagePath.indexOf("/park")).replace("//", "/") }
             else null
     }
 

@@ -220,7 +220,7 @@ class DiscountService {
                     if (it == 0) result.add(discountClass.disMaxMonth!!) else  result.add(discountClass.disMaxMonth!!-it)
                 }
             }
-            return result.min()
+            return result.minOrNull()
         }catch (e: CustomException){
             logger.error { "getInoutDiscount error ${e.message}" }
             return null//CommonResult.error("getInoutDiscount search failed")

@@ -14,7 +14,7 @@ import java.util.*
 
 @Repository
 interface ParkInRepository: JpaRepository<ParkIn, Long> {
-    fun findByVehicleNoEndsWithAndOutSnAndGateId(vehicleNo: String, outSn: Long, gateId: String) : List<ParkIn>?
+    fun findByVehicleNoEndsWithAndOutSnAndGateIdAndDelYn(vehicleNo: String, outSn: Long, gateId: String, delYn: DelYn) : List<ParkIn>?
     fun findByUdpssid(udpssid: String): ParkIn?
     fun findAll(specification: Specification<ParkIn>): List<ParkIn>?
     fun findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo: String, outSn: Long, delYn: DelYn, inDate: LocalDateTime ) : ParkIn?
