@@ -569,7 +569,7 @@ class InoutService(
                             displayMessage(parkingtype!!, vehicleNo, "WAIT", gate.gateId)
                         }
                         else -> {
-                            displayMessage(parkingtype!!, if (price != null) (price!!.orgTotalPrice!!-price!!.dayilyMaxDiscount!!).toString() else "0", "WAIT", gate.gateId)
+                            displayMessage(parkingtype!!, if (price != null) (price!!.orgTotalPrice!!-price!!.dayilyMaxDiscount!!).toString()+"원" else "0원", "WAIT", gate.gateId)
 
                             facilityService.sendPaystation(
                                 reqPayStationData(
