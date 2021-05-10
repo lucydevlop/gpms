@@ -872,6 +872,10 @@ class InoutService(
     }
 
     fun displayMessage(parkingtype: String, vehicleNo: String, type: String, gateId: String) {
+        // reset 여부 판
+        var reset: String = "on"
+        if (type == "WAIT" && vehicleNo.contains("원")) reset = "off"
+
         val displayMessage = when (parkingtype) {
             "NORMAL" -> makeParkPhrase("NONMEMBER", vehicleNo, vehicleNo, type)
             "UNRECOGNIZED" -> {
@@ -897,7 +901,7 @@ class InoutService(
 //             -> makeParkPhrase("")
             else -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, type)
         }
-        relayService.sendDisplayMessage(displayMessage, gateId)
+        relayService.sendDisplayMessage(displayMessage, gateId, reset)
     }
 
     fun lastSettleData(facilityId: String): ParkOut? {
