@@ -8,7 +8,8 @@ import javax.persistence.Enumerated
 
 data class reqSendDisplay(
     var dtFacilityId: String,
-    var messages: ArrayList<reqDisplayMessage>
+    var messages: ArrayList<reqDisplayMessage>,
+    var reset: String? = "on",
 )
 
 data class reqDisplayMessage(
