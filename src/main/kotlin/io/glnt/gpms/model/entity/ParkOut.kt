@@ -66,6 +66,9 @@ data class ParkOut(
     @Column(name = "discountfee", nullable = true)
     var discountfee: Int? = 0,
 
+    @Column(name = "dayDiscountfee", nullable = true)
+    var dayDiscountfee: Int? = 0,
+
     @Column(name = "discountType", nullable = true)
     var discountType: Int? = 0,
 
@@ -109,6 +112,9 @@ data class ParkOut(
     @Column(name = "out_date", nullable = true)
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var outDate: LocalDateTime? = null,
+
+    @Column(name = "in_sn")
+    var inSn: Long? = null,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)

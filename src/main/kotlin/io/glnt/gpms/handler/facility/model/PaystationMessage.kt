@@ -29,7 +29,8 @@ data class reqPayStationData(
     var cardNumber: String? = null,
     var approveDatetime: String? = null,
     var cardCorp: String? = null,
-    var chargingId: String? = null
+    var chargingId: String? = null,
+    var parkTicketMoney: String? = null
 )
 
 data class reqPayData(

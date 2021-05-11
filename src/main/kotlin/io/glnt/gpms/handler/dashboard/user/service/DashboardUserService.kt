@@ -130,8 +130,8 @@ class DashboardUserService {
                                 "onceMax" to data.discountClass!!.disMaxNo,
                                 "dayMax" to data.discountClass!!.disMaxDay,
                                 "monthMax" to data.discountClass!!.disMaxMonth,
-                                "totalCnt" to data.totalQuantity,
-                                "ableCnt" to if (request.inSn == null) data.totalQuantity - data.useQuantity else data.ableCnt, //,
+                                "totalCnt" to if (request.inSn == null) data.totalQuantity else data.totalQuantity - data.useQuantity,
+                                "ableCnt" to if (request.inSn == null) data.totalQuantity - data.useQuantity else if (data.ableCnt!! > data.totalQuantity - data.useQuantity) data.totalQuantity - data.useQuantity else data.ableCnt, //,
                                 "unit" to data.discountClass!!.unitTime,
                                 "todayUse" to discountService.getTodayUseDiscountTicket(request.corpSn, data.discountClassSn)
                             ))

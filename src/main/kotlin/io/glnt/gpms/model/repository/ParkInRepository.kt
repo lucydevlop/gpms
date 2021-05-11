@@ -1,8 +1,10 @@
 package io.glnt.gpms.model.repository
 
+import io.glnt.gpms.model.entity.InoutPayment
 import io.glnt.gpms.model.entity.ParkOut
 import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.ResultType
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.repository.JpaRepository
@@ -12,7 +14,7 @@ import java.util.*
 
 @Repository
 interface ParkInRepository: JpaRepository<ParkIn, Long> {
-    fun findByVehicleNoEndsWithAndOutSnAndGateId(vehicleNo: String, outSn: Long, gateId: String) : List<ParkIn>?
+    fun findByVehicleNoEndsWithAndOutSnAndGateIdAndDelYn(vehicleNo: String, outSn: Long, gateId: String, delYn: DelYn) : List<ParkIn>?
     fun findByUdpssid(udpssid: String): ParkIn?
     fun findAll(specification: Specification<ParkIn>): List<ParkIn>?
     fun findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo: String, outSn: Long, delYn: DelYn, inDate: LocalDateTime ) : ParkIn?
@@ -37,4 +39,11 @@ interface ParkOutRepository: JpaRepository<ParkOut, Long> {
     fun findTopByPaystationOrderByOutDateDesc(paystation: String): ParkOut?
     fun findTopByGateIdAndDelYnAndOutDateGreaterThanEqualOrderByOutDateDesc(gateId: String, delYn: DelYn, inDate: LocalDateTime ) : ParkOut?
     fun findTopByGateIdAndDelYnOrderByOutDateDesc(gateId: String, delYn: DelYn) : ParkOut?
+    fun findTopByInSnAndDelYnOrderByOutDateDesc(inSn: Long, delYn: DelYn): ParkOut?
+}
+
+@Repository
+interface InoutPaymentRepository: JpaRepository<InoutPayment, Long> {
+    fun findByInSnAndResultAndDelYn(sn: Long, resultType: ResultType, delYn: DelYn): List<InoutPayment>?
+
 }
