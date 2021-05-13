@@ -43,7 +43,7 @@ class ProductService {
 
     @Throws(CustomException::class)
     fun createProduct(request: reqCreateProductTicket): CommonResult {
-        logger.info { "createProduct request $request" }
+        logger.warn { "createProduct request $request" }
         try {
             if (request.sn != null) {
                 productTicketRepository.findBySn(request.sn!!)?.let {
