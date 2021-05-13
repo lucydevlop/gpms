@@ -94,7 +94,7 @@ class CorpService {
             if ((request.searchLabel == "NAME"|| request.searchLabel == "CORPNAME") && request.searchText!!.isNotEmpty()) {
                 val likeValue = "%" + request.searchText + "%"
                 clues.add(
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("corpName")), likeValue)
+                    criteriaBuilder.like(root.get<String>("corpName"), likeValue)
                 )
             }
 

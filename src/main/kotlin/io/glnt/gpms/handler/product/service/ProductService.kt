@@ -74,9 +74,15 @@ class ProductService {
                     if (it.isNotEmpty()) return CommonResult.data("product ticket exists")
                 }
 
+//                productTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(request.vehicleNo, request.expireDate, request.effectDate, DelYn.N
                 productTicketRepository.findByVehicleNoAndValidDateGreaterThanEqualAndDelYn(request.vehicleNo, request.effectDate, DelYn.N
                 )?.let { ticket ->
                     // exists product
+                    // case db 이력 range 안에 신규 이력 range 존재
+//                    ticket.expireDate = DateUtil.getAddDays(DateUtil.stringToLocalDateTime(date), -1)
+//                    saveProductTicket()
+
+
                     // case endDate > validate -> 이력 생성
                     if (request.expireDate > ticket.expireDate) {
                         val date = DateUtil.formatDateTime(request.effectDate, "yyyyMMddHHmmss").substring(0, 8)+"235959"
