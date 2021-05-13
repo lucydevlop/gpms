@@ -881,7 +881,7 @@ class InoutService(
             "UNRECOGNIZED" -> {
                 when (type) {
                     "IN" -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, type)
-                    "OUT" -> makeParkPhrase("CALL", vehicleNo, vehicleNo, type)
+                    "OUT" -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, type)
                     else -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, type)
                 }
             }
