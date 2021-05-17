@@ -123,7 +123,7 @@ class TmapCommandService {
                     relayService.actionGate(contents.facilitiesId, "FACILITY", "open")
                     // display
                     val facility = parkinglotService.getFacility(contents.facilitiesId)
-                    facilityService.displayOutGate(facility!!.gateId, "감사합니다", "안녕히가세요")
+//                    facilityService.displayOutGate(facility!!.gateId, "감사합니다", "안녕히가세요")
                 }
                 "CLOSE" -> {
                 }

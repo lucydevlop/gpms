@@ -7,6 +7,7 @@ import com.google.common.collect.Multiset
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType
 import com.vladmihalcea.hibernate.type.json.JsonStringType
 import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.ExternalSvrType
 import io.glnt.gpms.model.enums.OnOff
 import io.glnt.gpms.model.enums.SaleType
 import io.glnt.gpms.model.enums.VehicleDayType
@@ -94,6 +95,10 @@ data class ParkSiteInfo(
     @Enumerated(EnumType.STRING)
     @Column(name = "tmap_send", nullable = true)
     var tmapSend: OnOff? = OnOff.OFF,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "external_svr", nullable = true)
+    var externalSvr: ExternalSvrType? = ExternalSvrType.NONE,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "vehicle_day_option")

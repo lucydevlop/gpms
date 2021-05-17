@@ -153,6 +153,13 @@ enum class PayType(val code: String, val desc: String) {
     CASH("CASH", "현금")
 }
 
+enum class ExternalSvrType(val code: String, val desc: String) {
+    NONE("NONE", "없음"),
+    TMAP("TMAP", "티맵연동"),
+    ADTCAPS("ADTCAPS", "ADT캡스"),
+    GLNT("GLNT", "지엘엔티")
+}
+
 //enum class parkCarType {
 //    "일반차량", "정기권차량", "미인식차량"
 //}
