@@ -1,9 +1,7 @@
 package io.glnt.gpms.security.apiKey
 
-import io.glnt.gpms.handler.user.service.AuthService
 import io.glnt.gpms.security.CustomUserDetails
 import io.glnt.gpms.security.apiKey.ApiKeyConfigurer.Companion.API_KEY_HEADER
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.annotation.SecurityConfigurerAdapter
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -28,7 +26,7 @@ class ApiKeyFilter(private val userDetailsService: CustomUserDetails): GenericFi
         val httpServletRequest = servletRequest as HttpServletRequest
         val key = httpServletRequest.getHeader(API_KEY_HEADER)
         if (key != null && StringUtils.hasText(key)) {
-            getAuthentication(key)?.let {
+            getAuthentication(key).let {
                 SecurityContextHolder.getContext().authentication = it
             }
         }
@@ -36,7 +34,7 @@ class ApiKeyFilter(private val userDetailsService: CustomUserDetails): GenericFi
     }
 
     private fun getAuthentication(key: String): Authentication {
-        return userDetailsService.loadApiUser(key)?.let { it ->
+        return userDetailsService.loadApiUser(key).let { it ->
             val authorities: Collection<GrantedAuthority?> = arrayListOf(SimpleGrantedAuthority("ROLE_API"))
             return UsernamePasswordAuthenticationToken(it, key, authorities)
         }

@@ -484,6 +484,8 @@ class InoutService(
                     recognitionResult = "NOTRECOGNITION"
                 }
 
+                displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+
                 if (parkinglotService.parkSite!!.saleType == SaleType.PAID && parkIn != null) {
                     price = feeCalculation.getBasicPayment(parkIn!!.inDate!!, date, VehicleType.SMALL, vehicleNo, 1, 0, parkIn!!.sn)
                     logger.warn { "-------------------getBasicPayment Result -------------------" }
@@ -607,16 +609,18 @@ class InoutService(
 //                            }
                         }
                     }
+                    // 동일 입차 출차 처리
+                    parkIn?.let { updateParkInExitComplete(it, newData.sn!! ) }
                     // 전광판 display 전송
                     if (parkinglotService.parkSite!!.saleType == SaleType.FREE) {
-                        parkIn?.let { updateParkInExitComplete(it, newData.sn!! ) }
-                        displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+                        //parkIn?.let { updateParkInExitComplete(it, newData.sn!! ) }
+                        //displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
                         logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
                         relayService.actionGate(gate.gateId, "GATE", "open")
                     } else {
                         if (gate.openAction == OpenActionType.NONE && (price!!.totalPrice == 0)) {
-                            parkIn?.let { updateParkInExitComplete(it, newData.sn!! ) }
-                            displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+                            //parkIn?.let { updateParkInExitComplete(it, newData.sn!! ) }
+                            //displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
                             logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
                             relayService.actionGate(gate.gateId, "GATE", "open")
                         }

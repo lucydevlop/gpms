@@ -56,7 +56,7 @@ class CustomUserDetails : UserDetailsService {
         val decodeStr = Base64Util.decodeAsString(key)
         val str = decodeStr.split(":").toTypedArray()
         if (str.size == 0) throw UsernameNotFoundException("User not found")
-        if (str[0] == "api-user" && str[1] == ("apiuser11!!")) {
+        if ((str[0] == "api-user" || str[0] == "rcs-user") && (str[1] == ("apiuser11!!"))) {
             return UserPrincipal(
                 SiteUser(
                     idx = 0,
