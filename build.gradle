@@ -68,10 +68,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
     compile group: 'org.springframework.plugin', name: 'spring-plugin-core', version: '2.0.0.RELEASE'
-
-
     compile("org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}")
     compile('org.springframework.boot:spring-boot-starter-data-rest')
     // Database
@@ -113,6 +111,12 @@ dependencies {
 
     //timer
     implementation "io.reactivex.rxjava2:rxjava:$rxjava"
+
+    // Jackson
+    compile("com.fasterxml.jackson.module:jackson-module-parameter-names")
+    compile("com.fasterxml.jackson.module:jackson-module-kotlin")
+    compile("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
+    compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
 
 }

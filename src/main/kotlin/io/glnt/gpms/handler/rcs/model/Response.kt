@@ -1,5 +1,6 @@
 package io.glnt.gpms.handler.rcs.model
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.enums.*
 import java.time.LocalDateTime
 

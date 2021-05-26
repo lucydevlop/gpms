@@ -541,7 +541,7 @@ class FacilityService(
             facilityRepository.findByDtFacilitiesId(dtFacilitiesId)?.let { facility ->
                 facility.health = status
                 facility.healthDate = LocalDateTime.now()
-                facilityRepository.save(facility)
+                facilityRepository.saveAndFlush(facility)
             }
         }catch (e: RuntimeException) {
             logger.error { "updateHealthCheck error ${e.message}" }
@@ -675,7 +675,7 @@ class FacilityService(
 
     fun activeGateFacilities(): List<ResAsyncFacility>? {
         var result = ArrayList<ResAsyncFacility>()
-        parkGateRepository.findByDelYn(DelYn.N)?.let { gates ->
+        parkGateRepository.findByDelYn(DelYn.N).let { gates ->
             for (gate in gates) {
                 facilityRepository.findByGateIdAndDelYn(gate.gateId, DelYn.N)?.let { facilities ->
                     for (facility in facilities) {

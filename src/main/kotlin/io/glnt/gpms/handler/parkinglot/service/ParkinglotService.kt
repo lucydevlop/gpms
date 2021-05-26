@@ -429,7 +429,8 @@ class ParkinglotService {
                         parkId = parkId,
                         vehicleDayOption =vehicleDayOption,
                         tmapSend = tmapSend,
-                        saleType = saleType
+                        saleType = saleType,
+                        externalSvr = externalSvr
                     )
                 )
                 initalizeData()
@@ -459,7 +460,8 @@ class ParkinglotService {
                         parkId = parkId,
                         vehicleDayOption =vehicleDayOption,
                         tmapSend = tmapSend,
-                        saleType = saleType
+                        saleType = saleType,
+                        externalSvr = externalSvr
                     )
                 )
                 initalizeData()
@@ -485,6 +487,10 @@ class ParkinglotService {
 
     fun isTmapSend(): Boolean {
         return parkSite!!.tmapSend!! == OnOff.ON
+    }
+
+    fun isExternalSend() : Boolean {
+        return parkSite!!.externalSvr != ExternalSvrType.NONE
     }
 
 //    fun JsonArray<*>.writeJSON(pathName: String, filename: String) {

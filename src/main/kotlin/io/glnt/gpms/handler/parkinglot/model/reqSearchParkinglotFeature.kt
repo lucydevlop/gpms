@@ -1,6 +1,7 @@
 package io.glnt.gpms.handler.parkinglot.model
 
 import io.glnt.gpms.model.entity.Gate
+import io.glnt.gpms.model.enums.ExternalSvrType
 import io.glnt.gpms.model.enums.OnOff
 import io.glnt.gpms.model.enums.SaleType
 import io.glnt.gpms.model.enums.VehicleDayType
@@ -37,7 +38,8 @@ data class reqCreateParkinglot(
     var parkId: String? = null,
     var vehicleDayOption: VehicleDayType? = VehicleDayType.OFF,
     var tmapSend: OnOff? = OnOff.OFF,
-    var saleType: SaleType? = SaleType.FREE
+    var saleType: SaleType? = SaleType.FREE,
+    var externalSvr: ExternalSvrType? = ExternalSvrType.NONE
 
 )
 
