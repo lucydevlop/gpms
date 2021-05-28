@@ -4,6 +4,7 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.dashboard.admin.service.singleTimer
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.inout.service.InoutService
@@ -14,10 +15,13 @@ import io.glnt.gpms.handler.rcs.model.*
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.model.entity.Facility
 import io.glnt.gpms.model.enums.checkUseStatus
+import io.reactivex.Observable
 import mu.KLogging
+import org.apache.http.HttpStatus
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
 
 @Service
 class RcsService(
@@ -36,7 +40,7 @@ class RcsService(
     lateinit var adtcapsUrl: String
 
     fun asyncFacilities(): CommonResult {
-        return CommonResult.data(facilityService.activeGateFacilities())
+        return CommonResult.data(facilityService.allFacilities())
     }
 
     fun asyncFailureAlarm(request: Failure) {
@@ -134,6 +138,30 @@ class RcsService(
             }
             when(status) {
                 "UP", "DOWN", "UPLOCK" -> relayService.actionGate(facilityId, "FACILITI", action)
+                "RESET" -> {
+                    parkinglotService.getFacilityByDtFacilityId(facilityId)?.let { facility ->
+                        facility.resetPort?.let { it ->
+                            var port = it.toInt()-1
+                            if (port < 0) return CommonResult.error("Reset Action failed")
+                            parkinglotService.getGate(facility.gateId)?.let { gate ->
+                                val url = gate.resetSvr+port
+                                restAPIManager.sendResetGetRequest(url).let { response ->
+                                    singleTimer()
+                                    logger.info { "reset response ${response!!.status} ${response.body.toString()}" }
+                                    if (response!!.status == HttpStatus.SC_OK) {
+                                        Observable.timer(2, TimeUnit.SECONDS).subscribe {
+                                            logger.info { "reset one more ${url}" }
+                                            restAPIManager.sendResetGetRequest(url).let { reResponse ->
+                                                logger.info { "reset re response ${reResponse!!.status} ${response.body.toString()}" }
+                                            }
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             return CommonResult.data()
         }catch (e: RuntimeException) {

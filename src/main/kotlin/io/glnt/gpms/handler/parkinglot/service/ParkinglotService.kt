@@ -201,7 +201,14 @@ class ParkinglotService {
         try{
             parkGateRepository.findByGateId(gateId)?.let { gate ->
                 gate.delYn = delYn
-                return CommonResult.data(parkGateRepository.save(gate))
+                val update = parkGateRepository.save(gate)
+                parkFacilityRepository.findByGateId(update.gateId)?.let { facilities ->
+                    facilities.forEach { facility ->
+                        facility.delYn = delYn
+                        parkFacilityRepository.save(facility)
+                    }
+                }
+                return CommonResult.data(update)
             }
         }catch (e: CustomException) {
             logger.error("changeDelYnGate error {} ", e.message)

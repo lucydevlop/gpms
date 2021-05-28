@@ -21,5 +21,6 @@ data class ResAsyncFacility(
     var healthDate: LocalDateTime? = null,
     var status: String? = null,
     var statusDate: LocalDateTime? = null,
-    var gateType: GateTypeStatus
+    var gateType: GateTypeStatus,
+    val delYn: DelYn
 )

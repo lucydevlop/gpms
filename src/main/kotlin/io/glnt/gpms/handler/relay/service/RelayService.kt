@@ -97,12 +97,6 @@ class RelayService() {
                 paymentHealthCheck()
             }
 
-            if (parkinglotService.isExternalSend()){
-                facilityService.activeGateFacilities()?.let { it ->
-                    rcsService.asyncFacilitiesHealth(it)
-                }
-            }
-
         } catch (e: CustomException){
             logger.error { "facilitiesHealthCheck failed ${e.message}" }
         }
