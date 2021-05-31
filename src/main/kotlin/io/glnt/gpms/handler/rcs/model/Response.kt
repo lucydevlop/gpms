@@ -1,5 +1,6 @@
 package io.glnt.gpms.handler.rcs.model
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.enums.*
 import java.time.LocalDateTime
 
@@ -20,5 +21,6 @@ data class ResAsyncFacility(
     var healthDate: LocalDateTime? = null,
     var status: String? = null,
     var statusDate: LocalDateTime? = null,
-    var gateType: GateTypeStatus
+    var gateType: GateTypeStatus,
+    val delYn: DelYn
 )

@@ -46,5 +46,11 @@ tmap:
 gateway:
   url: http://192.168.20.30:9999/v1
 
+glnt:
+  url: http://192.168.20.9:9105
+
+adtcaps:
+  url: http://192.168.20.9:9105
+
 
 

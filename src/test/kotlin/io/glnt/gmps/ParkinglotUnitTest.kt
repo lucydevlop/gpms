@@ -4,6 +4,7 @@ import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.relay.service.RelayService
+import io.glnt.gpms.model.entity.Failure
 import io.vertx.core.Vertx
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.unit.junit.Timeout
@@ -31,20 +32,6 @@ class ParkinglotUnitTest {
 
     @Autowired
     private lateinit var relayService: RelayService
-
-//    @Before
-//    fun setup(context: TestContext) {
-//        vertx = Vertx.vertx()
-//
-//        jwt = JWTAuth.create(vertx, )
-//    }
-//    private fun givenJwtSetting() {
-//        ()
-//    }
-//    @Test
-//    fun get_parksFeatureTest() {
-//        withTestApplication()
-//    }
 
     @Test
     fun test_parkIn() {
@@ -81,6 +68,19 @@ class ParkinglotUnitTest {
     @Test
     fun paymentHealthCheck() {
         relayService.paymentHealthCheck()
+    }
+
+    @Test
+    fun failure() {
+        var relayService =  RelayService()
+        relayService.saveFailure(
+            Failure( sn = null,
+                     issueDateTime = LocalDateTime.now(),
+                     facilitiesId = "BRE001101",
+                     fName = "입구1 차단기",
+                     failureCode = "crossingGateLongTimeOpen",
+                     failureType = "ERROR"
+        ))
     }
 
 

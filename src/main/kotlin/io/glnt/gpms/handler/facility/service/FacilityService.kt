@@ -541,7 +541,7 @@ class FacilityService(
             facilityRepository.findByDtFacilitiesId(dtFacilitiesId)?.let { facility ->
                 facility.health = status
                 facility.healthDate = LocalDateTime.now()
-                facilityRepository.save(facility)
+                facilityRepository.saveAndFlush(facility)
             }
         }catch (e: RuntimeException) {
             logger.error { "updateHealthCheck error ${e.message}" }
@@ -675,7 +675,7 @@ class FacilityService(
 
     fun activeGateFacilities(): List<ResAsyncFacility>? {
         var result = ArrayList<ResAsyncFacility>()
-        parkGateRepository.findByDelYn(DelYn.N)?.let { gates ->
+        parkGateRepository.findByDelYn(DelYn.N).let { gates ->
             for (gate in gates) {
                 facilityRepository.findByGateIdAndDelYn(gate.gateId, DelYn.N)?.let { facilities ->
                     for (facility in facilities) {
@@ -683,8 +683,31 @@ class FacilityService(
                             modelid = facility.modelid, fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
                             facilitiesId = facility.facilitiesId!!, gateId = facility.gateId, gateName = gate.gateName!!,
                             ip = facility.ip!!, port = facility.port!!, lprType = facility.lprType, imagePath = facility.imagePath,
-                            health = facility.health, healthDate = facility.healthDate, status = facility.status,
-                            statusDate = facility.statusDate, gateType = facility.gateType))
+                            health = if (facility.ip == "0.0.0.0") "NORMAL" else facility.health,
+                            healthDate = facility.healthDate, status = facility.status,
+                            statusDate = facility.statusDate, gateType = facility.gateType,
+                            delYn = if (gate.delYn!! == DelYn.Y) DelYn.Y else facility.delYn!! ))
+                    }
+                }
+            }
+        }
+        return result
+    }
+
+    fun allFacilities(): List<ResAsyncFacility>? {
+        var result = ArrayList<ResAsyncFacility>()
+        parkGateRepository.findAll().let { gates ->
+            for (gate in gates) {
+                facilityRepository.findByGateId(gate.gateId)?.let { facilities ->
+                    for (facility in facilities) {
+                        result.add(ResAsyncFacility(sn = facility.sn!!, category = facility.category,
+                            modelid = facility.modelid, fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
+                            facilitiesId = facility.facilitiesId!!, gateId = facility.gateId, gateName = gate.gateName!!,
+                            ip = facility.ip!!, port = facility.port!!, lprType = facility.lprType, imagePath = facility.imagePath,
+                            health = if (facility.ip == "0.0.0.0") "NORMAL" else facility.health,
+                            healthDate = facility.healthDate, status = facility.status,
+                            statusDate = facility.statusDate, gateType = facility.gateType,
+                            delYn = if (gate.delYn!! == DelYn.Y) DelYn.Y else facility.delYn!! ))
                     }
                 }
             }

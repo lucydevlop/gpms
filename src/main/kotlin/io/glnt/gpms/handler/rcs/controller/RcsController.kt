@@ -3,12 +3,14 @@ package io.glnt.gpms.handler.rcs.controller
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.common.configs.ApiConfig.API_VERSION
+import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.rcs.service.RcsService
+import io.glnt.gpms.model.enums.DisplayMessageClass
+import org.apache.poi.ss.usermodel.DateUtil
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.CrossOrigin
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @RestController
 @RequestMapping(
@@ -27,6 +29,21 @@ class RcsController(
     @RequestMapping(value=["/async/facilities"], method = [RequestMethod.GET])
     fun asyncFacilities() : ResponseEntity<CommonResult> {
         return CommonResult.returnResult(rcsService.asyncFacilities())
+    }
+
+    @RequestMapping(value=["/{facilityId}/{status}"], method = [RequestMethod.GET])
+    fun facilityAction(@PathVariable facilityId: String, @PathVariable status: String): ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(rcsService.facilityAction(facilityId, status))
+    }
+
+    @RequestMapping(value=["/inouts"], method = [RequestMethod.GET])
+    fun getInouts(@RequestParam(name = "startDate", required = false) startDate: String,
+                  @RequestParam(name = "endDate", required = false) endDate: String,
+                  @RequestParam(name = "searchDateLabel", required = false) searchDateLabel: DisplayMessageClass) : ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(
+            rcsService.getInouts(reqSearchParkin(searchDateLabel = searchDateLabel,
+                fromDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                toDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")))))
     }
 
 }

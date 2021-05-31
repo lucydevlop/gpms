@@ -15,6 +15,7 @@ import io.glnt.gpms.handler.inout.model.reqAddParkOut
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.inout.service.checkItemsAre
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.handler.relay.model.FacilitiesFailureAlarm
 import io.glnt.gpms.handler.relay.model.FacilitiesStatusNoti
 import io.glnt.gpms.handler.relay.model.paystationvehicleListSearch
@@ -38,7 +39,7 @@ import java.time.LocalDateTime
 import javax.annotation.PostConstruct
 
 @Service
-class RelayService {
+class RelayService() {
     companion object : KLogging()
 
     lateinit var parkAlarmSetting: ParkAlarmSetting
@@ -56,6 +57,9 @@ class RelayService {
 
     @Autowired
     private lateinit var inoutService: InoutService
+
+    @Autowired
+    private lateinit var rcsService: RcsService
 
     @Autowired
     private lateinit var restAPIManager: RestAPIManagerUtil
@@ -137,8 +141,17 @@ class RelayService {
                 }
             }
 
-            if (parkinglotService.isTmapSend() && result.isNotEmpty())
-                tmapSendService.sendFacilitiesStatusNoti(reqTmapFacilitiesStatusNoti(facilitiesList = result), null)
+            if (result.isNotEmpty()) {
+                if (parkinglotService.isTmapSend()) {
+                    tmapSendService.sendFacilitiesStatusNoti(reqTmapFacilitiesStatusNoti(facilitiesList = result), null)
+                }
+
+                if (parkinglotService.isExternalSend()){
+                    facilityService.activeGateFacilities()?.let { it ->
+                        rcsService.asyncFacilitiesStatus(it)
+                    }
+                }
+            }
 
         } catch (e: CustomException){
             logger.error { "statusNoti failed ${e.message}" }
@@ -258,6 +271,7 @@ class RelayService {
                 )?.let {
                     it.expireDateTime = LocalDateTime.now()
                     failureRepository.save(it)
+                    rcsService.asyncRestoreAlarm(it)
                 }
             } else {
                 logger.info { "saveFailure $request" }
@@ -268,8 +282,10 @@ class RelayService {
                     it.failureFlag = it.failureFlag!! + 1
                     it.expireDateTime = null
                     failureRepository.save(it)
+                    //rcsService.asyncFailureAlram(it)
                 }?: run {
                     failureRepository.save(request)
+                    rcsService.asyncFailureAlarm(request)
                 }
             }
         }catch (e: CustomException){
