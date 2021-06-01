@@ -5,6 +5,8 @@ import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.common.configs.ApiConfig.API_VERSION
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.rcs.service.RcsService
+import io.glnt.gpms.model.dto.request.reqSearchProductTicket
+import io.glnt.gpms.model.enums.DateType
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import org.apache.poi.ss.usermodel.DateUtil
 import org.springframework.http.ResponseEntity
@@ -45,5 +47,15 @@ class RcsController(
                 fromDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                 toDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")))))
     }
+
+    @RequestMapping(value=["/tickets"], method = [RequestMethod.GET])
+    fun getTickets(@RequestParam(name = "startDate", required = false) startDate: String,
+                   @RequestParam(name = "endDate", required = false) endDate: String) : ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(
+            rcsService.getTickets(reqSearchProductTicket(searchDateLabel = DateType.EFFECT,
+                fromDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                toDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")))))
+    }
+
 
 }

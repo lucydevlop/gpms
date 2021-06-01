@@ -457,15 +457,19 @@ class DashboardAdminService(
     @Transactional
     fun createTemplateOfProductTicket(): CommonResult {
         try{
-            val data = productService.getProducts(reqSearchProductTicket(searchLabel = "", searchText = ""))
-            when (data.code) {
-                ResultCode.SUCCESS.getCode() -> {
-                    return CommonResult.data(excelService.downloadTemplateOfProductTicket(data.data as List<ProductTicket>))
-                }
-                else -> {
-                    return CommonResult.error("file upload failed")
-                }
+            productService.getProducts(reqSearchProductTicket(searchLabel = "", searchText = ""))?.let { tickets ->
+                return CommonResult.data(excelService.downloadTemplateOfProductTicket(tickets))
+            } ?: kotlin.run {
+                return CommonResult.error("file upload failed")
             }
+//            when (data.code) {
+//                ResultCode.SUCCESS.getCode() -> {
+//                    return CommonResult.data(excelService.downloadTemplateOfProductTicket(data.data as List<ProductTicket>))
+//                }
+//                else -> {
+//                    return CommonResult.error("file upload failed")
+//                }
+//            }
 
         } catch (e: CustomException){
             logger.error { "Admin createProductTicketByFiles failed $e" }
@@ -476,18 +480,10 @@ class DashboardAdminService(
     @Throws(CustomException::class)
     fun searchProductTicket(request: reqSearchProductTicket): CommonResult {
         try{
-            val data = productService.getProducts(request)
-            return when (data.code) {
-                ResultCode.SUCCESS.getCode() -> {
-                    CommonResult.data(data.data)
-                }
-                else -> {
-                    CommonResult.error("file upload failed")
-                }
-            }
-        } catch (e: CustomException){
-            logger.error { "Admin searcgParkinglotProduct failed $e" }
-            return CommonResult.error("Admin searcgParkinglotProduct failed $e")
+            return CommonResult.data(productService.getProducts(request))
+        } catch (e: CustomException) {
+            logger.error { "Admin searchProductTicket failed $e" }
+            return CommonResult.error("Admin searchProductTicket failed $e")
         }
     }
 

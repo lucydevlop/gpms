@@ -9,10 +9,12 @@ import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.model.entity.Failure
 import io.glnt.gpms.model.enums.ExternalSvrType
 import io.glnt.gpms.handler.rcs.model.*
 import io.glnt.gpms.handler.relay.service.RelayService
+import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.entity.Facility
 import io.glnt.gpms.model.enums.checkUseStatus
 import io.reactivex.Observable
@@ -29,7 +31,8 @@ class RcsService(
     private var parkinglotService: ParkinglotService,
     private var inoutService: InoutService,
     private var restAPIManager: RestAPIManagerUtil,
-    private var relayService: RelayService
+    private var relayService: RelayService,
+    private var productService: ProductService
 ) {
     companion object : KLogging()
 
@@ -177,6 +180,21 @@ class RcsService(
         }catch (e: CustomException){
             logger.error { "rcs getInouts failed $e" }
             return CommonResult.error("Admin getInouts failed")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun getTickets(request: reqSearchProductTicket): CommonResult {
+        try {
+//            productService.getProducts(request)?.let { tickets ->
+//                tickets.forEach {
+//
+//                }
+//            }
+            return CommonResult.data(productService.getProducts(request))
+        }catch (e: CustomException) {
+            logger.error { "rcs getTickets failed $e" }
+            return CommonResult.error("rcs getTickets failed")
         }
     }
 }
