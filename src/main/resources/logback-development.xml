@@ -22,4 +22,14 @@
     <root level="debug">
         <appender-ref ref="STDOUT"/>
     </root>
+    <!-- 질의문 보기 -->
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <!-- 질의문 파라미터 보기 -->
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+    <!-- hikari 로그 보기 -->
+    <logger name="com.zaxxer.hikari" level="DEBUG"/>
+    <!-- 트랜젝션 로그 보기 -->
+    <logger name="org.hibernate.transaction.JDBCTransaction" level="DEBUG"/>
+    <logger name="org.hibernate.jdbc.ConnectionManager" level="DEBUG"/>
+    <logger name="org.springframework.orm.jpa.JpaTransactionManager" level="DEBUG"/>
 </configuration>

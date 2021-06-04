@@ -38,6 +38,7 @@ logging:
     ROOT: WARN
     io.github.jhipster: WARN
     thesis: WARN
+  path: C://logs/gpms
 
 image:
   filepath: C://park//save
@@ -53,9 +54,9 @@ gateway:
   url: http://192.168.20.30:9999/v1
 
 glnt:
-  url: http://192.168.20.9:9105
+  url: http://192.168.20.6:9105
 
 adtcaps:
-  url: http://192.168.20.9:9105
+  url: http://192.168.20.6:9105
 
 

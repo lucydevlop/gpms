@@ -118,7 +118,6 @@ class RelayService() {
                             Failure(
                                 sn = null,
                                 issueDateTime = LocalDateTime.now(),
-//                                        expireDateTime = LocalDateTime.now(),
                                 facilitiesId = facility.dtFacilitiesId,
                                 fName = data.fname,
                                 failureCode = "crossingGateLongTimeOpen",
@@ -130,7 +129,6 @@ class RelayService() {
                             Failure(
                                 sn = null,
                                 issueDateTime = LocalDateTime.now(),
-//                                        expireDateTime = LocalDateTime.now(),
                                 facilitiesId = facility.dtFacilitiesId,
                                 fName = data.fname,
                                 failureCode = "crossingGateBarDamageDoubt",
@@ -167,7 +165,6 @@ class RelayService() {
                     saveFailure(
                         Failure(sn = null,
                             issueDateTime = LocalDateTime.now(),
-//                                        expireDateTime = LocalDateTime.now(),
                             facilitiesId = failure.dtFacilitiesId,
                             fName = facility.fname,
                             failureCode = failure.failureAlarm,
@@ -235,7 +232,6 @@ class RelayService() {
                             saveFailure(
                                 Failure(sn = null,
                                     issueDateTime = LocalDateTime.now(),
-//                                    expireDateTime = LocalDateTime.now(),
                                     facilitiesId = facility.facilitiesId,
                                     fName = facility.fname,
                                     failureCode = "dailyUnAdjustment",
@@ -245,7 +241,6 @@ class RelayService() {
                             saveFailure(
                                 Failure(sn = null,
                                         issueDateTime = LocalDateTime.now(),
-//                                        expireDateTime = LocalDateTime.now(),
                                         facilitiesId = facility.facilitiesId,
                                         fName = facility.fname,
                                         failureCode = "dailyUnAdjustment",
