@@ -138,8 +138,8 @@ class ProductService {
         return productTicketRepository.saveAndFlush(data)
     }
 
-    fun getProducts(request: reqSearchProductTicket): CommonResult {
-        return CommonResult.data(productTicketRepository.findAll(findAllProductSpecification(request)))
+    fun getProducts(request: reqSearchProductTicket): List<ProductTicket>? {
+        return productTicketRepository.findAll(findAllProductSpecification(request))
     }
 
     fun deleteTicket(request: Long) : CommonResult {

@@ -437,7 +437,8 @@ class ParkinglotService {
                         vehicleDayOption =vehicleDayOption,
                         tmapSend = tmapSend,
                         saleType = saleType,
-                        externalSvr = externalSvr
+                        externalSvr = externalSvr,
+                        ip = ip, city = city
                     )
                 )
                 initalizeData()

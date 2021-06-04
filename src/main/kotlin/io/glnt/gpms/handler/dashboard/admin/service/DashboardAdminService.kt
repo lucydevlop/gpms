@@ -19,6 +19,8 @@ import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
+import io.glnt.gpms.handler.rcs.model.ResAsyncParkinglot
+import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.user.service.AuthService
 import io.glnt.gpms.io.glnt.gpms.handler.file.service.ExcelUploadService
@@ -37,7 +39,8 @@ import org.springframework.web.multipart.MultipartFile
 
 @Service
 class DashboardAdminService(
-    private var restAPIManager: RestAPIManagerUtil
+    private var restAPIManager: RestAPIManagerUtil,
+    private var rcsService: RcsService
 ) {
     companion object : KLogging()
 
@@ -457,15 +460,19 @@ class DashboardAdminService(
     @Transactional
     fun createTemplateOfProductTicket(): CommonResult {
         try{
-            val data = productService.getProducts(reqSearchProductTicket(searchLabel = "", searchText = ""))
-            when (data.code) {
-                ResultCode.SUCCESS.getCode() -> {
-                    return CommonResult.data(excelService.downloadTemplateOfProductTicket(data.data as List<ProductTicket>))
-                }
-                else -> {
-                    return CommonResult.error("file upload failed")
-                }
+            productService.getProducts(reqSearchProductTicket(searchLabel = "", searchText = ""))?.let { tickets ->
+                return CommonResult.data(excelService.downloadTemplateOfProductTicket(tickets))
+            } ?: kotlin.run {
+                return CommonResult.error("file upload failed")
             }
+//            when (data.code) {
+//                ResultCode.SUCCESS.getCode() -> {
+//                    return CommonResult.data(excelService.downloadTemplateOfProductTicket(data.data as List<ProductTicket>))
+//                }
+//                else -> {
+//                    return CommonResult.error("file upload failed")
+//                }
+//            }
 
         } catch (e: CustomException){
             logger.error { "Admin createProductTicketByFiles failed $e" }
@@ -476,18 +483,10 @@ class DashboardAdminService(
     @Throws(CustomException::class)
     fun searchProductTicket(request: reqSearchProductTicket): CommonResult {
         try{
-            val data = productService.getProducts(request)
-            return when (data.code) {
-                ResultCode.SUCCESS.getCode() -> {
-                    CommonResult.data(data.data)
-                }
-                else -> {
-                    CommonResult.error("file upload failed")
-                }
-            }
-        } catch (e: CustomException){
-            logger.error { "Admin searcgParkinglotProduct failed $e" }
-            return CommonResult.error("Admin searcgParkinglotProduct failed $e")
+            return CommonResult.data(productService.getProducts(request))
+        } catch (e: CustomException) {
+            logger.error { "Admin searchProductTicket failed $e" }
+            return CommonResult.error("Admin searchProductTicket failed $e")
         }
     }
 
@@ -695,6 +694,29 @@ class DashboardAdminService(
         }catch (e: CustomException){
             logger.error { "Admin deleteDiscountTicket failed $e" }
             return CommonResult.error("Admin deleteDiscountTicket failed $e")
+        }
+    }
+
+    fun externalAsyncParkinglot(): CommonResult {
+        try {
+            parkinglotService.parkSite!!.ip?.let {
+                val result: ResAsyncParkinglot? = rcsService.asyncParkinglot()
+                result?.let { it ->
+                    parkinglotService.parkSite!!.rcsParkId = it.data.toString().toLong()
+                    parkinglotService.saveParkSiteInfo(parkinglotService.parkSite!!)
+                }
+                return CommonResult.data("Admin externalAsyncParkinglot success")
+            }?: kotlin.run {
+                return CommonResult.error("Admin externalAsyncParkinglot failed")
+            }
+//            parkinglotService.parkSite!!.ip?.let {
+//
+//                return CommonResult.data("Admin externalAsyncParkinglot success")
+//            }? : run {
+//                return CommonResult.error("Admin externalAsyncParkinglot failed")
+//            }
+        } catch (e: CustomException) {
+            return CommonResult.error("Admin externalAsyncParkinglot failed")
         }
     }
 }

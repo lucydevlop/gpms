@@ -301,5 +301,12 @@ class DashboardAdminController {
         return CommonResult.returnResult(dashboardAdminService.deleteDiscountTicket(sn))
     }
 
+    @RequestMapping(value = ["/external/async/parkinglot"], method = [RequestMethod.GET])
+    @Throws(CustomException::class)
+    fun externalAsyncParkinglot(): ResponseEntity<CommonResult> {
+        logger.trace("externalAsyncParkinglot")
+        return CommonResult.returnResult(dashboardAdminService.externalAsyncParkinglot())
+    }
+
     companion object : KLogging()
 }

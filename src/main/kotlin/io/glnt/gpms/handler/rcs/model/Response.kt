@@ -24,3 +24,10 @@ data class ResAsyncFacility(
     var gateType: GateTypeStatus,
     val delYn: DelYn
 )
+
+
+data class ResAsyncParkinglot(
+    var msg: String,
+    var code: Int,
+    var data: Any
+)

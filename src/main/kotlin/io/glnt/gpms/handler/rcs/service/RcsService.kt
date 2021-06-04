@@ -1,5 +1,8 @@
 package io.glnt.gpms.handler.rcs.service
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.mashape.unirest.http.HttpResponse
+import com.mashape.unirest.http.JsonNode
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
@@ -9,18 +12,18 @@ import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
-import io.glnt.gpms.model.entity.Failure
-import io.glnt.gpms.model.enums.ExternalSvrType
+import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.rcs.model.*
 import io.glnt.gpms.handler.relay.service.RelayService
-import io.glnt.gpms.model.entity.Facility
+import io.glnt.gpms.model.dto.request.reqSearchProductTicket
+import io.glnt.gpms.model.entity.Failure
+import io.glnt.gpms.model.enums.ExternalSvrType
 import io.glnt.gpms.model.enums.checkUseStatus
 import io.reactivex.Observable
 import mu.KLogging
 import org.apache.http.HttpStatus
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 @Service
@@ -29,7 +32,8 @@ class RcsService(
     private var parkinglotService: ParkinglotService,
     private var inoutService: InoutService,
     private var restAPIManager: RestAPIManagerUtil,
-    private var relayService: RelayService
+    private var relayService: RelayService,
+    private var productService: ProductService
 ) {
     companion object : KLogging()
 
@@ -38,6 +42,31 @@ class RcsService(
 
     @Value("\${adtcaps.url}")
     lateinit var adtcapsUrl: String
+
+    fun asyncParkinglot(): ResAsyncParkinglot? {
+        try {
+            when (parkinglotService.parkSite!!.externalSvr) {
+                ExternalSvrType.GLNT -> {
+                    val response: HttpResponse<JsonNode?>? = restAPIManager.sendPostRequest(
+                        glntUrl+"/parkinglots",
+                        ReqParkinglot(
+                            parkinglot = AsyncParkinglot(ip = parkinglotService.parkSite!!.ip!!, name = parkinglotService.parkSite!!.sitename, city = parkinglotService.parkSite!!.city!!, address = parkinglotService.parkSite!!.address!! ),
+                            facilities = facilityService.allFacilities()!!)
+                    )
+                    response?.let { response ->
+                        if (response.status == 200 || response.status == 201) {
+                            val obj = response.body!!.`object`
+                            val contents = jacksonObjectMapper().readValue(obj.toString(), ResAsyncParkinglot::class.java) as ResAsyncParkinglot
+                            return contents
+                        }
+                    }
+                }
+            }
+        }catch (e: RuntimeException) {
+            logger.error { "RCS Async Parkinglot failed $e" }
+        }
+        return null
+    }
 
     fun asyncFacilities(): CommonResult {
         return CommonResult.data(facilityService.allFacilities())
@@ -50,7 +79,7 @@ class RcsService(
                 ExternalSvrType.GLNT -> {
                     restAPIManager.sendPostRequest(
                         glntUrl+"/parkinglots/facilities/errors",
-                        ReqFailureAlarm(parkinglotId = 1, facilityId = request.facilitiesId!!, createDate = request.issueDateTime.toString(), contents = request.failureCode!!)
+                        ReqFailureAlarm(parkinglotId = parkinglotService.parkSite!!.rcsParkId!!, facilityId = request.facilitiesId!!, createDate = request.issueDateTime.toString(), contents = request.failureCode!!)
                     )
                 }
             }
@@ -67,7 +96,7 @@ class RcsService(
                 ExternalSvrType.GLNT -> {
                     restAPIManager.sendPatchRequest(
                         glntUrl+"/parkinglots/facilities/errors",
-                        ReqFailureAlarm(parkinglotId = 1, facilityId = request.facilitiesId!!, createDate = request.expireDateTime.toString(), contents = request.failureCode!!, resolvedYn = checkUseStatus.Y)
+                        ReqFailureAlarm(parkinglotId = parkinglotService.parkSite!!.rcsParkId!!, facilityId = request.facilitiesId!!, createDate = request.expireDateTime.toString(), contents = request.failureCode!!, resolvedYn = checkUseStatus.Y)
                     )
                 }
             }
@@ -92,7 +121,7 @@ class RcsService(
             when (parkinglotService.parkSite!!.externalSvr) {
                 ExternalSvrType.GLNT -> {
                     restAPIManager.sendPatchRequest(
-                        glntUrl+"/parkinglots/1/facilities",
+                        glntUrl+"/parkinglots/"+parkinglotService.parkSite!!.rcsParkId!!+"/facilities",
                         result
                     )
                 }
@@ -118,7 +147,7 @@ class RcsService(
             when (parkinglotService.parkSite!!.externalSvr) {
                 ExternalSvrType.GLNT -> {
                     restAPIManager.sendPatchRequest(
-                        glntUrl+"/parkinglots/1/facilities",
+                        glntUrl+"/parkinglots/"+parkinglotService.parkSite!!.rcsParkId!!+"/facilities",
                         result
                     )
                 }
@@ -133,11 +162,12 @@ class RcsService(
             var action = when(status) {
                 "UP" -> "open"
                 "DOWN" -> "close"
-                "UPLOCK" -> "unLock"
+                "UPLOCK" -> "uplock"
+                "UNLOCK" -> "unlock"
                 else -> status
             }
             when(status) {
-                "UP", "DOWN", "UPLOCK" -> relayService.actionGate(facilityId, "FACILITI", action)
+                "UP", "DOWN", "UPLOCK", "UNLOCK" -> relayService.actionGate(facilityId, "FACILITI", action)
                 "RESET" -> {
                     parkinglotService.getFacilityByDtFacilityId(facilityId)?.let { facility ->
                         facility.resetPort?.let { it ->
@@ -179,4 +209,23 @@ class RcsService(
             return CommonResult.error("Admin getInouts failed")
         }
     }
+
+    @Throws(CustomException::class)
+    fun getTickets(request: reqSearchProductTicket): CommonResult {
+        try {
+//            productService.getProducts(request)?.let { tickets ->
+//                tickets.forEach {
+//
+//                }
+//            }
+            return CommonResult.data(productService.getProducts(request))
+        }catch (e: CustomException) {
+            logger.error { "rcs getTickets failed $e" }
+            return CommonResult.error("rcs getTickets failed")
+        }
+    }
+
+    private fun responseToMap(response: HttpResponse<JsonNode?>): MutableMap<String, Any>
+        = response.body!!.`object`.toMap()
+
 }

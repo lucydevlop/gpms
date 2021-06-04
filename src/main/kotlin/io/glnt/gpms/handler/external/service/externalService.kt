@@ -25,20 +25,24 @@ class externalService(
     @Throws(CustomException::class)
     fun searchTickets(request: reqSearchProductTicket) : CommonResult {
         try {
-            val data = productService.getProducts(request)
-            when (data.code) {
-                ResultCode.SUCCESS.getCode() -> {
-                    val tickets : List<ProductTicket> = data.data as? List<ProductTicket> ?: emptyList()
-                    if (tickets.isNotEmpty()) {
-                        return CommonResult.data(data.data)
-                    } else {
-                        return CommonResult.notfound("external search ticket not found ${request} ")
-                    }
-                }
-                else -> {
-                    return CommonResult.error(data.msg!!)
-                }
+            productService.getProducts(request)?.let { tickets ->
+                return CommonResult.data(tickets)
+            } ?: run {
+                return CommonResult.notfound("external search ticket not found ${request} ")
             }
+//            when (data.code) {
+//                ResultCode.SUCCESS.getCode() -> {
+//                    val tickets : List<ProductTicket> = data.data as? List<ProductTicket> ?: emptyList()
+//                    if (tickets.isNotEmpty()) {
+//                        return CommonResult.data(data.data)
+//                    } else {
+//                        return CommonResult.notfound("external search ticket not found ${request} ")
+//                    }
+//                }
+//                else -> {
+//                    return CommonResult.error(data.msg!!)
+//                }
+//            }
         }catch (e: CustomException){
             logger.error { "external searchTickets failed $e" }
             return CommonResult.error("external searchTickets failed $e")
@@ -78,29 +82,37 @@ class externalService(
     fun deleteTickets(request: ArrayList<reqCreateProductTicket>): CommonResult {
         try {
             request.forEach { it ->
-
-                val data = productService.getProducts(
+                productService.getProducts(
                                 reqSearchProductTicket(searchLabel="CARNUM",
                                                        searchText= it.vehicleNo,
                                                        expireDate = it.expireDate,
                                                        effectDate = it.effectDate, delYn = "N"
                                 )
-                )
-                when (data.code) {
-                    ResultCode.SUCCESS.getCode() -> {
-                        val tickets : List<ProductTicket> = data.data as? List<ProductTicket> ?: emptyList()
-                        if (tickets.isNotEmpty()) {
-                            tickets.forEach { ticket->
-                                productService.deleteTicket(ticket.sn!!)
-                            }
-                        } else {
-                            return CommonResult.notfound("external delete ticket not found ${it.vehicleNo} ")
-                        }
+                )?.let { tickets ->
+                    tickets.forEach { ticket->
+                        productService.deleteTicket(ticket.sn!!)
                     }
-                    else -> {
-                        return CommonResult.error(data.msg!!)
-                    }
+                } ?: run {
+                    return CommonResult.notfound("external delete ticket not found ${it.vehicleNo} ")
                 }
+
+//
+//
+//                when (data.code) {
+//                    ResultCode.SUCCESS.getCode() -> {
+//                        val tickets : List<ProductTicket> = data.data as? List<ProductTicket> ?: emptyList()
+//                        if (tickets.isNotEmpty()) {
+//                            tickets.forEach { ticket->
+//                                productService.deleteTicket(ticket.sn!!)
+//                            }
+//                        } else {
+//                            return CommonResult.notfound("external delete ticket not found ${it.vehicleNo} ")
+//                        }
+//                    }
+//                    else -> {
+//                        return CommonResult.error(data.msg!!)
+//                    }
+//                }
             }
 
         }catch (e: CustomException){
