@@ -10,7 +10,7 @@ data class ResAsyncFacility(
     var modelid: String,
     var fname: String,
     var dtFacilitiesId: String,
-    var facilitiesId: String,
+    var facilitiesId: String? = null,
     var gateId: String,
     var gateName: String,
     var ip: String,

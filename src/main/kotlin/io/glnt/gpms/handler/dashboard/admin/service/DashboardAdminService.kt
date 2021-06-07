@@ -28,6 +28,7 @@ import io.glnt.gpms.model.dto.request.*
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountRangeType
+import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.UserRole
 import mu.KLogging
 import org.apache.http.HttpStatus
@@ -122,7 +123,17 @@ class DashboardAdminService(
     @Throws(CustomException::class)
     fun getParkInLists(request: reqSearchParkin): CommonResult {
         try {
-            return CommonResult.data(inoutService.getAllParkLists(request))
+            val result = inoutService.getAllParkLists(request)
+
+            result?.let { result ->
+                request.searchDateLabel?.let { it ->
+                    when (it) {
+                        DisplayMessageClass.IN -> result.sortByDescending { r -> r.inDate }
+                        DisplayMessageClass.OUT -> result.sortByDescending { r -> r.outDate }
+                    }
+                }
+            }
+            return CommonResult.data(result)
         }catch (e: CustomException){
             logger.error { "Admin getParkInLists failed ${e.message}" }
             return CommonResult.error("Admin getParkInLists failed ${e.message}")
