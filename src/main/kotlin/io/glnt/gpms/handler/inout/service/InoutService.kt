@@ -19,6 +19,7 @@ import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
+import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.*

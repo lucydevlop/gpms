@@ -16,6 +16,7 @@ import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.rcs.model.*
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
+import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.entity.Failure
 import io.glnt.gpms.model.enums.ExternalSvrType
 import io.glnt.gpms.model.enums.checkUseStatus
@@ -207,6 +208,16 @@ class RcsService(
         }catch (e: CustomException){
             logger.error { "rcs getInouts failed $e" }
             return CommonResult.error("Admin getInouts failed")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun createInout(request: resParkInList) : CommonResult {
+        try {
+            return CommonResult.data(inoutService.createInout(request).data)
+        }catch (e: CustomException){
+            logger.error { "rcs createInout failed $e" }
+            return CommonResult.error("rcs createInout failed ${e.message}")
         }
     }
 

@@ -6,6 +6,7 @@ import io.glnt.gpms.common.configs.ApiConfig.API_VERSION
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
+import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.enums.DateType
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import org.apache.poi.ss.usermodel.DateUtil
@@ -41,11 +42,21 @@ class RcsController(
     @RequestMapping(value=["/inouts"], method = [RequestMethod.GET])
     fun getInouts(@RequestParam(name = "startDate", required = false) startDate: String,
                   @RequestParam(name = "endDate", required = false) endDate: String,
-                  @RequestParam(name = "searchDateLabel", required = false) searchDateLabel: DisplayMessageClass) : ResponseEntity<CommonResult> {
+                  @RequestParam(name = "searchDateLabel", required = false) searchDateLabel: DisplayMessageClass,
+                  @RequestParam(name = "vehicleNo", required = false) vehicleNo: String? = null
+    ) : ResponseEntity<CommonResult> {
         return CommonResult.returnResult(
             rcsService.getInouts(reqSearchParkin(searchDateLabel = searchDateLabel,
                 fromDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                toDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")))))
+                toDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                searchLabel = vehicleNo?.let { "CARNUM" },
+                searchText = vehicleNo,
+            )))
+    }
+
+    @RequestMapping(value=["/inout"], method = [RequestMethod.POST])
+    fun createInout(@RequestBody request: resParkInList) : ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(rcsService.createInout(request))
     }
 
     @RequestMapping(value=["/tickets"], method = [RequestMethod.GET])
