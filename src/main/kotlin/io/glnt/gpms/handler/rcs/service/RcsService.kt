@@ -19,6 +19,7 @@ import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.entity.Failure
 import io.glnt.gpms.model.entity.ProductTicket
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.ExternalSvrType
 import io.glnt.gpms.model.enums.checkUseStatus
 import io.reactivex.Observable
@@ -260,6 +261,7 @@ class RcsService(
     @Throws(CustomException::class)
     fun createTicket(request: ProductTicket) : CommonResult {
         try {
+            request.delYn = DelYn.N
             return CommonResult.data(productService.saveProductTicket(request))
         }catch (e: CustomException) {
             logger.error { "rcs createTicket failed $e" }
