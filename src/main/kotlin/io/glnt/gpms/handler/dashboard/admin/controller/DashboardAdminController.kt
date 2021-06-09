@@ -7,7 +7,6 @@ import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.dashboard.admin.model.*
 import io.glnt.gpms.handler.dashboard.admin.service.DashboardAdminService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
-import io.glnt.gpms.handler.inout.model.resParkInList
 import io.glnt.gpms.model.dto.request.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired

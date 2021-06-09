@@ -194,6 +194,23 @@ class ProductService {
                 }
             }
 
+            if (request.searchDateLabel == DateType.VALIDATE) {
+                if (request.fromDate != null && request.toDate != null) {
+                    clues.add(
+                        criteriaBuilder.lessThanOrEqualTo(
+                            root.get("effectDate"),
+                            DateUtil.lastTimeToLocalDateTime(request.toDate.toString())
+                        )
+                    )
+                    clues.add(
+                        criteriaBuilder.greaterThanOrEqualTo(
+                            root.get("expireDate"),
+                            DateUtil.lastTimeToLocalDateTime(request.fromDate.toString())
+                        )
+                    )
+                }
+            }
+
             if (request.effectDate != null) {
                 clues.add(
                     criteriaBuilder.equal(root.get<String>("effectDate"), request.effectDate)

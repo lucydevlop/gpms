@@ -16,7 +16,10 @@ import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.rcs.model.*
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
+import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.entity.Failure
+import io.glnt.gpms.model.entity.ProductTicket
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.ExternalSvrType
 import io.glnt.gpms.model.enums.checkUseStatus
 import io.reactivex.Observable
@@ -211,6 +214,36 @@ class RcsService(
     }
 
     @Throws(CustomException::class)
+    fun createInout(request: resParkInList) : CommonResult {
+        try {
+            return CommonResult.data(inoutService.createInout(request).data)
+        }catch (e: CustomException){
+            logger.error { "rcs createInout failed $e" }
+            return CommonResult.error("rcs createInout failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun calcInout(request: resParkInList) : CommonResult {
+        try {
+            return CommonResult.data(inoutService.calcInout(request))
+        }catch (e: CustomException){
+            logger.error { "rcs calcInout failed $e" }
+            return CommonResult.error("rcs calcInout failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun updateInout(request: resParkInList) : CommonResult {
+        try {
+            return CommonResult.data(inoutService.updateInout(request))
+        }catch (e: CustomException){
+            logger.error { "rcs updateInout failed $e" }
+            return CommonResult.error("rcs updateInout failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
     fun getTickets(request: reqSearchProductTicket): CommonResult {
         try {
 //            productService.getProducts(request)?.let { tickets ->
@@ -222,6 +255,18 @@ class RcsService(
         }catch (e: CustomException) {
             logger.error { "rcs getTickets failed $e" }
             return CommonResult.error("rcs getTickets failed")
+        }
+    }
+
+
+    @Throws(CustomException::class)
+    fun createTicket(request: ProductTicket) : CommonResult {
+        try {
+            request.delYn = DelYn.N
+            return CommonResult.data(productService.saveProductTicket(request))
+        }catch (e: CustomException) {
+            logger.error { "rcs createTicket failed $e" }
+            return CommonResult.error("rcs createTicket failed")
         }
     }
 

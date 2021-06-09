@@ -6,6 +6,7 @@ import io.glnt.gpms.common.utils.Base64Util
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.calc.model.BasicPrice
 import io.glnt.gpms.handler.calc.service.FeeCalculation
 import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.model.reqDisplayMessage
@@ -19,6 +20,7 @@ import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
+import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.*
@@ -984,8 +986,52 @@ class InoutService(
                 parkIn.parkcartype = request.parkcartype
                 request.memo?.let{ parkIn.memo = request.memo}
 
-                parkInRepository.save(parkIn)
-                parkInRepository.flush()
+                parkInRepository.saveAndFlush(parkIn)
+
+                request.outDate?.let {
+                    request.parkoutSn?.let {
+                        //기존 출차 데이터 update
+                        parkOutRepository.findBySn(it)?.let { parkOut ->
+                            parkOut.outDate = request.outDate
+                            parkOut.parktime = request.parktime
+                            request.outGateId?.let { parkOut.gateId = request.outGateId }
+                            request.parktime?.let {  parkOut.parktime = request.parktime}
+                            request.parkfee?.let {  parkOut.parkfee = request.parkfee}
+                            request.payfee?.let {  parkOut.payfee = request.payfee }
+                            request.dayDiscountfee?.let {  parkOut.dayDiscountfee = request.dayDiscountfee }
+                            request.discountfee?.let {  parkOut.discountfee = request.discountfee}
+                            parkOutRepository.saveAndFlush(parkOut)
+                            parkIn.outSn = parkOut.sn
+                        }
+                    }?: kotlin.run {
+                        //신규 출차 데이터
+                        val new = ParkOut(
+                            sn = null,
+                            gateId = request.outGateId,
+                            parkcartype = parkIn.parkcartype,
+                            userSn = 0,
+                            vehicleNo = request.vehicleNo,
+                            flag = 0,
+                            resultcode = 4,
+                            requestid = parkinglotService.generateRequestId(),
+                            hour = DateUtil.nowTimeDetail.substring(0, 2),
+                            min = DateUtil.nowTimeDetail.substring(3, 5),
+                            outDate = request.outDate,
+                            parktime = request.parktime,
+                            parkfee = request.parkfee,
+                            payfee = request.payfee,
+                            discountfee = request.discountfee,
+                            dayDiscountfee = request.dayDiscountfee,
+                            inSn = parkIn.sn,
+                            uuid = UUID.randomUUID().toString(),
+                            image = "null"
+                        )
+                        parkOutRepository.saveAndFlush(new)
+                        parkIn.outSn = new.sn
+
+                    }
+                    parkInRepository.saveAndFlush(parkIn)
+                }
             }
 //            var inResult: Any? = null
 //            parkinglotService.getFacilityByGateAndCategory(request.inGateId!!, "LPR")?.let { its ->
@@ -1051,6 +1097,28 @@ class InoutService(
             logger.error { "deleteInout failed $e" }
             return CommonResult.error("deleteInout failed")
         }
+    }
+
+    fun calcInout(request: resParkInList): resParkInList {
+        if (parkinglotService.parkSite!!.saleType == SaleType.PAID) {
+            val price = feeCalculation.getBasicPayment(request.inDate, request.outDate, VehicleType.SMALL, request.vehicleNo, 1, 0, request.parkinSn)
+            logger.warn { "-------------------getBasicPayment Result -------------------" }
+            logger.warn { "입차시간 : ${request.inDate}!!.inDate!! / 출차시간 : ${request.outDate} / 주차시간: ${price!!.parkTime}" }
+            logger.warn { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price.totalPrice} / 할인 요금 : ${price.discountPrice} / 일최대할인요금 : ${price.dayilyMaxDiscount}" }
+            request.parktime = price!!.parkTime
+            request.parkfee = price.orgTotalPrice
+            request.payfee = price.totalPrice
+            request.discountfee = price.discountPrice
+            request.dayDiscountfee = price.dayilyMaxDiscount
+        } else {
+            request.paymentAmount = 0
+            request.dayDiscountfee = 0
+            request.parktime = DateUtil.diffMins(request.inDate, request.outDate!!)
+            request.parkfee = 0
+            request.payfee = 0
+            request.discountfee = 0
+        }
+        return request
     }
 
     fun paymentResult(request: reqPaymentResult, requestId: String, gateId: String) : CommonResult {

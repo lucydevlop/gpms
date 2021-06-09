@@ -14,7 +14,6 @@ import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
-import io.glnt.gpms.handler.inout.model.resParkInList
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
@@ -126,10 +125,11 @@ class DashboardAdminService(
             val result = inoutService.getAllParkLists(request)
 
             result?.let { result ->
-                request.searchDateLabel?.let { it ->
-                    when (it) {
-                        DisplayMessageClass.IN -> result.sortByDescending { r -> r.inDate }
-                        DisplayMessageClass.OUT -> result.sortByDescending { r -> r.outDate }
+                request.searchDateLabel?.let { label ->
+                    when (label) {
+                        DisplayMessageClass.IN -> result.sortedByDescending { it.inDate }
+                        DisplayMessageClass.OUT -> result.sortedByDescending { it.outDate }
+                        else -> result
                     }
                 }
             }

@@ -134,7 +134,8 @@ enum class ErrorCode {
 
 enum class DateType(val code: String, val desc: String) {
     EFFECT("EFFECT", "시작일"),
-    EXPIRE("EXPIRE", "종료일")
+    EXPIRE("EXPIRE", "종료일"),
+    VALIDATE("VALIDATE", "사용가능")
 }
 
 enum class DisplayStatus(val code: String, val desc: String) {
