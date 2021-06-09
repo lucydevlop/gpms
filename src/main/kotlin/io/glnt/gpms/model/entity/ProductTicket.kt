@@ -1,6 +1,7 @@
 package io.glnt.gpms.model.entity
 
 //import androidx.room.*
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.vladmihalcea.hibernate.type.json.JsonStringType
@@ -43,6 +44,7 @@ data class ProductTicket(
 
     @Column(name = "valid_date", nullable = true)
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var validDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59", "yyyy-MM-dd HH:mm:ss"),
 
     @Enumerated(EnumType.STRING)
@@ -92,10 +94,12 @@ data class ProductTicket(
 
     @Column(name = "effect_date", nullable = true)
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var effectDate: LocalDateTime? = DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate),
 
     @Column(name = "expire_date", nullable = true)
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var expireDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59", "yyyy-MM-dd HH:mm:ss"),
 
     @Enumerated(EnumType.STRING)

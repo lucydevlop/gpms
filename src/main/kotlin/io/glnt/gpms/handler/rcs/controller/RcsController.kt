@@ -7,6 +7,7 @@ import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.dto.request.resParkInList
+import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.model.enums.DateType
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import org.apache.poi.ss.usermodel.DateUtil
@@ -59,13 +60,32 @@ class RcsController(
         return CommonResult.returnResult(rcsService.createInout(request))
     }
 
+    // 주차요금 계산
+    @RequestMapping(value=["/calc/inout"], method = [RequestMethod.POST])
+    fun calcInout(@RequestBody request: resParkInList) : ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(rcsService.calcInout(request))
+    }
+
+    // 입출차 정보 갱신
+    @RequestMapping(value=["/inout"], method = [RequestMethod.PATCH])
+    fun updateInout(@RequestBody request: resParkInList) : ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(rcsService.updateInout(request))
+    }
+
     @RequestMapping(value=["/tickets"], method = [RequestMethod.GET])
     fun getTickets(@RequestParam(name = "startDate", required = false) startDate: String,
-                   @RequestParam(name = "endDate", required = false) endDate: String) : ResponseEntity<CommonResult> {
+                   @RequestParam(name = "endDate", required = false) endDate: String,
+                   @RequestParam(name = "searchDateLabel", required = false) searchDateLabel: DateType
+    ) : ResponseEntity<CommonResult> {
         return CommonResult.returnResult(
-            rcsService.getTickets(reqSearchProductTicket(searchDateLabel = DateType.EFFECT,
+            rcsService.getTickets(reqSearchProductTicket(searchDateLabel = searchDateLabel,
                 fromDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                 toDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")))))
+    }
+
+    @RequestMapping(value=["/ticket"], method = [RequestMethod.POST])
+    fun createTicket(@RequestBody request: ProductTicket) : ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(rcsService.createTicket(request))
     }
 
 
