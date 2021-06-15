@@ -21,7 +21,8 @@ data class reqCreateProductTicket(
     var name: String? = null,
     var etc1: String? = null,
     var tel: String? = null,
-    var vehiclekind: String? = null
+    var vehiclekind: String? = null,
+    var ticketSn: Long? = null
 )
 
 data class reqSearchProductTicket(

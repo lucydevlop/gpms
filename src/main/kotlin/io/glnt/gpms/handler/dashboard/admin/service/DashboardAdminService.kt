@@ -720,14 +720,24 @@ class DashboardAdminService(
             }?: kotlin.run {
                 return CommonResult.error("Admin externalAsyncParkinglot failed")
             }
-//            parkinglotService.parkSite!!.ip?.let {
-//
-//                return CommonResult.data("Admin externalAsyncParkinglot success")
-//            }? : run {
-//                return CommonResult.error("Admin externalAsyncParkinglot failed")
-//            }
         } catch (e: CustomException) {
             return CommonResult.error("Admin externalAsyncParkinglot failed")
+        }
+    }
+
+    fun getTicketList() : CommonResult {
+        return CommonResult.data(productService.getTicketClass())
+    }
+
+    fun createTicketClass(request: TicketClass): CommonResult {
+        try {
+            productService.createTicketClass(request)?.let {
+                return CommonResult.data(it)
+            }?: kotlin.run {
+                return CommonResult.error("Admin create ticket-class failed")
+            }
+        } catch (e: CustomException){
+            return CommonResult.error("Admin create ticket-class failed")
         }
     }
 }

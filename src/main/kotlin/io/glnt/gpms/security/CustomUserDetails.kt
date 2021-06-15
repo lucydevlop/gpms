@@ -29,15 +29,6 @@ class CustomUserDetails : UserDetailsService {
         userRepository.findUsersById(username)?.let { profile ->
             logger.info{ "loadUserByUsername find id: " + profile.id }
             return UserPrincipal(profile)
-//            return org.springframework.security.core.userdetails.User
-//                .withUsername(profile.id.toString())
-//                .password(profile.password)
-//                .authorities(profile.role.name)
-//                .accountExpired(false)
-//                .accountLocked(false)
-//                .credentialsExpired(false)
-//                .disabled(false)
-//                .build()
         }
 
         logger.info{ "loadUserByUsername find not email: " + username }

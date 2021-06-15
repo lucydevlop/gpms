@@ -7,9 +7,11 @@ import io.glnt.gpms.handler.product.model.reqSearchProduct
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.entity.ProductTicket
+import io.glnt.gpms.model.entity.TicketClass
 import io.glnt.gpms.model.enums.DateType
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.repository.ProductTicketRepository
+import io.glnt.gpms.model.repository.TicketClassRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.jpa.domain.Specification
@@ -25,6 +27,9 @@ class ProductService {
 
     @Autowired
     private lateinit var productTicketRepository: ProductTicketRepository
+
+    @Autowired
+    private lateinit var ticketClassRepository: TicketClassRepository
 
     fun getValidProductByVehicleNo(vehicleNo: String): ProductTicket? {
         return productTicketRepository.findByVehicleNoAndValidDateGreaterThanEqualAndRegDateLessThanEqualAndDelYn(vehicleNo, LocalDateTime.now(), LocalDateTime.now(), DelYn.N)
@@ -62,7 +67,9 @@ class ProductService {
                         etc1 = request.etc1?.let { request.etc1 } ?: run { it.etc1 },
                         name = request.name?.let { request.name } ?: run { it.name },
                         tel = request.tel?.let { request.tel } ?: run { it.tel },
-                        vehiclekind = request.vehiclekind?.let { request.vehiclekind } ?: run { it.vehiclekind }
+                        vehiclekind = request.vehiclekind?.let { request.vehiclekind } ?: run { it.vehiclekind },
+                        ticketSn = request.ticketSn?.let { request.ticketSn } ?: run { it.ticketSn },
+
                     )
                     return CommonResult.data(saveProductTicket(new))
                 } ?: run {
@@ -94,7 +101,7 @@ class ProductService {
                             effectDate = request.effectDate, expireDate = request.expireDate,
                             userId = request.userId, gates = request.gateId!!, ticketType = request.ticketType,
                             vehicleType = request.vehicleType, corpSn = request.corpSn, etc = request.etc,
-                            name = request.name, etc1 = request.etc1, tel = request.tel, vehiclekind = request.vehiclekind
+                            name = request.name, etc1 = request.etc1, tel = request.tel, vehiclekind = request.vehiclekind, ticketSn = request.ticketSn
                         )
                         saveProductTicket(new)
                     } else {
@@ -121,7 +128,8 @@ class ProductService {
                         vehicleType = request.vehicleType,
                         corpSn = request.corpSn,
                         etc = request.etc,
-                        name = request.name , etc1 = request.etc1, tel = request.tel, vehiclekind = request.vehiclekind
+                        name = request.name , etc1 = request.etc1, tel = request.tel, vehiclekind = request.vehiclekind,
+                        ticketSn = request.ticketSn
                     )
                     return CommonResult.data(saveProductTicket(new))
                 }
@@ -248,5 +256,20 @@ class ProductService {
         return spec
     }
 
+    fun getTicketClass() : List<TicketClass>? {
+        return ticketClassRepository.findAll()
+    }
 
+    fun createTicketClass(request: TicketClass): TicketClass? {
+        try {
+            ticketClassRepository.findByTicketNameAndDelYn(request.ticketName, DelYn.N)?.let {
+                return null
+            }?: kotlin.run {
+                return ticketClassRepository.save(request)
+            }
+        }catch (e: RuntimeException) {
+            logger.info { "createTicketClass error $e" }
+            return null
+        }
+    }
 }

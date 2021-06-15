@@ -64,7 +64,7 @@ class GPMSApplication(
             if (env.getProperty("server.ssl.key-store") != null) {
                 protocol = "https"
             }
-            log.info(
+            log.warn(
                 "\n----------------------------------------------------------\n\t" +
                         "Application '{}' is running! Access URLs:\n\t" +
                         "Local: \t\t{}://localhost:{}\n\t" +

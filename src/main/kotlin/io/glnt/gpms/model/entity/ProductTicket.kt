@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.vladmihalcea.hibernate.type.json.JsonStringType
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.model.entity.TicketClass
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.TicketType
 import io.glnt.gpms.model.enums.VehicleType
@@ -29,6 +30,9 @@ data class ProductTicket(
 
     @Column(name = "corp_sn", nullable = true)
     var corpSn: Long? = null,
+
+    @Column(name = "ticket_sn", nullable = true)
+    var ticketSn: Long? = null,
 
     @Column(name = "corp_name", nullable = true)
     var corpName: String? = null,
@@ -114,6 +118,10 @@ data class ProductTicket(
     @OneToOne
     @JoinColumn(name = "corp_sn", referencedColumnName = "sn", insertable = false, updatable = false)
     var corp: Corp? = null
+
+    @OneToOne
+    @JoinColumn(name = "ticket_sn", referencedColumnName = "sn", insertable = false, updatable = false)
+    var ticket: TicketClass? = null
 }
 
 //class ListConverter{
