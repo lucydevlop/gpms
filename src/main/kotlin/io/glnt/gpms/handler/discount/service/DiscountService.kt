@@ -43,8 +43,12 @@ class DiscountService {
     @Autowired
     private lateinit var inoutDiscountRepository: InoutDiscountRepository
 
-    fun getDiscountClass() : CommonResult {
-        return CommonResult.data(discountClassRepository.findAll())
+    fun getDiscountClass() : List<DiscountClass>? {
+        return discountClassRepository.findAll()
+    }
+
+    fun getDiscountClassBySn(sn: Long): DiscountClass {
+        return discountClassRepository.findBySn(sn)
     }
 
     fun createDiscountClass(request: DiscountClass): DiscountClass? {
@@ -60,7 +64,7 @@ class DiscountService {
     fun deleteDiscountClass(sn: Long) : DiscountClass? {
         logger.info { "deleteDiscountClass $sn" }
         try {
-            return discountClassRepository.findBySn(sn)?.let {
+            return getDiscountClassBySn(sn).let {
                 it.delYn = DelYn.Y
                 discountClassRepository.saveAndFlush(it)
             }?: kotlin.run {

@@ -123,6 +123,11 @@ enum class OpenActionType(val code: String, val desc: String) {
 enum class DiscountApplyType(val code: String, val desc: String) {
     TIME("TIME", "시간"),
     WON("WON", "금액"),
+    PERCENT("PERCENT", "%")
+}
+
+enum class DiscountType {
+    DISCOUNT, REDUCTION
 }
 
 enum class ErrorCode {

@@ -87,6 +87,19 @@ class AuthService {
                 )
             )
         }
+        userRepository.findUsersById("rcs-user")?: run {
+            userRepository.save(
+                SiteUser(
+                    idx = null,
+                    id = "rcs-user",
+                    password = passwordEncoder.encode("glnt123!@#"),
+                    userName = "rcs",
+                    userPhone = "0100000000",
+                    role = UserRole.SUPER_ADMIN,
+                    delYn = DelYn.N
+                )
+            )
+        }
     }
 
     fun adminLogin(request: reqLogin) : CommonResult = with(request) {

@@ -16,6 +16,11 @@ spring:
     password: glnt123!@#
     driver-class-name: org.mariadb.jdbc.Driver
     jdbc-url: jdbc:mariadb://test-db.cwvvhmqatlkn.ap-northeast-2.rds.amazonaws.com:3306/glnt_parking?useSSL=false
+
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 4
+
 #  datasource:
 #    username: root
 #    password: Parking1234!@#$
@@ -48,6 +53,7 @@ gateway:
 
 glnt:
   url: http://localhost:9105
+#  url: http://ec2-3-36-62-144.ap-northeast-2.compute.amazonaws.com:9105
 
 adtcaps:
   url: http://192.168.20.9:9105

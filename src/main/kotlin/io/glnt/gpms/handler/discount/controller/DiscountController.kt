@@ -24,7 +24,7 @@ class DiscountController {
     @Throws(CustomException::class)
     fun getDiscountClass() : ResponseEntity<CommonResult> {
         logger.trace { "getDiscountClass" }
-        return ResponseEntity(discountService.getDiscountClass(), HttpStatus.OK)
+        return CommonResult.returnResult(CommonResult.data(discountService.getDiscountClass()))
     }
 
 //    @RequestMapping(value = ["/create"], method = [RequestMethod.POST])

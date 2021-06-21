@@ -10,6 +10,8 @@ import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.model.entity.TicketClass
 import io.glnt.gpms.model.enums.DateType
 import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.DiscountRangeType
+import io.glnt.gpms.model.enums.TicketAplyType
 import io.glnt.gpms.model.repository.ProductTicketRepository
 import io.glnt.gpms.model.repository.TicketClassRepository
 import mu.KLogging
@@ -36,7 +38,26 @@ class ProductService {
     }
 
     fun getValidProductByVehicleNo(vehicleNo: String, startTime: LocalDateTime, endTime: LocalDateTime): ProductTicket? {
-        return productTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startTime, endTime, DelYn.N)
+        productTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startTime, endTime, DelYn.N)?.let { productTicket ->
+            productTicket.ticket?.let { ticketClass ->
+                when (ticketClass.rangeType) {
+                    DiscountRangeType.ALL -> {
+                        if (ticketClass.aplyType == TicketAplyType.FULL) return productTicket
+                        return productTicket
+
+                    }
+                    DiscountRangeType.WEEKDAY -> {
+
+                    }
+                }
+                return productTicket
+//                if (ticketClass.rangeType == DiscountRangeType.ALL && ) return productTicket
+//                if (ticketClass.aplyType == TicketAplyType.FULL) return productTicket
+//                productTicket.ticket.aplyType
+            }?: kotlin.run {
+                return productTicket
+            }
+        }?: kotlin.run { return null }
     }
 
     fun calcRemainDayProduct(vehicleNo: String): Int {

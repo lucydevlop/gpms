@@ -678,16 +678,23 @@ class DashboardAdminService(
 
     fun createDiscountTicket(request: reqDiscountTicket): CommonResult {
         try {
-            return discountService.createDiscountClass(
-                DiscountClass(sn = null, discountNm = request.discountNm,
+            discountService.createDiscountClass(DiscountClass(sn = null, discountNm = request.discountNm,
                               dayRange = request.dayRange, unitTime = request.unitTime!!,
                               disUse = request.disUse, disMaxNo = request.disMaxNo,
                               disMaxDay = request.disMaxDay,  disMaxMonth = request.disMaxMonth,
                               disPrice = request.disPrice, effectDate = request.effectDate, expireDate = request.expireDate,
-                              delYn = DelYn.N))?.let {
-                                  CommonResult.data(it)
+                              delYn = DelYn.N))?.let { discountClass ->
+
+                // 할인권 생성 시 rcs 계정에도 할인권 생성
+                corpService.getCorp(reqSearchCorp(corpId = "RCS")).data.let {
+                    val corp = it as Corp
+                    discountService.createCorpTicket(
+                        reqCreateCorpTicket(corpSn = corp.sn!!, discountClassSn = discountClass.sn!!, quantity = 999999999)
+                    )
+                }
+                return CommonResult.data(discountClass)
             }?: kotlin.run {
-                CommonResult.error("Admin createDiscountTicket failed")
+                return CommonResult.error("Admin createDiscountTicket failed")
             }
         }catch (e: CustomException){
             logger.error { "Admin createDiscountTicket failed $e" }

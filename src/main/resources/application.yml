@@ -5,6 +5,17 @@ spring:
     serialization:
       write_dates_as_timestamps: false
 
+  datasource:
+    hikari:
+      connectionTimeout: 30000
+      minimumIdle: 5
+      maximum-pool-size: 10
+      maxLifetime: 1800000
+      poolName: HikariCP
+      readOnly: false
+      connectionTestQuery: SELECT 1
+    type: com.zaxxer.hikari.HikariDataSource
+
 server:
   port: 7000
 
