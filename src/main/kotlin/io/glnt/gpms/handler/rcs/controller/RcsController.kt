@@ -3,6 +3,7 @@ package io.glnt.gpms.handler.rcs.controller
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.common.configs.ApiConfig.API_VERSION
+import io.glnt.gpms.handler.discount.model.reqDiscountableTicket
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
@@ -10,10 +11,10 @@ import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.model.enums.DateType
 import io.glnt.gpms.model.enums.DisplayMessageClass
-import org.apache.poi.ss.usermodel.DateUtil
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @RestController
@@ -86,6 +87,25 @@ class RcsController(
     @RequestMapping(value=["/ticket"], method = [RequestMethod.POST])
     fun createTicket(@RequestBody request: ProductTicket) : ResponseEntity<CommonResult> {
         return CommonResult.returnResult(rcsService.createTicket(request))
+    }
+
+    @RequestMapping(value=["/discount-classes"], method = [RequestMethod.GET])
+    fun getDiscountClasses(@RequestParam(name = "corpSn", required = false) corpSn: String,
+                           @RequestParam(name = "date", required = false) date: String,
+                           @RequestParam(name = "inSn", required = false) inSn: String,
+
+    ): ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(
+            rcsService.getDiscountClasses(
+                reqDiscountableTicket(corpSn = corpSn.toLong(),
+                    inSn = inSn.toLong(),
+                    date = LocalDateTime.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))
+                )))
+    }
+
+    @RequestMapping(value=["/corp/{corpId}"], method = [RequestMethod.GET])
+    fun getCorpInfo(@PathVariable corpId: String): ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(rcsService.getCorpInfo(corpId))
     }
 
 

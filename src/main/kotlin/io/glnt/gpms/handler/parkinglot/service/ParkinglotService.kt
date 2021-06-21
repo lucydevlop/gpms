@@ -308,7 +308,7 @@ class ParkinglotService {
     }
 
     fun getFacility(facilityId: String) : Facility? {
-        return parkFacilityRepository.findByFacilitiesId(facilityId) ?: run {
+        return parkFacilityRepository.findByDtFacilitiesId(facilityId) ?: run {
             null
         }
     }

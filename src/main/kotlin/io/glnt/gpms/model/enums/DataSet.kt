@@ -123,6 +123,11 @@ enum class OpenActionType(val code: String, val desc: String) {
 enum class DiscountApplyType(val code: String, val desc: String) {
     TIME("TIME", "시간"),
     WON("WON", "금액"),
+    PERCENT("PERCENT", "%")
+}
+
+enum class DiscountType {
+    DISCOUNT, REDUCTION
 }
 
 enum class ErrorCode {
@@ -163,6 +168,10 @@ enum class ExternalSvrType(val code: String, val desc: String) {
 
 enum class CityType {
     SEOUL, GYEONGGIDO, INCHEON, BUSAN, DAEJEON, DAEGU, ULSAN, SEJONG, GWANGJU, GANGWONDO, CHUNGCHEONGBUKDO, CHUNGCHEONGNAMDO, GYEONGSANGBUKDO, GYEONGSANGNAMDO, JEOLLABUKDO, JEOLLANAMDO, JEJU
+}
+
+enum class TicketAplyType {
+    FULL, DAY, NIGHT, TIME
 }
 //enum class parkCarType {
 //    "일반차량", "정기권차량", "미인식차량"

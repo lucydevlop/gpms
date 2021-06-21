@@ -7,7 +7,11 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.corp.service.CorpService
+import io.glnt.gpms.handler.dashboard.admin.model.reqSearchCorp
 import io.glnt.gpms.handler.dashboard.admin.service.singleTimer
+import io.glnt.gpms.handler.discount.model.reqDiscountableTicket
+import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.inout.service.InoutService
@@ -36,7 +40,9 @@ class RcsService(
     private var inoutService: InoutService,
     private var restAPIManager: RestAPIManagerUtil,
     private var relayService: RelayService,
-    private var productService: ProductService
+    private var productService: ProductService,
+    private var discountService: DiscountService,
+    private var corpService: CorpService
 ) {
     companion object : KLogging()
 
@@ -51,7 +57,7 @@ class RcsService(
             when (parkinglotService.parkSite!!.externalSvr) {
                 ExternalSvrType.GLNT -> {
                     val response: HttpResponse<JsonNode?>? = restAPIManager.sendPostRequest(
-                        glntUrl+"/parkinglots",
+                        glntUrl+"/async/parkinglot",
                         ReqParkinglot(
                             parkinglot = AsyncParkinglot(ip = parkinglotService.parkSite!!.ip!!, name = parkinglotService.parkSite!!.sitename, city = parkinglotService.parkSite!!.city!!, address = parkinglotService.parkSite!!.address!! ),
                             facilities = facilityService.allFacilities()!!)
@@ -162,6 +168,7 @@ class RcsService(
 
     fun facilityAction(facilityId: String, status: String): CommonResult {
         try {
+            logger.warn { "RCS 설비 동작 요청 $facilityId status $status" }
             var action = when(status) {
                 "UP" -> "open"
                 "DOWN" -> "close"
@@ -267,6 +274,26 @@ class RcsService(
         }catch (e: CustomException) {
             logger.error { "rcs createTicket failed $e" }
             return CommonResult.error("rcs createTicket failed")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun getDiscountClasses(request: reqDiscountableTicket): CommonResult {
+        try {
+            return CommonResult.data(discountService.getDiscountableTickets(request).data)
+        }catch (e: CustomException) {
+            logger.error { "rcs getTickets failed $e" }
+            return CommonResult.error("rcs getTickets failed")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun getCorpInfo(corpId: String) : CommonResult {
+        try {
+            return CommonResult.data(corpService.getCorp(reqSearchCorp(corpId = corpId)).data)
+        }catch (e: CustomException) {
+            logger.error { "rcs getCorpInfo failed $e" }
+            return CommonResult.error("rcs getCorpInfo failed")
         }
     }
 

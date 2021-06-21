@@ -2,6 +2,7 @@ package io.glnt.gpms.model.dto.request
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.handler.dashboard.user.model.reqParkingDiscountAddTicket
 import io.glnt.gpms.model.enums.*
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -21,7 +22,8 @@ data class reqCreateProductTicket(
     var name: String? = null,
     var etc1: String? = null,
     var tel: String? = null,
-    var vehiclekind: String? = null
+    var vehiclekind: String? = null,
+    var ticketSn: Long? = null
 )
 
 data class reqSearchProductTicket(
@@ -116,5 +118,6 @@ data class resParkInList(
     var ticketCorpName: String? = null,
     var memo: String? = null,
     var paymentAmount: Int? = 0,
-    var dayDiscountfee: Int? = 0
+    var dayDiscountfee: Int? = 0,
+    var discountClasses: ArrayList<reqParkingDiscountAddTicket>? = null
 )

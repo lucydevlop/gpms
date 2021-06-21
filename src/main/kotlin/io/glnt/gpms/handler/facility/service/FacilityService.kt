@@ -44,8 +44,8 @@ class FacilityService(
     lateinit var displayMessagesOut: List<DisplayMessage>
     lateinit var displayMessagesWait: List<DisplayMessage>
 
-    @Value("\${gateway.url}")
-    lateinit var url: String
+//    @Value("\${gateway.url}")
+//    lateinit var url: String
 
     @Value("\${tmap.send}")
     lateinit var tmapSend: String
