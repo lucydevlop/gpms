@@ -99,7 +99,7 @@ class RcsController(
             rcsService.getDiscountClasses(
                 reqDiscountableTicket(corpSn = corpSn.toLong(),
                     inSn = inSn.toLong(),
-                    date = LocalDateTime.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                    date = LocalDateTime.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))
                 )))
     }
 

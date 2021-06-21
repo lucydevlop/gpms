@@ -1062,6 +1062,9 @@ class InoutService(
                         requestId = parkIn.outSn.toString(),
                         type = "adjustmentRequest"
                     )
+                } else {
+                    relayService.actionGate(request.outGateId!!, "GATE", "open")
+                    discountService.applyInoutDiscount(parkIn.sn!!)
                 }
             }
             return CommonResult.data()
