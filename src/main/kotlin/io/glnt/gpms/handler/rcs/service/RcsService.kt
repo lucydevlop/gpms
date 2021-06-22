@@ -243,7 +243,7 @@ class RcsService(
     @Throws(CustomException::class)
     fun updateInout(request: resParkInList) : CommonResult {
         try {
-            return CommonResult.data(inoutService.updateInout(request))
+            return CommonResult.data(inoutService.updateInout(request).data)
         }catch (e: CustomException){
             logger.error { "rcs updateInout failed $e" }
             return CommonResult.error("rcs updateInout failed ${e.message}")
@@ -278,9 +278,9 @@ class RcsService(
     }
 
     @Throws(CustomException::class)
-    fun getDiscountClasses(request: reqDiscountableTicket): CommonResult {
+    fun getDiscountClasses(): CommonResult {
         try {
-            return CommonResult.data(discountService.getDiscountableTickets(request).data)
+            return CommonResult.data(discountService.getDiscountClass()!!.filter { it.delYn == DelYn.N })
         }catch (e: CustomException) {
             logger.error { "rcs getTickets failed $e" }
             return CommonResult.error("rcs getTickets failed")

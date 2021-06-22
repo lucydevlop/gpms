@@ -62,6 +62,7 @@ enum class TicketType(val code: String, val desc: String) {
     DAYTICKET("DAYTICKET", "일일권"),
     FREETICKET("FREETICKET", "무료주차권"),
     CORPTICKET("CORPTICKET", "입주사할인권"),
+    DISCOUNT("DISCOUNT", "할인"),
     ALL("ALL", "전체할인권"),
     ETC("ETC", "기타");
 

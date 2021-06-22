@@ -742,6 +742,13 @@ class InoutService(
                     criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("vehicleNo")), likeValue)
                 )
             }
+
+            if(request.searchLabel == "INSN" && request.searchText != null) {
+                clues.add(
+                    criteriaBuilder.equal(root.get<Long>("sn"), request.searchText)
+                )
+            }
+
             if (request.fromDate != null && request.toDate != null) {
                 clues.add(
                     criteriaBuilder.between(
@@ -991,8 +998,8 @@ class InoutService(
                 parkInRepository.saveAndFlush(parkIn)
 
                 // 할인권 정보 추가
-                request.discountClasses?.let { it ->
-                    dashboardUserService.parkingDiscountAddTicket(it)
+                request.addDiscountClasses?.let { it ->
+                    discountService.addInoutDiscount(it)
                 }
 
                 request.outDate?.let {
@@ -1067,7 +1074,7 @@ class InoutService(
                     discountService.applyInoutDiscount(parkIn.sn!!)
                 }
             }
-            return CommonResult.data()
+            return CommonResult.data(getAllParkLists(reqSearchParkin(searchLabel = "INSN", searchText = request.parkinSn.toString(), searchDateLabel = DisplayMessageClass.IN))?.get(0))
         }catch (e: RuntimeException){
             logger.error { "updateInout failed ${e.message}" }
             return CommonResult.error("updateInout failed")
@@ -1099,9 +1106,9 @@ class InoutService(
 
     fun calcInout(request: resParkInList): resParkInList {
         if (parkinglotService.parkSite!!.saleType == SaleType.PAID) {
-            val price = feeCalculation.getCalcPayment(request.inDate, request.outDate, VehicleType.SMALL, request.vehicleNo, 1, 0, request.parkinSn, request.discountClasses)
-            logger.warn { "-------------------getBasicPayment Result -------------------" }
-            logger.warn { "입차시간 : ${request.inDate}!!.inDate!! / 출차시간 : ${request.outDate} / 주차시간: ${price!!.parkTime}" }
+            val price = feeCalculation.getCalcPayment(request.inDate, request.outDate, VehicleType.SMALL, request.vehicleNo, 1, 0, request.parkinSn, request.addDiscountClasses)
+            logger.warn { "-------------------getCalcPayment Result -------------------" }
+            logger.warn { "입차시간 : ${request.inDate} / 출차시간 : ${request.outDate} / 주차시간: ${price!!.parkTime}" }
             logger.warn { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price.totalPrice} / 할인 요금 : ${price.discountPrice} / 일최대할인요금 : ${price.dayilyMaxDiscount}" }
             request.parktime = price!!.parkTime
             request.parkfee = price.orgTotalPrice

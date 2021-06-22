@@ -90,17 +90,8 @@ class RcsController(
     }
 
     @RequestMapping(value=["/discount-classes"], method = [RequestMethod.GET])
-    fun getDiscountClasses(@RequestParam(name = "corpSn", required = false) corpSn: String,
-                           @RequestParam(name = "date", required = false) date: String,
-                           @RequestParam(name = "inSn", required = false) inSn: String,
-
-    ): ResponseEntity<CommonResult> {
-        return CommonResult.returnResult(
-            rcsService.getDiscountClasses(
-                reqDiscountableTicket(corpSn = corpSn.toLong(),
-                    inSn = inSn.toLong(),
-                    date = LocalDateTime.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))
-                )))
+    fun getDiscountClasses(): ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(rcsService.getDiscountClasses())
     }
 
     @RequestMapping(value=["/corp/{corpId}"], method = [RequestMethod.GET])

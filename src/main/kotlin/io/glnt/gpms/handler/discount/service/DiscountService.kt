@@ -9,6 +9,7 @@ import io.glnt.gpms.handler.dashboard.admin.model.reqCreateCorpTicket
 import io.glnt.gpms.handler.dashboard.admin.model.reqSearchCorp
 import io.glnt.gpms.handler.dashboard.common.model.reqParkingDiscountSearchTicket
 import io.glnt.gpms.handler.discount.model.*
+import io.glnt.gpms.model.dto.request.ReqAddParkingDiscount
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountRangeType
@@ -365,6 +366,21 @@ class DiscountService {
         }catch (e: CustomException) {
             logger.error { "getTodayUseDiscountTicket error $e" }
             return 0
+        }
+    }
+
+    fun addInoutDiscount(request: ArrayList<ReqAddParkingDiscount>) : Boolean{
+        try {
+            request.filter { it.cnt > 0 }.forEach { addDiscount ->
+                saveInoutDiscount(
+                    InoutDiscount(sn = null, discontType = TicketType.DISCOUNT, discountClassSn = addDiscount.discountClassSn,
+                        inSn = addDiscount.inSn, quantity = addDiscount.cnt, delYn = DelYn.N, calcYn = DelYn.Y)
+                )
+            }
+            return true
+        } catch (e: CustomException) {
+            logger.error { "addInoutDiscount failed $e" }
+            return false
         }
     }
 }
