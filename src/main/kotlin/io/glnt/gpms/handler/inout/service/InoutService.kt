@@ -684,6 +684,8 @@ class InoutService(
                                 payment.sumBy { it.amount!! }
                             }?: kotlin.run { 0 }
 
+                            result.aplyDiscountClasses = discountService.searchInoutDiscount(it.sn!!) as ArrayList<InoutDiscount>?
+
                             if (it.outSn!! > 0L && it.outSn != null) {
                                 parkOutRepository.findBySn(it.outSn!!)?.let { out ->
                                     result.type = DisplayMessageClass.OUT
@@ -714,10 +716,12 @@ class InoutService(
                                     inGateId = parkin.gateId, inDate = parkin.inDate!!,
                                     ticketCorpName = parkin.ticket?.corp?.corpName,
                                     parkoutSn = out.sn , outDate = out.outDate, outGateId = out.gateId, parktime = out.parktime,
-                                    parkfee = out.parkfee, payfee = out.payfee, discountfee = out.discountfee
+                                    parkfee = out.parkfee, payfee = out.payfee, discountfee = out.discountfee,
+                                    aplyDiscountClasses = discountService.searchInoutDiscount(parkin.sn!!) as ArrayList<InoutDiscount>?
                                 )
                                 results.add(result)
                             }
+
                         }
                     }
                 }
