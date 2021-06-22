@@ -8,6 +8,7 @@ import io.glnt.gpms.handler.dashboard.user.model.reqParkingDiscountAddTicket
 import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.holiday.service.HolidayService
 import io.glnt.gpms.handler.product.service.ProductService
+import io.glnt.gpms.model.dto.request.ReqAddParkingDiscount
 import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.entity.FareInfo
 import io.glnt.gpms.model.enums.DelYn
@@ -326,7 +327,7 @@ class FeeCalculation {
     }
 
     fun getCalcPayment(inTime: LocalDateTime, outTime: LocalDateTime?, vehicleType: VehicleType, vehicleNo: String?,
-                       type: Int, discountMin: Int, inSn: Long?, discountClasses: ArrayList<reqParkingDiscountAddTicket>?): BasicPrice? {
+                       type: Int, discountMin: Int, inSn: Long?, discountClasses: ArrayList<ReqAddParkingDiscount>?): BasicPrice? {
         if (outTime == null) return null
 
         logger.info { "-------------------getCalcPayment-------------------" }

@@ -28,7 +28,7 @@ data class InoutDiscount(
     var corpSn: Long? = null,
 
     @Column(name = "discount_class_sn")
-    var discountClassSn: Long? = null,
+    var discountClassSn: Long,
 
     @Column(name = "ticket_hist_sn", nullable = true)
     var ticketHistSn: Long? = null,
@@ -60,21 +60,18 @@ data class InoutDiscount(
 
     @OneToOne//(mappedBy = "serviceProduct", cascade = arrayOf(CascadeType.ALL), fetch = FetchType.EAGER)
     @JoinColumn(name = "ticket_hist_sn", referencedColumnName = "sn", insertable = false, updatable = false)
-    @Where(clause = "del_yn = 'N'")
     var ticketHist: CorpTicketHistory? = null
 
     @OneToOne//(mappedBy = "serviceProduct", cascade = arrayOf(CascadeType.ALL), fetch = FetchType.EAGER)
-    @JoinColumn(name = "corp_class_sn", referencedColumnName = "sn", insertable = false, updatable = false)
-    @Where(clause = "del_yn = 'N'")
-    var discountClass: DiscountClass? = null
+    @JoinColumn(name = "discount_class_sn", referencedColumnName = "sn", insertable = false, updatable = false)
+    lateinit var discountClass: DiscountClass
 
     @OneToOne//(mappedBy = "serviceProduct", cascade = arrayOf(CascadeType.ALL), fetch = FetchType.EAGER)
     @JoinColumn(name = "in_sn", referencedColumnName = "sn", insertable = false, updatable = false)
     @Where(clause = "del_yn = 'N'")
-    var parkIn: ParkIn? = null
+    lateinit var parkIn: ParkIn
 
     @OneToOne//(mappedBy = "serviceProduct", cascade = arrayOf(CascadeType.ALL), fetch = FetchType.EAGER)
     @JoinColumn(name = "corp_sn", referencedColumnName = "sn", insertable = false, updatable = false)
-    @Where(clause = "del_yn = 'N'")
     var corp: Corp? = null
 }
