@@ -1064,7 +1064,7 @@ class InoutService(
                             facilitiesId = facilityService.getUdpGateId(request.outGateId!!),
                             recognitionType = if (parkIn.parkcartype!! == "NORMAL") "FREE" else "SEASON",
                             recognitionResult = "RECOGNITION",
-                            paymentAmount = if (request.payfee != null) request.payfee.toString() else "0",
+                            paymentAmount = if (request.parkfee != null) request.parkfee.toString() else "0",
                             parktime = request.parktime.toString(),
                             parkTicketMoney = if (request.discountfee != null) request.discountfee.toString() else "0",  // 할인요금
                             vehicleIntime = DateUtil.nowDateTimeHm
