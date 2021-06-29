@@ -1,8 +1,5 @@
 package io.glnt.gpms.handler.relay.service
 
-import com.fasterxml.jackson.core.JsonFactory
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.DateUtil
@@ -31,10 +28,7 @@ import io.glnt.gpms.model.repository.ParkFacilityRepository
 import io.glnt.gpms.model.repository.VehicleListSearchRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.annotation.PostConstruct
 
@@ -43,8 +37,6 @@ class RelayService() {
     companion object : KLogging()
 
     lateinit var parkAlarmSetting: ParkAlarmSetting
-
-//    lateinit var failureList: ArrayList<Failure>
 
     @Autowired
     private lateinit var tmapSendService: TmapSendService
@@ -456,6 +448,15 @@ class RelayService() {
                     )
                 )
             }
+        }
+    }
+
+    fun callVoip(voipId: String) : CommonResult {
+        try {
+            return rcsService.asyncCallVoip(voipId)
+        }catch (e: RuntimeException) {
+            logger.error { "sendDisplayStatus $e"}
+            return CommonResult.error("send call voip $voipId")
         }
     }
 

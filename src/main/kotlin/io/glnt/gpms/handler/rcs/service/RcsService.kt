@@ -253,11 +253,6 @@ class RcsService(
     @Throws(CustomException::class)
     fun getTickets(request: reqSearchProductTicket): CommonResult {
         try {
-//            productService.getProducts(request)?.let { tickets ->
-//                tickets.forEach {
-//
-//                }
-//            }
             return CommonResult.data(productService.getProducts(request))
         }catch (e: CustomException) {
             logger.error { "rcs getTickets failed $e" }
@@ -294,6 +289,19 @@ class RcsService(
         }catch (e: CustomException) {
             logger.error { "rcs getCorpInfo failed $e" }
             return CommonResult.error("rcs getCorpInfo failed")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun asyncCallVoip(voipId: String): CommonResult {
+        try {
+            restAPIManager.sendGetRequest(
+                glntUrl + "/parkinglots/" + parkinglotService.parkSite!!.rcsParkId!! + "/call/" + voipId
+            )
+            return CommonResult.data()
+        }catch (e: CustomException) {
+            logger.error { "rcs asyncCallVoip failed $voipId $e" }
+            return CommonResult.error("rcs asyncCallVoip failed")
         }
     }
 

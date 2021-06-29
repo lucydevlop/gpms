@@ -76,7 +76,7 @@ class RelayController {
     @RequestMapping(value = ["/call/voip/{voipId}"], method = [RequestMethod.GET])
     fun callVoip(@PathVariable voipId: String): ResponseEntity<CommonResult> {
         logger.info { "callVoip $voipId" }
-        return CommonResult.returnResult(CommonResult.data("success"))
+        return CommonResult.returnResult(relayService.callVoip(voipId))
     }
 
     companion object : KLogging()
