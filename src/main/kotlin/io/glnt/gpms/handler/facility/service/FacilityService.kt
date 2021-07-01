@@ -681,7 +681,8 @@ class FacilityService(
                     for (facility in facilities) {
                         result.add(ResAsyncFacility(sn = facility.sn!!, category = facility.category,
                             modelid = facility.modelid, fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
-                            facilitiesId = facility.facilitiesId!!, gateId = facility.gateId, gateName = gate.gateName!!,
+                            facilitiesId = if (facility.facilitiesId.isNullOrEmpty()) facility.dtFacilitiesId else facility.facilitiesId,
+                            gateId = facility.gateId, gateName = gate.gateName!!,
                             ip = facility.ip!!, port = facility.port!!, lprType = facility.lprType, imagePath = facility.imagePath,
                             health = if (facility.ip == "0.0.0.0") "NORMAL" else facility.health,
                             healthDate = facility.healthDate, status = facility.status,

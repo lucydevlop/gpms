@@ -575,7 +575,7 @@ class InoutService(
                             displayMessage(parkingtype!!, vehicleNo, "WAIT", gate.gateId)
                         }
                         else -> {
-                            displayMessage(parkingtype!!, if (price != null) (price!!.orgTotalPrice!!-price!!.dayilyMaxDiscount!!).toString()+"원" else "0원", "WAIT", gate.gateId)
+                            displayMessage(parkingtype!!, if (price != null) (price!!.totalPrice).toString()+"원" else "0원", "WAIT", gate.gateId)
 
                             facilityService.sendPaystation(
                                 reqPayStationData(
@@ -584,9 +584,9 @@ class InoutService(
                                     facilitiesId = gate.udpGateid!!,
                                     recognitionType = if (parkingtype == "NORMAL") "FREE" else "SEASON",
                                     recognitionResult = "RECOGNITION",
-                                    paymentAmount = if (price != null) (price!!.orgTotalPrice!!-price!!.dayilyMaxDiscount!!).toString() else "0",
+                                    paymentAmount = if (price!!.totalPrice!! <= 0) "0" else if (price != null) (price!!.orgTotalPrice!!-price!!.dayilyMaxDiscount!!).toString() else "0",
                                     parktime = if (price != null) price!!.parkTime.toString() else newData.parktime?.let { newData.parktime.toString()}?.run { "0" },
-                                    parkTicketMoney = if (price != null) price!!.discountPrice!!.toString() else "0",  // 할인요금
+                                    parkTicketMoney = if (price!!.totalPrice!! <= 0) "0" else if (price != null) price!!.discountPrice!!.toString() else "0",  // 할인요금
                                     vehicleIntime = DateUtil.nowDateTimeHm
                                 ),
                                 gate = gate.gateId,
@@ -665,7 +665,7 @@ class InoutService(
     }
 
     @Transactional(readOnly = true)
-    fun getAllParkLists(request: reqSearchParkin): ArrayList<resParkInList>? {
+    fun getAllParkLists(request: reqSearchParkin): List<resParkInList>? {
         logger.info { "getAllParkLists $request" }
         try {
             val results = ArrayList<resParkInList>()
@@ -727,7 +727,7 @@ class InoutService(
                 }
                 else -> return null
             }
-            return results
+            return results.sortedByDescending { it.inDate }
         } catch (e: RuntimeException) {
             logger.error { "getAllParkLists $e" }
             return null
@@ -1055,25 +1055,24 @@ class InoutService(
                 displayMessage( parkIn.parkcartype!!,
                     (request.payfee?.let{ it.toString()+"원"}?: kotlin.run { "0원" }) as String, "WAIT", request.outGateId!!)
 
-                if (request.payfee != null && request.payfee!! > 0) {
+                facilityService.sendPaystation(
+                    reqPayStationData(
+                        paymentMachineType = if (parkIn.parkcartype!! == "NORMAL") "exit" else "SEASON",
+                        vehicleNumber = request.vehicleNo!!,
+                        facilitiesId = facilityService.getUdpGateId(request.outGateId!!),
+                        recognitionType = if (parkIn.parkcartype!! == "NORMAL" ) "FREE" else "SEASON",
+                        recognitionResult = "RECOGNITION",
+                        paymentAmount = if (request.payfee!! <= 0) "0" else if (request.parkfee != null) request.parkfee.toString() else "0",
+                        parktime = request.parktime.toString(),
+                        parkTicketMoney = if (request.payfee!! <= 0) "0" else if (request.discountfee != null) request.discountfee.toString() else "0",  // 할인요금
+                        vehicleIntime = DateUtil.nowDateTimeHm
+                    ),
+                    gate = request.outGateId!!,
+                    requestId = parkIn.outSn.toString(),
+                    type = "adjustmentRequest"
+                )
 
-                    facilityService.sendPaystation(
-                        reqPayStationData(
-                            paymentMachineType = if (parkIn.parkcartype!! == "NORMAL") "exit" else "SEASON",
-                            vehicleNumber = request.vehicleNo!!,
-                            facilitiesId = facilityService.getUdpGateId(request.outGateId!!),
-                            recognitionType = if (parkIn.parkcartype!! == "NORMAL") "FREE" else "SEASON",
-                            recognitionResult = "RECOGNITION",
-                            paymentAmount = if (request.parkfee != null) request.parkfee.toString() else "0",
-                            parktime = request.parktime.toString(),
-                            parkTicketMoney = if (request.discountfee != null) request.discountfee.toString() else "0",  // 할인요금
-                            vehicleIntime = DateUtil.nowDateTimeHm
-                        ),
-                        gate = request.outGateId!!,
-                        requestId = parkIn.outSn.toString(),
-                        type = "adjustmentRequest"
-                    )
-                } else {
+                if (request.payfee != null && request.payfee!! == 0) {
                     relayService.actionGate(request.outGateId!!, "GATE", "open")
                     discountService.applyInoutDiscount(parkIn.sn!!)
                 }
