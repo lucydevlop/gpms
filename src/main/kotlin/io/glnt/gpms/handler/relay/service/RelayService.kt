@@ -1,8 +1,5 @@
 package io.glnt.gpms.handler.relay.service
 
-import com.fasterxml.jackson.core.JsonFactory
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.DateUtil
@@ -15,6 +12,7 @@ import io.glnt.gpms.handler.inout.model.reqAddParkOut
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.inout.service.checkItemsAre
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.handler.relay.model.FacilitiesFailureAlarm
 import io.glnt.gpms.handler.relay.model.FacilitiesStatusNoti
 import io.glnt.gpms.handler.relay.model.paystationvehicleListSearch
@@ -30,20 +28,15 @@ import io.glnt.gpms.model.repository.ParkFacilityRepository
 import io.glnt.gpms.model.repository.VehicleListSearchRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.annotation.PostConstruct
 
 @Service
-class RelayService {
+class RelayService() {
     companion object : KLogging()
 
     lateinit var parkAlarmSetting: ParkAlarmSetting
-
-//    lateinit var failureList: ArrayList<Failure>
 
     @Autowired
     private lateinit var tmapSendService: TmapSendService
@@ -56,6 +49,9 @@ class RelayService {
 
     @Autowired
     private lateinit var inoutService: InoutService
+
+    @Autowired
+    private lateinit var rcsService: RcsService
 
     @Autowired
     private lateinit var restAPIManager: RestAPIManagerUtil
@@ -114,7 +110,6 @@ class RelayService {
                             Failure(
                                 sn = null,
                                 issueDateTime = LocalDateTime.now(),
-//                                        expireDateTime = LocalDateTime.now(),
                                 facilitiesId = facility.dtFacilitiesId,
                                 fName = data.fname,
                                 failureCode = "crossingGateLongTimeOpen",
@@ -126,7 +121,6 @@ class RelayService {
                             Failure(
                                 sn = null,
                                 issueDateTime = LocalDateTime.now(),
-//                                        expireDateTime = LocalDateTime.now(),
                                 facilitiesId = facility.dtFacilitiesId,
                                 fName = data.fname,
                                 failureCode = "crossingGateBarDamageDoubt",
@@ -137,8 +131,17 @@ class RelayService {
                 }
             }
 
-            if (parkinglotService.isTmapSend() && result.isNotEmpty())
-                tmapSendService.sendFacilitiesStatusNoti(reqTmapFacilitiesStatusNoti(facilitiesList = result), null)
+            if (result.isNotEmpty()) {
+                if (parkinglotService.isTmapSend()) {
+                    tmapSendService.sendFacilitiesStatusNoti(reqTmapFacilitiesStatusNoti(facilitiesList = result), null)
+                }
+
+                if (parkinglotService.isExternalSend()){
+                    facilityService.activeGateFacilities()?.let { it ->
+                        rcsService.asyncFacilitiesStatus(it)
+                    }
+                }
+            }
 
         } catch (e: CustomException){
             logger.error { "statusNoti failed ${e.message}" }
@@ -154,7 +157,6 @@ class RelayService {
                     saveFailure(
                         Failure(sn = null,
                             issueDateTime = LocalDateTime.now(),
-//                                        expireDateTime = LocalDateTime.now(),
                             facilitiesId = failure.dtFacilitiesId,
                             fName = facility.fname,
                             failureCode = failure.failureAlarm,
@@ -222,7 +224,6 @@ class RelayService {
                             saveFailure(
                                 Failure(sn = null,
                                     issueDateTime = LocalDateTime.now(),
-//                                    expireDateTime = LocalDateTime.now(),
                                     facilitiesId = facility.facilitiesId,
                                     fName = facility.fname,
                                     failureCode = "dailyUnAdjustment",
@@ -232,7 +233,6 @@ class RelayService {
                             saveFailure(
                                 Failure(sn = null,
                                         issueDateTime = LocalDateTime.now(),
-//                                        expireDateTime = LocalDateTime.now(),
                                         facilitiesId = facility.facilitiesId,
                                         fName = facility.fname,
                                         failureCode = "dailyUnAdjustment",
@@ -258,6 +258,7 @@ class RelayService {
                 )?.let {
                     it.expireDateTime = LocalDateTime.now()
                     failureRepository.save(it)
+                    rcsService.asyncRestoreAlarm(it)
                 }
             } else {
                 logger.info { "saveFailure $request" }
@@ -268,8 +269,10 @@ class RelayService {
                     it.failureFlag = it.failureFlag!! + 1
                     it.expireDateTime = null
                     failureRepository.save(it)
+                    //rcsService.asyncFailureAlram(it)
                 }?: run {
                     failureRepository.save(request)
+                    rcsService.asyncFailureAlarm(request)
                 }
             }
         }catch (e: CustomException){
@@ -445,6 +448,15 @@ class RelayService {
                     )
                 )
             }
+        }
+    }
+
+    fun callVoip(voipId: String) : CommonResult {
+        try {
+            return rcsService.asyncCallVoip(voipId)
+        }catch (e: RuntimeException) {
+            logger.error { "sendDisplayStatus $e"}
+            return CommonResult.error("send call voip $voipId")
         }
     }
 

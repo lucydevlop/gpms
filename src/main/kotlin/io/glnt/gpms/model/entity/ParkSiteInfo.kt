@@ -7,9 +7,7 @@ import com.google.common.collect.Multiset
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType
 import com.vladmihalcea.hibernate.type.json.JsonStringType
 import io.glnt.gpms.model.entity.Auditable
-import io.glnt.gpms.model.enums.OnOff
-import io.glnt.gpms.model.enums.SaleType
-import io.glnt.gpms.model.enums.VehicleDayType
+import io.glnt.gpms.model.enums.*
 import org.hibernate.annotations.Type
 import org.hibernate.annotations.TypeDef
 import java.io.Serializable
@@ -42,6 +40,10 @@ data class ParkSiteInfo(
 
     @Column(name = "postcode", nullable = true)
     var postcode: String? = null,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "city")
+    var city: CityType? = CityType.SEOUL,
 
     @Column(name = "address", nullable = true)
     var address: String? = null,
@@ -94,6 +96,16 @@ data class ParkSiteInfo(
     @Enumerated(EnumType.STRING)
     @Column(name = "tmap_send", nullable = true)
     var tmapSend: OnOff? = OnOff.OFF,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "external_svr", nullable = true)
+    var externalSvr: ExternalSvrType? = ExternalSvrType.NONE,
+
+    @Column(name = "rcs_park_id", nullable = true)
+    var rcsParkId: Long? = null,
+
+    @Column(name = "ip")
+    var ip: String? = null,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "vehicle_day_option")

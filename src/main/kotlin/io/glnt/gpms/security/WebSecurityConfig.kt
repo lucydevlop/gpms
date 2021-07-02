@@ -91,6 +91,7 @@ class SecurityConfiguration {
         override fun configure(http: HttpSecurity) {
             http
                 .antMatcher("/$API_VERSION/external/**")
+                .antMatcher("/$API_VERSION/rcs/**")
                 .exceptionHandling()
                 .authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 .and()
@@ -105,6 +106,7 @@ class SecurityConfiguration {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/$API_VERSION/external/**").authenticated()
+                .antMatchers("/$API_VERSION/rcs/**").authenticated()
                 .and()
                 .apply(apiKeyConfigurerAdapter())
                 .and()

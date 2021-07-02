@@ -18,7 +18,7 @@ spring:
     jdbc-url: jdbc:mariadb://test-db.cwvvhmqatlkn.ap-northeast-2.rds.amazonaws.com:3306/glnt_parking?useSSL=false
 
 logging:
-  path: /home/ubuntu/servers/glnt/gpms
+  path: C://logs/gpms
   config: classpath:logback-development.xml
   level:
     ROOT: INFO
@@ -26,19 +26,25 @@ logging:
     thesis: INFO
 
 server:
-  port: 13000
+  port: 14000
 
 image:
-  filepath: /home/ubuntu/servers/glnt/gpms/park/save
-
-tmap:
-  send: off
-  url:
-
-gateway:
-  url: http://
+  filepath: C://park//save
 
 file:
-  filepath: /home/ubuntu/servers/glnt/gpms/park/data
+  filepath: C://park//data
+
+tmap:
+  send: "OFF"
+  url: http://127.0.0.1:10000/api/v1/manage/devices/events
+
+gateway:
+  url: http://192.168.20.30:9999/v1
+
+glnt:
+  url: http://ec2-3-36-62-144.ap-northeast-2.compute.amazonaws.com:9105
+
+adtcaps:
+  url: http://ec2-3-36-62-144.ap-northeast-2.compute.amazonaws.com:9105
 
 

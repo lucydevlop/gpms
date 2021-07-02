@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
+import javax.annotation.PostConstruct
 import javax.persistence.criteria.Predicate
 
 @Service
@@ -24,6 +25,15 @@ class CorpService {
 
     @Autowired
     private lateinit var parkinglotService: ParkinglotService
+
+    @PostConstruct
+    fun init() {
+        corpRepository.findByCorpId("RCS")?: run {
+            corpRepository.save(Corp(
+                sn = null, corpId = "RCS", corpName = "RCS", form = 0, resident = 0, delYn = DelYn.N
+            ))
+        }
+    }
 
     fun getCorp(request: reqSearchCorp): CommonResult {
         logger.info { "getCorp $request" }
@@ -91,7 +101,7 @@ class CorpService {
                 )
             }
 
-            if ((request.searchLabel == "NAME"|| request.searchLabel == "CORPNAME") && request.searchText!!.isNotEmpty()) {
+            if ((request.searchLabel == "NAME"|| request.searchLabel == "CORPNAME") && request.searchText != null) {
                 val likeValue = "%" + request.searchText + "%"
                 clues.add(
                     criteriaBuilder.like(root.get<String>("corpName"), likeValue)

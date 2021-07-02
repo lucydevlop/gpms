@@ -7,8 +7,8 @@ import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.dashboard.admin.model.*
 import io.glnt.gpms.handler.dashboard.admin.service.DashboardAdminService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
-import io.glnt.gpms.handler.inout.model.resParkInList
 import io.glnt.gpms.model.dto.request.*
+import io.glnt.gpms.model.entity.TicketClass
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.FileSystemResource
@@ -299,6 +299,27 @@ class DashboardAdminController {
     fun deleteDiscountTicket(@PathVariable sn: Long) : ResponseEntity<CommonResult> {
         logger.trace("deleteDiscountTicket $sn")
         return CommonResult.returnResult(dashboardAdminService.deleteDiscountTicket(sn))
+    }
+
+    @RequestMapping(value = ["/external/async/parkinglot"], method = [RequestMethod.GET])
+    @Throws(CustomException::class)
+    fun externalAsyncParkinglot(): ResponseEntity<CommonResult> {
+        logger.trace("externalAsyncParkinglot")
+        return CommonResult.returnResult(dashboardAdminService.externalAsyncParkinglot())
+    }
+
+    @RequestMapping(value = ["/ticket/list"])
+    @Throws(CustomException::class)
+    fun getTicketList(): ResponseEntity<CommonResult> {
+        logger.trace("getTicketList")
+        return CommonResult.returnResult(dashboardAdminService.getTicketList())
+    }
+
+    @RequestMapping(value = ["/ticket"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun createTicketClass(@RequestBody request: TicketClass): ResponseEntity<CommonResult> {
+        logger.trace("createTicketClass")
+        return CommonResult.returnResult(dashboardAdminService.createTicketClass(request))
     }
 
     companion object : KLogging()

@@ -62,6 +62,7 @@ enum class TicketType(val code: String, val desc: String) {
     DAYTICKET("DAYTICKET", "일일권"),
     FREETICKET("FREETICKET", "무료주차권"),
     CORPTICKET("CORPTICKET", "입주사할인권"),
+    DISCOUNT("DISCOUNT", "할인"),
     ALL("ALL", "전체할인권"),
     ETC("ETC", "기타");
 
@@ -123,6 +124,11 @@ enum class OpenActionType(val code: String, val desc: String) {
 enum class DiscountApplyType(val code: String, val desc: String) {
     TIME("TIME", "시간"),
     WON("WON", "금액"),
+    PERCENT("PERCENT", "%")
+}
+
+enum class DiscountType {
+    DISCOUNT, REDUCTION
 }
 
 enum class ErrorCode {
@@ -134,7 +140,8 @@ enum class ErrorCode {
 
 enum class DateType(val code: String, val desc: String) {
     EFFECT("EFFECT", "시작일"),
-    EXPIRE("EXPIRE", "종료일")
+    EXPIRE("EXPIRE", "종료일"),
+    VALIDATE("VALIDATE", "사용가능")
 }
 
 enum class DisplayStatus(val code: String, val desc: String) {
@@ -153,6 +160,20 @@ enum class PayType(val code: String, val desc: String) {
     CASH("CASH", "현금")
 }
 
+enum class ExternalSvrType(val code: String, val desc: String) {
+    NONE("NONE", "없음"),
+    TMAP("TMAP", "티맵연동"),
+    ADTCAPS("ADTCAPS", "ADT캡스"),
+    GLNT("GLNT", "지엘엔티")
+}
+
+enum class CityType {
+    SEOUL, GYEONGGIDO, INCHEON, BUSAN, DAEJEON, DAEGU, ULSAN, SEJONG, GWANGJU, GANGWONDO, CHUNGCHEONGBUKDO, CHUNGCHEONGNAMDO, GYEONGSANGBUKDO, GYEONGSANGNAMDO, JEOLLABUKDO, JEOLLANAMDO, JEJU
+}
+
+enum class TicketAplyType {
+    FULL, DAY, NIGHT, TIME
+}
 //enum class parkCarType {
 //    "일반차량", "정기권차량", "미인식차량"
 //}

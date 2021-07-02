@@ -1,5 +1,6 @@
 package io.glnt.gpms.model.entity
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.entity.Auditable
@@ -20,11 +21,11 @@ data class Failure(
     var sn: Long?,
 
     @Column(name = "issueDateTime", nullable = false)
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var issueDateTime: LocalDateTime,
 
     @Column(name = "expireDateTime", nullable = true)
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var expireDateTime: LocalDateTime? = null,
 
     @Column(name = "FacilitiesId", nullable = true)

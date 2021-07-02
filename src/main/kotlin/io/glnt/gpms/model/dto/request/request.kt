@@ -2,6 +2,7 @@ package io.glnt.gpms.model.dto.request
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.model.entity.InoutDiscount
 import io.glnt.gpms.model.enums.*
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -21,7 +22,8 @@ data class reqCreateProductTicket(
     var name: String? = null,
     var etc1: String? = null,
     var tel: String? = null,
-    var vehiclekind: String? = null
+    var vehiclekind: String? = null,
+    var ticketSn: Long? = null
 )
 
 data class reqSearchProductTicket(
@@ -92,4 +94,38 @@ data class reqDiscountTicket(
     var disMaxDay: Int? = 9999,
     var disMaxMonth: Int? = 9999,
     var disPrice: Int? = 0
+)
+
+data class resParkInList(
+    var type: DisplayMessageClass,
+    var parkinSn: Long? = null,
+    var vehicleNo: String? = null,
+    var parkcartype: String,
+    var inGateId: String? = null,
+
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss") var inDate: LocalDateTime,
+    var parkoutSn: Long? = null,
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss") var outDate: LocalDateTime? = null,
+    var outGateId: String? = null,
+    var parktime: Int? = 0,
+    var parkfee: Int? = 0,
+    var payfee: Int? = 0,
+    var discountfee: Int? = 0,
+    /* 입차 차량이미지 File (base64) */
+    var inImgBase64Str: String? = null,
+    /* 출차 차량이미지 File (base64) */
+    var outImgBase64Str: String? = null,
+    var ticketCorpName: String? = null,
+    var memo: String? = null,
+    var paymentAmount: Int? = 0,
+    var dayDiscountfee: Int? = 0,
+    var addDiscountClasses: ArrayList<ReqAddParkingDiscount>? = null,
+    var aplyDiscountClasses: ArrayList<InoutDiscount>? = null
+)
+
+
+data class ReqAddParkingDiscount(
+    var inSn: Long,
+    var discountClassSn: Long,
+    var cnt: Int
 )

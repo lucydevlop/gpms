@@ -9,6 +9,7 @@ import io.glnt.gpms.handler.dashboard.admin.model.reqCreateCorpTicket
 import io.glnt.gpms.handler.dashboard.admin.model.reqSearchCorp
 import io.glnt.gpms.handler.dashboard.common.model.reqParkingDiscountSearchTicket
 import io.glnt.gpms.handler.discount.model.*
+import io.glnt.gpms.model.dto.request.ReqAddParkingDiscount
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountRangeType
@@ -43,8 +44,12 @@ class DiscountService {
     @Autowired
     private lateinit var inoutDiscountRepository: InoutDiscountRepository
 
-    fun getDiscountClass() : CommonResult {
-        return CommonResult.data(discountClassRepository.findAll())
+    fun getDiscountClass() : List<DiscountClass>? {
+        return discountClassRepository.findAll()
+    }
+
+    fun getDiscountClassBySn(sn: Long): DiscountClass {
+        return discountClassRepository.findBySn(sn)
     }
 
     fun createDiscountClass(request: DiscountClass): DiscountClass? {
@@ -60,7 +65,7 @@ class DiscountService {
     fun deleteDiscountClass(sn: Long) : DiscountClass? {
         logger.info { "deleteDiscountClass $sn" }
         try {
-            return discountClassRepository.findBySn(sn)?.let {
+            return getDiscountClassBySn(sn).let {
                 it.delYn = DelYn.Y
                 discountClassRepository.saveAndFlush(it)
             }?: kotlin.run {
@@ -361,6 +366,21 @@ class DiscountService {
         }catch (e: CustomException) {
             logger.error { "getTodayUseDiscountTicket error $e" }
             return 0
+        }
+    }
+
+    fun addInoutDiscount(request: ArrayList<ReqAddParkingDiscount>) : Boolean{
+        try {
+            request.filter { it.cnt > 0 }.forEach { addDiscount ->
+                saveInoutDiscount(
+                    InoutDiscount(sn = null, discontType = TicketType.DISCOUNT, discountClassSn = addDiscount.discountClassSn,
+                        inSn = addDiscount.inSn, quantity = addDiscount.cnt, delYn = DelYn.N, calcYn = DelYn.Y)
+                )
+            }
+            return true
+        } catch (e: CustomException) {
+            logger.error { "addInoutDiscount failed $e" }
+            return false
         }
     }
 }

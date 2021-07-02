@@ -29,15 +29,6 @@ class CustomUserDetails : UserDetailsService {
         userRepository.findUsersById(username)?.let { profile ->
             logger.info{ "loadUserByUsername find id: " + profile.id }
             return UserPrincipal(profile)
-//            return org.springframework.security.core.userdetails.User
-//                .withUsername(profile.id.toString())
-//                .password(profile.password)
-//                .authorities(profile.role.name)
-//                .accountExpired(false)
-//                .accountLocked(false)
-//                .credentialsExpired(false)
-//                .disabled(false)
-//                .build()
         }
 
         logger.info{ "loadUserByUsername find not email: " + username }
@@ -56,7 +47,7 @@ class CustomUserDetails : UserDetailsService {
         val decodeStr = Base64Util.decodeAsString(key)
         val str = decodeStr.split(":").toTypedArray()
         if (str.size == 0) throw UsernameNotFoundException("User not found")
-        if (str[0] == "api-user" && str[1] == ("apiuser11!!")) {
+        if ((str[0] == "api-user" || str[0] == "rcs-user") && (str[1] == ("apiuser11!!"))) {
             return UserPrincipal(
                 SiteUser(
                     idx = 0,

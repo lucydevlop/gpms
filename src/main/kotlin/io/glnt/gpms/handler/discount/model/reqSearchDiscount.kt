@@ -23,11 +23,11 @@ data class availableTicketClass(
 
 data class reqAddInoutDiscount(
     var inSn: Long,
-    var ticketSn: Long,
+    var ticketSn: Long? = null,
     var discountType: TicketType,
     var quantity: Int? = 1,
     var discountClassSn: Long,
-    var corpSn: Long
+    var corpSn: Long? = null
 )
 
 data class reqApplyInoutDiscountSearch(

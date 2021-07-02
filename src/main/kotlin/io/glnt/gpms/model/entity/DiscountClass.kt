@@ -12,7 +12,7 @@ import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
-@Table(schema = "glnt_parking", name="tb_corpclass")
+@Table(schema = "glnt_parking", name="tb_discount_class")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class DiscountClass(
@@ -21,10 +21,11 @@ data class DiscountClass(
     @Column(name = "sn", unique = true, nullable = false)
     var sn: Long?,
 
-    @Column(name = "flag", nullable = false)
-    var flag: Int = 0,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "discount_type", nullable = false)
+    var discountType: DiscountType? = DiscountType.DISCOUNT,
 
-    @Column(name = "class", nullable = false)
+    @Column(name = "discount_name", nullable = false)
     var discountNm: String,
 
     @Enumerated(EnumType.STRING)

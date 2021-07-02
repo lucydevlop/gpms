@@ -11,6 +11,7 @@ import io.glnt.gpms.handler.facility.model.*
 import io.glnt.gpms.handler.inout.model.reqUpdatePayment
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.rcs.model.*
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
@@ -43,8 +44,8 @@ class FacilityService(
     lateinit var displayMessagesOut: List<DisplayMessage>
     lateinit var displayMessagesWait: List<DisplayMessage>
 
-    @Value("\${gateway.url}")
-    lateinit var url: String
+//    @Value("\${gateway.url}")
+//    lateinit var url: String
 
     @Value("\${tmap.send}")
     lateinit var tmapSend: String
@@ -267,15 +268,6 @@ class FacilityService(
         }
     }
 
-    fun displayOutGate(facilityId: String, line1: String, line2: String) {
-//        val data = reqDisplayMessage(
-//            line1 = DisplayLine(color = displayColorRepository.findByPositionAndType(DisplayPosition.OUT, DisplayType.NORMAL1)!!.colorCode,
-//                                text = line1),
-//            line2 = DisplayLine(color = displayColorRepository.findByPositionAndType(DisplayPosition.OUT, DisplayType.NORMAL2)!!.colorCode,
-//                                text = line2)
-//        )
-    }
-
     fun setDisplayColor(request: ArrayList<reqSetDisplayColor>): CommonResult = with(request) {
         logger.info { "setDisplayColor request $request" }
         try {
@@ -420,18 +412,6 @@ class FacilityService(
         return gates.filter { it.gateId == gateId }[0]
     }
 
-//    fun sendDisplayMessage(data: Any, gate: String) {
-//        logger.info { "sendPaystation request $data $gate" }
-//        parkinglotService.getFacilityByGateAndCategory(gate, "DISPLAY")?.let { its ->
-//            its.forEach {
-//                restAPIManager.sendPostRequest(
-//                    getRelaySvrUrl(gate)+"/display/show",
-//                    reqSendDisplay(it.facilitiesId!!, data as ArrayList<reqDisplayMessage>)
-//                )
-//            }
-//        }
-//    }
-
     fun sendPaystation(data: Any, gate: String, requestId: String, type: String) {
         logger.info { "sendPaystation request $data $gate $requestId $type" }
         //todo 정산기 api 연계 개발
@@ -561,7 +541,7 @@ class FacilityService(
             facilityRepository.findByDtFacilitiesId(dtFacilitiesId)?.let { facility ->
                 facility.health = status
                 facility.healthDate = LocalDateTime.now()
-                facilityRepository.save(facility)
+                facilityRepository.saveAndFlush(facility)
             }
         }catch (e: RuntimeException) {
             logger.error { "updateHealthCheck error ${e.message}" }
@@ -691,5 +671,49 @@ class FacilityService(
         return facilityRepository.findByGateIdAndCategoryAndDelYn(gateId, category, DelYn.N)?.let { list ->
             list[0]
         }
+    }
+
+    fun activeGateFacilities(): List<ResAsyncFacility>? {
+        var result = ArrayList<ResAsyncFacility>()
+        parkGateRepository.findByDelYn(DelYn.N).let { gates ->
+            for (gate in gates) {
+                facilityRepository.findByGateIdAndDelYn(gate.gateId, DelYn.N)?.let { facilities ->
+                    for (facility in facilities) {
+                        result.add(ResAsyncFacility(sn = facility.sn!!, category = facility.category,
+                            modelid = facility.modelid, fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
+                            facilitiesId = if (facility.facilitiesId.isNullOrEmpty()) facility.dtFacilitiesId else facility.facilitiesId,
+                            gateId = facility.gateId, gateName = gate.gateName!!,
+                            ip = facility.ip!!, port = facility.port!!, lprType = facility.lprType, imagePath = facility.imagePath,
+                            health = if (facility.ip == "0.0.0.0") "NORMAL" else facility.health,
+                            healthDate = facility.healthDate, status = facility.status,
+                            statusDate = facility.statusDate, gateType = facility.gateType,
+                            delYn = if (gate.delYn!! == DelYn.Y) DelYn.Y else facility.delYn!! ))
+                    }
+                }
+            }
+        }
+        return result
+    }
+
+    fun allFacilities(): List<ResAsyncFacility>? {
+        var result = ArrayList<ResAsyncFacility>()
+        parkGateRepository.findAll().let { gates ->
+            for (gate in gates) {
+                facilityRepository.findByGateId(gate.gateId)?.let { facilities ->
+                    for (facility in facilities) {
+                        result.add(ResAsyncFacility(sn = facility.sn!!, category = facility.category,
+                            modelid = facility.modelid, fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
+//                            facilitiesId = facility.facilitiesId!!,
+                            gateId = facility.gateId, gateName = gate.gateName!!,
+                            ip = facility.ip!!, port = facility.port!!, lprType = facility.lprType, imagePath = facility.imagePath,
+                            health = if (facility.ip == "0.0.0.0") "NORMAL" else facility.health,
+                            healthDate = facility.healthDate, status = facility.status,
+                            statusDate = facility.statusDate, gateType = facility.gateType,
+                            delYn = if (gate.delYn!! == DelYn.Y) DelYn.Y else facility.delYn!! ))
+                    }
+                }
+            }
+        }
+        return result
     }
 }

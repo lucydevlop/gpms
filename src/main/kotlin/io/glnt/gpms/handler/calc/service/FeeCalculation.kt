@@ -4,9 +4,12 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.calc.CalculationData
 import io.glnt.gpms.handler.calc.model.*
+import io.glnt.gpms.handler.dashboard.user.model.reqParkingDiscountAddTicket
 import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.holiday.service.HolidayService
 import io.glnt.gpms.handler.product.service.ProductService
+import io.glnt.gpms.model.dto.request.ReqAddParkingDiscount
+import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.entity.FareInfo
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountApplyType
@@ -321,6 +324,226 @@ class FeeCalculation {
             }
 
         return result
+    }
+
+    fun getCalcPayment(inTime: LocalDateTime, outTime: LocalDateTime?, vehicleType: VehicleType, vehicleNo: String?,
+                       type: Int, discountMin: Int, inSn: Long?, discountClasses: ArrayList<ReqAddParkingDiscount>?): BasicPrice? {
+        if (outTime == null) return null
+
+        logger.info { "-------------------getCalcPayment-------------------" }
+        logger.info { "입차시간 : $inTime / 출차시간 : $outTime" }
+        logger.info { "차종 : $vehicleType / 차량번호 : $vehicleNo" }
+        logger.info { "type(0:할인없음, 1:전방시간할인, 2:후방시간할인) : $type / 할인있을 때의 해당 시간 설정 : $discountMin" }
+        logger.info { "-------------------getCalcPayment-------------------" }
+        val retPrice = BasicPrice(
+            origin = TimeRange(startTime = inTime, endTime = outTime), parkTime = DateUtil.diffMins(
+                inTime,
+                outTime
+            ), dailySplits = null
+        )
+
+        val service = TimeRange()
+        if (retPrice.parkTime <= calcData.cgBasic.serviceTime!!) {
+            // BasicPrice(orgTotalPrice = 0, totalPrice = 0, discountPrice = 0, dayilyMaxDiscount = 0)
+            service.startTime = inTime
+            service.endTime = outTime
+            return retPrice
+        } else {
+            service.startTime = inTime
+            service.endTime = DateUtil.getAddMinutes(service.startTime!!, calcData.cgBasic.serviceTime!!.toLong())
+        }
+        retPrice.service = service
+
+        // 기본요금 타임 적용
+        // 서비스 타임 endtime 으로 조회
+        if (retPrice.dailySplits == null) {
+            logger.debug { "basic fare is null" }
+            calcData.getBizHourInfoForDateTime(DateUtil.LocalDateTimeToDateString(inTime), DateUtil.getHourMinuteByLocalDateTime(inTime), vehicleType).let {
+                val basic = getBasicFare(it.basicFare!!)
+                val basicTime = TimeRange()
+//                basicTime.startTime = retPrice.service!!.endTime
+                basicTime.startTime = inTime //retPrice.service!!.endTime
+                basicTime.endTime = if (DateUtil.getAddMinutes(basicTime.startTime!!, basic.toLong()) > retPrice.origin.endTime) retPrice.origin.endTime else DateUtil.getAddMinutes(
+                    basicTime.startTime!!,
+                    basic.toLong()
+                )
+                retPrice.basic = basicTime
+                retPrice.basicFare = it.basicFare
+
+                //정기권 기간 체크
+                val seasonTicket = getSeasonTicket(vehicleNo!!, basicTime.startTime!!, basicTime.endTime!!)
+                val dailySplit = DailySplit(
+                    startTime = basicTime.startTime!!, endTime = basicTime.endTime!!,
+                    payStartTime = basicTime.startTime!!, payEndTime = basicTime.endTime!!,
+                    fareInfo = it.basicFare, date = DateUtil.LocalDateTimeToDateString(basicTime.startTime!!),
+                    week = DateUtil.getWeek(DateUtil.formatDateTime(basicTime.startTime!!, "yyyy-MM-dd")),
+                    priceType = if (seasonTicket != null) "SeasonTicket" else "Normal"
+                )
+                val dailySplits = ArrayList<DailySplit>()
+                dailySplits.add(dailySplit)
+                retPrice.dailySplits = dailySplits
+
+                if (seasonTicket != null) {
+                    if (seasonTicket.startTime!! <= basicTime.startTime && seasonTicket.endTime!! >= basicTime.endTime) {
+                    } else {
+                        dailySplits.add(DailySplit(
+                            startTime = basicTime.startTime!!, endTime = basicTime.endTime!!,
+                            payStartTime = basicTime.startTime!!, payEndTime = basicTime.endTime!!,
+                            fareInfo = it.basicFare, date = DateUtil.LocalDateTimeToDateString(basicTime.startTime!!),
+                            week = DateUtil.getWeek(DateUtil.formatDateTime(basicTime.startTime!!, "yyyy-MM-dd")),
+                            priceType = "Normal"
+                        ))
+                    }
+                }
+            }
+        }
+
+        if (retPrice.basic!!.endTime!! <= retPrice.origin.endTime) {
+            var startTime = retPrice.basic!!.endTime!!
+            do {
+                val seasonTicket = getSeasonTicket(vehicleNo!!, startTime, outTime)
+
+                val dailySplit = DailySplit(
+                    date = DateUtil.LocalDateTimeToDateString(startTime),
+                    week = DateUtil.getWeek(DateUtil.formatDateTime(startTime, "yyyy-MM-dd")),
+                    startTime = startTime, endTime = outTime
+                )
+
+                if (holidayService.isHolidayByLocalDateTime(dailySplit.startTime)) {
+                    dailySplit.dateType = "Holiday"
+                } else {
+
+                    calcData.getBizHourInfoForDateTime(
+                        dailySplit.date,
+                        DateUtil.getHourMinuteByLocalDateTime(dailySplit.startTime),
+                        vehicleType
+                    ).let {
+                        // todo 앞요금 / 뒷요금
+                        val endTime = if (seasonTicket != null && seasonTicket.startTime!! > dailySplit.startTime)
+                            seasonTicket.startTime!!
+                        else if (dailySplit.date == DateUtil.LocalDateTimeToDateString(outTime)) {
+                            outTime
+                        } else {
+                            DateUtil.beginTimeToLocalDateTime(
+                                DateUtil.LocalDateTimeToDateString(
+                                    DateUtil.getAddDays(
+                                        dailySplit.startTime,
+                                        1
+                                    )
+                                )
+                            )
+                        }
+                        if (seasonTicket != null && seasonTicket.startTime!! <= dailySplit.startTime) {
+                            dailySplit.endTime = DateUtil.getAddSeconds(seasonTicket.endTime!!, 1)
+                            dailySplit.priceType = "SeasonTicket"
+                        } else {
+                            dailySplit.endTime =
+                                if (betweenTimeRange(
+                                        it.startTime!!, it.endTime!!, DateUtil.getHourMinuteByLocalDateTime(
+                                            endTime
+                                        )
+                                    )) {
+                                    endTime
+                                } else {
+                                    DateUtil.makeLocalDateTime(
+                                        dailySplit.date,
+                                        it.endTime!!.substring(0, 2),
+                                        it.endTime!!.substring(2, 4)
+                                    )
+                                }
+                            val count = DateUtil.diffMins(dailySplit.startTime, dailySplit.endTime!!) fmod it.addFare!!.time1!!
+                            if (count > 0) {
+                                dailySplit.endTime = DateUtil.getAddMinutes(
+                                    dailySplit.endTime!!,
+                                    (it.addFare!!.time1!! - count).toLong()
+                                )
+                            }
+                            logger.debug { "diff mins ${DateUtil.diffMins(dailySplit.startTime, dailySplit.endTime!!)} mod $count" }
+                        }
+                        dailySplit.fareInfo = it.addFare
+                    }
+                }
+                startTime = dailySplit.endTime!!
+                retPrice.dailySplits!!.add(dailySplit)
+            } while(startTime < outTime)
+        }
+
+        //할인권 제외
+        if (inSn != null) {
+            discountClasses?.let { discounts ->
+                discounts.forEach { discount ->
+                    val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
+                    var discountTime = discountClass.unitTime * discount.cnt
+                    retPrice.dailySplits!!.forEach { dailySplit ->
+                        if (dailySplit.priceType == "Normal" && discountClass.discountApplyType == DiscountApplyType.TIME) {
+                            val min = if (dailySplit.discountRange != null)  DateUtil.diffMins(dailySplit.discountRange!!.endTime!!, dailySplit.endTime!!)
+                            else DateUtil.diffMins(dailySplit.startTime, dailySplit.endTime!!)
+                            if (min > 0) {
+                                val applyTime = if (min > discountTime) discountTime else min
+                                if (dailySplit.discountRange != null) {
+                                    dailySplit.discountRange!!.endTime = DateUtil.getAddMinutes(dailySplit.discountRange!!.endTime!!, applyTime.toLong())
+                                } else {
+                                    val discount = TimeRange(startTime = dailySplit.startTime,
+                                        endTime = DateUtil.getMinByDates(DateUtil.getAddMinutes(dailySplit.startTime, applyTime.toLong()), dailySplit.endTime!! ), type = "DiscountTicket")
+                                    dailySplit.discountRange = discount
+                                }
+
+                                discountTime = discountTime.minus(applyTime)
+                            }
+                        }
+                    }
+//                    discount.calcYn = DelYn.Y
+//                    discountService.saveInoutDiscount(discount)
+                }
+            }
+        }
+
+        val dailyPrices = ArrayList<DailyPrice>()
+        for (i in 0..DateUtil.diffDays(inTime, outTime)+1) {
+            val dailyData = retPrice.dailySplits!!.filter {
+                it.date == DateUtil.LocalDateTimeToDateString(DateUtil.getAddDays(inTime, i.toLong()))
+            }
+
+            var originPrice = 0
+            var totalPrice = 0
+            val dailyPrice = DailyPrice(date = DateUtil.LocalDateTimeToDateString(DateUtil.getAddDays(inTime, i.toLong())),
+                week = DateUtil.getWeek(DateUtil.formatDateTime(DateUtil.getAddDays(inTime, i.toLong()), "yyyy-MM-dd"))
+            )
+            dailyData.forEach {
+                val originMin = DateUtil.diffMins(it.startTime, it.endTime!!)
+                var totalMin = DateUtil.diffMins(it.startTime, it.endTime!!)
+                if (it.discountRange != null) {
+                    totalMin -= DateUtil.diffMins(it.discountRange!!.startTime!!, it.discountRange!!.endTime!!)
+                }
+                originPrice += if (it.priceType == "Normal") { ceil(originMin.toFloat() / it.fareInfo!!.time1!!).toInt() * it.fareInfo!!.won1!! } else 0
+                totalPrice += if (it.priceType == "Normal") { ceil(totalMin.toFloat() / it.fareInfo!!.time1!!).toInt() * it.fareInfo!!.won1!! } else 0
+                dailyPrice.parkTime = dailyPrice.parkTime!!.plus(totalMin)
+
+                logger.debug { "pay range start ${it.startTime} end ${it.endTime} type ${it.priceType} min $originMin price $originPrice discount ${originPrice-totalPrice}"}
+            }
+
+            dailyPrice.discount = dailyPrice.discount!!.plus(originPrice-totalPrice)
+            dailyPrice.originPrice = dailyPrice.originPrice!!.plus(originPrice)
+            dailyPrice.price = dailyPrice.price!!.plus(totalPrice)
+
+            if (calcData.cgBasic.dayMaxAmt != null && calcData.cgBasic.dayMaxAmt!! < dailyPrice.price!!) {
+                dailyPrice.dayMaxDiscount = dailyPrice.price!! - calcData.cgBasic.dayMaxAmt!!
+                dailyPrice.price = calcData.cgBasic.dayMaxAmt!!
+            }
+
+            dailyPrices.add(dailyPrice)
+        }
+
+        dailyPrices.forEach {
+            retPrice.orgTotalPrice = retPrice.orgTotalPrice!!.plus(it.originPrice!!)
+            retPrice.totalPrice = retPrice.totalPrice!!.plus(it.price!!)
+            retPrice.discountPrice = retPrice.discountPrice!!.plus(it.discount!!)
+            retPrice.dayilyMaxDiscount = retPrice.dayilyMaxDiscount!!.plus(it.dayMaxDiscount!!)
+        }
+
+        logger.info { "-------------------getBasicPayment-------------------" }
+        logger.info { retPrice }
+        return retPrice
     }
 }
 

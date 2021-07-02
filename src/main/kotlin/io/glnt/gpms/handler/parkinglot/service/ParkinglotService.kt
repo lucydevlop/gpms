@@ -201,7 +201,14 @@ class ParkinglotService {
         try{
             parkGateRepository.findByGateId(gateId)?.let { gate ->
                 gate.delYn = delYn
-                return CommonResult.data(parkGateRepository.save(gate))
+                val update = parkGateRepository.save(gate)
+                parkFacilityRepository.findByGateId(update.gateId)?.let { facilities ->
+                    facilities.forEach { facility ->
+                        facility.delYn = delYn
+                        parkFacilityRepository.save(facility)
+                    }
+                }
+                return CommonResult.data(update)
             }
         }catch (e: CustomException) {
             logger.error("changeDelYnGate error {} ", e.message)
@@ -301,7 +308,7 @@ class ParkinglotService {
     }
 
     fun getFacility(facilityId: String) : Facility? {
-        return parkFacilityRepository.findByFacilitiesId(facilityId) ?: run {
+        return parkFacilityRepository.findByDtFacilitiesId(facilityId) ?: run {
             null
         }
     }
@@ -429,7 +436,9 @@ class ParkinglotService {
                         parkId = parkId,
                         vehicleDayOption =vehicleDayOption,
                         tmapSend = tmapSend,
-                        saleType = saleType
+                        saleType = saleType,
+                        externalSvr = externalSvr,
+                        ip = ip, city = city
                     )
                 )
                 initalizeData()
@@ -459,7 +468,8 @@ class ParkinglotService {
                         parkId = parkId,
                         vehicleDayOption =vehicleDayOption,
                         tmapSend = tmapSend,
-                        saleType = saleType
+                        saleType = saleType,
+                        externalSvr = externalSvr
                     )
                 )
                 initalizeData()
@@ -485,6 +495,10 @@ class ParkinglotService {
 
     fun isTmapSend(): Boolean {
         return parkSite!!.tmapSend!! == OnOff.ON
+    }
+
+    fun isExternalSend() : Boolean {
+        return parkSite!!.externalSvr != ExternalSvrType.NONE
     }
 
 //    fun JsonArray<*>.writeJSON(pathName: String, filename: String) {

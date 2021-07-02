@@ -1,6 +1,7 @@
 package io.glnt.gpms.model.repository
 
 import io.glnt.gpms.model.entity.ProductTicket
+import io.glnt.gpms.model.entity.TicketClass
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.TicketType
 import org.springframework.data.jpa.domain.Specification
@@ -18,4 +19,9 @@ interface ProductTicketRepository: JpaRepository<ProductTicket, Long> {
     fun findBySn(sn: Long): ProductTicket?
     fun findByVehicleNoAndEffectDateAndExpireDateAndTicketTypeAndDelYn(vehiclNo: String, effectDate: LocalDateTime, expireDate: LocalDateTime, ticketType: TicketType, delYn: DelYn): List<ProductTicket>?
 
+}
+
+@Repository
+interface TicketClassRepository: JpaRepository<TicketClass, Long> {
+    fun findByTicketNameAndDelYn(ticketname: String, delYn: DelYn): TicketClass?
 }

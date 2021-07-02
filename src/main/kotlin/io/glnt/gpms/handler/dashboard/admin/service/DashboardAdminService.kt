@@ -14,11 +14,12 @@ import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
-import io.glnt.gpms.handler.inout.model.resParkInList
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
+import io.glnt.gpms.handler.rcs.model.ResAsyncParkinglot
+import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.user.service.AuthService
 import io.glnt.gpms.io.glnt.gpms.handler.file.service.ExcelUploadService
@@ -26,6 +27,7 @@ import io.glnt.gpms.model.dto.request.*
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountRangeType
+import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.UserRole
 import mu.KLogging
 import org.apache.http.HttpStatus
@@ -37,7 +39,8 @@ import org.springframework.web.multipart.MultipartFile
 
 @Service
 class DashboardAdminService(
-    private var restAPIManager: RestAPIManagerUtil
+    private var restAPIManager: RestAPIManagerUtil,
+    private var rcsService: RcsService
 ) {
     companion object : KLogging()
 
@@ -119,7 +122,18 @@ class DashboardAdminService(
     @Throws(CustomException::class)
     fun getParkInLists(request: reqSearchParkin): CommonResult {
         try {
-            return CommonResult.data(inoutService.getAllParkLists(request))
+            val result = inoutService.getAllParkLists(request)
+
+            result?.let { result ->
+                request.searchDateLabel?.let { label ->
+                    when (label) {
+                        DisplayMessageClass.IN -> result.sortedByDescending { it.inDate }
+                        DisplayMessageClass.OUT -> result.sortedByDescending { it.outDate }
+                        else -> result
+                    }
+                }
+            }
+            return CommonResult.data(result)
         }catch (e: CustomException){
             logger.error { "Admin getParkInLists failed ${e.message}" }
             return CommonResult.error("Admin getParkInLists failed ${e.message}")
@@ -457,15 +471,19 @@ class DashboardAdminService(
     @Transactional
     fun createTemplateOfProductTicket(): CommonResult {
         try{
-            val data = productService.getProducts(reqSearchProductTicket(searchLabel = "", searchText = ""))
-            when (data.code) {
-                ResultCode.SUCCESS.getCode() -> {
-                    return CommonResult.data(excelService.downloadTemplateOfProductTicket(data.data as List<ProductTicket>))
-                }
-                else -> {
-                    return CommonResult.error("file upload failed")
-                }
+            productService.getProducts(reqSearchProductTicket(searchLabel = "", searchText = ""))?.let { tickets ->
+                return CommonResult.data(excelService.downloadTemplateOfProductTicket(tickets))
+            } ?: kotlin.run {
+                return CommonResult.error("file upload failed")
             }
+//            when (data.code) {
+//                ResultCode.SUCCESS.getCode() -> {
+//                    return CommonResult.data(excelService.downloadTemplateOfProductTicket(data.data as List<ProductTicket>))
+//                }
+//                else -> {
+//                    return CommonResult.error("file upload failed")
+//                }
+//            }
 
         } catch (e: CustomException){
             logger.error { "Admin createProductTicketByFiles failed $e" }
@@ -476,18 +494,10 @@ class DashboardAdminService(
     @Throws(CustomException::class)
     fun searchProductTicket(request: reqSearchProductTicket): CommonResult {
         try{
-            val data = productService.getProducts(request)
-            return when (data.code) {
-                ResultCode.SUCCESS.getCode() -> {
-                    CommonResult.data(data.data)
-                }
-                else -> {
-                    CommonResult.error("file upload failed")
-                }
-            }
-        } catch (e: CustomException){
-            logger.error { "Admin searcgParkinglotProduct failed $e" }
-            return CommonResult.error("Admin searcgParkinglotProduct failed $e")
+            return CommonResult.data(productService.getProducts(request))
+        } catch (e: CustomException) {
+            logger.error { "Admin searchProductTicket failed $e" }
+            return CommonResult.error("Admin searchProductTicket failed $e")
         }
     }
 
@@ -668,16 +678,23 @@ class DashboardAdminService(
 
     fun createDiscountTicket(request: reqDiscountTicket): CommonResult {
         try {
-            return discountService.createDiscountClass(
-                DiscountClass(sn = null, discountNm = request.discountNm,
+            discountService.createDiscountClass(DiscountClass(sn = null, discountNm = request.discountNm,
                               dayRange = request.dayRange, unitTime = request.unitTime!!,
                               disUse = request.disUse, disMaxNo = request.disMaxNo,
                               disMaxDay = request.disMaxDay,  disMaxMonth = request.disMaxMonth,
                               disPrice = request.disPrice, effectDate = request.effectDate, expireDate = request.expireDate,
-                              delYn = DelYn.N))?.let {
-                                  CommonResult.data(it)
+                              delYn = DelYn.N))?.let { discountClass ->
+
+                // 할인권 생성 시 rcs 계정에도 할인권 생성
+                corpService.getCorp(reqSearchCorp(corpId = "RCS")).data.let {
+                    val corp = it as Corp
+                    discountService.createCorpTicket(
+                        reqCreateCorpTicket(corpSn = corp.sn!!, discountClassSn = discountClass.sn!!, quantity = 999999999)
+                    )
+                }
+                return CommonResult.data(discountClass)
             }?: kotlin.run {
-                CommonResult.error("Admin createDiscountTicket failed")
+                return CommonResult.error("Admin createDiscountTicket failed")
             }
         }catch (e: CustomException){
             logger.error { "Admin createDiscountTicket failed $e" }
@@ -695,6 +712,39 @@ class DashboardAdminService(
         }catch (e: CustomException){
             logger.error { "Admin deleteDiscountTicket failed $e" }
             return CommonResult.error("Admin deleteDiscountTicket failed $e")
+        }
+    }
+
+    fun externalAsyncParkinglot(): CommonResult {
+        try {
+            parkinglotService.parkSite!!.ip?.let {
+                val result: ResAsyncParkinglot? = rcsService.asyncParkinglot()
+                result?.let { it ->
+                    parkinglotService.parkSite!!.rcsParkId = it.data.toString().toLong()
+                    parkinglotService.saveParkSiteInfo(parkinglotService.parkSite!!)
+                }
+                return CommonResult.data("Admin externalAsyncParkinglot success")
+            }?: kotlin.run {
+                return CommonResult.error("Admin externalAsyncParkinglot failed")
+            }
+        } catch (e: CustomException) {
+            return CommonResult.error("Admin externalAsyncParkinglot failed")
+        }
+    }
+
+    fun getTicketList() : CommonResult {
+        return CommonResult.data(productService.getTicketClass())
+    }
+
+    fun createTicketClass(request: TicketClass): CommonResult {
+        try {
+            productService.createTicketClass(request)?.let {
+                return CommonResult.data(it)
+            }?: kotlin.run {
+                return CommonResult.error("Admin create ticket-class failed")
+            }
+        } catch (e: CustomException){
+            return CommonResult.error("Admin create ticket-class failed")
         }
     }
 }
