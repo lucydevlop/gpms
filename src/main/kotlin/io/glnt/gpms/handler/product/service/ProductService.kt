@@ -34,7 +34,7 @@ class ProductService {
     private lateinit var ticketClassRepository: TicketClassRepository
 
     fun getValidProductByVehicleNo(vehicleNo: String): ProductTicket? {
-        return productTicketRepository.findByVehicleNoAndValidDateGreaterThanEqualAndRegDateLessThanEqualAndDelYn(vehicleNo, LocalDateTime.now(), LocalDateTime.now(), DelYn.N)
+        return getValidProductByVehicleNo(vehicleNo, LocalDateTime.now(), LocalDateTime.now())
     }
 
     fun getValidProductByVehicleNo(vehicleNo: String, startTime: LocalDateTime, endTime: LocalDateTime): ProductTicket? {
@@ -62,7 +62,7 @@ class ProductService {
 
     fun calcRemainDayProduct(vehicleNo: String): Int {
         getValidProductByVehicleNo(vehicleNo)?.let { it ->
-            return DateUtil.diffDays(LocalDateTime.now(), it.validDate!!)
+            return DateUtil.diffDays(LocalDateTime.now(), it.expireDate!!)
         }
         return -1
     }
