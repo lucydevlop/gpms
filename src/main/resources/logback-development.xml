@@ -23,13 +23,13 @@
         <appender-ref ref="STDOUT"/>
     </root>
     <!-- 질의문 보기 -->
-    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <logger name="org.hibernate.SQL" level="INFO"/>
     <!-- 질의문 파라미터 보기 -->
-    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="INFO"/>
     <!-- hikari 로그 보기 -->
-    <logger name="com.zaxxer.hikari" level="DEBUG"/>
+    <logger name="com.zaxxer.hikari" level="INFO"/>
     <!-- 트랜젝션 로그 보기 -->
-    <logger name="org.hibernate.transaction.JDBCTransaction" level="DEBUG"/>
-    <logger name="org.hibernate.jdbc.ConnectionManager" level="DEBUG"/>
-    <logger name="org.springframework.orm.jpa.JpaTransactionManager" level="DEBUG"/>
+    <logger name="org.hibernate.transaction.JDBCTransaction" level="INFO"/>
+    <logger name="org.hibernate.jdbc.ConnectionManager" level="INFO"/>
+    <logger name="org.springframework.orm.jpa.JpaTransactionManager" level="INFO"/>
 </configuration>
