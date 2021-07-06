@@ -13,6 +13,7 @@ import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.entity.FareInfo
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountApplyType
+import io.glnt.gpms.model.enums.TicketAplyType
 import io.glnt.gpms.model.enums.VehicleType
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,6 +21,8 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.LocalDateTime
+import java.time.temporal.TemporalAdjuster
+import java.util.concurrent.TimeUnit
 import kotlin.math.ceil
 
 
@@ -281,6 +284,28 @@ class FeeCalculation {
         logger.debug { "vaildate season ticket $vehicleNo, $startTime $endTime" }
         try {
             productService.getValidProductByVehicleNo(vehicleNo, startTime, endTime)?.let {
+                it.ticket?.let { ticketClass ->
+                   if (ticketClass.aplyType == TicketAplyType.FULL) {
+                       return TimeRange(
+                           startTime = if (startTime > it.effectDate) startTime else it.effectDate,
+                           endTime = if (endTime > it.expireDate) it.expireDate else endTime,
+                           type = "SEASONTICKET"
+                       )
+                    } else {
+                        var effectDate = DateUtil.makeLocalDateTime(
+                            DateUtil.LocalDateTimeToDateString(startTime),
+                            ticketClass.startTime!!.substring(0, 2), ticketClass.startTime!!.substring(2, 4))
+                       var expireDate = DateUtil.makeLocalDateTime(
+                           DateUtil.LocalDateTimeToDateString(startTime),
+                           ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
+                       if (startTime > expireDate) return null
+                       return TimeRange(
+                           startTime = if (startTime > effectDate) startTime else effectDate,
+                           endTime = if (endTime > expireDate) expireDate else endTime,
+                           type = "SEASONTICKET"
+                       )
+                   }
+                }
                 return TimeRange(
                     startTime = if (startTime > it.effectDate) startTime else it.effectDate,
                     endTime = if (endTime > it.expireDate) it.expireDate else endTime,

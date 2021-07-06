@@ -43,6 +43,12 @@ class ProductService {
                 when (ticketClass.rangeType) {
                     DiscountRangeType.ALL -> {
                         if (ticketClass.aplyType == TicketAplyType.FULL) return productTicket
+                        else {
+                            var expireDate = DateUtil.makeLocalDateTime(
+                                DateUtil.LocalDateTimeToDateString(startTime),
+                                ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
+                            if ((DateUtil.LocalDateTimeToDateString(startTime) == DateUtil.LocalDateTimeToDateString(productTicket.expireDate!!)) && startTime > expireDate) return null
+                        }
                         return productTicket
 
                     }
