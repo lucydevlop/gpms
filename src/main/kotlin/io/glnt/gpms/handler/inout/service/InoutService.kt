@@ -906,7 +906,7 @@ class InoutService(
             }
             "SEASONTICKET", "WHITELIST", "FREETICKET", "VISITTICKET" -> {
                 val days = productService.calcRemainDayProduct(vehicleNo)
-                if (days in 1..7)
+                if (days in 0..7)
                     makeParkPhrase("VIP", vehicleNo, "잔여 0${days}일", type)
                 else {
 

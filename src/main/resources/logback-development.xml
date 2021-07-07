@@ -27,9 +27,9 @@
     <!-- 질의문 파라미터 보기 -->
     <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="INFO"/>
     <!-- hikari 로그 보기 -->
-    <logger name="com.zaxxer.hikari" level="INFO"/>
+    <logger name="com.zaxxer.hikari" level="WARN"/>
     <!-- 트랜젝션 로그 보기 -->
-    <logger name="org.hibernate.transaction.JDBCTransaction" level="INFO"/>
-    <logger name="org.hibernate.jdbc.ConnectionManager" level="INFO"/>
+    <logger name="org.hibernate.transaction.JDBCTransaction" level="WARN"/>
+    <logger name="org.hibernate.jdbc.ConnectionManager" level="WARN"/>
     <logger name="org.springframework.orm.jpa.JpaTransactionManager" level="INFO"/>
 </configuration>
