@@ -590,22 +590,26 @@ class InoutService(
                         else -> {
                             displayMessage(parkingtype!!, if (price != null) (price!!.totalPrice).toString()+"원" else "0원", "WAIT", gate.gateId)
 
-                            facilityService.sendPaystation(
-                                reqPayStationData(
-                                    paymentMachineType = if (parkingtype == "NORMAL") "exit" else if (price!!.totalPrice!! > 0) "exit" else "SEASON",
-                                    vehicleNumber = vehicleNo,
-                                    facilitiesId = gate.udpGateid!!,
-                                    recognitionType = if (parkingtype == "NORMAL") "FREE" else "SEASON",
-                                    recognitionResult = "RECOGNITION",
-                                    paymentAmount = if (price!!.totalPrice!! <= 0) "0" else if (price != null) (price!!.orgTotalPrice!!-price!!.dayilyMaxDiscount!!).toString() else "0",
-                                    parktime = if (price != null) price!!.parkTime.toString() else newData.parktime?.let { newData.parktime.toString()}?.run { "0" },
-                                    parkTicketMoney = if (price!!.totalPrice!! <= 0) "0" else if (price != null) price!!.discountPrice!!.toString() else "0",  // 할인요금
-                                    vehicleIntime = parkIn?.let { DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm") }?: kotlin.run { DateUtil.nowDateTimeHm }
-                                ),
-                                gate = gate.gateId,
-                                requestId = newData.sn.toString(),
-                                type = "adjustmentRequest"
-                            )
+                            price?.let { price ->
+                                facilityService.sendPaystation(
+                                    reqPayStationData(
+                                        paymentMachineType = if (parkingtype == "NORMAL") "exit" else if (price.totalPrice!! > 0) "exit" else "SEASON",
+                                        vehicleNumber = vehicleNo,
+                                        facilitiesId = gate.udpGateid!!,
+                                        recognitionType = if (parkingtype == "NORMAL") "FREE" else if (price.totalPrice!! > 0) "FREE" else "SEASON",
+                                        recognitionResult = "RECOGNITION",
+                                        paymentAmount = if (price.totalPrice!! <= 0) "0" else if (price != null) (price.orgTotalPrice!!-price.dayilyMaxDiscount!!).toString() else "0",
+                                        parktime = if (price != null) price.parkTime.toString() else newData.parktime?.let { newData.parktime.toString()}?.run { "0" },
+                                        parkTicketMoney = if (price.totalPrice!! <= 0) "0" else if (price != null) (price.discountPrice!!+price.dayilyMaxDiscount!!).toString() else "0",  // 할인요금
+                                        vehicleIntime = parkIn?.let { DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm") }?: kotlin.run { DateUtil.nowDateTimeHm }
+                                    ),
+                                    gate = gate.gateId,
+                                    requestId = newData.sn.toString(),
+                                    type = "adjustmentRequest"
+                                )
+                            }
+
+
 //                            price?.let {
 //                                if (price!!.discountPrice!! > 0) {
 //                                    Thread.sleep(200)
