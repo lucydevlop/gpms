@@ -438,7 +438,8 @@ class ParkinglotService {
                         tmapSend = tmapSend,
                         saleType = saleType,
                         externalSvr = externalSvr,
-                        ip = ip, city = city
+                        ip = ip, city = city,
+                        space = space
                     )
                 )
                 initalizeData()
