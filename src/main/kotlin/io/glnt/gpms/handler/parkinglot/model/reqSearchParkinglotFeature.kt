@@ -38,7 +38,8 @@ data class reqCreateParkinglot(
     var saleType: SaleType? = SaleType.FREE,
     var externalSvr: ExternalSvrType? = ExternalSvrType.NONE,
     var ip: String? = null,
-    var city: CityType? = null
+    var city: CityType? = null,
+    var space: Map<String, Any>? = null
 )
 
 data class reqUpdateGates(

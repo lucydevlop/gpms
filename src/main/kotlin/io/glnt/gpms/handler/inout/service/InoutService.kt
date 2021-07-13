@@ -42,7 +42,8 @@ import kotlin.collections.HashMap
 @Service
 class InoutService(
     private var inoutPaymentRepository: InoutPaymentRepository,
-    private var feeCalculation: FeeCalculation
+    private var feeCalculation: FeeCalculation,
+    private var gateRepository: GateRepository
 ) {
     companion object : KLogging()
 
@@ -82,16 +83,12 @@ class InoutService(
     @Autowired
     private lateinit var vehicleListSearchRepository: VehicleListSearchRepository
 
-    @Autowired
-    private lateinit var dashboardUserService: DashboardUserService
-
 
     fun parkIn(request: reqAddParkIn) : CommonResult = with(request){
         logger.warn{"parkIn service car_num:${request.vehicleNo} facility_id:${request.dtFacilitiesId} in_date:${request.date} result_code:${request.resultcode} uuid:${request.uuid}"}
         try {
 
             // gate up(option check)
-            // todo 요일제 차량 옵션 적용
             parkinglotService.getGateInfoByDtFacilityId(dtFacilitiesId) ?.let { gate ->
                 // UUID 없을 경우(Back 입차) deviceIF -> OFF 로 전환
                 // 동일 입차 처리 skip
@@ -120,17 +117,35 @@ class InoutService(
                 val facility = parkinglotService.getFacilityByDtFacilityId(dtFacilitiesId)
                 // 만차 제어 설정 시 count 확인 후 skip
                 if (parkinglotService.parkSite!!.space != null) {
-                    val spaces = parkinglotService.parkSite!!.space as ParkSiteInfo.spaceAttributes
-//                    parkinglotService.parkSite.space!!.spaces!!.forEach { it ->
-                    spaces.spaces!!.forEach {
-                        if (it.gate.contains(gate.gateId) || it.gate.contains("ALL")) {
-                            if (parkInRepository.countByGateIdAndOutSn(gate.gateId, 0) >= it.space) {
+                    parkinglotService.parkSite!!.space?.let { spaces ->
+                        logger.info("parkinglot space $spaces")
+
+                        var inGates = ArrayList<String>()
+
+                        gateRepository.findByGateGroupId(spaces["gateGroupId"].toString()).let { items ->
+                            for (item in items) {
+                                inGates.add(item.gateId)
+                            }
+                            if (parkInRepository.countByGateIdInAndOutSn(inGates, 0) >= spaces["space"].toString().toInt()) {
                                 displayMessage("FULL", vehicleNo, "IN", gate.gateId)
                                 logger.warn{" car_num:${request.vehicleNo} 만차 skip "}
                                 return CommonResult.data("Full limit $vehicleNo $parkingtype")
                             }
                         }
                     }
+
+                    //todo  만차제어
+
+//                    parkinglotService.parkSite.space!!.spaces!!.forEach { it ->
+//                    spaces.spaces!!.forEach {
+//                        if (it.gate.contains(gate.gateGroupId) || it.gate.contains("ALL")) {
+//                            if (parkInRepository.countByGateIdAndOutSn(gate.gateId, 0) >= it.space) {
+//                                displayMessage("FULL", vehicleNo, "IN", gate.gateId)
+//                                logger.warn{" car_num:${request.vehicleNo} 만차 skip "}
+//                                return CommonResult.data("Full limit $vehicleNo $parkingtype")
+//                            }
+//                        }
+//                    }
                 }
                 // image 파일 저장
                 if (base64Str != null) {
@@ -157,8 +172,7 @@ class InoutService(
                         val lists = parkins.data as? List<ParkIn>?
                         lists!!.filter { it.outSn == 0L }.forEach {
                             it.outSn = -1
-                            parkInRepository.save(it)
-                            parkInRepository.flush()
+                            parkInRepository.saveAndFlush(it)
                         }
                     }
                 } else {
@@ -199,8 +213,7 @@ class InoutService(
                     ticketSn = ticketSn,
                     memo = memo
                 )
-                parkInRepository.save(newData)
-                parkInRepository.flush()
+                parkInRepository.saveAndFlush(newData)
 
                 // 시설 I/F
                 // PCC 가 아닌경우애만 아래 모듈 실행
@@ -579,7 +592,7 @@ class InoutService(
 
                             facilityService.sendPaystation(
                                 reqPayStationData(
-                                    paymentMachineType = if (parkingtype == "NORMAL") "exit" else "SEASON",
+                                    paymentMachineType = if (parkingtype == "NORMAL") "exit" else if (price!!.totalPrice!! > 0) "exit" else "SEASON",
                                     vehicleNumber = vehicleNo,
                                     facilitiesId = gate.udpGateid!!,
                                     recognitionType = if (parkingtype == "NORMAL") "FREE" else "SEASON",
@@ -587,7 +600,7 @@ class InoutService(
                                     paymentAmount = if (price!!.totalPrice!! <= 0) "0" else if (price != null) (price!!.orgTotalPrice!!-price!!.dayilyMaxDiscount!!).toString() else "0",
                                     parktime = if (price != null) price!!.parkTime.toString() else newData.parktime?.let { newData.parktime.toString()}?.run { "0" },
                                     parkTicketMoney = if (price!!.totalPrice!! <= 0) "0" else if (price != null) price!!.discountPrice!!.toString() else "0",  // 할인요금
-                                    vehicleIntime = DateUtil.nowDateTimeHm
+                                    vehicleIntime = parkIn?.let { DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm") }?: kotlin.run { DateUtil.nowDateTimeHm }
                                 ),
                                 gate = gate.gateId,
                                 requestId = newData.sn.toString(),
@@ -622,7 +635,9 @@ class InoutService(
                         logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
                         relayService.actionGate(gate.gateId, "GATE", "open")
                     } else {
-                        if (gate.openAction == OpenActionType.NONE && (price!!.totalPrice == 0)) {
+                        //todo 출구 제한 삭제
+//                        if (gate.openAction == OpenActionType.NONE && (price!!.totalPrice == 0)) {
+                        if (price!!.totalPrice == 0) {
                             //parkIn?.let { updateParkInExitComplete(it, newData.sn!! ) }
                             //displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
                             logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
