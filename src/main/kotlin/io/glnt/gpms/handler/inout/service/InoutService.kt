@@ -501,7 +501,7 @@ class InoutService(
                     recognitionResult = "NOTRECOGNITION"
                 }
 
-                //displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+                displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
 
                 if (parkinglotService.parkSite!!.saleType == SaleType.PAID && parkIn != null) {
                     price = feeCalculation.getBasicPayment(parkIn!!.inDate!!, date, VehicleType.SMALL, vehicleNo, 1, 0, parkIn!!.sn)
