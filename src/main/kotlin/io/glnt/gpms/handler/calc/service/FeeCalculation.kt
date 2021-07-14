@@ -295,7 +295,11 @@ class FeeCalculation {
                         var effectDate = DateUtil.makeLocalDateTime(
                             DateUtil.LocalDateTimeToDateString(startTime),
                             ticketClass.startTime!!.substring(0, 2), ticketClass.startTime!!.substring(2, 4))
-                       var expireDate = DateUtil.makeLocalDateTime(
+                       var expireDate = if (ticketClass.startTime!! > ticketClass.endTime!!) {
+                           DateUtil.makeLocalDateTime(
+                               DateUtil.LocalDateTimeToDateString(DateUtil.getAddDays(startTime, 1)),
+                               ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
+                       } else DateUtil.makeLocalDateTime(
                            DateUtil.LocalDateTimeToDateString(startTime),
                            ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
                        if (startTime > expireDate) return null

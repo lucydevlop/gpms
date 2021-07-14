@@ -59,10 +59,12 @@ class ProductService {
 //                            var expireDate = DateUtil.makeLocalDateTime(
 //                                DateUtil.LocalDateTimeToDateString(startTime),
 //                                ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
-                            if ((DateUtil.LocalDateTimeToDateString(startTime) == DateUtil.LocalDateTimeToDateString(productTicket.expireDate!!)) && startTime > expireDate && endTime <= effectDate ) return null
+//                            if ((DateUtil.LocalDateTimeToDateString(startTime) == DateUtil.LocalDateTimeToDateString(productTicket.expireDate!!)) && startTime > expireDate ) return null
+                            if ( ( expireDate < startTime ) || (effectDate > endTime) )
+                                return null
+                            else
+                                return productTicket
                         }
-                        return productTicket
-
                     }
                     DiscountRangeType.WEEKDAY -> {
 
