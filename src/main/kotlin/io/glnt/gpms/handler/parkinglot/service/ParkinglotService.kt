@@ -18,6 +18,7 @@ import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -30,6 +31,12 @@ class ParkinglotService {
     companion object : KLogging()
 
     var parkSite: ParkSiteInfo? = null
+
+    @Value("visitor-external.url")
+    var visitorExternalUrl: String? = null
+
+    @Value("visitor-external.token")
+    var visitorExternalToken: String? = null
 
     @Autowired
     lateinit var enviroment: Environment
@@ -501,6 +508,19 @@ class ParkinglotService {
     fun isExternalSend() : Boolean {
         return parkSite!!.externalSvr != ExternalSvrType.NONE
     }
+
+    fun getVisitorExternalInfo(): HashMap<String, String?>? {
+        return parkSite!!.visitorExternal?.let {
+             hashMapOf<String, String?>(
+                "url" to visitorExternalUrl,
+                "token" to visitorExternalToken,
+                "key" to parkSite!!.visitorExternalKey
+             )
+        }?: kotlin.run {
+            null
+        }
+    }
+
 
 //    fun JsonArray<*>.writeJSON(pathName: String, filename: String) {
 //        val fullOutDir = File(outDir, pathName)

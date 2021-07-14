@@ -108,7 +108,14 @@ data class ParkSiteInfo(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "vehicle_day_option")
-    var vehicleDayOption: VehicleDayType? = VehicleDayType.OFF
+    var vehicleDayOption: VehicleDayType? = VehicleDayType.OFF,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "visitor_external")
+    var visitorExternal: VisitorExternalKeyType? = null,
+
+    @Column(name = "visitor_external_key")
+    var visitorExternalKey: String? = null
 ) : Auditable(), Serializable {
 
 }

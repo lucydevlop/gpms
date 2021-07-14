@@ -174,6 +174,10 @@ enum class CityType {
 enum class TicketAplyType {
     FULL, DAY, NIGHT, TIME
 }
+
+enum class VisitorExternalKeyType {
+    APTNER
+}
 //enum class parkCarType {
 //    "일반차량", "정기권차량", "미인식차량"
 //}
