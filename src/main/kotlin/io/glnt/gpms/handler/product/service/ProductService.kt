@@ -44,10 +44,22 @@ class ProductService {
                     DiscountRangeType.ALL -> {
                         if (ticketClass.aplyType == TicketAplyType.FULL) return productTicket
                         else {
-                            var expireDate = DateUtil.makeLocalDateTime(
+                            var expireDate = if (ticketClass.startTime!! > ticketClass.endTime!!) {
+                                    DateUtil.makeLocalDateTime(
+                                    DateUtil.LocalDateTimeToDateString(DateUtil.getAddDays(startTime, 1)),
+                                    ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
+                            } else DateUtil.makeLocalDateTime(
                                 DateUtil.LocalDateTimeToDateString(startTime),
                                 ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
-                            if ((DateUtil.LocalDateTimeToDateString(startTime) == DateUtil.LocalDateTimeToDateString(productTicket.expireDate!!)) && startTime > expireDate) return null
+
+                            var effectDate = DateUtil.makeLocalDateTime(
+                                DateUtil.LocalDateTimeToDateString(startTime),
+                                ticketClass.startTime!!.substring(0, 2), ticketClass.startTime!!.substring(2, 4))
+
+//                            var expireDate = DateUtil.makeLocalDateTime(
+//                                DateUtil.LocalDateTimeToDateString(startTime),
+//                                ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
+                            if ((DateUtil.LocalDateTimeToDateString(startTime) == DateUtil.LocalDateTimeToDateString(productTicket.expireDate!!)) && startTime > expireDate && endTime <= effectDate ) return null
                         }
                         return productTicket
 

@@ -59,4 +59,6 @@ glnt:
 adtcaps:
   url: http://ec2-3-36-62-144.ap-northeast-2.compute.amazonaws.com:9105
 
-
+visitor-external:
+  url: https://devgtw.aptner.com/pc
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUFRORVIiLCJhdWQiOiJHTFx1MDAyNlQiLCJleHAiOjMxODEyNjQ3MDMsImlhdCI6MTYyNjA2NDcwMywicm9sZXMiOiJQQyJ9.5zBu-c40X6nbW_ay-PZPjVQGln636AjpSywwtACicyk
