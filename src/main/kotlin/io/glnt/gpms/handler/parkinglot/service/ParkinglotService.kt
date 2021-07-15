@@ -418,71 +418,114 @@ class ParkinglotService {
     fun updateParkinglot(request: reqCreateParkinglot): CommonResult = with(request) {
         logger.info { "updateParkinglot request $request" }
         try {
-            parkSiteInfoRepository.findBySiteid(request.siteId)?.let { it ->
-                val data = parkSiteInfoRepository.save(
-                    ParkSiteInfo(
-                        siteid = it.siteid,
-                        sitename = siteName,
-                        limitqty = limitqty,
-                        saupno = saupno,
-                        tel = tel,
-                        ceoname = ceoname,
-                        postcode = postcode,
-                        address = address,
-                        firsttime = firsttime,
-                        firstfee = firstfee,
-                        returntime = returntime,
-                        overtime = overtime,
-                        overfee = overfee,
-                        addtime = addtime,
-                        dayfee = dayfee,
-                        parkingSpotStatusNotiCycle = parkingSpotStatusNotiCycle,
-                        facilitiesStatusNotiCycle = facilitiesStatusNotiCycle,
-                        flagMessage = flagMessage,
-                        businame = businame,
-                        parkId = parkId,
-                        vehicleDayOption =vehicleDayOption,
-                        tmapSend = tmapSend,
-                        saleType = saleType,
-                        externalSvr = externalSvr,
-                        ip = ip, city = city,
-                        space = space
-                    )
-                )
-                initalizeData()
-                return CommonResult.data(data)
-            } ?: run {
-                val data = parkSiteInfoRepository.save(
-                    ParkSiteInfo(
-                        siteid = siteId,
-                        sitename = siteName,
-                        limitqty = limitqty,
-                        saupno = saupno,
-                        tel = tel,
-                        ceoname = ceoname,
-                        postcode = postcode,
-                        address = address,
-                        firsttime = firsttime,
-                        firstfee = firstfee,
-                        returntime = returntime,
-                        overtime = overtime,
-                        overfee = overfee,
-                        addtime = addtime,
-                        dayfee = dayfee,
-                        parkingSpotStatusNotiCycle = parkingSpotStatusNotiCycle,
-                        facilitiesStatusNotiCycle = facilitiesStatusNotiCycle,
-                        flagMessage = flagMessage,
-                        businame = businame,
-                        parkId = parkId,
-                        vehicleDayOption =vehicleDayOption,
-                        tmapSend = tmapSend,
-                        saleType = saleType,
-                        externalSvr = externalSvr
-                    )
-                )
-                initalizeData()
-                return CommonResult.data(data)
+            parkSiteInfoRepository.findTopByOrderBySiteid()?.let {
+                request.siteId = it.siteid
             }
+
+            val data = parkSiteInfoRepository.save(
+                ParkSiteInfo(
+                    siteid = siteId,
+                    sitename = siteName,
+                    limitqty = limitqty,
+                    saupno = saupno,
+                    tel = tel,
+                    ceoname = ceoname,
+                    postcode = postcode,
+                    address = address,
+                    firsttime = firsttime,
+                    firstfee = firstfee,
+                    returntime = returntime,
+                    overtime = overtime,
+                    overfee = overfee,
+                    addtime = addtime,
+                    dayfee = dayfee,
+                    parkingSpotStatusNotiCycle = parkingSpotStatusNotiCycle,
+                    facilitiesStatusNotiCycle = facilitiesStatusNotiCycle,
+                    flagMessage = flagMessage,
+                    businame = businame,
+                    parkId = parkId,
+                    vehicleDayOption =vehicleDayOption,
+                    tmapSend = tmapSend,
+                    saleType = saleType,
+                    externalSvr = externalSvr,
+                    ip = ip, city = city,
+                    space = space,
+                    visitorExternal = visitorExternal,
+                    visitorExternalKey = visitorExternalKey
+                )
+            )
+            initalizeData()
+            return CommonResult.data(data)
+//            parkSiteInfoRepository.findBySiteid(request.siteId)?.let { it ->
+//                val data = parkSiteInfoRepository.save(
+//                    ParkSiteInfo(
+//                        siteid = it.siteid,
+//                        sitename = siteName,
+//                        limitqty = limitqty,
+//                        saupno = saupno,
+//                        tel = tel,
+//                        ceoname = ceoname,
+//                        postcode = postcode,
+//                        address = address,
+//                        firsttime = firsttime,
+//                        firstfee = firstfee,
+//                        returntime = returntime,
+//                        overtime = overtime,
+//                        overfee = overfee,
+//                        addtime = addtime,
+//                        dayfee = dayfee,
+//                        parkingSpotStatusNotiCycle = parkingSpotStatusNotiCycle,
+//                        facilitiesStatusNotiCycle = facilitiesStatusNotiCycle,
+//                        flagMessage = flagMessage,
+//                        businame = businame,
+//                        parkId = parkId,
+//                        vehicleDayOption =vehicleDayOption,
+//                        tmapSend = tmapSend,
+//                        saleType = saleType,
+//                        externalSvr = externalSvr,
+//                        ip = ip, city = city,
+//                        space = space,
+//                        visitorExternal = visitorExternal,
+//                        visitorExternalKey = visitorExternalKey
+//                    )
+//                )
+//                initalizeData()
+//                return CommonResult.data(data)
+//            } ?: run {
+//                val data = parkSiteInfoRepository.save(
+//                    ParkSiteInfo(
+//                        siteid = siteId,
+//                        sitename = siteName,
+//                        limitqty = limitqty,
+//                        saupno = saupno,
+//                        tel = tel,
+//                        ceoname = ceoname,
+//                        postcode = postcode,
+//                        address = address,
+//                        firsttime = firsttime,
+//                        firstfee = firstfee,
+//                        returntime = returntime,
+//                        overtime = overtime,
+//                        overfee = overfee,
+//                        addtime = addtime,
+//                        dayfee = dayfee,
+//                        parkingSpotStatusNotiCycle = parkingSpotStatusNotiCycle,
+//                        facilitiesStatusNotiCycle = facilitiesStatusNotiCycle,
+//                        flagMessage = flagMessage,
+//                        businame = businame,
+//                        parkId = parkId,
+//                        vehicleDayOption =vehicleDayOption,
+//                        tmapSend = tmapSend,
+//                        saleType = saleType,
+//                        externalSvr = externalSvr,
+//                        ip = ip, city = city,
+//                        space = space,
+//                        visitorExternal = visitorExternal,
+//                        visitorExternalKey = visitorExternalKey
+//                    )
+//                )
+//                initalizeData()
+//                return CommonResult.data(data)
         } catch(e: CustomException) {
             logger.error { "updateParkinglot error ${e.message}" }
             return CommonResult.error("parkinglot update failed ")
