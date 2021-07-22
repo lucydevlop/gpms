@@ -1,5 +1,8 @@
 package io.glnt.gpms.handler.parkinglot.service
 
+import com.mashape.unirest.http.HttpResponse
+import com.mashape.unirest.http.JsonNode
+import com.mashape.unirest.http.Unirest
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.common.utils.DataCheckUtil
@@ -7,9 +10,11 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.common.utils.FileUtils
+import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.facility.model.resRelaySvrFacility
 import io.glnt.gpms.handler.facility.service.FacilityService
+import io.glnt.gpms.handler.inout.model.reqVisitorExternal
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
 import io.glnt.gpms.handler.relay.service.RelayService
@@ -21,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
+import java.lang.RuntimeException
 import java.time.LocalDateTime
 import javax.annotation.PostConstruct
 import javax.transaction.Transactional
@@ -32,10 +38,10 @@ class ParkinglotService {
 
     var parkSite: ParkSiteInfo? = null
 
-    @Value("visitor-external.url")
+    @Value("\${visitor-external.url}")
     var visitorExternalUrl: String? = null
 
-    @Value("visitor-external.token")
+    @Value("\${visitor-external.token}")
     var visitorExternalToken: String? = null
 
     @Autowired
@@ -61,6 +67,9 @@ class ParkinglotService {
 
     @Autowired
     private lateinit var discountClassRepository: DiscountClassRepository
+
+    @Autowired
+    private lateinit var restAPIManagerUtil: RestAPIManagerUtil
 
     @PostConstruct
     fun initalizeData() {
@@ -509,6 +518,10 @@ class ParkinglotService {
         return parkSite!!.externalSvr != ExternalSvrType.NONE
     }
 
+    fun isVisitorExternalKeyType(): Boolean {
+        return parkSite!!.visitorExternal == VisitorExternalKeyType.APTNER
+    }
+
     fun getVisitorExternalInfo(): HashMap<String, String?>? {
         return parkSite!!.visitorExternal?.let {
              hashMapOf<String, String?>(
@@ -522,6 +535,35 @@ class ParkinglotService {
     }
 
 
+    fun searchVisitorExternal(visitorExternalInfo: HashMap<String,String?>?,vehicleNo: String): HttpResponse<JsonNode>?{
+        val key = visitorExternalInfo?.get("key")
+        val host = visitorExternalInfo?.get("url")
+        val token = visitorExternalInfo?.get("token")
+
+        val request = host+"visit/check?kaptCode="+key+"&carNo="+vehicleNo
+
+        return restAPIManagerUtil.sendGetRequestWithToken(request,token)
+    }
+
+    fun sendInVisitorExternal(visitorExternalInfo: HashMap<String, String?>?, visitorData: reqVisitorExternal?, parkingtype: String){
+        try {
+            val host = visitorExternalInfo?.get("url")
+            val token = visitorExternalInfo?.get("token")
+
+            val url = host+"access/in"
+            restAPIManagerUtil.sendPostRequestWithToken(url, token, visitorData).let {
+                logger.info { "sendInVisitorExternal success! ${it?.body}"}
+            }
+
+        } catch (e: RuntimeException){
+            logger.error { "sendInVisitorExternal error ${e.message}" }
+        }
+    }
+}
+
+
+
+
 //    fun JsonArray<*>.writeJSON(pathName: String, filename: String) {
 //        val fullOutDir = File(outDir, pathName)
 //        fullOutDir.mkdirs()
@@ -529,4 +571,4 @@ class ParkinglotService {
 //
 //        fullOutFile.writeText(toJsonString(false))
 //    }
-}
+//}

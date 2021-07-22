@@ -140,7 +140,7 @@ class ProductService {
                         val new = ProductTicket(
                             sn = null, vehicleNo = request.vehicleNo, delYn = DelYn.N,
                             effectDate = request.effectDate, expireDate = request.expireDate,
-                            userId = request.userId, gates = request.gateId!!, ticketType = request.ticketType,
+                            userId = request.userId, gates = request.gateId, ticketType = request.ticketType,
                             vehicleType = request.vehicleType, corpSn = request.corpSn, etc = request.etc,
                             name = request.name, etc1 = request.etc1, tel = request.tel, vehiclekind = request.vehiclekind, ticketSn = request.ticketSn
                         )
