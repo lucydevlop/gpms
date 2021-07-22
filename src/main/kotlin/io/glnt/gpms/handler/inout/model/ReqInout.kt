@@ -89,3 +89,12 @@ data class reqUpdatePayment(
     var parkTicketAmount: Int? = null,
     var sn: Long
 )
+
+
+data class reqVisitorExternal(
+    var kaptCode: String? = null,
+    var carNo: String? = null,
+    var dong: String? = null,
+    var ho: String? = null,
+    var isResident: String? = null
+)

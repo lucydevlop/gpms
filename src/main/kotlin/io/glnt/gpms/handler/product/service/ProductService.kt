@@ -202,7 +202,7 @@ class ProductService {
 //                            }
                         }
                         if ( ticket.effectDate!! == request.effectDate ) {
-
+                          
                         }
                     }
                 }
