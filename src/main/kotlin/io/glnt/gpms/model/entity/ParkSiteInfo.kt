@@ -2,11 +2,8 @@ package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.google.common.collect.Multiset
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType
-import com.vladmihalcea.hibernate.type.json.JsonStringType
-import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.common.utils.JsonToMapConverter
 import io.glnt.gpms.model.enums.*
 import org.hibernate.annotations.Type
 import org.hibernate.annotations.TypeDef
@@ -84,10 +81,12 @@ data class ParkSiteInfo(
     @Column(name = "park_id", nullable = true)
     var parkId: String? = null,
 
-    @Lob
-//    @Type(type = "jsonb")
-    @Column(name = "space", nullable = true)
-    var space: String? = null,
+    @Type(type = "json")
+    @Column(name = "space", columnDefinition = "json")
+    @Convert(attributeName = "space", converter = JsonToMapConverter::class)
+//    val menuJson:
+//    @Column(name = "space", nullable = true)
+    var space: Map<String, Any>? = null, //emptyMap(),
 
     @Enumerated(EnumType.STRING)
     @Column(name = "sale_type", nullable = true)
@@ -109,18 +108,16 @@ data class ParkSiteInfo(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "vehicle_day_option")
-    var vehicleDayOption: VehicleDayType? = VehicleDayType.OFF
+    var vehicleDayOption: VehicleDayType? = VehicleDayType.OFF,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "visitor_external")
+    var visitorExternal: VisitorExternalKeyType? = null,
+
+    @Column(name = "visitor_external_key")
+    var visitorExternalKey: String? = null
 ) : Auditable(), Serializable {
 
-    data class spaceAttributes(
-        var spaces: MutableSet<spaceAttribute>? = null
-    )
-    data class spaceAttribute(
-        @JsonProperty("gate")
-        var gate: List<String>,
-        @JsonProperty("space")
-        var space: Int
-    )
 }
 
 //@JsonInclude(JsonInclude.Include.NON_NULL)

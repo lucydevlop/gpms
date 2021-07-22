@@ -3,6 +3,7 @@ package io.glnt.gpms.model.entity
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.glnt.gpms.model.entity.GateGroup
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.GateTypeStatus
 import io.glnt.gpms.model.enums.OpenActionType
@@ -63,14 +64,21 @@ data class Gate(
     var delYn: DelYn? = DelYn.N,
 
     @Column(name = "reset_svr", nullable = false)
-    var resetSvr: String? = "http://192.168.20.211/io.cgi?relay="
+    var resetSvr: String? = "http://192.168.20.211/io.cgi?relay=",
 
+    @Column(name = "gate_group_id")
+    var gateGroupId: String? = null
 //    ,
 //    @JsonIgnore
 //    @OneToMany(fetch = FetchType.LAZY, mappedBy = "gate_id")
 //    var facilities: List<Facility> = ArrayList()
 
 ): Auditable(), Serializable {
+
+    @OneToOne
+    @JoinColumn(name = "gate_group_id", referencedColumnName = "gate_group_id", insertable = false, updatable = false)
+    @Where(clause = "del_yn = 'N'")
+    var gateGroup: GateGroup? = null
 
 //    @OneToMany//(mappedBy = "serviceProduct", cascade = arrayOf(CascadeType.ALL), fetch = FetchType.EAGER)
 //    @JoinColumn(name = "gate_id")

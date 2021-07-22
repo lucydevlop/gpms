@@ -90,6 +90,12 @@ class DashboardAdminController {
         return CommonResult.returnResult(dashboardAdminService.getGates())
     }
 
+    @RequestMapping(value = ["/gate_groups"], method = [RequestMethod.GET])
+    @Throws(CustomException::class)
+    fun getGateGroups() : ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(dashboardAdminService.getGateGroups())
+    }
+
     @RequestMapping(value = ["/gate/{action}/{gateId}"], method = [RequestMethod.GET])
     @Throws(CustomException::class)
     fun gateAction(@PathVariable action: String, @PathVariable gateId: String) : ResponseEntity<CommonResult> {

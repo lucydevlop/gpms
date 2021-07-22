@@ -21,6 +21,7 @@ import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
+import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
@@ -32,6 +33,7 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -42,7 +44,8 @@ import kotlin.collections.HashMap
 @Service
 class InoutService(
     private var inoutPaymentRepository: InoutPaymentRepository,
-    private var feeCalculation: FeeCalculation
+    private var feeCalculation: FeeCalculation,
+    private var gateRepository: GateRepository
 ) {
     companion object : KLogging()
 
@@ -82,8 +85,6 @@ class InoutService(
     @Autowired
     private lateinit var vehicleListSearchRepository: VehicleListSearchRepository
 
-    @Autowired
-    private lateinit var dashboardUserService: DashboardUserService
 
 
     fun parkIn(request: reqAddParkIn) : CommonResult = with(request){
@@ -91,7 +92,6 @@ class InoutService(
         try {
 
             // gate up(option check)
-            // todo 요일제 차량 옵션 적용
             parkinglotService.getGateInfoByDtFacilityId(dtFacilitiesId) ?.let { gate ->
                 // UUID 없을 경우(Back 입차) deviceIF -> OFF 로 전환
                 // 동일 입차 처리 skip
@@ -106,10 +106,10 @@ class InoutService(
                     // UUID 확인 후 Update
                     parkInRepository.findByUuid(uuid!!)?.let {
                         if (it.vehicleNo == vehicleNo) {
-                            logger.warn{" 기 입차 car_num:${request.vehicleNo} skip "}
+                           // logger.warn{" 기 입차 car_num:${request.vehicleNo} skip "}
                             return CommonResult.data()
                         }
-                        deviceIF = "OFF"
+                                               deviceIF = "OFF"
                         // inSn = it.sn
                         // requestId = it.requestid
                         if (resultcode == "0" || resultcode.toInt() >= 100) { return CommonResult.data() }
@@ -120,17 +120,34 @@ class InoutService(
                 val facility = parkinglotService.getFacilityByDtFacilityId(dtFacilitiesId)
                 // 만차 제어 설정 시 count 확인 후 skip
                 if (parkinglotService.parkSite!!.space != null) {
-                    val spaces = parkinglotService.parkSite!!.space as ParkSiteInfo.spaceAttributes
-//                    parkinglotService.parkSite.space!!.spaces!!.forEach { it ->
-                    spaces.spaces!!.forEach {
-                        if (it.gate.contains(gate.gateId) || it.gate.contains("ALL")) {
-                            if (parkInRepository.countByGateIdAndOutSn(gate.gateId, 0) >= it.space) {
+                    parkinglotService.parkSite!!.space?.let { spaces ->
+                        logger.info("parkinglot space $spaces")
+
+                        val inGates = ArrayList<String>()
+
+                        gateRepository.findByGateGroupId(spaces["gateGroupId"].toString()).let { items ->
+                            for (item in items) {
+                                inGates.add(item.gateId)
+                            }
+                            if (parkInRepository.countByGateIdInAndOutSn(inGates, 0) >= spaces["space"].toString().toInt()) {
                                 displayMessage("FULL", vehicleNo, "IN", gate.gateId)
                                 logger.warn{" car_num:${request.vehicleNo} 만차 skip "}
                                 return CommonResult.data("Full limit $vehicleNo $parkingtype")
                             }
                         }
                     }
+
+                    //todo  만차제어
+//                    parkinglotService.parkSite.space!!.spaces!!.forEach { it ->
+//                    spaces.spaces!!.forEach {
+//                        if (it.gate.contains(gate.gateGroupId) || it.gate.contains("ALL")) {
+//                            if (parkInRepository.countByGateIdAndOutSn(gate.gateId, 0) >= it.space) {
+//                                displayMessage("FULL", vehicleNo, "IN", gate.gateId)
+//                                logger.warn{" car_num:${request.vehicleNo} 만차 skip "}
+//                                return CommonResult.data("Full limit $vehicleNo $parkingtype")
+//                            }
+//                        }
+//                    }
                 }
                 // image 파일 저장
                 if (base64Str != null) {
@@ -140,6 +157,11 @@ class InoutService(
                     fileUploadId = DateUtil.stringToNowDateTimeMS()+"_F"
                 }
 
+
+                // 방문차량 입차통보 데이터
+                var visitorData:reqVisitorExternal? = null
+
+
                 //차량번호 패턴 체크
                 if (DataCheckUtil.isValidCarNumber(vehicleNo)) {
                     parkingtype = "NORMAL"
@@ -148,7 +170,53 @@ class InoutService(
                         parkingtype = it.ticketType!!.code
                         validDate = it.validDate
                         ticketSn = it.sn
+                    }?: kotlin.run {
+                        // TODO 방문차량 확인
+                        if(parkinglotService.isVisitorExternalKeyType()){
+                            parkinglotService.getVisitorExternalInfo()?.let { it -> val kaptCode = it["key"]
+                                parkinglotService.searchVisitorExternal(it, vehicleNo)?.let {
+                                    it.body?.let { body ->
+                                        when(body.`object`?.get("isVisitor")){
+                                            "Y"->{
+                                                parkingtype = TicketType.VISITTICKET.code
+                                                memo = body.`object`?.get("purpose").toString()
+
+                                                val dong = body.`object`?.get("dong").toString()
+                                                val ho = body.`object`?.get("ho").toString()
+
+                                                // TODO 방문차량 정기권 등록
+                                                val requestData = reqCreateProductTicket(
+                                                    vehicleNo = vehicleNo,
+                                                    ticketType = TicketType.VISITTICKET,
+                                                    // TODO 유효기간 설정 우선 당일, 옵션이 필요함
+                                                    //gateId = mutableSetOf(parkinglotService.getGateInfoByDtFacilityId(dtFacilitiesId)!!.gateId),
+                                                    effectDate = DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate),
+                                                    expireDate = DateUtil.lastTimeToLocalDateTime(DateUtil.nowDate),
+                                                    etc = dong+"동 " + ho+"호 방문차량",
+                                                    etc1 = "아파트너"
+                                                )
+
+                                                visitorData = reqVisitorExternal(
+                                                    kaptCode = kaptCode,
+                                                    carNo = vehicleNo,
+                                                    dong = dong,
+                                                    ho = ho,
+                                                    isResident = "N"
+                                                )
+
+                                                productService.createProduct(requestData)
+
+                                            }
+                                            else ->{
+                                                parkingtype = "NORMAL"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
+
                     recognitionResult = "RECOGNITION"
 
                     // 기 입차 여부 확인 및 update
@@ -157,8 +225,7 @@ class InoutService(
                         val lists = parkins.data as? List<ParkIn>?
                         lists!!.filter { it.outSn == 0L }.forEach {
                             it.outSn = -1
-                            parkInRepository.save(it)
-                            parkInRepository.flush()
+                            parkInRepository.saveAndFlush(it)
                         }
                     }
                 } else {
@@ -199,8 +266,7 @@ class InoutService(
                     ticketSn = ticketSn,
                     memo = memo
                 )
-                parkInRepository.save(newData)
-                parkInRepository.flush()
+                parkInRepository.saveAndFlush(newData)
 
                 // 시설 I/F
                 // PCC 가 아닌경우애만 아래 모듈 실행
@@ -228,9 +294,16 @@ class InoutService(
 
                         }
                     }
+
                     displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
                     relayService.actionGate(gate.gateId, "GATE", "open")
+                }
 
+                //todo 아파트너 입차 정보 전송
+                if (parkinglotService.isVisitorExternalKeyType()){
+                    parkinglotService.getVisitorExternalInfo()?.let {
+                        parkinglotService.sendInVisitorExternal(it,visitorData,parkingtype!!)
+                    }
                 }
 
                 if (parkinglotService.isTmapSend()) {
@@ -555,6 +628,7 @@ class InoutService(
                 }
 
                 if (deviceIF == "ON") {
+
                     // 정산기 출차 전송
                     when (parkingtype) {
                         "UNRECOGNIZED" -> {
@@ -575,60 +649,68 @@ class InoutService(
                             displayMessage(parkingtype!!, vehicleNo, "WAIT", gate.gateId)
                         }
                         else -> {
-                            displayMessage(parkingtype!!, if (price != null) (price!!.totalPrice).toString()+"원" else "0원", "WAIT", gate.gateId)
+                            if (parkinglotService.parkSite!!.saleType == SaleType.PAID) {
+                                displayMessage(
+                                    parkingtype!!,
+                                    if (price != null) (price!!.totalPrice).toString() + "원" else "0원",
+                                    "WAIT",
+                                    gate.gateId
+                                )
 
-                            facilityService.sendPaystation(
-                                reqPayStationData(
-                                    paymentMachineType = if (parkingtype == "NORMAL") "exit" else "SEASON",
-                                    vehicleNumber = vehicleNo,
-                                    facilitiesId = gate.udpGateid!!,
-                                    recognitionType = if (parkingtype == "NORMAL") "FREE" else "SEASON",
-                                    recognitionResult = "RECOGNITION",
-                                    paymentAmount = if (price!!.totalPrice!! <= 0) "0" else if (price != null) (price!!.orgTotalPrice!!-price!!.dayilyMaxDiscount!!).toString() else "0",
-                                    parktime = if (price != null) price!!.parkTime.toString() else newData.parktime?.let { newData.parktime.toString()}?.run { "0" },
-                                    parkTicketMoney = if (price!!.totalPrice!! <= 0) "0" else if (price != null) price!!.discountPrice!!.toString() else "0",  // 할인요금
-                                    vehicleIntime = DateUtil.nowDateTimeHm
-                                ),
-                                gate = gate.gateId,
-                                requestId = newData.sn.toString(),
-                                type = "adjustmentRequest"
-                            )
-//                            price?.let {
-//                                if (price!!.discountPrice!! > 0) {
-//                                    Thread.sleep(200)
-//
-//                                    facilityService.sendPaystation(
-//                                        reqPayData(
-//                                            paymentMachineType = "exit",
-//                                            vehicleNumber = vehicleNo,
-//                                            parkTicketType = "OK",
-//                                            parkTicketMoney = price!!.discountPrice.toString(),  // 할인요금
-//                                            facilitiesId = gate.udpGateid!!
-//                                        ),
-//                                        gate = gate.gateId,
-//                                        requestId = newData.sn.toString(),
-//                                        type = "adjustmentdataRequest"
-//                                    )
-//                                }
-//                            }
+                                price?.let { price ->
+                                    facilityService.sendPaystation(
+                                        reqPayStationData(
+                                            paymentMachineType = if (parkingtype == "NORMAL") "exit" else if (price.totalPrice!! > 0) "exit" else "SEASON",
+                                            vehicleNumber = vehicleNo,
+                                            facilitiesId = gate.udpGateid ?: kotlin.run { gate.gateId },
+                                            recognitionType = if (parkingtype == "NORMAL") "FREE" else if (price.totalPrice!! > 0) "FREE" else "SEASON",
+                                            recognitionResult = "RECOGNITION",
+                                            paymentAmount = if (price.totalPrice!! <= 0) "0" else (price.orgTotalPrice).toString(),
+                                            parktime = price.parkTime.toString(),
+                                            parkTicketMoney = if (price.totalPrice!! <= 0) "0" else (price.discountPrice!! + price.dayilyMaxDiscount!!).toString(),  // 할인요금
+                                            vehicleIntime = parkIn?.let {
+                                                DateUtil.formatDateTime(
+                                                    it.inDate!!,
+                                                    "yyyy-MM-dd HH:mm"
+                                                )
+                                            } ?: kotlin.run { DateUtil.nowDateTimeHm }
+                                        ),
+                                        gate = gate.gateId,
+                                        requestId = newData.sn.toString(),
+                                        type = "adjustmentRequest"
+                                    )
+
+                                    if (price.totalPrice == 0) {
+                                        //parkIn?.let { updateParkInExitComplete(it, newData.sn!! ) }
+                                        //displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+                                        logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
+                                        relayService.actionGate(gate.gateId, "GATE", "open")
+                                    }
+                                }
+                            } else {
+                                logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
+                                relayService.actionGate(gate.gateId, "GATE", "open")
+                            }
                         }
                     }
                     // 동일 입차 출차 처리
                     parkIn?.let { updateParkInExitComplete(it, newData.sn!! ) }
                     // 전광판 display 전송
-                    if (parkinglotService.parkSite!!.saleType == SaleType.FREE) {
-                        //parkIn?.let { updateParkInExitComplete(it, newData.sn!! ) }
-                        //displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
-                        logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
-                        relayService.actionGate(gate.gateId, "GATE", "open")
-                    } else {
-                        if (gate.openAction == OpenActionType.NONE && (price!!.totalPrice == 0)) {
-                            //parkIn?.let { updateParkInExitComplete(it, newData.sn!! ) }
-                            //displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
-                            logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
-                            relayService.actionGate(gate.gateId, "GATE", "open")
-                        }
-                    }
+//                    if (parkinglotService.parkSite!!.saleType == SaleType.FREE) {
+//                        //parkIn?.let { updateParkInExitComplete(it, newData.sn!! ) }
+//                        //displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+//                        logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
+//                        relayService.actionGate(gate.gateId, "GATE", "open")
+//                    } else {
+//                        //todo 출구 제한 삭제
+////                        if (gate.openAction == OpenActionType.NONE && (price!!.totalPrice == 0)) {
+//                        if (price!!.totalPrice == 0) {
+//                            //parkIn?.let { updateParkInExitComplete(it, newData.sn!! ) }
+//                            //displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
+//                            logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
+//                            relayService.actionGate(gate.gateId, "GATE", "open")
+//                        }
+//                    }
                 }
 
                 logger.warn { "parkout car_number: ${request.vehicleNo} 출차 성공" }
@@ -906,12 +988,10 @@ class InoutService(
             }
             "SEASONTICKET", "WHITELIST", "FREETICKET", "VISITTICKET" -> {
                 val days = productService.calcRemainDayProduct(vehicleNo)
-                if (days in 1..7)
+                if (parkingtype == "SEASONTICKET" && days in 0..7)
                     makeParkPhrase("VIP", vehicleNo, "잔여 0${days}일", type)
-                else {
-
+                else
                     makeParkPhrase("VIP", vehicleNo, vehicleNo, type)
-                }
             }
             "MEMBER", "RESTRICTE", "FULL", "INIT", "CALL" -> makeParkPhrase(parkingtype, vehicleNo, vehicleNo, type)
 //             -> makeParkPhrase("RESTRICTE", vehicleNo, vehicleNo, type)
@@ -1053,7 +1133,7 @@ class InoutService(
 
                 // 결제 금액 있을 시 정산기 연계 결제 금액 없으면 차단기 오픈
                 displayMessage( parkIn.parkcartype!!,
-                    (request.payfee?.let{ it.toString()+"원"}?: kotlin.run { "0원" }) as String, "WAIT", request.outGateId!!)
+                    (request.payfee?.let{ it.toString()+"원"}?: kotlin.run { "0원" }), "WAIT", request.outGateId!!)
 
                 facilityService.sendPaystation(
                     reqPayStationData(

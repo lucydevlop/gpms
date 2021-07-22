@@ -6,6 +6,7 @@ import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.JsonNode
 import com.mashape.unirest.http.Unirest
 import com.mashape.unirest.http.exceptions.UnirestException
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 @Component
@@ -91,4 +92,26 @@ class RestAPIManagerUtil {
             .header("Authorization", "Basic YWRtaW46Z2xudDExISE=")
             .asString()
     }
+
+    //  TODO getMeesageWithToken
+    fun sendGetRequestWithToken(url: String?, token:String?): HttpResponse<JsonNode>?{
+        return Unirest.get(url)
+            .header("Authorization", "Bearer $token")
+            .asJson()
+    }
+
+
+    //  TODO getMeesageWithToken
+    fun sendPostRequestWithToken(url: String?, token: String?, `object`: Any?): HttpResponse<JsonNode>?{
+        val objectMapper = ObjectMapper()
+        val jsonInString = objectMapper.writeValueAsString(`object`)
+        println(jsonInString)
+
+        return Unirest.post(url)
+            .header("Content-Type", "application/json")
+            .header("Authorization", "Bearer $token")
+            .body(jsonInString)
+            .asJson()
+    }
+
 }

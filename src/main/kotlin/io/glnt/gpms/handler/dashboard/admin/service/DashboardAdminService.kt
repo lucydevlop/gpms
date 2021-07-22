@@ -29,6 +29,7 @@ import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountRangeType
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.UserRole
+import io.glnt.gpms.service.GateService
 import mu.KLogging
 import org.apache.http.HttpStatus
 import org.springframework.beans.factory.annotation.Autowired
@@ -73,6 +74,9 @@ class DashboardAdminService(
 
     @Autowired
     lateinit var fareRefService: FareRefService
+
+    @Autowired
+    lateinit var gateService: GateService
 
     @Throws(CustomException::class)
     fun getMainGates(): CommonResult {
@@ -173,6 +177,16 @@ class DashboardAdminService(
     fun getGates(): CommonResult {
         try {
             return CommonResult.data(parkinglotService.getParkinglotGates(reqSearchParkinglotFeature()).data)
+        }catch (e: CustomException){
+            logger.error { "Admin getParkInLists failed ${e.message}" }
+            return CommonResult.error("Admin getParkInLists failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun getGateGroups(): CommonResult {
+        try {
+            return CommonResult.data(gateService.getGateGroups())
         }catch (e: CustomException){
             logger.error { "Admin getParkInLists failed ${e.message}" }
             return CommonResult.error("Admin getParkInLists failed ${e.message}")

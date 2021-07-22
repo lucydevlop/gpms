@@ -43,9 +43,12 @@ gateway:
   url: http://192.168.20.30:9999/v1
 
 glnt:
-  url: http://192.168.20.9:9105
+  url: http://ec2-3-36-62-144.ap-northeast-2.compute.amazonaws.com:9105
 
 adtcaps:
-  url: http://192.168.20.9:9105
+  url: http://ec2-3-36-62-144.ap-northeast-2.compute.amazonaws.com:9105
 
 
+visitor-external:
+  url: https://gtw.aptner.com/pc
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUFRORVIiLCJhdWQiOiJHTFx1MDAyNlQiLCJleHAiOjMxODEyNjQ3MDUsImlhdCI6MTYyNjA2NDcwNSwicm9sZXMiOiJQQyJ9.5u8QsXrJRHbTif63DO4Cne77QmGl3gjXUdDF-fQnLdI

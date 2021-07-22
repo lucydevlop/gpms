@@ -58,5 +58,8 @@ glnt:
 adtcaps:
   url: http://192.168.20.9:9105
 
+visitor-external:
+  url: https://devgtw.aptner.com/pc
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUFRORVIiLCJhdWQiOiJHTFx1MDAyNlQiLCJleHAiOjMxODEyNjQ3MDMsImlhdCI6MTYyNjA2NDcwMywicm9sZXMiOiJQQyJ9.5zBu-c40X6nbW_ay-PZPjVQGln636AjpSywwtACicyk
 
 
