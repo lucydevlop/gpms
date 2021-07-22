@@ -95,7 +95,7 @@ enum class WeekType(val code: Int, val desc: String) {
     WED(4, "수요일"),
     THU(5, "목요일"),
     FRI(6, "금요일"),
-    SAT(7, "요일"),
+    SAT(7, "토요일"),
     ALL(0, "ALL")
 }
 
