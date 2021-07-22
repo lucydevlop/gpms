@@ -18,6 +18,10 @@ interface ProductTicketRepository: JpaRepository<ProductTicket, Long> {
     fun findAll(specification: Specification<ProductTicket>): List<ProductTicket>?
     fun findBySn(sn: Long): ProductTicket?
     fun findByVehicleNoAndEffectDateAndExpireDateAndTicketTypeAndDelYn(vehiclNo: String, effectDate: LocalDateTime, expireDate: LocalDateTime, ticketType: TicketType, delYn: DelYn): List<ProductTicket>?
+    fun findByVehicleNoAndTicketTypeAndDelYnAndEffectDateGreaterThanAndExpireDateLessThanEqual(vehiclNo: String, ticketType: TicketType, delYn: DelYn, effectDate: LocalDateTime, expireDate: LocalDateTime) : List<ProductTicket>?
+    fun countByVehicleNoAndTicketTypeAndDelYnAndEffectDateLessThanEqualAndExpireDateGreaterThanEqual(vehiclNo: String, ticketType: TicketType, delYn: DelYn, effectDate: LocalDateTime, expireDate: LocalDateTime): Long
+    @Query(value = "SELECT h.* from tb_seasonticket h where h.vehicleNo =:vehiclNo And h.ticket_type =:ticketType And h.del_Yn = 'N' And (h.effect_date between :effectDate and :expireDate or h.expire_date between :effectDate and :expireDate ) order by h.effect_date asc ", nativeQuery = true)
+    fun findByRangedValidTickets(vehiclNo: String, ticketType: TicketType, effectDate: LocalDateTime, expireDate: LocalDateTime) : List<ProductTicket>?
 
 }
 
