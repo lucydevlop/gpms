@@ -88,12 +88,13 @@ class InoutService(
 
 
     fun parkIn(request: reqAddParkIn) : CommonResult = with(request){
-        logger.warn{"parkIn service car_num:${request.vehicleNo} facility_id:${request.dtFacilitiesId} in_date:${request.date} result_code:${request.resultcode} uuid:${request.uuid}"}
+        logger.warn {" ##### 입차 요청 START #####"}
+        logger.warn {" 차량번호 ${request.vehicleNo} LPR시설정보 ${request.dtFacilitiesId} 입차시간 ${request.date} UUID ${request.uuid} OCR결과 ${request.resultcode}"  }
         try {
 
             // gate up(option check)
             parkinglotService.getGateInfoByDtFacilityId(dtFacilitiesId) ?.let { gate ->
-                // UUID 없을 경우(Back 입차) deviceIF -> OFF 로 전환
+                // UUID 없을 경우(후방 카메라 입차) deviceIF -> OFF 로 전환
                 // 동일 입차 처리 skip
                 if (uuid!!.isEmpty()) {
                     deviceIF = "OFF"
@@ -103,13 +104,14 @@ class InoutService(
                     }
                 } else {
                     requestId = parkinglotService.generateRequestId()
-                    // UUID 확인 후 Update
+                    // UUID 확인 후 Update (보조 카메라 입차 이벤트인 경우 )
                     parkInRepository.findByUuid(uuid!!)?.let {
+                        assistant = true
                         if (it.vehicleNo == vehicleNo) {
-                           // logger.warn{" 기 입차 car_num:${request.vehicleNo} skip "}
+                            logger.warn{" 기 입차 car_num:${request.vehicleNo} skip "}
                             return CommonResult.data()
                         }
-                                               deviceIF = "OFF"
+                        deviceIF = "OFF"
                         // inSn = it.sn
                         // requestId = it.requestid
                         if (resultcode == "0" || resultcode.toInt() >= 100) { return CommonResult.data() }
@@ -239,6 +241,7 @@ class InoutService(
                         if (DataCheckUtil.isRotation(it, vehicleNo)) {
                         } else {
                             displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
+                            logger.warn {" # 입차 차단 요일제적용 차량번호 $vehicleNo "}
                             return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
                         }
                     }
@@ -275,28 +278,23 @@ class InoutService(
                 // 2. 전광판
                 // 전광판 메세지 구성은 아래와 같이 진행한다.
                 // 'pcc' 인 경우 MEMBER -> MEMBER 로 아닌 경우 MEMBER -> NONMEMBER 로 정의
-                if (gate.takeAction != "PCC" && deviceIF == "ON") {
+                if (gate.takeAction != "PCC" && (deviceIF == "ON" || (deviceIF == "OFF" && assistant == true)) ){
+
                     // todo GATE 옵션인 경우 정기권/WHITE OPEN 옵션 정의
-                    when(gate.openAction){
-                        OpenActionType.RECOGNITION -> {
-                            if ("UNRECOGNIZED" == parkingtype) {
-                                displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
-                                return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
-                            }
+                    if (gate.openAction == OpenActionType.NONE) {
+                        if (deviceIF == "ON") {
+                            displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+                            relayService.actionGate(gate.gateId, "GATE", "open")
                         }
-                        OpenActionType.RESTRICT -> {
-                            if ("NORMAL" == parkingtype || "UNRECOGNIZED" == parkingtype) {
-                                displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
-                                return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
-                            }
+                    } else {
+                        if ("UNRECOGNIZED" == parkingtype || ((gate.openAction == OpenActionType.RESTRICT && "NORMAL" == parkingtype))) {
+                            displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
+                            logger.warn {" # 입차 차단 차량번호 $vehicleNo 차량타입 $parkingtype 게이트옵션 ${gate.openAction}"}
+                            return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
                         }
-                        else -> {
-
-                        }
+                        displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+                        relayService.actionGate(gate.gateId, "GATE", "open")
                     }
-
-                    displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
-                    relayService.actionGate(gate.gateId, "GATE", "open")
                 }
 
                 //todo 아파트너 입차 정보 전송
@@ -318,6 +316,7 @@ class InoutService(
                     )
                     tmapSendService.sendInVehicle(data, requestId!!, fileName)
                 }
+                logger.warn {" ##### 입차 요청 END #####"}
                 return CommonResult.data(newData)
             }
             logger.error("parkIn error failed gateId is not found {} ", dtFacilitiesId )
