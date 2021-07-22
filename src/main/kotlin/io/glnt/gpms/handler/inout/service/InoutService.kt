@@ -96,6 +96,7 @@ class InoutService(
             parkinglotService.getGateInfoByDtFacilityId(dtFacilitiesId) ?.let { gate ->
                 // UUID 없을 경우(후방 카메라 입차) deviceIF -> OFF 로 전환
                 // 동일 입차 처리 skip
+                assistant = false
                 if (uuid!!.isEmpty()) {
                     deviceIF = "OFF"
                     if (parkInRepository.findByVehicleNoEndsWithAndOutSnAndGateIdAndDelYn(vehicleNo, 0, gate.gateId, DelYn.N)!!.isNotEmpty()) {
@@ -106,7 +107,7 @@ class InoutService(
                     requestId = parkinglotService.generateRequestId()
                     // UUID 확인 후 Update (보조 카메라 입차 이벤트인 경우 )
                     parkInRepository.findByUuid(uuid!!)?.let {
-                        assistant = true
+
                         if (it.vehicleNo == vehicleNo) {
                             logger.warn{" 기 입차 car_num:${request.vehicleNo} skip "}
                             return CommonResult.data()
@@ -116,6 +117,13 @@ class InoutService(
                         // requestId = it.requestid
                         if (resultcode == "0" || resultcode.toInt() >= 100) { return CommonResult.data() }
 
+                        if (gate.openAction == OpenActionType.RECOGNITION && it.parkcartype == "UNRECOGNIZED") {
+                                assistant = true
+                        }
+
+                        if (gate.openAction == OpenActionType.RESTRICT && (it.parkcartype == "UNRECOGNIZED" || it.parkcartype == "NORMAL")) {
+                            assistant = true
+                        }
                     }
                 }
 
@@ -138,18 +146,6 @@ class InoutService(
                             }
                         }
                     }
-
-                    //todo  만차제어
-//                    parkinglotService.parkSite.space!!.spaces!!.forEach { it ->
-//                    spaces.spaces!!.forEach {
-//                        if (it.gate.contains(gate.gateGroupId) || it.gate.contains("ALL")) {
-//                            if (parkInRepository.countByGateIdAndOutSn(gate.gateId, 0) >= it.space) {
-//                                displayMessage("FULL", vehicleNo, "IN", gate.gateId)
-//                                logger.warn{" car_num:${request.vehicleNo} 만차 skip "}
-//                                return CommonResult.data("Full limit $vehicleNo $parkingtype")
-//                            }
-//                        }
-//                    }
                 }
                 // image 파일 저장
                 if (base64Str != null) {
@@ -279,22 +275,72 @@ class InoutService(
                 // 전광판 메세지 구성은 아래와 같이 진행한다.
                 // 'pcc' 인 경우 MEMBER -> MEMBER 로 아닌 경우 MEMBER -> NONMEMBER 로 정의
                 if (gate.takeAction != "PCC" && (deviceIF == "ON" || (deviceIF == "OFF" && assistant == true)) ){
-
-                    // todo GATE 옵션인 경우 정기권/WHITE OPEN 옵션 정의
+                    // NONE 인 경우 전방 LPR 만 처리
                     if (gate.openAction == OpenActionType.NONE) {
                         if (deviceIF == "ON") {
                             displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
                             relayService.actionGate(gate.gateId, "GATE", "open")
                         }
-                    } else {
-                        if ("UNRECOGNIZED" == parkingtype || ((gate.openAction == OpenActionType.RESTRICT && "NORMAL" == parkingtype))) {
-                            displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
-                            logger.warn {" # 입차 차단 차량번호 $vehicleNo 차량타입 $parkingtype 게이트옵션 ${gate.openAction}"}
-                            return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
-                        }
-                        displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
-                        relayService.actionGate(gate.gateId, "GATE", "open")
                     }
+
+                    if (gate.openAction == OpenActionType.RECOGNITION) {
+                        if (deviceIF == "ON") {
+                            if ("UNRECOGNIZED" != parkingtype ) {
+                                displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+                                relayService.actionGate(gate.gateId, "GATE", "open")
+                            } else {
+                                displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
+                                logger.warn {" # 입차 차단 차량번호 $vehicleNo 차량타입 $parkingtype 게이트옵션 ${gate.openAction}"}
+                                return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
+                            }
+                        } else {
+                            if (assistant == true) {
+                                displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+                                relayService.actionGate(gate.gateId, "GATE", "open")
+                            }
+                        }
+                    }
+
+                    if (gate.openAction == OpenActionType.RESTRICT) {
+                        if (deviceIF == "ON") {
+                            when(parkingtype) {
+                                "UNRECOGNIZED", "NORMAL" -> {
+                                    displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
+                                    logger.warn {" # 입차 차단 차량번호 $vehicleNo 차량타입 $parkingtype 게이트옵션 ${gate.openAction}"}
+                                    return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
+                                }
+                                else -> {
+                                    displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+                                    relayService.actionGate(gate.gateId, "GATE", "open")
+                                }
+                            }
+                        } else {
+                            if (assistant == true && parkingtype != "NORMAL") {
+                                displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+                                relayService.actionGate(gate.gateId, "GATE", "open")
+                            }
+                        }
+                    }
+
+
+
+
+
+//                    // todo GATE 옵션인 경우 정기권/WHITE OPEN 옵션 정의
+//                    if (gate.openAction == OpenActionType.NONE) {
+//                        if (deviceIF == "ON") {
+//                            displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+//                            relayService.actionGate(gate.gateId, "GATE", "open")
+//                        }
+//                    } else {
+//                        if ("UNRECOGNIZED" == parkingtype || ((gate.openAction == OpenActionType.RESTRICT && "NORMAL" == parkingtype))) {
+//                            displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
+//                            logger.warn {" # 입차 차단 차량번호 $vehicleNo 차량타입 $parkingtype 게이트옵션 ${gate.openAction}"}
+//                            return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
+//                        }
+//                        displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+//                        relayService.actionGate(gate.gateId, "GATE", "open")
+//                    }
                 }
 
                 //todo 아파트너 입차 정보 전송
