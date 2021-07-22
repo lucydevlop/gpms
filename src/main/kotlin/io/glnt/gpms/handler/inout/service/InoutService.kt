@@ -138,7 +138,6 @@ class InoutService(
                     }
 
                     //todo  만차제어
-
 //                    parkinglotService.parkSite.space!!.spaces!!.forEach { it ->
 //                    spaces.spaces!!.forEach {
 //                        if (it.gate.contains(gate.gateGroupId) || it.gate.contains("ALL")) {
@@ -989,12 +988,10 @@ class InoutService(
             }
             "SEASONTICKET", "WHITELIST", "FREETICKET", "VISITTICKET" -> {
                 val days = productService.calcRemainDayProduct(vehicleNo)
-                if (days in 0..7)
+                if (parkingtype == "SEASONTICKET" && days in 0..7)
                     makeParkPhrase("VIP", vehicleNo, "잔여 0${days}일", type)
-                else {
-
+                else
                     makeParkPhrase("VIP", vehicleNo, vehicleNo, type)
-                }
             }
             "MEMBER", "RESTRICTE", "FULL", "INIT", "CALL" -> makeParkPhrase(parkingtype, vehicleNo, vehicleNo, type)
 //             -> makeParkPhrase("RESTRICTE", vehicleNo, vehicleNo, type)

@@ -91,89 +91,262 @@ class ProductService {
     fun createProduct(request: reqCreateProductTicket): CommonResult {
         logger.info { "createProduct request $request" }
         try {
-            if (request.sn != null) {
-                productTicketRepository.findBySn(request.sn!!)?.let {
-                    val new = ProductTicket(
-                        sn = it.sn,
-                        vehicleNo = request.vehicleNo,
-                        delYn = DelYn.N,
-                        effectDate = request.effectDate,
-                        expireDate = request.expireDate,
-                        userId = request.userId?.let { request.userId } ?: run { it.userId },
-                        gates = request.gateId?.let { request.gateId } ?: run { it.gates },
-                        ticketType = request.ticketType?.let { request.ticketType } ?: run { it.ticketType },
-                        vehicleType = request.vehicleType?.let { request.vehicleType } ?: run { it.vehicleType },
-                        corpSn = request.corpSn?.let { request.corpSn } ?: run { it.corpSn },
-                        etc = request.etc?.let { request.etc } ?: run { it.etc },
-                        etc1 = request.etc1?.let { request.etc1 } ?: run { it.etc1 },
-                        name = request.name?.let { request.name } ?: run { it.name },
-                        tel = request.tel?.let { request.tel } ?: run { it.tel },
-                        vehiclekind = request.vehiclekind?.let { request.vehiclekind } ?: run { it.vehiclekind },
-                        ticketSn = request.ticketSn?.let { request.ticketSn } ?: run { it.ticketSn },
-
-                    )
+            val new = ProductTicket(
+                sn = request.sn,
+                vehicleNo = request.vehicleNo,
+                delYn = DelYn.N,
+                effectDate = request.effectDate,
+                expireDate = request.expireDate,
+                userId = request.userId,
+                gates = request.gateId,
+                ticketType = request.ticketType,
+                vehicleType = request.vehicleType,
+                corpSn = request.corpSn,
+                etc = request.etc,
+                etc1 = request.etc1,
+                name = request.name,
+                tel = request.tel,
+                vehiclekind = request.vehiclekind,
+                ticketSn = request.ticketSn,
+            )
+            request.sn?.let { sn ->
+                // exists season ticket update
+                productTicketRepository.findBySn(sn)?.let { exists ->
+                    new.apply {
+                        this.sn = exists.sn!!
+                        this.userId = userId ?: kotlin.run { exists.userId }
+                        this.gates = gates ?: kotlin.run { exists.gates }
+                    }
                     return CommonResult.data(saveProductTicket(new))
-                } ?: run {
+                }?: run {
                     return CommonResult.error("product ticket create failed")
                 }
-            } else {
-                //동일 차량 등록 시 skip
+            }?: run {
+                //차량, 동일 일자 등록 시 skip
                 productTicketRepository.findByVehicleNoAndEffectDateAndExpireDateAndTicketTypeAndDelYn(request.vehicleNo, request.effectDate, request.expireDate, request.ticketType!!, DelYn.N)?.let {
                     if (it.isNotEmpty()) return CommonResult.data("product ticket exists")
                 }
-
-//                productTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(request.vehicleNo, request.expireDate, request.effectDate, DelYn.N
-                productTicketRepository.findByVehicleNoAndValidDateGreaterThanEqualAndDelYn(request.vehicleNo, request.effectDate, DelYn.N
-                )?.let { ticket ->
-                    // exists product
-                    // case db 이력 range 안에 신규 이력 range 존재
-//                    ticket.expireDate = DateUtil.getAddDays(DateUtil.stringToLocalDateTime(date), -1)
-//                    saveProductTicket()
-
-
-                    // case endDate > validate -> 이력 생성
-                    if (request.expireDate > ticket.expireDate) {
-                        val date = DateUtil.formatDateTime(request.effectDate, "yyyyMMddHHmmss").substring(0, 8)+"235959"
-                        ticket.expireDate = DateUtil.getAddDays(DateUtil.stringToLocalDateTime(date), -1)
-                        saveProductTicket(ticket)
-
-                        val new = ProductTicket(
-                            sn = null, vehicleNo = request.vehicleNo, delYn = DelYn.N,
-                            effectDate = request.effectDate, expireDate = request.expireDate,
-                            userId = request.userId, gates = request.gateId, ticketType = request.ticketType,
-                            vehicleType = request.vehicleType, corpSn = request.corpSn, etc = request.etc,
-                            name = request.name, etc1 = request.etc1, tel = request.tel, vehiclekind = request.vehiclekind, ticketSn = request.ticketSn
-                        )
-                        saveProductTicket(new)
-                    } else {
-                        //gates list update
-                        request.gateId!!.forEach { gate ->
-                            if (!ticket.gates!!.contains(gate)) ticket.gates!!.add(gate) }
-                        // case endDate =< validate -> skip(update)
-                        ticket.userId = request.userId
-//                    it.gates = request.gateId!!
-                        ticket.ticketType = request.ticketType
-
-                        saveProductTicket(ticket)
-                    }
-                } ?: run {
-                    val new = ProductTicket(
-                        sn = null,
-                        vehicleNo = request.vehicleNo,
-                        delYn = DelYn.N,
-                        effectDate = request.effectDate,
-                        expireDate = request.expireDate,
-                        userId = request.userId,
-                        gates = request.gateId,
-                        ticketType = request.ticketType,
-                        vehicleType = request.vehicleType,
-                        corpSn = request.corpSn,
-                        etc = request.etc,
-                        name = request.name , etc1 = request.etc1, tel = request.tel, vehiclekind = request.vehiclekind,
-                        ticketSn = request.ticketSn
-                    )
-                    return CommonResult.data(saveProductTicket(new))
+                // 정기권 이력 안에 포함 시 skip
+                if (productTicketRepository.countByVehicleNoAndTicketTypeAndDelYnAndEffectDateLessThanEqualAndExpireDateGreaterThanEqual(request.vehicleNo, request.ticketType!!, DelYn.N, request.effectDate, request.expireDate) > 0) {
+                    return CommonResult.data("product ticket exists")
                 }
+                // 차량, ticket list all fetch
+                productTicketRepository.findByRangedValidTickets(request.vehicleNo, request.ticketType!!, request.effectDate, request.expireDate)?.let { tickets ->
+//                productTicketRepository.findByVehicleNoAndTicketTypeAndDelYnAndEffectDateGreaterThanAndExpireDateLessThanEqual(
+//                    request.vehicleNo, request.ticketType!!, DelYn.N, request.effectDate, request.expireDate
+//                )?.let { tickets ->
+                    if (tickets.isNullOrEmpty()) {
+                        return CommonResult.data(saveProductTicket(new))
+                    }
+
+                    tickets.sortedBy { it.effectDate }
+                    for (i in 0..tickets.size) {
+                        val ticket = tickets[i]
+                        // skip 조건
+                        if (ticket.effectDate!! >= request.effectDate && ticket.expireDate!! >= request.expireDate) {
+                            return CommonResult.data("product ticket exists")
+                        }
+
+                        if ( ticket.effectDate!! > request.effectDate  ) {
+                            /*
+                             * 등록 상품보다 이전 일자로 등록 할 경우 신규 이력 생성
+                             * current product 2021-07-15 ~ 2021-08-30
+                             * new     product 2021-07-01 ~ 2021-08-30
+                             * result  2021-07-01 ~ 2021-07-14 2021-07-15 ~ 2021-08-30
+                             */
+                            if ( ticket.effectDate!! > request.expireDate ){
+                                new.apply {
+                                    effectDate = request.effectDate
+                                    expireDate = request.expireDate
+                                }
+                                saveProductTicket(new)
+                            }
+                            if ( ticket.effectDate!! == request.expireDate ) {
+                                new.apply {
+                                    effectDate = request.effectDate
+                                    expireDate = DateUtil.lastTimeToLocalDateTime(
+                                                    DateUtil.LocalDateTimeToDateString(
+                                                        DateUtil.getAddDays(request.expireDate, -1)
+                                                    ) )
+                                }
+                                saveProductTicket(new)
+                            }
+                            if ( ticket.effectDate!! < request.expireDate ) {
+                                new.apply {
+                                    effectDate = request.effectDate
+                                    expireDate = request.expireDate
+                                }
+                                saveProductTicket(new)
+                                ticket.apply {
+                                    this.effectDate = DateUtil.beginTimeToLocalDateTime(
+                                        DateUtil.LocalDateTimeToDateString(
+                                            DateUtil.getAddDays(request.expireDate, 1)
+                                        ) )
+                                }
+                                saveProductTicket(ticket)
+                            }
+//                            if ( ticket.expireDate!! > request.effectDate ) {
+//                                ticket.expireDate = DateUtil.lastTimeToLocalDateTime(
+//                                    DateUtil.LocalDateTimeToDateString(
+//                                        DateUtil.getAddDays(
+//                                            request.effectDate,
+//                                            -1
+//                                        )
+//                                    )
+//                                )
+//                                saveProductTicket(ticket)
+//                                if (tickets[i+1].effectDate)
+//                                    new.apply {
+//                                        effectDate
+//                                    }
+//                            }
+                        }
+                        if ( ticket.effectDate!! == request.effectDate ) {
+                          
+                        }
+                    }
+                }
+
+//
+//
+//
+//
+////                productTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(request.vehicleNo, request.expireDate, request.effectDate, DelYn.N
+//                productTicketRepository.findByVehicleNoAndValidDateGreaterThanEqualAndDelYn(request.vehicleNo, request.effectDate, DelYn.N
+//                )?.let { ticket ->
+//                    // exists product
+//                    // case db 이력 range 안에 신규 이력 range 존재
+////                    ticket.expireDate = DateUtil.getAddDays(DateUtil.stringToLocalDateTime(date), -1)
+////                    saveProductTicket()
+//
+//
+//                    // case endDate > validate -> 이력 생성
+//                    if (request.expireDate > ticket.expireDate) {
+//                        val date = DateUtil.formatDateTime(request.effectDate, "yyyyMMddHHmmss").substring(0, 8)+"235959"
+//                        ticket.expireDate = DateUtil.getAddDays(DateUtil.stringToLocalDateTime(date), -1)
+//                        saveProductTicket(ticket)
+//
+//                        val new = ProductTicket(
+//                            sn = null, vehicleNo = request.vehicleNo, delYn = DelYn.N,
+//                            effectDate = request.effectDate, expireDate = request.expireDate,
+//                            userId = request.userId, gates = request.gateId!!, ticketType = request.ticketType,
+//                            vehicleType = request.vehicleType, corpSn = request.corpSn, etc = request.etc,
+//                            name = request.name, etc1 = request.etc1, tel = request.tel, vehiclekind = request.vehiclekind, ticketSn = request.ticketSn
+//                        )
+//                        saveProductTicket(new)
+//                    } else {
+//                        //gates list update
+//                        request.gateId!!.forEach { gate ->
+//                            if (!ticket.gates!!.contains(gate)) ticket.gates!!.add(gate) }
+//                        // case endDate =< validate -> skip(update)
+//                        ticket.userId = request.userId
+////                    it.gates = request.gateId!!
+//                        ticket.ticketType = request.ticketType
+//
+//                        saveProductTicket(ticket)
+//                    }
+//                } ?: run {
+//                    val new = ProductTicket(
+//                        sn = null,
+//                        vehicleNo = request.vehicleNo,
+//                        delYn = DelYn.N,
+//                        effectDate = request.effectDate,
+//                        expireDate = request.expireDate,
+//                        userId = request.userId,
+//                        gates = request.gateId,
+//                        ticketType = request.ticketType,
+//                        vehicleType = request.vehicleType,
+//                        corpSn = request.corpSn,
+//                        etc = request.etc,
+//                        name = request.name , etc1 = request.etc1, tel = request.tel, vehiclekind = request.vehiclekind,
+//                        ticketSn = request.ticketSn
+//                    )
+//                    return CommonResult.data(saveProductTicket(new))
+//                }
+//            }
+//            if (request.sn != null) {
+//                productTicketRepository.findBySn(request.sn!!)?.let {
+//                    val new = ProductTicket(
+//                        sn = it.sn,
+//                        vehicleNo = request.vehicleNo,
+//                        delYn = DelYn.N,
+//                        effectDate = request.effectDate,
+//                        expireDate = request.expireDate,
+//                        userId = request.userId?.let { request.userId } ?: run { it.userId },
+//                        gates = request.gateId?.let { request.gateId } ?: run { it.gates },
+//                        ticketType = request.ticketType?.let { request.ticketType } ?: run { it.ticketType },
+//                        vehicleType = request.vehicleType?.let { request.vehicleType } ?: run { it.vehicleType },
+//                        corpSn = request.corpSn?.let { request.corpSn } ?: run { it.corpSn },
+//                        etc = request.etc?.let { request.etc } ?: run { it.etc },
+//                        etc1 = request.etc1?.let { request.etc1 } ?: run { it.etc1 },
+//                        name = request.name?.let { request.name } ?: run { it.name },
+//                        tel = request.tel?.let { request.tel } ?: run { it.tel },
+//                        vehiclekind = request.vehiclekind?.let { request.vehiclekind } ?: run { it.vehiclekind },
+//                        ticketSn = request.ticketSn?.let { request.ticketSn } ?: run { it.ticketSn },
+//
+//                    )
+//                    return CommonResult.data(saveProductTicket(new))
+//                } ?: run {
+//                    return CommonResult.error("product ticket create failed")
+//                }
+//            } else {
+//                //동일 차량 등록 시 skip
+//                productTicketRepository.findByVehicleNoAndEffectDateAndExpireDateAndTicketTypeAndDelYn(request.vehicleNo, request.effectDate, request.expireDate, request.ticketType!!, DelYn.N)?.let {
+//                    if (it.isNotEmpty()) return CommonResult.data("product ticket exists")
+//                }
+//
+////                productTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(request.vehicleNo, request.expireDate, request.effectDate, DelYn.N
+//                productTicketRepository.findByVehicleNoAndValidDateGreaterThanEqualAndDelYn(request.vehicleNo, request.effectDate, DelYn.N
+//                )?.let { ticket ->
+//                    // exists product
+//                    // case db 이력 range 안에 신규 이력 range 존재
+////                    ticket.expireDate = DateUtil.getAddDays(DateUtil.stringToLocalDateTime(date), -1)
+////                    saveProductTicket()
+//
+//
+//                    // case endDate > validate -> 이력 생성
+//                    if (request.expireDate > ticket.expireDate) {
+//                        val date = DateUtil.formatDateTime(request.effectDate, "yyyyMMddHHmmss").substring(0, 8)+"235959"
+//                        ticket.expireDate = DateUtil.getAddDays(DateUtil.stringToLocalDateTime(date), -1)
+//                        saveProductTicket(ticket)
+//
+//                        val new = ProductTicket(
+//                            sn = null, vehicleNo = request.vehicleNo, delYn = DelYn.N,
+//                            effectDate = request.effectDate, expireDate = request.expireDate,
+//                            userId = request.userId, gates = request.gateId!!, ticketType = request.ticketType,
+//                            vehicleType = request.vehicleType, corpSn = request.corpSn, etc = request.etc,
+//                            name = request.name, etc1 = request.etc1, tel = request.tel, vehiclekind = request.vehiclekind, ticketSn = request.ticketSn
+//                        )
+//                        saveProductTicket(new)
+//                    } else {
+//                        //gates list update
+//                        request.gateId!!.forEach { gate ->
+//                            if (!ticket.gates!!.contains(gate)) ticket.gates!!.add(gate) }
+//                        // case endDate =< validate -> skip(update)
+//                        ticket.userId = request.userId
+////                    it.gates = request.gateId!!
+//                        ticket.ticketType = request.ticketType
+//
+//                        saveProductTicket(ticket)
+//                    }
+//                } ?: run {
+//                    val new = ProductTicket(
+//                        sn = null,
+//                        vehicleNo = request.vehicleNo,
+//                        delYn = DelYn.N,
+//                        effectDate = request.effectDate,
+//                        expireDate = request.expireDate,
+//                        userId = request.userId,
+//                        gates = request.gateId,
+//                        ticketType = request.ticketType,
+//                        vehicleType = request.vehicleType,
+//                        corpSn = request.corpSn,
+//                        etc = request.etc,
+//                        name = request.name , etc1 = request.etc1, tel = request.tel, vehiclekind = request.vehiclekind,
+//                        ticketSn = request.ticketSn
+//                    )
+//                    return CommonResult.data(saveProductTicket(new))
+//                }
             }
         } catch (e: RuntimeException) {
             logger.info { "createProduct error $e" }
