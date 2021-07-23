@@ -131,7 +131,7 @@ class ProductService {
                     return CommonResult.data("product ticket exists")
                 }
                 // 차량, ticket list all fetch
-                productTicketRepository.findByRangedValidTickets(request.vehicleNo, request.ticketType!!, request.effectDate, request.expireDate)?.let { tickets ->
+                productTicketRepository.findByRangedValidTickets(request.vehicleNo, request.ticketType!!.code, request.effectDate, request.expireDate)?.let { tickets ->
 //                productTicketRepository.findByVehicleNoAndTicketTypeAndDelYnAndEffectDateGreaterThanAndExpireDateLessThanEqual(
 //                    request.vehicleNo, request.ticketType!!, DelYn.N, request.effectDate, request.expireDate
 //                )?.let { tickets ->
