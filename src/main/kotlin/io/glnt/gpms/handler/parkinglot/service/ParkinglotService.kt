@@ -540,7 +540,7 @@ class ParkinglotService {
         val host = visitorExternalInfo?.get("url")
         val token = visitorExternalInfo?.get("token")
 
-        val request = host+"visit/check?kaptCode="+key+"&carNo="+vehicleNo
+        val request = host+"/visit/check?kaptCode="+key+"&carNo="+vehicleNo
 
         return restAPIManagerUtil.sendGetRequestWithToken(request,token)
     }
@@ -550,7 +550,7 @@ class ParkinglotService {
             val host = visitorExternalInfo?.get("url")
             val token = visitorExternalInfo?.get("token")
 
-            val url = host+"access/in"
+            val url = host+"/access/in"
             restAPIManagerUtil.sendPostRequestWithToken(url, token, visitorData).let {
                 logger.info { "sendInVisitorExternal success! ${it?.body}"}
             }
