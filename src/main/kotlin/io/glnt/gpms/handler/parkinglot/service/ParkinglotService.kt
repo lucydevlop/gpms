@@ -578,28 +578,41 @@ class ParkinglotService {
     }
 
 
-    fun searchVisitorExternal(visitorExternalInfo: HashMap<String,String?>?,vehicleNo: String): HttpResponse<JsonNode>?{
-        val key = visitorExternalInfo?.get("key")
-        val host = visitorExternalInfo?.get("url")
-        val token = visitorExternalInfo?.get("token")
+    fun searchVisitorExternal(visitorExternalInfo: HashMap<String,String?>,vehicleNo: String): HttpResponse<JsonNode>?{
+
+        val key = visitorExternalInfo["key"]
+        val host = visitorExternalInfo["url"]
+        val token = visitorExternalInfo["token"]
 
         val request = host+"/visit/check?kaptCode="+key+"&carNo="+vehicleNo
 
         return restAPIManagerUtil.sendGetRequestWithToken(request,token)
+
+        //todo 데이터 포멧폼 HasMap으로 만들기 (key: isVisitor value: "Y") ...
+
     }
 
-    fun sendInVisitorExternal(visitorExternalInfo: HashMap<String, String?>?, visitorData: reqVisitorExternal?, parkingtype: String){
+    fun sendInVisitorExternal(visitorExternalInfo: HashMap<String, String?>, visitorData: reqVisitorExternal, parkingtype: String){
         try {
-            val host = visitorExternalInfo?.get("url")
-            val token = visitorExternalInfo?.get("token")
 
-            val url = host+"/access/in"
-            restAPIManagerUtil.sendPostRequestWithToken(url, token, visitorData).let {
-                logger.info { "sendInVisitorExternal success! ${it?.body}"}
+            visitorExternalInfo.let {
+
+                val host = visitorExternalInfo["url"]
+                val token = visitorExternalInfo["token"]
+                val url = host+"/access/in"
+
+                restAPIManagerUtil.sendPostRequestWithToken(url, token, visitorData)?.let {
+                    when(it.status){
+                        200 -> logger.info { "sendInVisitorExternal success! ${it.body}" }
+
+                        else -> logger.info { "sendInVisitorExternal failed. ${it.body}" }
+                    }
+                }?: kotlin.run {
+                    logger.info { "no receive response data" }
+                }
             }
-
         } catch (e: RuntimeException){
-            logger.error { "sendInVisitorExternal error ${e.message}" }
+            logger.error { "sendInVisitorExternal error $e" }
         }
     }
 }
