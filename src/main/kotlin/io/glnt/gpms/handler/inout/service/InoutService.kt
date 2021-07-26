@@ -343,12 +343,16 @@ class InoutService(
 //                    }
                 }
 
+
                 //todo 아파트너 입차 정보 전송
-                if (parkinglotService.isVisitorExternalKeyType()){
+                visitorData?.let { visitorData ->
                     parkinglotService.getVisitorExternalInfo()?.let {
-                        parkinglotService.sendInVisitorExternal(it,visitorData,parkingtype!!)
+                        parkinglotService.sendInVisitorExternal(it, visitorData, parkingtype!!)
                     }
                 }
+
+
+
 
                 if (parkinglotService.isTmapSend()) {
                     //todo tmap 전송
