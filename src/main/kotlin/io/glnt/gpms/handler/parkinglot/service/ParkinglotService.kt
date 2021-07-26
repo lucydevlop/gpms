@@ -578,24 +578,24 @@ class ParkinglotService {
     }
 
 
-    fun searchVisitorExternal(visitorExternalInfo: HashMap<String,String?>?,vehicleNo: String): HttpResponse<JsonNode>?{
+    fun searchVisitorExternal(visitorExternalInfo: HashMap<String,String?>, vehicleNo: String): HttpResponse<JsonNode>?{
         val key = visitorExternalInfo?.get("key")
-        val host = visitorExternalInfo?.get("url")
-        val token = visitorExternalInfo?.get("token")
+        val host = visitorExternalInfo.get("url")
+        val token = visitorExternalInfo.get("token")
 
         val request = host+"visit/check?kaptCode="+key+"&carNo="+vehicleNo
 
         return restAPIManagerUtil.sendGetRequestWithToken(request,token)
     }
 
-    fun sendInVisitorExternal(visitorExternalInfo: HashMap<String, String?>?, visitorData: reqVisitorExternal?, parkingtype: String){
+    fun sendInVisitorExternal(visitorExternalInfo: HashMap<String, String?>, visitorData: reqVisitorExternal, parkingtype: String){
         try {
-            val host = visitorExternalInfo?.get("url")
-            val token = visitorExternalInfo?.get("token")
+            val host = visitorExternalInfo.get("url")
+            val token = visitorExternalInfo.get("token")
 
             val url = host+"access/in"
-            restAPIManagerUtil.sendPostRequestWithToken(url, token, visitorData).let {
-                logger.info { "sendInVisitorExternal success! ${it?.body}"}
+            restAPIManagerUtil.sendPostRequestWithToken(url, token, visitorData)?.let {
+                logger.info { "sendInVisitorExternal result ${it.body}"}
             }
 
         } catch (e: RuntimeException){
