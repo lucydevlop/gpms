@@ -603,12 +603,12 @@ class ParkinglotService {
 
                 restAPIManagerUtil.sendPostRequestWithToken(url, token, visitorData)?.let {
                     when(it.status){
-                        200 -> logger.info { "sendInVisitorExternal success! ${it.body}" }
+                        200 -> logger.warn { "sendInVisitorExternal success! ${it.body}" }
 
-                        else -> logger.info { "sendInVisitorExternal failed. ${it.body}" }
+                        else -> logger.warn { "sendInVisitorExternal failed. ${it.body}" }
                     }
                 }?: kotlin.run {
-                    logger.info { "no receive response data" }
+                    logger.warn { "no receive response data" }
                 }
             }
         } catch (e: RuntimeException){
