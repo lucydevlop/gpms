@@ -1,35 +1,33 @@
 package io.glnt.gpms.service
 
-import io.glnt.gpms.model.dto.BarcodeClassDTO
 import io.glnt.gpms.model.dto.BarcodeTicketsDTO
 import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.mapper.BarcodeTicketMapper
+import io.glnt.gpms.model.mapper.BarcodeTicketsMapper
 import io.glnt.gpms.model.repository.BarcodeTicketsRepository
 import mu.KLogging
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class BarcodeTicketService (
-    private val barcodeTicketMapper: BarcodeTicketMapper,
-    private val barcodeTicketsRepository: BarcodeTicketsRepository
+    private var barcodeTicketsMapper: BarcodeTicketsMapper,
+    private var barcodeTicketsRepository: BarcodeTicketsRepository
 ){
     companion object : KLogging()
 
     @Transactional(readOnly = true)
     fun findAll(): List<BarcodeTicketsDTO> {
-        return barcodeTicketsRepository.findAll().map(barcodeTicketMapper::toDto)
+        return barcodeTicketsRepository.findAll().map(barcodeTicketsMapper::toDto)
     }
 
     fun save(barcodeTicketsDTO: BarcodeTicketsDTO): BarcodeTicketsDTO {
         logger.debug("Request to save Barcode : $barcodeTicketsDTO")
-        val barcodeTickets = barcodeTicketMapper.toEntity(barcodeTicketsDTO)
-        barcodeTickets.apply {
-            this.delYn = DelYn.N
-        }
-        barcodeTicketsRepository.save(barcodeTickets)
+//        barcodeTicketsDTO.delYn = DelYn.N
+        val barcodeTickets = barcodeTicketsMapper.toEntity(barcodeTicketsDTO)
+        barcodeTicketsRepository.save(barcodeTickets!!)
 
-        return barcodeTicketMapper.toDto(barcodeTickets)
+        return barcodeTicketsMapper.toDto(barcodeTickets)
     }
 
 }

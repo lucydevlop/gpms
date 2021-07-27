@@ -1,6 +1,7 @@
 package io.glnt.gpms.model.dto
 
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.enums.*
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -54,6 +55,14 @@ data class DiscountClassDTO(
     @Enumerated(EnumType.STRING)
     var delYn: DelYn? = null,
 ): Serializable {
+    constructor(discountClass: DiscountClass) :
+        this(
+            discountClass.sn, discountClass.discountType, discountClass.discountNm, discountClass.discountApplyType,
+            discountClass.timeTarget, discountClass.dayRange, discountClass.timeRange, discountClass.unitTime,
+            discountClass.disUse, discountClass.disMaxNo, discountClass.disMaxDay, discountClass.disMaxMonth,
+            discountClass.disPrice, discountClass.effectDate, discountClass.expireDate, discountClass.delYn
+        )
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is DiscountClassDTO) return false

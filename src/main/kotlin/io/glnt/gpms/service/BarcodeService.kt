@@ -22,7 +22,7 @@ class BarcodeService (
     fun save(barcodeDTO: BarcodeDTO): BarcodeDTO {
         logger.debug("Request to save Barcode : $barcodeDTO")
         val barcode = barcodeMapper.toEntity(barcodeDTO)
-        barcodeRepository.save(barcode)
+        barcodeRepository.save(barcode!!)
         return barcodeMapper.toDto(barcode)
     }
 

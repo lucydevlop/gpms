@@ -1,5 +1,8 @@
 package io.glnt.gpms.model.dto
 
+import com.fasterxml.jackson.annotation.JsonFormat
+import io.glnt.gpms.model.entity.Barcode
+import io.glnt.gpms.model.entity.BarcodeTickets
 import io.glnt.gpms.model.enums.DelYn
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -14,8 +17,10 @@ data class BarcodeDTO (
     @Enumerated(EnumType.STRING)
     var delYn: DelYn? = null,
 
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var effectDate: LocalDateTime? = null,
 
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var expireDate: LocalDateTime? = null,
 
     @get: NotNull
@@ -26,6 +31,12 @@ data class BarcodeDTO (
 
     var decriptKey: String? = null
 ): Serializable {
+
+    constructor(barcode: Barcode) :
+        this(
+            barcode.sn, barcode.delYn, barcode.effectDate,
+            barcode.expireDate, barcode.startIndex, barcode.endIndex, barcode.decriptKey
+        )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

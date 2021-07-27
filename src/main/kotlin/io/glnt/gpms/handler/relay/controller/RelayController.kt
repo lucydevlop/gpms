@@ -26,9 +26,9 @@ import java.time.LocalDateTime
 @CrossOrigin(origins = arrayOf("*"), allowedHeaders = arrayOf("*"))
 class RelayController (
     private val barcodeTicketService: BarcodeTicketService,
-    private val barcodeService: BarcodeService,
-    private val barcodeClassService: BarcodeClassService,
-    private val discountService: DiscountService
+//    private val barcodeService: BarcodeService,
+//    private val barcodeClassService: BarcodeClassService,
+//    private val discountService: DiscountService
 ){
     @Autowired
     private lateinit var relayService: RelayService
@@ -75,29 +75,31 @@ class RelayController (
         relayService.requestAdjustment(request, dtFacilityId)
     }
 
-    @RequestMapping(value=["/paystation/request/adjustment/{dtFacilityId}"], method = [RequestMethod.POST])
-    fun aplyBarcode(@RequestBody barcodeTicketsDTO: BarcodeTicketsDTO): ResponseEntity<CommonResult> {
-        logger.info { "aplyBarcode request $barcodeTicketsDTO" }
+    @RequestMapping(value=["/paystation/aply/discount/{dtFacilityId}"], method = [RequestMethod.POST])
+    fun aplyBarcode(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String) {
+        logger.info { "aplyBarcode request $request" }
 
-        if (barcodeTicketsDTO.sn != null) {
-            return CommonResult.returnResult(CommonResult.error("barcode bad request"))
-        }
-
-        val info = barcodeService.findAll().filter {
-            it.effectDate!! <= LocalDateTime.now() && it.expireDate!! >= LocalDateTime.now() && it.delYn == DelYn.N}.get(0)
-
-        barcodeTicketsDTO.price = barcodeTicketsDTO.barcode?.let { it.substring(info.startIndex!!, info.endIndex!!).toLong() }
-
-        barcodeClassService.findByStartGreaterThanAndEndLessThan(barcodeTicketsDTO.price!!).ifPresent { barcodeClass ->
-            // 입차할인권 save
-            barcodeTicketsDTO.inSn?.let {
-                discountService.saveInoutDiscount(
-                    InoutDiscount(
-                        sn = null, discontType = TicketType.BARCODE, discountClassSn = barcodeClass.discountClassSn, inSn = it,
-                        quantity = 1, useQuantity = 1, delYn = DelYn.N, applyDate = barcodeTicketsDTO.applyDate))
-            }
-        }
-        return CommonResult.returnResult(barcodeTicketService.save(barcodeTicketsDTO))
+//        if (barcodeTicketsDTO.sn != null) {
+//            return CommonResult.returnResult(CommonResult.error("barcode bad request"))
+//        }
+//
+//        val info = barcodeService.findAll().filter {
+//            it.effectDate!! <= LocalDateTime.now() && it.expireDate!! >= LocalDateTime.now() && it.delYn == DelYn.N}.get(0)
+//
+//        barcodeTicketsDTO.price = barcodeTicketsDTO.barcode?.let { it.substring(info.startIndex!!, info.endIndex!!).toInt() }
+//
+//        barcodeClassService.findByStartLessThanEqualAndEndGreaterThanAndDelYn(barcodeTicketsDTO.price!!)?.let { barcodeClass ->
+//            // 입차할인권 save
+//            barcodeTicketsDTO.inSn?.let {
+//                discountService.saveInoutDiscount(
+//                    InoutDiscount(
+//                        sn = null, discontType = TicketType.BARCODE, discountClassSn = barcodeClass.discountClassSn, inSn = it,
+//                        quantity = 1, useQuantity = 1, delYn = DelYn.N, applyDate = barcodeTicketsDTO.applyDate))
+//            }
+//        }
+//        barcodeTicketsDTO.delYn = DelYn.N
+//        return CommonResult.returnResult(CommonResult.data(barcodeTicketService.save(barcodeTicketsDTO)))
+        relayService.aplyDiscountTicket(request, dtFacilityId)
     }
 
     @RequestMapping(value = ["/display/init/message"], method = [RequestMethod.GET])

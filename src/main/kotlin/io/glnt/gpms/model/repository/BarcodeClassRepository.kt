@@ -9,5 +9,5 @@ import java.util.*
 
 @Repository
 interface BarcodeClassRepository: JpaRepository<BarcodeClass, Long> {
-    fun findByStartGreaterThanAndEndLessThanAndDelYn(start: Long, end: Long, delYn: DelYn): Optional<BarcodeClass>
+    fun findByStartLessThanEqualAndEndGreaterThanAndDelYn(start: Int, end: Int, delYn: DelYn): BarcodeClass?
 }

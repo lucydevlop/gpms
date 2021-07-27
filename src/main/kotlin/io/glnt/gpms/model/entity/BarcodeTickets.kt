@@ -17,19 +17,19 @@ data class BarcodeTickets(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "sn", unique = true, nullable = false)
-    var sn: Long?,
+    var sn: Long? = null,
 
     @Column(name = "barcode", nullable = false, unique = true)
     var barcode: String? = null,
 
     @Column(name = "in_sn", nullable = false)
-    var inSn: Long,
+    var inSn: Long? = null,
 
     @Column(name = "vehicle_no")
     var vehicleNo: String? = null,
 
     @Column(name = "price")
-    var price: Long? = null,
+    var price: Int? = null,
 
     @Column(name = "apply_date")
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
@@ -41,5 +41,23 @@ data class BarcodeTickets(
     var delYn: DelYn? = DelYn.N
 
 ): Auditable(), Serializable {
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is BarcodeTickets) return false
+
+        return sn != null && other.sn != null && sn == other.sn
+    }
+
+    override fun hashCode() = 31
+
+    override fun toString() = "BarcodeTickets{" +
+        "sn=$sn" +
+        ", barcode='$barcode'" +
+        "}"
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 
 }

@@ -10,6 +10,8 @@ import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
 import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.entity.Gate
+import io.glnt.gpms.service.BarcodeClassService
+import io.glnt.gpms.service.BarcodeService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -26,6 +28,12 @@ class ParkinglotController {
 
     @Autowired
     private lateinit var parkinglotService: ParkinglotService
+
+    @Autowired
+    private lateinit var barcodeClassService: BarcodeClassService
+
+    @Autowired
+    private lateinit var barcodeService: BarcodeService
 
     @RequestMapping(value= ["/create"], method = [RequestMethod.POST])
     fun createParkinglot() {
@@ -168,12 +176,21 @@ class ParkinglotController {
     @RequestMapping(value = ["/discount/ticket"], method = [RequestMethod.GET])
     @Throws(CustomException::class)
     fun getDiscountCoupon() : ResponseEntity<CommonResult> {
-        logger.trace { "getDiscountCoupon" }
-        val result = parkinglotService.getDiscountCoupon()
-        return when(result.code) {
-            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
-            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
-            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        logger.debug { "getDiscountCoupon" }
+        val discountClass = parkinglotService.getDiscountCoupon()
+
+        return when(discountClass.code) {
+            ResultCode.SUCCESS.getCode() -> {
+                var result = HashMap<String, Any?>()
+                result = hashMapOf(
+                    "discountClass" to discountClass.data,
+                    "barcodeClass" to barcodeClassService.findAll(),
+                    "barcodeInfo" to barcodeService.findAll()
+                )
+                ResponseEntity.ok(CommonResult.data(result))
+            }
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(discountClass, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(discountClass, HttpStatus.BAD_REQUEST)
         }
     }
 

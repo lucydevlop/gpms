@@ -25,12 +25,14 @@ class BarcodeClassService(
 
     fun save(barcodeClassDTO: BarcodeClassDTO): BarcodeClassDTO {
         logger.debug("Request to save BarcodeClass : $barcodeClassDTO")
-        val barcodeClass = barcodeClassMapper.toEntity(barcodeClassDTO)
-        barcodeClassRepository.save(barcodeClass)
-        return barcodeClassMapper.toDto(barcodeClass)
+        val barcodeClass = barcodeClassMapper.toEntity(barcodeClassDTO)?.let {
+            barcodeClassRepository.save(it)
+        }
+
+        return barcodeClassMapper.toDto(barcodeClass!!)
     }
 
-    fun findByStartGreaterThanAndEndLessThan(price: Long): Optional<BarcodeClass> {
-        return barcodeClassRepository.findByStartGreaterThanAndEndLessThanAndDelYn(price, price, DelYn.N)
+    fun findByStartLessThanEqualAndEndGreaterThanAndDelYn(price: Int): BarcodeClass? {
+        return barcodeClassRepository.findByStartLessThanEqualAndEndGreaterThanAndDelYn(price, price, DelYn.N)
     }
 }
