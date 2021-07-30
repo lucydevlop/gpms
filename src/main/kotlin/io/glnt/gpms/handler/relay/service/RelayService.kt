@@ -393,7 +393,7 @@ class RelayService(
                 var barcodeTicketDTO: BarcodeTicketsDTO =  BarcodeTicketsDTO(
                                         barcode = contents.parkTicketNumber,
                                         inSn = it.inSn,
-                                        applyDate = DateUtil.stringToLocalDateTime(request.eventDateTime!!, "yyyy-MM-dd HH:mm:ss"),
+                                        applyDate = DateUtil.stringToLocalDateTime(request.eventDateTime!!),
                                         price = contents.parkTicketNumber.substring(info.startIndex!!, info.endIndex!!).toInt(),
                                         vehicleNo = contents.vehicleNumber, delYn = DelYn.N
                                         )

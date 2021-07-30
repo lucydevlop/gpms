@@ -8,6 +8,7 @@ import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
+import io.glnt.gpms.model.dto.BarcodeDTO
 import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.entity.Gate
 import io.glnt.gpms.service.BarcodeClassService
@@ -192,6 +193,14 @@ class ParkinglotController {
             ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(discountClass, HttpStatus.NOT_FOUND)
             else -> ResponseEntity(discountClass, HttpStatus.BAD_REQUEST)
         }
+    }
+
+    @RequestMapping(value = ["/discount/barcode/info"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun saveBarcodeInfo(@RequestBody request: BarcodeDTO): ResponseEntity<CommonResult> {
+        logger.debug { "save barcodeInfo request $request" }
+        val result = barcodeService.save(request)
+        return ResponseEntity.ok(CommonResult.data(result))
     }
 
 

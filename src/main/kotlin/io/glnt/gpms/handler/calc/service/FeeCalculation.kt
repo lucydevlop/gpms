@@ -206,7 +206,7 @@ class FeeCalculation {
         if (inSn != null) {
             discountService.searchInoutDiscount(inSn)?.let { discounts ->
                 discounts.forEach { discount ->
-                    val discountClass = discount.discountClass
+                    val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
                     var discountTime = discountClass!!.unitTime * discount.quantity!!
                     retPrice.dailySplits!!.forEach { dailySplit ->
                         if (dailySplit.priceType == "Normal" && discountClass.discountApplyType == DiscountApplyType.TIME) {
