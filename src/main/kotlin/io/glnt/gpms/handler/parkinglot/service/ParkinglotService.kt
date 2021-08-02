@@ -429,6 +429,7 @@ class ParkinglotService {
         try {
             parkSiteInfoRepository.findTopByOrderBySiteid()?.let {
                 request.siteId = it.siteid
+                request.rcsParkId = request.rcsParkId?.let { it }?: kotlin.run { it.rcsParkId }
             }
 
             val data = parkSiteInfoRepository.save(
@@ -460,7 +461,8 @@ class ParkinglotService {
                     ip = ip, city = city,
                     space = space,
                     visitorExternal = visitorExternal,
-                    visitorExternalKey = visitorExternalKey
+                    visitorExternalKey = visitorExternalKey,
+                    rcsParkId = rcsParkId
                 )
             )
             initalizeData()
