@@ -10,6 +10,7 @@ import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
+import javax.persistence.EntityNotFoundException
 
 @Service
 class BarcodeClassService(
@@ -34,5 +35,14 @@ class BarcodeClassService(
 
     fun findByStartLessThanEqualAndEndGreaterThanAndDelYn(price: Int): BarcodeClass? {
         return barcodeClassRepository.findByStartLessThanEqualAndEndGreaterThanAndDelYn(price, price, DelYn.N)
+    }
+
+    fun delete(sn: Long): BarcodeClassDTO {
+        logger.debug("Request to delete BarcodeClass : $sn")
+        val barcodeClass = barcodeClassRepository.findBySn(sn).orElseThrow { EntityNotFoundException("BarcodeClass sn") }
+        barcodeClass.delYn = DelYn.Y
+        barcodeClassRepository.save(barcodeClass)
+
+        return barcodeClassMapper.toDto(barcodeClass)
     }
 }

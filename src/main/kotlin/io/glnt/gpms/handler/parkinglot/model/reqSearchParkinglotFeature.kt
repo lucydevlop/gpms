@@ -41,7 +41,8 @@ data class reqCreateParkinglot(
     var city: CityType? = null,
     var space: Map<String, Any>? = null,
     var visitorExternal: VisitorExternalKeyType? = null,
-    var visitorExternalKey: String? = null
+    var visitorExternalKey: String? = null,
+    var rcsParkId: Long? = null
 )
 
 data class reqUpdateGates(
