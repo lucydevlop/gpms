@@ -8,6 +8,7 @@ import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
+import io.glnt.gpms.model.dto.BarcodeClassDTO
 import io.glnt.gpms.model.dto.BarcodeDTO
 import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.entity.Gate
@@ -200,6 +201,22 @@ class ParkinglotController {
     fun saveBarcodeInfo(@RequestBody request: BarcodeDTO): ResponseEntity<CommonResult> {
         logger.debug { "save barcodeInfo request $request" }
         val result = barcodeService.save(request)
+        return ResponseEntity.ok(CommonResult.data(result))
+    }
+
+    @RequestMapping(value = ["/discount/barcode/class"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun saveBarcodeClass(@RequestBody request: BarcodeClassDTO): ResponseEntity<CommonResult> {
+        logger.debug { "save BarcodeClass request $request" }
+        val result = barcodeClassService.save(request)
+        return ResponseEntity.ok(CommonResult.data(result))
+    }
+
+    @RequestMapping(value = ["/discount/barcode/class/{sn}"], method = [RequestMethod.DELETE])
+    @Throws(CustomException::class)
+    fun deleteBarcodeClass(@PathVariable("sn") sn: String): ResponseEntity<CommonResult> {
+        logger.debug { "delete BarcodeClass request $sn" }
+        val result = barcodeClassService.delete(sn.toLong())
         return ResponseEntity.ok(CommonResult.data(result))
     }
 

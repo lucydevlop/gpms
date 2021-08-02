@@ -1,5 +1,6 @@
 package io.glnt.gpms.model.dto
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.enums.*
@@ -47,8 +48,10 @@ data class DiscountClassDTO(
 
     var disPrice: Int? = 0,
 
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var effectDate: LocalDateTime? = DateUtil.stringToLocalDateTime(DateUtil.nowDateTime, "yyyy-MM-dd HH:mm:ss"),
 
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var expireDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59"),
 
     @get: NotNull
