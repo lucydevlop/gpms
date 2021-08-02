@@ -239,7 +239,7 @@ class DiscountService {
     }
 
     fun saveInoutDiscount(discount: InoutDiscount) : InoutDiscount {
-        return inoutDiscountRepository.save(discount)
+        return inoutDiscountRepository.saveAndFlush(discount)
     }
 
     fun applyInoutDiscount(inSn: Long) {

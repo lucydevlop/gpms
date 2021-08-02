@@ -82,6 +82,12 @@ data class reqAdjustmentRequest(
     var parkTicketAmount: String? = null
 )
 
+data class reqDiscountTicket(
+    var parkTicketNumber: String,
+    var paymentMachineType: String,
+    var vehicleNumber: String
+)
+
 data class reqSendResultResponse(
     var result: String,
     var errorMsg: String? = null

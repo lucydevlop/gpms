@@ -6,6 +6,7 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.JSONUtil
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.model.*
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqAddParkOut
@@ -19,13 +20,16 @@ import io.glnt.gpms.handler.relay.model.paystationvehicleListSearch
 import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
+import io.glnt.gpms.model.dto.BarcodeTicketsDTO
 import io.glnt.gpms.model.entity.*
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.SaleType
+import io.glnt.gpms.model.enums.TicketType
 import io.glnt.gpms.model.enums.checkUseStatus
-import io.glnt.gpms.model.repository.FailureRepository
-import io.glnt.gpms.model.repository.ParkAlarmSetttingRepository
-import io.glnt.gpms.model.repository.ParkFacilityRepository
-import io.glnt.gpms.model.repository.VehicleListSearchRepository
+import io.glnt.gpms.model.repository.*
+import io.glnt.gpms.service.BarcodeClassService
+import io.glnt.gpms.service.BarcodeService
+import io.glnt.gpms.service.BarcodeTicketService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -33,7 +37,14 @@ import java.time.LocalDateTime
 import javax.annotation.PostConstruct
 
 @Service
-class RelayService() {
+class RelayService(
+    private val barcodeService: BarcodeService,
+    private val parkOutRepository: ParkOutRepository,
+    private val barcodeClassService: BarcodeClassService,
+    private val discountService: DiscountService,
+    private val barcodeTicketService: BarcodeTicketService,
+    private val parkInRepository: ParkInRepository
+) {
     companion object : KLogging()
 
     lateinit var parkAlarmSetting: ParkAlarmSetting
@@ -360,6 +371,53 @@ class RelayService() {
                                                    date = LocalDateTime.now(),
                                                    resultcode = "0",
                                                    uuid = JSONUtil.generateRandomBasedUUID()))
+            }
+
+        }catch (e: CustomException){
+            logger.error { "saveFailure failed ${e.message}" }
+        }
+    }
+
+    fun aplyDiscountTicket(request: reqApiTmapCommon, dtFacilityId: String){
+        logger.info { "정산기 $dtFacilityId 할인 티켓 입력 $request" }
+
+        try {
+            val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqDiscountTicket::class.java)
+
+            val info = barcodeService.findAll().filter {
+                it.effectDate!! <= LocalDateTime.now() && it.expireDate!! >= LocalDateTime.now() && it.delYn == DelYn.N}.get(0)
+
+            // parkOut 확인
+            parkOutRepository.findBySn(request.requestId!!.toLong())?.let {
+                it.inSn
+                var barcodeTicketDTO: BarcodeTicketsDTO =  BarcodeTicketsDTO(
+                                        barcode = contents.parkTicketNumber,
+                                        inSn = it.inSn,
+                                        applyDate = DateUtil.stringToLocalDateTime(request.eventDateTime!!),
+                                        price = contents.parkTicketNumber.substring(info.startIndex!!, info.endIndex!!).toInt(),
+                                        vehicleNo = contents.vehicleNumber, delYn = DelYn.N
+                                        )
+
+                var barcodeClass = barcodeClassService.findByStartLessThanEqualAndEndGreaterThanAndDelYn(barcodeTicketDTO.price!!)
+
+                if (barcodeClass != null) {
+                    // 입차할인권 save
+                    barcodeTicketDTO.inSn?.let {
+                        discountService.saveInoutDiscount(
+                            InoutDiscount(
+                                sn = null, discontType = TicketType.BARCODE, discountClassSn = barcodeClass.discountClassSn, inSn = it,
+                                quantity = 1, useQuantity = 1, delYn = DelYn.N, applyDate = barcodeTicketDTO.applyDate))
+                    }
+                }
+                barcodeTicketService.save(barcodeTicketDTO)
+                val gateId = parkinglotService.getGateInfoByDtFacilityId(dtFacilityId)!!.gateId
+                inoutService.parkOut(reqAddParkOut(vehicleNo = contents.vehicleNumber,
+                    dtFacilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, "LPR")!![0].dtFacilitiesId,
+                    date = it.outDate!!,
+                    resultcode = it.resultcode!!.toString(),
+                    uuid = JSONUtil.generateRandomBasedUUID(),
+                    parkIn = parkInRepository.findBySn(it.inSn!!)
+                ))
             }
 
         }catch (e: CustomException){
