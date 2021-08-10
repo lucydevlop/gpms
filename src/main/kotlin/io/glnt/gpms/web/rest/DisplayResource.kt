@@ -16,10 +16,4 @@ import org.springframework.web.bind.annotation.RestController
 @CrossOrigin(origins = arrayOf("*"), allowedHeaders = arrayOf("*"))
 class DisplayResource {
     companion object : KLogging()
-
-    @RequestMapping(value = ["/display/messages"], method = [RequestMethod.GET])
-    fun findAll(): ResponseEntity<CommonResult> {
-        logger.debug { "Display fetch all" }
-        return CommonResult.returnResult()
-    }
 }
