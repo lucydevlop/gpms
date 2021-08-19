@@ -24,6 +24,7 @@ interface FarePolicyRepository: JpaRepository<FarePolicy, Long> {
 
 @Repository
 interface FareInfoRepository: JpaRepository<FareInfo, Long> {
+    fun findBySn(sn: Long): FareInfo
     fun findByFareNameAndDelYn(fareName: String, delYn: DelYn): FareInfo?
     fun findByDelYn(delYn: DelYn): List<FareInfo>?
 }
