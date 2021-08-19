@@ -92,7 +92,7 @@ class ProductService {
         logger.info { "createProduct request $request" }
         try {
             val new = ProductTicket(
-                sn = request.sn,
+                sn = request.sn?.let { if (it > 0) it else null },
                 vehicleNo = request.vehicleNo,
                 delYn = DelYn.N,
                 effectDate = request.effectDate,
@@ -109,7 +109,7 @@ class ProductService {
                 vehiclekind = request.vehiclekind,
                 ticketSn = request.ticketSn,
             )
-            request.sn?.let { sn ->
+            new.sn?.let { sn ->
                 // exists season ticket update
                 productTicketRepository.findBySn(sn)?.let { exists ->
                     new.apply {
