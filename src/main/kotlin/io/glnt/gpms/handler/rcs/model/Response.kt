@@ -22,7 +22,8 @@ data class ResAsyncFacility(
     var status: String? = null,
     var statusDate: LocalDateTime? = null,
     var gateType: GateTypeStatus,
-    val delYn: DelYn
+    val delYn: DelYn,
+    val resetPort: Int?
 )
 
 
