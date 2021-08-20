@@ -295,6 +295,7 @@ class FacilityService(
     fun setDisplayMessage(request: ArrayList<reqSetDisplayMessage>): CommonResult = with(request) {
         logger.info { "setDisplayMessage request $request" }
         try {
+            val data = ArrayList<DisplayMessage>()
             request.forEach { it ->
                 displayMessageRepository.findByMessageClassAndMessageTypeAndOrder(
                     it.messageClass!!,
@@ -304,9 +305,9 @@ class FacilityService(
                     displayMessage.colorCode = it.colorCode
                     displayMessage.messageDesc = it.messageDesc
                     displayMessage.lineNumber = it.line
-                    displayMessageRepository.save(displayMessage)
+                    data.add(displayMessageRepository.save(displayMessage));
                 } ?: run {
-                    displayMessageRepository.save(
+                    data.add(displayMessageRepository.save(
                         DisplayMessage(
                             sn = null,
                             messageClass = it.messageClass!!,
@@ -315,13 +316,13 @@ class FacilityService(
                             order = it.order,
                             messageDesc = it.messageDesc,
                             lineNumber = it.line
-                        )
+                        ))
                     )
                 }
             }
             // static upload
             initalizeData()
-            return CommonResult.data("display message setting success")
+            return CommonResult.data(data)
         } catch (e: RuntimeException) {
             logger.error("set display color error {} ", e.message)
             return CommonResult.error("parkinglot display setting failed ")
@@ -687,7 +688,7 @@ class FacilityService(
                             health = if (facility.ip == "0.0.0.0") "NORMAL" else facility.health,
                             healthDate = facility.healthDate, status = facility.status,
                             statusDate = facility.statusDate, gateType = facility.gateType,
-                            delYn = if (gate.delYn!! == DelYn.Y) DelYn.Y else facility.delYn!! ))
+                            delYn = if (gate.delYn!! == DelYn.Y) DelYn.Y else facility.delYn!!, resetPort = null ))
                     }
                 }
             }
@@ -704,6 +705,7 @@ class FacilityService(
                         result.add(ResAsyncFacility(sn = facility.sn!!, category = facility.category,
                             modelid = facility.modelid, fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
 //                            facilitiesId = facility.facilitiesId!!,
+                            resetPort = facility.resetPort,
                             gateId = facility.gateId, gateName = gate.gateName!!,
                             ip = facility.ip!!, port = facility.port!!, lprType = facility.lprType, imagePath = facility.imagePath,
                             health = if (facility.ip == "0.0.0.0") "NORMAL" else facility.health,
