@@ -33,6 +33,7 @@ import java.time.LocalDateTime
 import javax.annotation.PostConstruct
 import javax.persistence.criteria.Predicate
 import javax.servlet.http.HttpServletRequest
+import kotlin.math.log
 
 @Service
 class AuthService {
@@ -218,6 +219,39 @@ class AuthService {
             return CommonResult.error("admin register error")
         }
     }
+
+    @Throws(CustomException::class)
+    fun userRegisters(request: Array<reqUserRegister>) : CommonResult {
+        try {
+            val resultData: ArrayList<Corp> = ArrayList()
+            request.filter { corpRepository.findByCorpNameAndCeoName(it.corpName,it.userName) == null }.let {
+                it.forEach { req ->
+                    var corp = corpRepository.save(Corp(
+                        sn = null, corpName = req.corpName, form = req.form!!, resident = req.resident!!,
+                        dong = req.dong, ho = req.ho, ceoName = req.userName, tel = req.userPhone, corpId = " "
+                    ))
+                    corp.corpId = parkinglotService.parkSiteSiteId()+"_"+ format("%05d", corp.sn!!)
+                    corp = corpRepository.save(corp)
+
+                    SiteUser(
+                        idx = null,
+                        id = corp.corpId!!,
+                        password = passwordEncoder.encode(req.password),
+                        userName = req.userName,
+                        userPhone = req.userPhone,
+                        corpSn = corp.sn,
+                        role = req.userRole!!
+                    )
+                    resultData.add(corp)
+                }
+            }
+            return CommonResult.data(resultData)
+
+            } catch (e: CustomException) {
+                logger.error { "admin register error $request ${e.message}" }
+            return CommonResult.error("admin register error")
+            }
+        }
 
     fun isAdmin(role: UserRole) : Boolean {
         return when(role) {
