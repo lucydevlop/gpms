@@ -74,7 +74,7 @@ data class DiscountClassDTO(
 
     override fun hashCode() = 31
 
-    override fun toString() = "Barcode{" +
+    override fun toString() = "DiscountClass{" +
         "sn=$sn" +
         ", discountNm='$discountNm'" +
         ", discountType='$discountType'" +
