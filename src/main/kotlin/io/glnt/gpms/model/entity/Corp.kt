@@ -5,12 +5,15 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.common.utils.StringPrefixedSequenceIdGenerator
 import io.glnt.gpms.model.entity.Auditable
 import io.glnt.gpms.model.enums.DelYn
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.GenerationTime
 import org.hibernate.annotations.GeneratorType
 import org.hibernate.annotations.GenericGenerator
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
 import java.time.LocalDateTime
+import java.util.*
 import javax.persistence.*
 
 @Entity
@@ -18,15 +21,16 @@ import javax.persistence.*
     indexes = [Index(columnList = "corpId", unique = true)])
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 data class Corp(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "sn", unique = true, nullable = false)
-    var sn: Long?,
+    @Column(name = "sn", unique = true)
+    var sn: Long? = null,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "del_yn", nullable = false)
-    var delYn: DelYn? = DelYn.N,
+    @Column(name = "del_yn")
+    var delYn: DelYn? = null,
 
 //    @Column(name = "flag", nullable = false)
 //    var flag: Int = 1,
@@ -40,14 +44,14 @@ data class Corp(
 ////                    Parameter(name = StringPrefixedSequenceIdGenerator.NUMBER_FORMAT_PARAMETER, value = "%05d")
 ////            ]
 //    )
-    @Column(name = "corpId", nullable = false)
-    var corpId: String?,
+    @Column(name = "corpId")
+    var corpId: String? = null,
 
 //    @Column(name = "password", nullable = false)
 //    var password: String,
 
-    @Column(name = "corpName", nullable = false, unique = true)
-    var corpName: String,
+    @Column(name = "corpName", unique = true)
+    var corpName: String? = null,
 
 //    @Column(name = "login_date")
 //    var loginDate: LocalDateTime? = null,
@@ -55,11 +59,11 @@ data class Corp(
 //    @Column(name = "passwd_chage_date")
 //    var passwdChangeDate: LocalDateTime? = null,
 
-    @Column(name = "form", nullable = false)
-    var form: Int = 1,
+    @Column(name = "form")
+    var form: Int? = null,
 
-    @Column(name = "resident", nullable = false)
-    var resident: Int = 1,
+    @Column(name = "resident")
+    var resident: Int? = null,
 
     @Column(name = "dong", nullable = true)
     var dong: String? = null,
@@ -102,5 +106,21 @@ data class Corp(
     var balanceUpdate: LocalDateTime? = null
 
 ) : Auditable(), Serializable {
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Corp) return false
+        if (other.sn == null || sn == null) return false
+
+        return Objects.equals(sn, other.sn)
+    }
+
+    override fun hashCode(): Int {
+        return 31
+    }
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 
 }

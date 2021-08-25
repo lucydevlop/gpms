@@ -4,7 +4,7 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.corp.service.CorpService
+//import io.glnt.gpms.handler.corp.service.CorpService
 import io.glnt.gpms.handler.dashboard.admin.model.reqCreateCorpTicket
 import io.glnt.gpms.handler.dashboard.admin.model.reqSearchCorp
 import io.glnt.gpms.handler.dashboard.common.model.reqParkingDiscountSearchTicket
@@ -18,6 +18,7 @@ import io.glnt.gpms.model.repository.CorpTicketHistoryRepository
 import io.glnt.gpms.model.repository.CorpTicketRepository
 import io.glnt.gpms.model.repository.DiscountClassRepository
 import io.glnt.gpms.model.repository.InoutDiscountRepository
+import io.glnt.gpms.service.CorpService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.jpa.domain.Specification
@@ -81,23 +82,32 @@ class DiscountService {
         try{
             val result = ArrayList<Any>()
             request.searchLabel?.let {
-                val data = corpService.getCorp(reqSearchCorp(searchLabel = it, searchText = request.searchText))
-                when(data.code) {
-                    ResultCode.SUCCESS.getCode() -> {
-                        val corps: List<Corp> = data.data as? List<Corp> ?: emptyList()
-                        if (corps.isNotEmpty()) {
-                            corps.forEach {
-                                val tickets = corpTicketRepository.findByCorpSnAndDelYn(it.sn!!, DelYn.N)
-                                if (tickets!!.isNotEmpty()) {
-                                    tickets.forEach {
-                                        result.add(it)
-                                    }
-
-                                }
-                            }
+                val data = corpService.getStoreBySn(request.searchText!!.toLong())
+                data.ifPresent { corp ->
+                    val tickets = corpTicketRepository.findByCorpSnAndDelYn(corp.sn!!, DelYn.N)
+                    if (tickets!!.isNotEmpty()) {
+                        tickets.forEach {
+                            result.add(it)
                         }
                     }
                 }
+
+//                when(data.code) {
+//                    ResultCode.SUCCESS.getCode() -> {
+//                        val corps: List<Corp> = data.data as? List<Corp> ?: emptyList()
+//                        if (corps.isNotEmpty()) {
+//                            corps.forEach {
+//                                val tickets = corpTicketRepository.findByCorpSnAndDelYn(it.sn!!, DelYn.N)
+//                                if (tickets!!.isNotEmpty()) {
+//                                    tickets.forEach {
+//                                        result.add(it)
+//                                    }
+//
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
                 return CommonResult.data(result)
             } ?: run {
                 corpTicketRepository.findAll().let {

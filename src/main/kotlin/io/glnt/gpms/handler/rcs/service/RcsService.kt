@@ -7,7 +7,7 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.corp.service.CorpService
+//import io.glnt.gpms.handler.corp.service.CorpService
 import io.glnt.gpms.handler.dashboard.admin.model.reqSearchCorp
 import io.glnt.gpms.handler.dashboard.admin.service.singleTimer
 import io.glnt.gpms.handler.discount.model.reqDiscountableTicket
@@ -26,9 +26,11 @@ import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.ExternalSvrType
 import io.glnt.gpms.model.enums.checkUseStatus
+import io.glnt.gpms.service.CorpService
 import io.reactivex.Observable
 import mu.KLogging
 import org.apache.http.HttpStatus
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.util.concurrent.TimeUnit
@@ -39,12 +41,14 @@ class RcsService(
     private var parkinglotService: ParkinglotService,
     private var inoutService: InoutService,
     private var restAPIManager: RestAPIManagerUtil,
-    private var relayService: RelayService,
     private var productService: ProductService,
     private var discountService: DiscountService,
     private var corpService: CorpService
 ) {
     companion object : KLogging()
+
+    @Autowired
+    lateinit var relayService: RelayService
 
     @Value("\${glnt.url}")
     lateinit var glntUrl: String
@@ -77,43 +81,43 @@ class RcsService(
         return null
     }
 
-    fun asyncFacilities(): CommonResult {
-        return CommonResult.data(facilityService.allFacilities())
-    }
+//    fun asyncFacilities(): CommonResult {
+//        return CommonResult.data(facilityService.allFacilities())
+//    }
 
-    fun asyncFailureAlarm(request: Failure) {
-        try {
-            logger.info { "Async Failure Alarm $request"  }
-            when (parkinglotService.parkSite!!.externalSvr) {
-                ExternalSvrType.GLNT -> {
-                    restAPIManager.sendPostRequest(
-                        glntUrl+"/parkinglots/facilities/errors",
-                        ReqFailureAlarm(parkinglotId = parkinglotService.parkSite!!.rcsParkId!!, facilityId = request.facilitiesId!!, createDate = request.issueDateTime.toString(), contents = request.failureCode!!)
-                    )
-                }
-            }
+//    fun asyncFailureAlarm(request: Failure) {
+//        try {
+//            logger.info { "Async Failure Alarm $request"  }
+//            when (parkinglotService.parkSite!!.externalSvr) {
+//                ExternalSvrType.GLNT -> {
+//                    restAPIManager.sendPostRequest(
+//                        glntUrl+"/parkinglots/facilities/errors",
+//                        ReqFailureAlarm(parkinglotId = parkinglotService.parkSite!!.rcsParkId!!, facilityId = request.facilitiesId!!, createDate = request.issueDateTime.toString(), contents = request.failureCode!!)
+//                    )
+//                }
+//            }
+//
+//        }catch (e: RuntimeException) {
+//            logger.error { "RCS Async Failure Alarm $request $e" }
+//        }
+//    }
 
-        }catch (e: RuntimeException) {
-            logger.error { "RCS Async Failure Alarm $request $e" }
-        }
-    }
-
-    fun asyncRestoreAlarm(request: Failure) {
-        try {
-            logger.info { "Async Restore Alarm $request"  }
-            when (parkinglotService.parkSite!!.externalSvr) {
-                ExternalSvrType.GLNT -> {
-                    restAPIManager.sendPatchRequest(
-                        glntUrl+"/parkinglots/facilities/errors",
-                        ReqFailureAlarm(parkinglotId = parkinglotService.parkSite!!.rcsParkId!!, facilityId = request.facilitiesId!!, createDate = request.expireDateTime.toString(), contents = request.failureCode!!, resolvedYn = checkUseStatus.Y)
-                    )
-                }
-            }
-        }catch (e: RuntimeException) {
-            logger.error { "RCS Async Restore Alarm $request $e" }
-        }
-
-    }
+//    fun asyncRestoreAlarm(request: Failure) {
+//        try {
+//            logger.info { "Async Restore Alarm $request"  }
+//            when (parkinglotService.parkSite!!.externalSvr) {
+//                ExternalSvrType.GLNT -> {
+//                    restAPIManager.sendPatchRequest(
+//                        glntUrl+"/parkinglots/facilities/errors",
+//                        ReqFailureAlarm(parkinglotId = parkinglotService.parkSite!!.rcsParkId!!, facilityId = request.facilitiesId!!, createDate = request.expireDateTime.toString(), contents = request.failureCode!!, resolvedYn = checkUseStatus.Y)
+//                    )
+//                }
+//            }
+//        }catch (e: RuntimeException) {
+//            logger.error { "RCS Async Restore Alarm $request $e" }
+//        }
+//
+//    }
 
     fun asyncFacilitiesHealth(request: List<ResAsyncFacility>) {
         try {
@@ -140,31 +144,31 @@ class RcsService(
         }
     }
 
-    fun asyncFacilitiesStatus(request: List<ResAsyncFacility>) {
-        try {
-            logger.info { "Async facilities status $request"  }
-            var result = ArrayList<ReqFacilityStatus>()
-            request.forEach { it ->
-                if (it.category == "BREAKER")
-                    result.add(ReqFacilityStatus(
-                        dtFacilitiesId = it.dtFacilitiesId,
-                        status = it.status,
-                        statusDateTime = it.statusDate?.let { DateUtil.formatDateTime(it) }
-                    ))
-            }
-
-            when (parkinglotService.parkSite!!.externalSvr) {
-                ExternalSvrType.GLNT -> {
-                    restAPIManager.sendPatchRequest(
-                        glntUrl+"/parkinglots/"+parkinglotService.parkSite!!.rcsParkId!!+"/facilities",
-                        result
-                    )
-                }
-            }
-        }catch (e: RuntimeException) {
-            logger.error { "RCS Async facilities status $request $e" }
-        }
-    }
+//    fun asyncFacilitiesStatus(request: List<ResAsyncFacility>) {
+//        try {
+//            logger.info { "Async facilities status $request"  }
+//            var result = ArrayList<ReqFacilityStatus>()
+//            request.forEach { it ->
+//                if (it.category == "BREAKER")
+//                    result.add(ReqFacilityStatus(
+//                        dtFacilitiesId = it.dtFacilitiesId,
+//                        status = it.status,
+//                        statusDateTime = it.statusDate?.let { DateUtil.formatDateTime(it) }
+//                    ))
+//            }
+//
+//            when (parkinglotService.parkSite!!.externalSvr) {
+//                ExternalSvrType.GLNT -> {
+//                    restAPIManager.sendPatchRequest(
+//                        glntUrl+"/parkinglots/"+parkinglotService.parkSite!!.rcsParkId!!+"/facilities",
+//                        result
+//                    )
+//                }
+//            }
+//        }catch (e: RuntimeException) {
+//            logger.error { "RCS Async facilities status $request $e" }
+//        }
+//    }
 
     fun facilityAction(facilityId: String, status: String): CommonResult {
         try {
@@ -285,7 +289,7 @@ class RcsService(
     @Throws(CustomException::class)
     fun getCorpInfo(corpId: String) : CommonResult {
         try {
-            return CommonResult.data(corpService.getCorp(reqSearchCorp(corpId = corpId)).data)
+            return CommonResult.data(corpService.getStoreById(corpId))
         }catch (e: CustomException) {
             logger.error { "rcs getCorpInfo failed $e" }
             return CommonResult.error("rcs getCorpInfo failed")
@@ -305,7 +309,7 @@ class RcsService(
         }
     }
 
-    private fun responseToMap(response: HttpResponse<JsonNode?>): MutableMap<String, Any>
-        = response.body!!.`object`.toMap()
+//    private fun responseToMap(response: HttpResponse<JsonNode?>): MutableMap<String, Any>
+//        = response.body!!.`object`.toMap()
 
 }

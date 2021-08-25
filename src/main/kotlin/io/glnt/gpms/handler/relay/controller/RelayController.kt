@@ -3,6 +3,7 @@ package io.glnt.gpms.handler.relay.controller
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.handler.discount.service.DiscountService
+import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
@@ -26,6 +27,7 @@ import java.time.LocalDateTime
 @CrossOrigin(origins = arrayOf("*"), allowedHeaders = arrayOf("*"))
 class RelayController (
     private val barcodeTicketService: BarcodeTicketService,
+    private val rcsService: RcsService
 //    private val barcodeService: BarcodeService,
 //    private val barcodeClassService: BarcodeClassService,
 //    private val discountService: DiscountService
@@ -117,7 +119,7 @@ class RelayController (
     @RequestMapping(value = ["/call/voip/{voipId}"], method = [RequestMethod.GET])
     fun callVoip(@PathVariable voipId: String): ResponseEntity<CommonResult> {
         logger.info { "callVoip $voipId" }
-        return CommonResult.returnResult(relayService.callVoip(voipId))
+        return CommonResult.returnResult(rcsService.asyncCallVoip(voipId))
     }
 
     companion object : KLogging()
