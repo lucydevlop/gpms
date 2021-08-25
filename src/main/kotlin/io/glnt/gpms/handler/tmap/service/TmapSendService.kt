@@ -11,6 +11,7 @@ import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.relay.model.FacilitiesFailureAlarm
 import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
 import io.glnt.gpms.handler.tmap.model.*
+import io.glnt.gpms.service.ParkSiteInfoService
 import mu.KLogging
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,7 +24,9 @@ import javax.validation.constraints.NotBlank
 
 
 @Service
-class TmapSendService {
+class TmapSendService (
+    private val parkSiteInfoService: ParkSiteInfoService
+){
     companion object : KLogging()
 
     @Value("\${tmap.url}")
@@ -33,9 +36,6 @@ class TmapSendService {
     lateinit var enviroment: Environment
 
     @Autowired
-    private lateinit var parkinglotService: ParkinglotService
-
-    @Autowired
     private lateinit var restAPIManager: RestAPIManagerUtil
 
     fun setTmapRequest(type: String, requestId: String?, contents: Any) : reqApiTmapIF {
@@ -43,7 +43,7 @@ class TmapSendService {
             eventType = type,
             eventData = reqApiTmapCommon(
                 type = type,
-                parkingSiteId = parkinglotService.parkSiteId()!!,
+                parkingSiteId = parkSiteInfoService.getParkSiteId()!!,
                 requestId = requestId?.let { requestId },
                 eventDateTime = DateUtil.stringToNowDateTime(),
                 contents = contents
@@ -94,7 +94,7 @@ class TmapSendService {
 
             val fileUpload = reqTmapFileUpload(
                 type = "fileUpload",
-                parkingSiteId = parkinglotService.parkSiteId()!!,
+                parkingSiteId = parkSiteInfoService.getParkSiteId()!!,
                 eventType = "inVehicle",
                 requestId = requestId,
                 fileUploadId = fileUploadId,
@@ -132,7 +132,7 @@ class TmapSendService {
 
             val fileUpload = reqTmapFileUpload(
                 type = "fileUpload",
-                parkingSiteId = parkinglotService.parkSiteId()!!,
+                parkingSiteId = parkSiteInfoService.getParkSiteId()!!,
                 eventType = "inVehicle",
                 requestId = requestId,
                 fileUploadId = fileUploadId,
@@ -160,7 +160,7 @@ class TmapSendService {
 
             val fileUpload = reqTmapFileUpload(
                 type = "fileUpload",
-                parkingSiteId = parkinglotService.parkSiteId()!!,
+                parkingSiteId = parkSiteInfoService.getParkSiteId()!!,
                 eventType = "inVehicle",
                 requestId = requestId,
                 fileUploadId = fileUploadId,
@@ -189,7 +189,7 @@ class TmapSendService {
 
     fun sendFileUpload(request: reqTmapFileUpload, filePath: String?) = with(request) {
         logger.info { "sendFileUpload request $request fileName $filePath" }
-        parkingSiteId = parkinglotService.parkSiteId()!!
+        parkingSiteId = parkSiteInfoService.getParkSiteId()!!
         try {
             restAPIManager.sendFormPostRequest(url, request)
         } catch (e: RuntimeException) {

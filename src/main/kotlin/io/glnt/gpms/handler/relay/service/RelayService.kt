@@ -13,6 +13,7 @@ import io.glnt.gpms.handler.inout.model.reqAddParkOut
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.inout.service.checkItemsAre
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.rcs.model.ReqFacilityStatus
 import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.handler.relay.model.FacilitiesFailureAlarm
 import io.glnt.gpms.handler.relay.model.FacilitiesStatusNoti
@@ -20,6 +21,7 @@ import io.glnt.gpms.handler.relay.model.paystationvehicleListSearch
 import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
+import io.glnt.gpms.io.glnt.gpms.common.api.RcsClient
 import io.glnt.gpms.model.dto.BarcodeTicketsDTO
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
@@ -43,7 +45,8 @@ class RelayService(
     private val barcodeClassService: BarcodeClassService,
     private val discountService: DiscountService,
     private val barcodeTicketService: BarcodeTicketService,
-    private val parkInRepository: ParkInRepository
+    private val parkInRepository: ParkInRepository,
+    private val rcsClient: RcsClient
 ) {
     companion object : KLogging()
 
@@ -61,8 +64,8 @@ class RelayService(
     @Autowired
     private lateinit var inoutService: InoutService
 
-    @Autowired
-    private lateinit var rcsService: RcsService
+//    @Autowired
+//    private lateinit var rcsService: RcsService
 
     @Autowired
     private lateinit var restAPIManager: RestAPIManagerUtil
@@ -148,8 +151,20 @@ class RelayService(
                 }
 
                 if (parkinglotService.isExternalSend()){
-                    facilityService.activeGateFacilities()?.let { it ->
-                        rcsService.asyncFacilitiesStatus(it)
+                    facilityService.activeGateFacilities()?.let { list ->
+//                        rcsService.asyncFacilitiesStatus(list)
+                        var result = ArrayList<ReqFacilityStatus>()
+                        list.forEach { it ->
+                            if (it.category == "BREAKER")
+                                result.add(ReqFacilityStatus(
+                                    dtFacilitiesId = it.dtFacilitiesId,
+                                    status = it.status,
+                                    statusDateTime = it.statusDate?.let { DateUtil.formatDateTime(it) }
+                                ))
+                        }
+                        parkinglotService.parkSite!!.externalSvr?.let {
+                            rcsClient.asyncFacilitiesStatus(result, it, parkinglotService.parkSite!!.rcsParkId!!)
+                        }
                     }
                 }
             }
@@ -269,7 +284,11 @@ class RelayService(
                 )?.let {
                     it.expireDateTime = LocalDateTime.now()
                     failureRepository.save(it)
-                    rcsService.asyncRestoreAlarm(it)
+//                    rcsService.asyncRestoreAlarm(it)
+                    parkinglotService.parkSite!!.externalSvr?.let { externalSvrType ->
+                        rcsClient.asyncRestoreAlarm(it, externalSvrType, parkinglotService.parkSite!!.rcsParkId!!)
+                    }
+
                 }
             } else {
                 logger.info { "saveFailure $request" }
@@ -283,7 +302,10 @@ class RelayService(
                     //rcsService.asyncFailureAlram(it)
                 }?: run {
                     failureRepository.save(request)
-                    rcsService.asyncFailureAlarm(request)
+//                    rcsService.asyncFailureAlarm(request)
+                    parkinglotService.parkSite!!.externalSvr?.let { externalSvrType ->
+                        rcsClient.asyncFailureAlarm(request, externalSvrType, parkinglotService.parkSite!!.rcsParkId!!)
+                    }
                 }
             }
         }catch (e: CustomException){
@@ -509,14 +531,14 @@ class RelayService(
         }
     }
 
-    fun callVoip(voipId: String) : CommonResult {
-        try {
-            return rcsService.asyncCallVoip(voipId)
-        }catch (e: RuntimeException) {
-            logger.error { "sendDisplayStatus $e"}
-            return CommonResult.error("send call voip $voipId")
-        }
-    }
+//    fun callVoip(voipId: String) : CommonResult {
+//        try {
+//            return rcsService.asyncCallVoip(voipId)
+//        }catch (e: RuntimeException) {
+//            logger.error { "sendDisplayStatus $e"}
+//            return CommonResult.error("send call voip $voipId")
+//        }
+//    }
 
     private fun getRelaySvrUrl(gateId: String): String {
         return facilityService.gates.filter { it.gateId == gateId }[0].relaySvr!!

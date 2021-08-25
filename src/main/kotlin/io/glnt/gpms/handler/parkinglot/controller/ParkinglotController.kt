@@ -8,6 +8,8 @@ import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
+import io.glnt.gpms.handler.rcs.service.RcsService
+import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.model.dto.BarcodeClassDTO
 import io.glnt.gpms.model.dto.BarcodeDTO
 import io.glnt.gpms.model.entity.DiscountClass
@@ -36,6 +38,9 @@ class ParkinglotController {
 
     @Autowired
     private lateinit var barcodeService: BarcodeService
+
+    @Autowired
+    private lateinit var relayService: RelayService
 
     @RequestMapping(value= ["/create"], method = [RequestMethod.POST])
     fun createParkinglot() {
@@ -71,7 +76,7 @@ class ParkinglotController {
     @Throws(CustomException::class)
     fun getParkinglotfacilities(@RequestBody request: reqSearchParkinglotFeature): ResponseEntity<CommonResult> {
         logger.debug("parkinglot facility list  = $request")
-        val result = parkinglotService.getParkinglotfacilities(request)
+        val result = parkinglotService.getParkinglotfacilities(request, relayService.parkAlarmSetting.gateLimitTime)
 
         return when(result.code) {
             ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)

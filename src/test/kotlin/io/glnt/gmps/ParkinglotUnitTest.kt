@@ -72,15 +72,15 @@ class ParkinglotUnitTest {
 
     @Test
     fun failure() {
-        var relayService =  RelayService()
-        relayService.saveFailure(
-            Failure( sn = null,
-                     issueDateTime = LocalDateTime.now(),
-                     facilitiesId = "BRE001101",
-                     fName = "입구1 차단기",
-                     failureCode = "crossingGateLongTimeOpen",
-                     failureType = "ERROR"
-        ))
+//        var relayService =  RelayService()
+//        relayService.saveFailure(
+//            Failure( sn = null,
+//                     issueDateTime = LocalDateTime.now(),
+//                     facilitiesId = "BRE001101",
+//                     fName = "입구1 차단기",
+//                     failureCode = "crossingGateLongTimeOpen",
+//                     failureType = "ERROR"
+//        ))
     }
 
 

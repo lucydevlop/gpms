@@ -1,14 +1,10 @@
 package io.glnt.gpms.handler.dashboard.admin.service
 
-import java.util.concurrent.TimeUnit
-import io.reactivex.Single
-import io.reactivex.Observable
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.calc.service.FareRefService
-import io.glnt.gpms.handler.corp.service.CorpService
 import io.glnt.gpms.handler.dashboard.admin.model.*
 import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
@@ -26,22 +22,26 @@ import io.glnt.gpms.io.glnt.gpms.handler.file.service.ExcelUploadService
 import io.glnt.gpms.model.dto.request.*
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.DiscountRangeType
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.UserRole
+import io.glnt.gpms.service.CorpService
 import io.glnt.gpms.service.GateService
+import io.reactivex.Observable
+import io.reactivex.Single
 import mu.KLogging
 import org.apache.http.HttpStatus
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import java.util.concurrent.TimeUnit
 
 
 @Service
 class DashboardAdminService(
     private var restAPIManager: RestAPIManagerUtil,
-    private var rcsService: RcsService
+//    private var rcsService: RcsService,
+    private var corpService: CorpService
 ) {
     companion object : KLogging()
 
@@ -59,9 +59,6 @@ class DashboardAdminService(
 
     @Autowired
     lateinit var productService: ProductService
-
-    @Autowired
-    lateinit var corpService: CorpService
 
     @Autowired
     lateinit var discountService: DiscountService
@@ -389,11 +386,11 @@ class DashboardAdminService(
     fun createProductTickets(request: ArrayList<reqCreateProductTicket>): CommonResult {
         try{
             request.forEach{ it ->
-                it.corpSn = if (it.corpName!!.isNotEmpty()){
-                    corpService.getCorp(reqSearchCorp(searchLabel = "CORPNAME", searchText = it.corpName)).data.let {
-                    val corp = it as List<Corp>
-                    if (corp.isNotEmpty()) corp[0].sn else null
-                } } else null
+                if (it.corpName!!.isNotEmpty()) {
+                    corpService.getStoreByCorpName(it.corpName!!).ifPresent { corp ->
+                        it.corpSn = corp.sn
+                    }
+                }
                 createProductTicket(it)
 
 //                createProductTicket(
@@ -410,23 +407,23 @@ class DashboardAdminService(
         return CommonResult.data()
     }
 
-    @Throws(CustomException::class)
-    fun searchCorpList(request: reqSearchCorp): CommonResult {
-        try {
-            val data = corpService.getCorp(request)
-            when (data.code) {
-                ResultCode.SUCCESS.getCode() -> {
-                    return CommonResult.data(data.data)
-                }
-                else -> {
-                    return CommonResult.data()
-                }
-            }
-        }catch (e: CustomException){
-            logger.error { "Admin searchCorpList failed $e" }
-            return CommonResult.error("Admin searchCorpList failed $e")
-        }
-    }
+//    @Throws(CustomException::class)
+//    fun searchCorpList(request: reqSearchCorp): CommonResult {
+//        try {
+//            val data = corpService.getCorp(request)
+//            when (data.code) {
+//                ResultCode.SUCCESS.getCode() -> {
+//                    return CommonResult.data(data.data)
+//                }
+//                else -> {
+//                    return CommonResult.data()
+//                }
+//            }
+//        }catch (e: CustomException){
+//            logger.error { "Admin searchCorpList failed $e" }
+//            return CommonResult.error("Admin searchCorpList failed $e")
+//        }
+//    }
 
     @Throws(CustomException::class)
     fun createCorpTicket(request: reqCreateCorpTicket): CommonResult {
@@ -700,12 +697,12 @@ class DashboardAdminService(
                               delYn = DelYn.N))?.let { discountClass ->
 
                 // 할인권 생성 시 rcs 계정에도 할인권 생성
-                corpService.getCorp(reqSearchCorp(corpId = "RCS")).data.let {
-                    val corp = it as Corp
-                    discountService.createCorpTicket(
-                        reqCreateCorpTicket(corpSn = corp.sn!!, discountClassSn = discountClass.sn!!, quantity = 999999999)
-                    )
-                }
+//                corpService.getCorp(reqSearchCorp(corpId = "RCS")).data.let {
+//                    val corp = it as Corp
+//                    discountService.createCorpTicket(
+//                        reqCreateCorpTicket(corpSn = corp.sn!!, discountClassSn = discountClass.sn!!, quantity = 999999999)
+//                    )
+//                }
                 return CommonResult.data(discountClass)
             }?: kotlin.run {
                 return CommonResult.error("Admin createDiscountTicket failed")
@@ -729,22 +726,22 @@ class DashboardAdminService(
         }
     }
 
-    fun externalAsyncParkinglot(): CommonResult {
-        try {
-            parkinglotService.parkSite!!.ip?.let {
-                val result: ResAsyncParkinglot? = rcsService.asyncParkinglot()
-                result?.let { it ->
-                    parkinglotService.parkSite!!.rcsParkId = it.data.toString().toLong()
-                    parkinglotService.saveParkSiteInfo(parkinglotService.parkSite!!)
-                }
-                return CommonResult.data("Admin externalAsyncParkinglot success")
-            }?: kotlin.run {
-                return CommonResult.error("Admin externalAsyncParkinglot failed")
-            }
-        } catch (e: CustomException) {
-            return CommonResult.error("Admin externalAsyncParkinglot failed")
-        }
-    }
+//    fun externalAsyncParkinglot(): CommonResult {
+//        try {
+//            parkinglotService.parkSite!!.ip?.let {
+//                val result: ResAsyncParkinglot? = rcsService.asyncParkinglot()
+//                result?.let { it ->
+//                    parkinglotService.parkSite!!.rcsParkId = it.data.toString().toLong()
+//                    parkinglotService.saveParkSiteInfo(parkinglotService.parkSite!!)
+//                }
+//                return CommonResult.data("Admin externalAsyncParkinglot success")
+//            }?: kotlin.run {
+//                return CommonResult.error("Admin externalAsyncParkinglot failed")
+//            }
+//        } catch (e: CustomException) {
+//            return CommonResult.error("Admin externalAsyncParkinglot failed")
+//        }
+//    }
 
     fun getTicketList() : CommonResult {
         return CommonResult.data(productService.getTicketClass())

@@ -4,6 +4,7 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.common.configs.ApiConfig.API_VERSION
 import io.glnt.gpms.handler.discount.model.reqDiscountableTicket
+import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
@@ -23,7 +24,8 @@ import java.time.format.DateTimeFormatter
 )
 @CrossOrigin(origins = arrayOf("*"), allowedHeaders = arrayOf("*"))
 class RcsController(
-    private var rcsService: RcsService
+    private var rcsService: RcsService,
+    private val facilityService: FacilityService
 ) {
 
     @RequestMapping(value=["/check/alive"], method = [RequestMethod.GET])
@@ -33,7 +35,7 @@ class RcsController(
 
     @RequestMapping(value=["/async/facilities"], method = [RequestMethod.GET])
     fun asyncFacilities() : ResponseEntity<CommonResult> {
-        return CommonResult.returnResult(rcsService.asyncFacilities())
+        return CommonResult.returnResult(CommonResult.data(facilityService.allFacilities()))
     }
 
     @RequestMapping(value=["/{facilityId}/{status}"], method = [RequestMethod.GET])
