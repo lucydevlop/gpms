@@ -28,7 +28,12 @@ data class CorpTicketDTO(
 
     var corp: CorpDTO? = null,
 
-    var ableCnt: Int? = 0
+    var ableCnt: Int? = 0,
+
+    var todayUse: Int? = 0,
+
+    var totalCnt: Int? = 0,
+
 
 ) : Serializable {
 

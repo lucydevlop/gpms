@@ -4,15 +4,18 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.service.CorpQueryService
 import io.glnt.gpms.model.dto.CorpCriteria
 import io.glnt.gpms.model.dto.CorpDTO
 import io.glnt.gpms.service.CorpService
+import io.glnt.gpms.service.InoutDiscountService
 import io.glnt.gpms.service.ParkSiteInfoService
 import mu.KLogging
 import org.springframework.http.ResponseEntity
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
+import java.util.HashMap
 
 @RestController
 @RequestMapping(
@@ -22,7 +25,9 @@ import org.springframework.web.bind.annotation.*
 class CorpResource (
     private val corpService: CorpService,
     private val corpQueryService: CorpQueryService,
-    private val parkSiteInfoService: ParkSiteInfoService
+    private val parkSiteInfoService: ParkSiteInfoService,
+    private val discountService: DiscountService,
+    private val inoutDiscountService: InoutDiscountService
 ){
     companion object : KLogging()
 
@@ -56,9 +61,26 @@ class CorpResource (
     @RequestMapping(value = ["/corps/{sn}/{inSn}/able/ticket"], method = [RequestMethod.GET])
     fun getStoreAbleTickets(@PathVariable sn: Long, @PathVariable inSn: String): ResponseEntity<CommonResult> {
         logger.debug { "store fetch able ticket" }
-        if (inSn == "ALL")
-            return CommonResult.returnResult(CommonResult.data(corpService.getStoreTicketsByStoreSn(sn)))
-        return CommonResult.returnResult(CommonResult.data())
+        val tickets = corpService.getStoreTicketsByStoreSn(sn)
+        if (inSn == "ALL") {
+            tickets.forEach{ ticket ->
+                ticket.todayUse = discountService.getTodayUseDiscountTicket(sn, ticket.discountClassSn!!)
+                ticket.totalCnt = ticket.totalQuantity
+                ticket.ableCnt = ticket.totalQuantity!! - ticket.useQuantity!!
+            }
+            return CommonResult.returnResult(CommonResult.data(tickets))
+        }
+
+        tickets.forEach{ ticket ->
+            corpService.getCorpTicketHistByTicketSn(ticket.sn!!)?.let {
+                ticket.todayUse = discountService.getTodayUseDiscountTicket(sn, ticket.discountClassSn!!)
+                ticket.totalCnt = ticket.totalQuantity!! - ticket.useQuantity!!
+                val ableCnt = inoutDiscountService.ableDiscountCntByInSn(inSn.toLong(), ticket.discountClass!!)?: 0
+                ticket.ableCnt = if (ableCnt > ticket.totalQuantity!! - ticket.useQuantity!!) ticket.totalQuantity!! - ticket.useQuantity!! else ableCnt
+            }
+        }
+
+        return CommonResult.returnResult(CommonResult.data(tickets))
     }
 
 }

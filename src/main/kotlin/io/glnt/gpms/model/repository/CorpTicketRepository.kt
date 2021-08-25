@@ -14,6 +14,7 @@ import java.time.LocalDateTime
 
 @Repository
 interface CorpTicketRepository: JpaRepository<CorpTicketInfo, Long> {
+    fun findBySn(sn: Long): CorpTicketInfo
     fun findByCorpSn(corpSn: Long) : List<CorpTicketInfo>
     fun findByCorpSnAndDelYn(corpSn: Long, delYn: DelYn): List<CorpTicketInfo>?
     fun findByCorpSnAndDiscountClassSnAndDelYn(corpSn: Long, discountClassSn: Long, delYn: DelYn): CorpTicketInfo?

@@ -6,9 +6,13 @@ import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.model.dto.CorpCriteria
 import io.glnt.gpms.model.dto.CorpDTO
 import io.glnt.gpms.model.dto.CorpTicketDTO
+import io.glnt.gpms.model.dto.CorpTicketHistoryDTO
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.mapper.CorpMapper
+import io.glnt.gpms.model.mapper.CorpTicketHistoryMapper
 import io.glnt.gpms.model.mapper.CorpTicketMapper
 import io.glnt.gpms.model.repository.CorpRepository
+import io.glnt.gpms.model.repository.CorpTicketHistoryRepository
 import io.glnt.gpms.model.repository.CorpTicketRepository
 import mu.KLogging
 import okhttp3.internal.format
@@ -21,7 +25,9 @@ class CorpService(
     private val corpRepository: CorpRepository,
     private val corpTicketMapper: CorpTicketMapper,
     private val corpMapper: CorpMapper,
-    private val corpQueryService: CorpQueryService
+    private val corpQueryService: CorpQueryService,
+    private val corpTicketHistoryRepository: CorpTicketHistoryRepository,
+    private val corpTicketHistoryMapper: CorpTicketHistoryMapper
 ) {
     companion object : KLogging()
 
@@ -62,5 +68,10 @@ class CorpService(
             corpRepository.save(corp)
         }
         return corpMapper.toDTO(corp)
+    }
+
+    fun getCorpTicketHistByTicketSn(ticketSn: Long): MutableList<CorpTicketHistoryDTO>? {
+        return corpTicketHistoryRepository.findByTicketSnAndDelYn(ticketSn, DelYn.N)
+            ?.mapTo(mutableListOf(), corpTicketHistoryMapper::toDTO)
     }
 }

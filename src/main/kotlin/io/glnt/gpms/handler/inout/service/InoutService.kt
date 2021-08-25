@@ -899,6 +899,11 @@ class InoutService(
                     criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("gateId")), likeValue)
                 )
             }
+            if (request.parkcartype != null) {
+                clues.add(
+                    criteriaBuilder.like(criteriaBuilder.upper(root.get<String>("parkcartype")), "%" + request.parkcartype + "%")
+                )
+            }
             clues.add(criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N))
             query.orderBy(criteriaBuilder.desc(root.get<LocalDateTime>("inDate")))
             criteriaBuilder.and(*clues.toTypedArray())
