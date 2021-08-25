@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import java.util.HashMap
+import javax.validation.Valid
 
 @RestController
 @RequestMapping(
@@ -37,25 +38,25 @@ class CorpResource (
     }
 
     @RequestMapping(value = ["/corps"], method = [RequestMethod.POST])
-    fun createStore(corpDTO: CorpDTO): ResponseEntity<CommonResult> {
+    fun createStore(@Valid @RequestBody corpDTO: CorpDTO): ResponseEntity<CommonResult> {
         if (corpDTO.sn != null) {
             throw CustomException(
                 "corp create sn exists",
                 ResultCode.FAILED
             )
         }
-        return CommonResult.returnResult(CommonResult.data(corpService.save(corpDTO, "update", parkSiteInfoService.getSiteId())))
+        return CommonResult.returnResult(CommonResult.data(corpService.save(corpDTO, "create", parkSiteInfoService.getSiteId())))
     }
 
     @RequestMapping(value = ["/corps"], method = [RequestMethod.PUT])
-    fun updateStore(corpDTO: CorpDTO): ResponseEntity<CommonResult> {
+    fun updateStore(@Valid @RequestBody corpDTO: CorpDTO): ResponseEntity<CommonResult> {
         if (corpDTO.sn == null) {
             throw CustomException(
                 "corp update not found sn",
                 ResultCode.FAILED
             )
         }
-        return CommonResult.returnResult(CommonResult.data(corpService.save(corpDTO, "create", parkSiteInfoService.getSiteId())))
+        return CommonResult.returnResult(CommonResult.data(corpService.save(corpDTO, "update", parkSiteInfoService.getSiteId())))
     }
 
     @RequestMapping(value = ["/corps/{sn}/{inSn}/able/ticket"], method = [RequestMethod.GET])
