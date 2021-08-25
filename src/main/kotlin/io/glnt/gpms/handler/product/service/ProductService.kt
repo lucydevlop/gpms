@@ -123,18 +123,12 @@ class ProductService {
                 }
             }?: run {
                 //차량, 동일 일자 등록 시 update
-                productTicketRepository.findByVehicleNoAndEffectDateAndExpireDateAndTicketTypeAndDelYn(request.vehicleNo, request.effectDate, request.expireDate, request.ticketType!!, DelYn.N)?.let {
-                    if (it.isNotEmpty()) {
-                        it.sortedByDescending { it.sn }
-                        for (i in 0..it.size - 1 ) {
-                            val ticket = it[i]
-                            if (i != 0) new.delYn = DelYn.Y
-                            new.sn = ticket.sn
-                            saveProductTicket(new)
-                        }
-                    }
+                productTicketRepository.findByVehicleNoAndEffectDateAndExpireDateAndTicketTypeAndDelYn(request.vehicleNo, request.effectDate, request.expireDate, request.ticketType!!, DelYn.N)?.let { ticket ->
+                    new.sn = ticket.sn
+                    saveProductTicket(new)
                     return CommonResult.data(new)
                 }
+
                 // 정기권 이력 안에 포함 시 skip
                 if (productTicketRepository.countByVehicleNoAndTicketTypeAndDelYnAndEffectDateLessThanEqualAndExpireDateGreaterThanEqual(request.vehicleNo, request.ticketType!!, DelYn.N, request.effectDate, request.expireDate) > 0) {
                     return CommonResult.data("product ticket exists")
