@@ -825,10 +825,11 @@ class InoutService(
                                     result.outGateId = out.gateId
                                     result.parktime = out.parktime
                                     result.parkfee = out.parkfee
-                                    result.payfee = out.payfee
+                                    result.payfee = out.payfee?: 0
                                     result.discountfee = out.discountfee
                                     result.dayDiscountfee = out.dayDiscountfee
                                     result.outImgBase64Str = if (out.image!!.contains("/park")) out.image!!.substring(out.image!!.indexOf("/park")) else null
+                                    result.nonPayment = result.payfee!! - result.paymentAmount!!
                                 }
                             } else {
                                 result.parkoutSn = it.outSn
@@ -1289,11 +1290,23 @@ class InoutService(
 
 
                 //결제 테이블 적재
-                inoutPaymentRepository.save(
-                    InoutPayment(sn = null, inSn = inSn, outSn = out.sn, approveDateTime = request.approveDatetime,
-                        payType = PayType.CARD, amount = request.cardAmount?.toInt() ?: kotlin.run { null }, cardCorp = request.cardCorp, cardNumber = request.cardNumber,
-                    transactionId = request.transactionId, result = if (request.failureMessage == null) ResultType.SUCCESS else ResultType.FAILURE, failureMessage = request.failureMessage)
-                )
+                // 중복 데이터 이슈 확인 -> 개선 진행
+                if (request.failureMessage == null) {
+                    inoutPaymentRepository.findByInSnAndResultAndTransactionIdAndDelYn(inSn, ResultType.SUCCESS, request.transactionId!!, DelYn.N)?.let {
+                    }?: kotlin.run {
+                        inoutPaymentRepository.saveAndFlush(
+                            InoutPayment(sn = null, inSn = inSn, outSn = out.sn, approveDateTime = request.approveDatetime,
+                                payType = PayType.CARD, amount = request.cardAmount?.toInt() ?: kotlin.run { null }, cardCorp = request.cardCorp, cardNumber = request.cardNumber,
+                                transactionId = request.transactionId, result = if (request.failureMessage == null) ResultType.SUCCESS else ResultType.FAILURE, failureMessage = request.failureMessage)
+                        )
+                    }
+                } else {
+                    inoutPaymentRepository.saveAndFlush(
+                        InoutPayment(sn = null, inSn = inSn, outSn = out.sn, approveDateTime = request.approveDatetime,
+                            payType = PayType.CARD, amount = request.cardAmount?.toInt() ?: kotlin.run { null }, cardCorp = request.cardCorp, cardNumber = request.cardNumber,
+                            transactionId = request.transactionId, result = if (request.failureMessage == null) ResultType.SUCCESS else ResultType.FAILURE, failureMessage = request.failureMessage)
+                    )
+                }
 
                 relayService.actionGate(gateId, "GATE", "open")
                 displayMessage(

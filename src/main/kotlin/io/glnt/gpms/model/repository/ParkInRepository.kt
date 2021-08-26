@@ -49,5 +49,6 @@ interface ParkOutRepository: JpaRepository<ParkOut, Long> {
 @Repository
 interface InoutPaymentRepository: JpaRepository<InoutPayment, Long> {
     fun findByInSnAndResultAndDelYn(sn: Long, resultType: ResultType, delYn: DelYn): List<InoutPayment>?
+    fun findByInSnAndResultAndTransactionIdAndDelYn(sn: Long, resultType: ResultType, transactionId: String, delYn: DelYn): InoutPayment?
 
 }

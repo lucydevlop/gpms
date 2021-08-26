@@ -37,19 +37,19 @@ class CorpQueryService (
                         criteriaBuilder.equal(criteriaBuilder.lower(root.get<String>("sn")), criteria.sn)
                     )
                 }
-                if (criteria.corpName != null) {
+                if (criteria.corpName != null && criteria.corpName!!.isNotEmpty()) {
                     clues.add(
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("corpName")), "%" + criteria.corpName + "%")
+                        criteriaBuilder.like((root.get<String>("corpName")), "%" + criteria.corpName + "%")
                     )
                 }
-                if (criteria.corpId != null) {
+                if (criteria.corpId != null && criteria.corpId!!.isNotEmpty()) {
                     clues.add(
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("corpId")), "%" + criteria.corpId + "%")
+                        criteriaBuilder.like((root.get<String>("corpId")), "%" + criteria.corpId + "%")
                     )
                 }
-                if (criteria.tel != null) {
+                if (criteria.tel != null && criteria.tel!!.isNotEmpty()) {
                     clues.add(
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("tel")), "%" + criteria.tel + "%")
+                        criteriaBuilder.like((root.get<String>("tel")), "%" + criteria.tel + "%")
                     )
                 }
                 if (criteria.delYn != null) {

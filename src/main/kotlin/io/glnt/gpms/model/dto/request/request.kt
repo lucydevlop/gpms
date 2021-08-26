@@ -119,6 +119,7 @@ data class resParkInList(
     var memo: String? = null,
     var paymentAmount: Int? = 0,
     var dayDiscountfee: Int? = 0,
+    var nonPayment: Int? = 0,
     var addDiscountClasses: ArrayList<ReqAddParkingDiscount>? = null,
     var aplyDiscountClasses: ArrayList<InoutDiscount>? = null
 )
