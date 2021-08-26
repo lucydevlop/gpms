@@ -8,6 +8,10 @@ enum class DelYn {
     Y, N
 }
 
+enum class Yn {
+    Y, N
+}
+
 enum class GateTypeStatus {
     IN, OUT, IN_OUT
 }

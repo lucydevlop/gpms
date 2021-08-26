@@ -263,7 +263,8 @@ class InoutService(
                     uuid = uuid,
                     udpssid = if (gate.takeAction == "PCC") "11111" else "00000",
                     ticketSn = ticketSn,
-                    memo = memo
+                    memo = memo,
+                    date = date.toLocalDate()
                 )
                 parkInRepository.saveAndFlush(newData)
 
@@ -643,7 +644,8 @@ class InoutService(
                     payfee = if (price == null) null else price!!.totalPrice,
                     discountfee = if (price == null) null else price!!.discountPrice,
                     dayDiscountfee = if (price == null) null else price!!.dayilyMaxDiscount,
-                    inSn = parkIn?.sn ?: kotlin.run { null }
+                    inSn = parkIn?.sn ?: kotlin.run { null },
+                    date = date.toLocalDate()
                 )
                 parkOutRepository.saveAndFlush(newData)
 

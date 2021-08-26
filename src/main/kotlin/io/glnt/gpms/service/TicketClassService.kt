@@ -4,6 +4,7 @@ import io.glnt.gpms.model.dto.DiscountClassDTO
 import io.glnt.gpms.model.dto.TicketClassDTO
 import io.glnt.gpms.model.mapper.TicketClassMapper
 import io.glnt.gpms.model.repository.TicketClassRepository
+import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -12,13 +13,15 @@ class TicketClassService(
     private val ticketClassRepository: TicketClassRepository,
     private val ticketClassMapper: TicketClassMapper
 ) {
+    companion object : KLogging()
+
     @Transactional(readOnly = true)
     fun findAll(): List<TicketClassDTO> {
         return ticketClassRepository.findAll().map(ticketClassMapper::toDto)
     }
 
     fun save(ticketClassDTO: TicketClassDTO): TicketClassDTO {
-        BarcodeTicketService.logger.debug("Request to save TicketClass : $ticketClassDTO")
+        logger.debug("Request to save TicketClass : $ticketClassDTO")
         val ticketClass = ticketClassMapper.toEntity(ticketClassDTO)
         ticketClassRepository.save(ticketClass!!)
 
