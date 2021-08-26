@@ -19,6 +19,10 @@ class CorpTicketClassService(
         return corpTicketClassRepository.findAll().map(corpTicketClassMapper::toDTO)
     }
 
+    fun findBySn(sn: Long): CorpTicketClassDTO {
+        return corpTicketClassMapper.toDTO(corpTicketClassRepository.findBySn(sn))
+    }
+
     fun save(corpTicketClassDTO: CorpTicketClassDTO): CorpTicketClassDTO {
         logger.debug("Request to save CorpTicketClass : $corpTicketClassDTO")
         val corpTicketClass = corpTicketClassMapper.toEntity(corpTicketClassDTO)

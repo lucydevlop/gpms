@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface CorpTicketClassRepository : JpaRepository<CorpTicketClass, Long>{
+    fun findBySn(sn: Long): CorpTicketClass
 }

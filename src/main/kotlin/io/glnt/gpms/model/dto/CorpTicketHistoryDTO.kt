@@ -2,7 +2,6 @@ package io.glnt.gpms.model.dto
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.entity.CorpTicketHistory
-import io.glnt.gpms.model.entity.CorpTicketInfo
 import io.glnt.gpms.model.enums.DelYn
 import java.io.Serializable
 import java.time.LocalDateTime

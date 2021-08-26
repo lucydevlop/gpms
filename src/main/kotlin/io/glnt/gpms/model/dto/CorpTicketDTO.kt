@@ -12,7 +12,7 @@ data class CorpTicketDTO(
 
     var corpSn: Long? = null,
 
-    var discountClassSn: Long? = null,
+    var classSn: Long? = null,
 
     var totalQuantity: Int? = 0,
 
@@ -24,7 +24,7 @@ data class CorpTicketDTO(
     @Enumerated(EnumType.STRING)
     var delYn: DelYn? = null,
 
-    var discountClass: DiscountClassDTO? = null,
+    var corpTicketClass: CorpTicketClassDTO? = null,
 
     var corp: CorpDTO? = null,
 
@@ -39,7 +39,7 @@ data class CorpTicketDTO(
 
     constructor(corpTicket: CorpTicketInfo) :
         this(
-            corpTicket.sn, corpTicket.corpSn, corpTicket.discountClassSn,
+            corpTicket.sn, corpTicket.corpSn, corpTicket.classSn,
             corpTicket.totalQuantity, corpTicket.useQuantity, corpTicket.orderNum, corpTicket.delYn
         )
 }

@@ -5,17 +5,13 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.discount.service.DiscountService
-import io.glnt.gpms.service.CorpQueryService
-import io.glnt.gpms.model.dto.CorpCriteria
-import io.glnt.gpms.model.dto.CorpDTO
-import io.glnt.gpms.service.CorpService
-import io.glnt.gpms.service.InoutDiscountService
-import io.glnt.gpms.service.ParkSiteInfoService
+import io.glnt.gpms.model.dto.*
+import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.service.*
 import mu.KLogging
 import org.springframework.http.ResponseEntity
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
-import java.util.HashMap
+import java.util.concurrent.ConcurrentHashMap
 import javax.validation.Valid
 
 @RestController
@@ -28,17 +24,18 @@ class CorpResource (
     private val corpQueryService: CorpQueryService,
     private val parkSiteInfoService: ParkSiteInfoService,
     private val discountService: DiscountService,
-    private val inoutDiscountService: InoutDiscountService
+    private val inoutDiscountService: InoutDiscountService,
+    private val corpTicketClassService: CorpTicketClassService
 ){
     companion object : KLogging()
 
     @RequestMapping(value = ["/corps"], method = [RequestMethod.GET])
-    fun getStores(criteria: CorpCriteria): ResponseEntity<CommonResult> {
+    fun getCorps(criteria: CorpCriteria): ResponseEntity<CommonResult> {
         return CommonResult.returnResult(CommonResult.data(corpQueryService.findByCriteria(criteria)))
     }
 
     @RequestMapping(value = ["/corps"], method = [RequestMethod.POST])
-    fun createStore(@Valid @RequestBody corpDTO: CorpDTO): ResponseEntity<CommonResult> {
+    fun createCorp(@Valid @RequestBody corpDTO: CorpDTO): ResponseEntity<CommonResult> {
         if (corpDTO.sn != null) {
             throw CustomException(
                 "corp create sn exists",
@@ -49,7 +46,7 @@ class CorpResource (
     }
 
     @RequestMapping(value = ["/corps"], method = [RequestMethod.PUT])
-    fun updateStore(@Valid @RequestBody corpDTO: CorpDTO): ResponseEntity<CommonResult> {
+    fun updateCorp(@Valid @RequestBody corpDTO: CorpDTO): ResponseEntity<CommonResult> {
         if (corpDTO.sn == null) {
             throw CustomException(
                 "corp update not found sn",
@@ -60,12 +57,12 @@ class CorpResource (
     }
 
     @RequestMapping(value = ["/corps/{sn}/{inSn}/able/ticket"], method = [RequestMethod.GET])
-    fun getStoreAbleTickets(@PathVariable sn: Long, @PathVariable inSn: String): ResponseEntity<CommonResult> {
+    fun getCorpAbleTickets(@PathVariable sn: Long, @PathVariable inSn: String): ResponseEntity<CommonResult> {
         logger.debug { "store fetch able ticket" }
-        val tickets = corpService.getStoreTicketsByStoreSn(sn)
+        val tickets = corpService.getCorpTicketsByCorpSn(sn)
         if (inSn == "ALL") {
             tickets.forEach{ ticket ->
-                ticket.todayUse = discountService.getTodayUseDiscountTicket(sn, ticket.discountClassSn!!)
+                ticket.todayUse = discountService.getTodayUseDiscountTicket(sn, ticket.corpTicketClass!!.discountClassSn!!)
                 ticket.totalCnt = ticket.totalQuantity
                 ticket.ableCnt = ticket.totalQuantity!! - ticket.useQuantity!!
             }
@@ -74,14 +71,63 @@ class CorpResource (
 
         tickets.forEach{ ticket ->
             corpService.getCorpTicketHistByTicketSn(ticket.sn!!)?.let {
-                ticket.todayUse = discountService.getTodayUseDiscountTicket(sn, ticket.discountClassSn!!)
+                ticket.todayUse = discountService.getTodayUseDiscountTicket(sn, ticket.corpTicketClass!!.discountClassSn!!)
                 ticket.totalCnt = ticket.totalQuantity!! - ticket.useQuantity!!
-                val ableCnt = inoutDiscountService.ableDiscountCntByInSn(inSn.toLong(), ticket.discountClass!!)?: 0
+                val ableCnt = inoutDiscountService.ableDiscountCntByInSn(inSn.toLong(), ticket.corpTicketClass!!.discountClass!!)?: 0
                 ticket.ableCnt = if (ableCnt > ticket.totalQuantity!! - ticket.useQuantity!!) ticket.totalQuantity!! - ticket.useQuantity!! else ableCnt
             }
         }
 
         return CommonResult.returnResult(CommonResult.data(tickets))
+    }
+
+    @RequestMapping(value = ["/corps/{sn}/tickets/info"], method = [RequestMethod.GET])
+    fun getCorpTicketsSummary(@PathVariable sn: String): ResponseEntity<CommonResult> {
+        logger.debug { "corp fetch ticket summary" }
+        var summarys = ArrayList<CorpTicketSummaryDTO>()
+
+        val corpTicketClass = corpTicketClassService.findAll().filter { corpTicketClassDTO -> corpTicketClassDTO.delYn == DelYn.N }
+
+        if (sn == "ALL") {
+            val tickets = corpService.getAllCorpTickets()
+            val corps = corpQueryService.findByCriteria(CorpCriteria(delYn = DelYn.N))
+            corps.forEach { corpDTO ->
+                val corpTickets = tickets.filter { corpTicketDTO -> corpTicketDTO.corpSn == corpDTO.sn}
+                val results = ArrayList<HashMap<String, Any?>>()
+                for (i in corpTicketClass.indices) {
+                    val corpTicket = corpTickets.filter { it -> it.corpTicketClass!!.sn == corpTicketClass[i].sn }
+                    results.add(hashMapOf<String, Any?>(
+                        "id" to i,
+                        "title" to corpTicketClass[i].name,
+                        "total" to corpTicket.sumOf { it -> it.totalQuantity ?: 0 },
+                        "use" to corpTicket.sumOf { it -> it.useQuantity ?: 0 }
+                    ))
+                }
+                summarys.add(CorpTicketSummaryDTO(corp = corpDTO, tickets = results))
+            }
+            return CommonResult.returnResult(CommonResult.data(summarys))
+        } else {
+            val tickets = corpService.getCorpTicketsByCorpSn(sn.toLong())
+            val corps = corpQueryService.findByCriteria(CorpCriteria(delYn = DelYn.N, sn = sn.toLong()))
+            val results = ArrayList<HashMap<String, Any?>>()
+            for (i in corpTicketClass.indices) {
+                val corpTicket = tickets.filter { it -> it.corpTicketClass!!.sn == corpTicketClass[i].sn }
+                results.add(hashMapOf<String, Any?>(
+                    "id" to i,
+                    "title" to corpTicketClass[i].name,
+                    "total" to corpTicket.sumOf { it -> it.totalQuantity ?: 0 },
+                    "use" to corpTicket.sumOf { it -> it.useQuantity ?: 0 }
+                ))
+            }
+            return CommonResult.returnResult(CommonResult.data(CorpTicketSummaryDTO(corp = corps[0], tickets = results)))
+        }
+    }
+
+    @RequestMapping(value = ["/corps/add/tickets"], method = [RequestMethod.POST])
+    fun addCorpTickets(@Valid @RequestBody addCorpTicketDTO: AddCorpTicketDTO): ResponseEntity<CommonResult> {
+        logger.debug { "corp add ticket " }
+        corpService.addCorpTickets(addCorpTicketDTO)
+        return getCorpTicketsSummary(addCorpTicketDTO.corpSn.toString())
     }
 
 }

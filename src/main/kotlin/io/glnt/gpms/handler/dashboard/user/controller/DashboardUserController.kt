@@ -32,20 +32,20 @@ class DashboardUserController {
         return returnResult(dashboardUserService.parkingDiscountSearchTicket(request))
     }
 
-    @RequestMapping(value=["/parking/discount/able/ticket"], method = [RequestMethod.POST])
-    fun parkingDiscountAbleTicket(@RequestBody request: reqParkingDiscountAbleTicketsSearch): ResponseEntity<CommonResult> {
-        return returnResult(dashboardUserService.parkingDiscountAbleTickets(request))
-    }
+//    @RequestMapping(value=["/parking/discount/able/ticket"], method = [RequestMethod.POST])
+//    fun parkingDiscountAbleTicket(@RequestBody request: reqParkingDiscountAbleTicketsSearch): ResponseEntity<CommonResult> {
+//        return returnResult(dashboardUserService.parkingDiscountAbleTickets(request))
+//    }
 
     @RequestMapping(value=["/parking/discount/add/ticket"], method = [RequestMethod.POST])
     fun parkingDiscountAddTicket(@RequestBody request: ArrayList<reqParkingDiscountAddTicket>): ResponseEntity<CommonResult> {
         return returnResult(dashboardUserService.parkingDiscountAddTicket(request))
     }
 
-    @RequestMapping(value=["/parking/discount/apply/ticket"], method = [RequestMethod.POST])
-    fun parkingDiscountSearchApplyTicket(@RequestBody request: reqParkingDiscountApplyTicketSearch): ResponseEntity<CommonResult> {
-        return returnResult(dashboardUserService.parkingDiscountSearchApplyTicket(request))
-    }
+//    @RequestMapping(value=["/parking/discount/apply/ticket"], method = [RequestMethod.POST])
+//    fun parkingDiscountSearchApplyTicket(@RequestBody request: reqParkingDiscountApplyTicketSearch): ResponseEntity<CommonResult> {
+//        return returnResult(dashboardUserService.parkingDiscountSearchApplyTicket(request))
+//    }
 
     @RequestMapping(value=["/parking/discount/cancel/ticket/{sn}"], method = [RequestMethod.DELETE])
     fun parkingDiscountCancelTicket(@PathVariable sn: Long): ResponseEntity<CommonResult> {
