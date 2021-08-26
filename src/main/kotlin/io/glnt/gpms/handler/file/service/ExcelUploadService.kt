@@ -80,15 +80,8 @@ class ExcelUploadService {
             }
             val list = cellString.split('$')
             val corpSn = if (list[7].isNotEmpty()) {
-                corpService.getStoreByCorpName(list[7]).ifPresentOrElse(
-                    {
-                        it.sn
-                    },
-                    {
-                        null
-                    }
+                corpService.getStoreByCorpName(list[7])
 
-                )
             } else null
 
             if (DataCheckUtil.isValidCarNumber(list[0])) {

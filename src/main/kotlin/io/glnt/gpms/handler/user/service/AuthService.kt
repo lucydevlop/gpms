@@ -201,7 +201,8 @@ class AuthService {
             }
             var corp = corpRepository.save(Corp( 
                 sn = null, corpName = corpName, form = form!!, resident = resident!!,
-                dong = dong, ho = ho, ceoName = userName, tel = userPhone, corpId = " "
+                dong = dong, ho = ho, ceoName = userName, tel = userPhone, corpId = " ",
+                delYn = DelYn.N
             ))
             corp.corpId = parkinglotService.parkSiteSiteId()+"_"+ format("%05d", corp.sn!!)
             corp = corpRepository.save(corp)
@@ -228,19 +229,25 @@ class AuthService {
                 it.forEach { req ->
                     var corp = corpRepository.save(Corp(
                         sn = null, corpName = req.corpName, form = req.form!!, resident = req.resident!!,
-                        dong = req.dong, ho = req.ho, ceoName = req.userName, tel = req.userPhone, corpId = " "
+                        dong = req.dong, ho = req.ho, ceoName = req.userName, tel = req.userPhone, corpId = if (req.corpId == null || req.corpId.equals(" ") || req.corpId.equals(""))  "NoCorpId" else req.corpId,
+                        delYn = DelYn.N
                     ))
-                    corp.corpId = parkinglotService.parkSiteSiteId()+"_"+ format("%05d", corp.sn!!)
-                    corp = corpRepository.save(corp)
-
-                    SiteUser(
-                        idx = null,
-                        id = corp.corpId!!,
-                        password = passwordEncoder.encode(req.password),
-                        userName = req.userName,
-                        userPhone = req.userPhone,
-                        corpSn = corp.sn,
-                        role = req.userRole!!
+                    if (!corp.corpId.equals("NoCorpId")) {
+                        corpRepository.save(corp);
+                    } else {
+                        corp.corpId = parkinglotService.parkSiteSiteId()+"_"+ format("%05d", corp.sn!!)
+                        corp = corpRepository.save(corp)
+                    }
+                    userRepository.save(
+                        SiteUser(
+                            idx = null,
+                            id = corp.corpId!!,
+                            password = passwordEncoder.encode(req.password),
+                            userName = req.userName,
+                            userPhone = req.userPhone,
+                            corpSn = corp.sn,
+                            role = req.userRole!!
+                        )
                     )
                     resultData.add(corp)
                 }
