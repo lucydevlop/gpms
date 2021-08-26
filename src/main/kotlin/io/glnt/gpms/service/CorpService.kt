@@ -1,12 +1,7 @@
 package io.glnt.gpms.service
 
-import io.github.jhipster.service.filter.LongFilter
-import io.github.jhipster.service.filter.StringFilter
-import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
-import io.glnt.gpms.model.dto.CorpCriteria
-import io.glnt.gpms.model.dto.CorpDTO
-import io.glnt.gpms.model.dto.CorpTicketDTO
-import io.glnt.gpms.model.dto.CorpTicketHistoryDTO
+import io.glnt.gpms.model.dto.*
+import io.glnt.gpms.model.entity.CorpTicketInfo
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.mapper.CorpMapper
 import io.glnt.gpms.model.mapper.CorpTicketHistoryMapper
@@ -17,6 +12,7 @@ import io.glnt.gpms.model.repository.CorpTicketRepository
 import mu.KLogging
 import okhttp3.internal.format
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 import java.util.*
 
 @Service
@@ -51,12 +47,16 @@ class CorpService(
         return corpQueryService.findByCriteria(criteria).stream().findFirst()
     }
 
-    fun getStoreTicketsByStoreSn(sn: Long) : MutableList<CorpTicketDTO> {
+    fun getAllCorpTickets(): MutableList<CorpTicketDTO> {
+        return corpTicketRepository.findAll().mapTo(mutableListOf(), corpTicketMapper::toDTO)
+    }
+
+    fun getCorpTicketsByCorpSn(sn: Long) : MutableList<CorpTicketDTO> {
         return corpTicketRepository.findByCorpSn(sn).mapTo(mutableListOf(), corpTicketMapper::toDTO)
     }
 
     fun getStoreTicketsByStoreSnAndInSn(sn: Long, inSn: Long) {
-        getStoreTicketsByStoreSn(sn)
+        getCorpTicketsByCorpSn(sn)
     }
 
     fun save(corpDTO: CorpDTO, action: String, siteId: String?): CorpDTO {
@@ -73,5 +73,34 @@ class CorpService(
     fun getCorpTicketHistByTicketSn(ticketSn: Long): MutableList<CorpTicketHistoryDTO>? {
         return corpTicketHistoryRepository.findByTicketSnAndDelYn(ticketSn, DelYn.N)
             ?.mapTo(mutableListOf(), corpTicketHistoryMapper::toDTO)
+    }
+
+    fun addCorpTickets(addCorpTicketDTO: AddCorpTicketDTO) {
+        var corpTicketInfo = corpTicketRepository.findByCorpSnAndClassSnAndDelYn(addCorpTicketDTO.corpSn, addCorpTicketDTO.corpTicketClassSn, DelYn.N)?.let { corpTicketInfo ->
+            corpTicketInfo.totalQuantity = corpTicketInfo.totalQuantity.plus(addCorpTicketDTO.cnt)
+        }?: kotlin.run {
+            CorpTicketInfo(sn = null, corpSn = addCorpTicketDTO.corpSn, classSn = addCorpTicketDTO.corpTicketClassSn,
+                    totalQuantity = addCorpTicketDTO.cnt, useQuantity = 0, delYn = DelYn.N)
+        }
+        saveCorpTicket(corpTicketMapper.toDTO(corpTicketInfo as CorpTicketInfo)).apply {
+            saveCorpTicketHistory(
+                CorpTicketHistoryDTO(sn = null, ticketSn = this.sn!!, totalQuantity = addCorpTicketDTO.cnt,
+                    effectDate = LocalDateTime.now(), delYn = DelYn.N)
+            )
+        }
+    }
+
+    fun saveCorpTicket(corpTicketDTO: CorpTicketDTO) : CorpTicketDTO {
+        logger.debug("Request to save Corp Ticket Info: $corpTicketDTO")
+        val corpTicket = corpTicketMapper.toEntity(corpTicketDTO)
+        corpTicketRepository.save(corpTicket!!)
+        return corpTicketMapper.toDTO(corpTicket)
+    }
+
+    fun saveCorpTicketHistory(corpTicketHistoryDTO: CorpTicketHistoryDTO): CorpTicketHistoryDTO {
+        logger.debug("Request to save Corp Ticket History: $corpTicketHistoryDTO")
+        val corpTicketHistory = corpTicketHistoryMapper.toEntity(corpTicketHistoryDTO)
+        corpTicketHistoryRepository.save(corpTicketHistory!!)
+        return corpTicketHistoryMapper.toDTO(corpTicketHistory)
     }
 }

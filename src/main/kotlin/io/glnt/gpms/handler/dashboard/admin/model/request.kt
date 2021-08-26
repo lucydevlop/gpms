@@ -58,6 +58,6 @@ data class reqSearchItem(
 
 data class reqCreateCorpTicket(
     var corpSn: Long,
-    var discountClassSn: Long,
+    var classSn: Long,
     var quantity: Int? = 1
 )

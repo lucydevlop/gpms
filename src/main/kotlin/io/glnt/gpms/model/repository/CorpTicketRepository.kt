@@ -17,7 +17,8 @@ interface CorpTicketRepository: JpaRepository<CorpTicketInfo, Long> {
     fun findBySn(sn: Long): CorpTicketInfo
     fun findByCorpSn(corpSn: Long) : List<CorpTicketInfo>
     fun findByCorpSnAndDelYn(corpSn: Long, delYn: DelYn): List<CorpTicketInfo>?
-    fun findByCorpSnAndDiscountClassSnAndDelYn(corpSn: Long, discountClassSn: Long, delYn: DelYn): CorpTicketInfo?
+    fun findByCorpSnAndClassSnAndDelYn(corpSn: Long, classSn: Long, delYn: DelYn): CorpTicketInfo?
+//    fun findByCorpSnAndDiscountClassSnAndDelYn(corpSn: Long, discountClassSn: Long, delYn: DelYn): CorpTicketInfo?
     fun findBySnAndDelYn(sn: Long, delYn: DelYn): CorpTicketInfo?
 //    fun findByCorpIdAndExpireDateGreaterThanEqualAndAbleCntIsGreaterThan(corpId: String, date: LocalDateTime, cnt: Int): List<CorpTicket>?
 //    fun findTopByCorpSnAndCorpClassSnAndDelYnAndAbleCntIsGreaterThanOrderByCreateDateAsc(corpSn: Long, corpClassNo: Long, delYn: DelYn, ableCnt: Int): CorpTicket?
