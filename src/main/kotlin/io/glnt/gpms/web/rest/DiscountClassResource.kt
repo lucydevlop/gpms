@@ -2,13 +2,13 @@ package io.glnt.gpms.web.rest
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.configs.ApiConfig
+import io.glnt.gpms.model.dto.DiscountClassDTO
+import io.glnt.gpms.model.dto.request.reqDiscountTicket
 import io.glnt.gpms.service.DiscountClassService
 import mu.KLogging
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.CrossOrigin
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import javax.validation.Valid
 
 @RestController
 @RequestMapping(
@@ -24,5 +24,10 @@ class DiscountClassResource (
     @RequestMapping(value = ["/discount/classes"], method = [RequestMethod.GET])
     fun getDiscountClasses(): ResponseEntity<CommonResult> {
         return CommonResult.returnResult(CommonResult.data(discountClassService.findAll()))
+    }
+
+    @RequestMapping(value = ["/discount/classes/create"], method = [RequestMethod.POST])
+    fun create(@Valid @RequestBody discountClassDTO: DiscountClassDTO): ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(CommonResult.data(discountClassService.save(discountClassDTO)))
     }
 }
