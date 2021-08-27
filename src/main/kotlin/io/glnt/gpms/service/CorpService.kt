@@ -2,28 +2,34 @@ package io.glnt.gpms.service
 
 import io.glnt.gpms.model.dto.*
 import io.glnt.gpms.model.entity.CorpTicketInfo
+import io.glnt.gpms.model.entity.SiteUser
 import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.UserRole
 import io.glnt.gpms.model.mapper.CorpMapper
 import io.glnt.gpms.model.mapper.CorpTicketHistoryMapper
 import io.glnt.gpms.model.mapper.CorpTicketMapper
 import io.glnt.gpms.model.repository.CorpRepository
 import io.glnt.gpms.model.repository.CorpTicketHistoryRepository
 import io.glnt.gpms.model.repository.CorpTicketRepository
+import io.glnt.gpms.model.repository.UserRepository
 import mu.KLogging
 import okhttp3.internal.format
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.util.*
 
 @Service
 class CorpService(
+    private val userRepository: UserRepository,
     private val corpTicketRepository: CorpTicketRepository,
     private val corpRepository: CorpRepository,
     private val corpTicketMapper: CorpTicketMapper,
     private val corpMapper: CorpMapper,
     private val corpQueryService: CorpQueryService,
     private val corpTicketHistoryRepository: CorpTicketHistoryRepository,
-    private val corpTicketHistoryMapper: CorpTicketHistoryMapper
+    private val corpTicketHistoryMapper: CorpTicketHistoryMapper,
+    private val passwordEncoder: PasswordEncoder
 ) {
     companion object : KLogging()
 
@@ -67,6 +73,16 @@ class CorpService(
             corp.corpId = siteId+"_"+ format("%05d", corp.sn!!)
             corpRepository.save(corp)
         }
+        if (corpDTO.password != null && corpDTO.password != "" && corpDTO.password != " ") {
+            val storeList = userRepository.findUsersByRole(UserRole.STORE);
+            val siteUser = storeList!!.filter {
+                it.id.equals(corpDTO.corpId)
+            }[0]
+            siteUser.password = passwordEncoder.encode(corpDTO.password!!)
+            userRepository.save(siteUser)
+        }
+
+
         return corpMapper.toDTO(corp)
     }
 
