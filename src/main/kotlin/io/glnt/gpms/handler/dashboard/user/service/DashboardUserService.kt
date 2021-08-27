@@ -176,8 +176,9 @@ class DashboardUserService {
                                                 discountType = TicketType.CORPTICKET,
                                                 ticketSn = history.sn!!,
                                                 quantity = useCnt,
-                                                discountClassSn = corps.classSn,
-                                                corpSn = corps.corpSn
+                                                discountClassSn = corps.corpTicketClass!!.discountClassSn!!,
+                                                corpSn = corps.corpSn,
+                                                ticketClassSn = corps.corpTicketClass!!.sn!!
                                             )
                                         )
                                         history.useQuantity = history.useQuantity.plus(useCnt)

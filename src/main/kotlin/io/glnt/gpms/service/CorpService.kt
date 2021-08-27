@@ -76,13 +76,16 @@ class CorpService(
     }
 
     fun addCorpTickets(addCorpTicketDTO: AddCorpTicketDTO) {
-        var corpTicketInfo = corpTicketRepository.findByCorpSnAndClassSnAndDelYn(addCorpTicketDTO.corpSn, addCorpTicketDTO.corpTicketClassSn, DelYn.N)?.let { corpTicketInfo ->
+        var corpTicketInfo = CorpTicketInfo(sn = null, corpSn = addCorpTicketDTO.corpSn, classSn = addCorpTicketDTO.corpTicketClassSn,
+            totalQuantity = addCorpTicketDTO.cnt, useQuantity = 0, delYn = DelYn.N)
+
+        corpTicketRepository.findByCorpSnAndClassSnAndDelYn(addCorpTicketDTO.corpSn, addCorpTicketDTO.corpTicketClassSn, DelYn.N)?.let { it ->
+            corpTicketInfo = it
             corpTicketInfo.totalQuantity = corpTicketInfo.totalQuantity.plus(addCorpTicketDTO.cnt)
-        }?: kotlin.run {
-            CorpTicketInfo(sn = null, corpSn = addCorpTicketDTO.corpSn, classSn = addCorpTicketDTO.corpTicketClassSn,
-                    totalQuantity = addCorpTicketDTO.cnt, useQuantity = 0, delYn = DelYn.N)
+
         }
-        saveCorpTicket(corpTicketMapper.toDTO(corpTicketInfo as CorpTicketInfo)).apply {
+
+        saveCorpTicket(corpTicketMapper.toDTO(corpTicketInfo)).apply {
             saveCorpTicketHistory(
                 CorpTicketHistoryDTO(sn = null, ticketSn = this.sn!!, totalQuantity = addCorpTicketDTO.cnt,
                     effectDate = LocalDateTime.now(), delYn = DelYn.N)
