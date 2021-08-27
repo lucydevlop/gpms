@@ -12,6 +12,7 @@ import io.glnt.gpms.model.enums.DateType
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountRangeType
 import io.glnt.gpms.model.enums.TicketAplyType
+import io.glnt.gpms.model.repository.CorpRepository
 import io.glnt.gpms.model.repository.ProductTicketRepository
 import io.glnt.gpms.model.repository.TicketClassRepository
 import mu.KLogging
@@ -32,6 +33,9 @@ class ProductService {
 
     @Autowired
     private lateinit var ticketClassRepository: TicketClassRepository
+
+    @Autowired
+    private lateinit var corpRepository: CorpRepository
 
     fun getValidProductByVehicleNo(vehicleNo: String): ProductTicket? {
         return getValidProductByVehicleNo(vehicleNo, LocalDateTime.now(), LocalDateTime.now())
@@ -90,6 +94,14 @@ class ProductService {
     @Throws(CustomException::class)
     fun createProduct(request: reqCreateProductTicket): CommonResult {
         logger.info { "createProduct request $request" }
+        if (request.corpSn != null){
+            val findCorp = corpRepository.findBySn(request.corpSn!!)
+            findCorp.let {
+                if (it != null) {
+                    request.corpName = it.corpName
+                }
+            }
+        }
         try {
             val new = ProductTicket(
                 sn = request.sn?.let { if (it > 0) it else null },
@@ -102,6 +114,7 @@ class ProductService {
                 ticketType = request.ticketType,
                 vehicleType = request.vehicleType,
                 corpSn = request.corpSn,
+                corpName = request.corpName,
                 etc = request.etc,
                 etc1 = request.etc1,
                 name = request.name,

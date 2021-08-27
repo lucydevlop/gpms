@@ -47,6 +47,8 @@ data class CorpDTO (
 
     var updateDate: LocalDateTime? = null,
 
+    var password: String? = null,
+
     @get: NotNull
     @Enumerated(EnumType.STRING)
     var delYn: DelYn? = null
@@ -57,6 +59,6 @@ data class CorpDTO (
             corp.sn, corp.corpId, corp.corpName, corp.form, corp.resident, corp.dong,
             corp.ho, corp.ceoName, corp.tel, corp.mobile, corp.email, corp.address, corp.saupNo,
             corp.mobileNo, corp.balance, corp.lastCharging, corp.lastDiscount, corp.balanceUpdate,
-            corp.UpdateDate, corp.delYn
+            corp.UpdateDate, null, corp.delYn
         )
 }
