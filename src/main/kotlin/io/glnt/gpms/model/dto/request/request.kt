@@ -97,7 +97,7 @@ data class reqDiscountTicket(
 )
 
 data class resParkInList(
-    var type: DisplayMessageClass,
+    var type: DisplayMessageClass? = DisplayMessageClass.IN,
     var parkinSn: Long? = null,
     var vehicleNo: String? = null,
     var parkcartype: String,
