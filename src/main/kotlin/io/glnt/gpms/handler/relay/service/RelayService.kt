@@ -444,7 +444,7 @@ class RelayService(
         }
     }
 
-    fun actionGate(id: String, type: String, action: String) {
+    fun actionGate(id: String, type: String, action: String, manual: String? = null) {
         logger.info { "actionGate request $type $id $action" }
         try {
             when (type) {
@@ -452,9 +452,15 @@ class RelayService(
                     parkinglotService.getFacilityByGateAndCategory(id, FacilityCategoryType.BREAKER)?.let { its ->
                         its.forEach {
                             val url = getRelaySvrUrl(id)
-                            restAPIManager.sendGetRequest(
-                                url+"/breaker/${it.dtFacilitiesId}/$action"
-                            )
+                            if (manual.isNullOrEmpty()) {
+                                restAPIManager.sendGetRequest(
+                                    url+"/breaker/${it.dtFacilitiesId}/$action"
+                                )
+                            }else {
+                                restAPIManager.sendGetRequest(
+                                    url+"/breaker/${it.dtFacilitiesId}/$action/manual"
+                                )
+                            }
                         }
                     }
                 }
