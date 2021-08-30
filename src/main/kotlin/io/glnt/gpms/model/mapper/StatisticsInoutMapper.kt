@@ -27,7 +27,7 @@ class StatisticsInoutMapper(
             dayDiscountFee = out?.dayDiscountfee?: 0,
             payFee = out?.payfee?: 0,
             payment = payment,
-            nonPayment = out?.payfee?: 0 - payment
+            nonPayment = out?.payfee?.minus(payment)
         )
     }
 }
