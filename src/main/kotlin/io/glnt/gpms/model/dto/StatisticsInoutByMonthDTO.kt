@@ -2,7 +2,7 @@ package io.glnt.gpms.model.dto
 
 import javax.validation.constraints.NotNull
 
-data class StatisticsInoutByDayDTO(
+data class StatisticsInoutByMonthDTO(
     @get: NotNull
     var date: String? = null,
 
@@ -24,7 +24,8 @@ data class StatisticsInoutByDayDTO(
 
     var payFee: Int? = null,
 
-    var unPayment: Int? = null,
+    var nonPayment: Int? = null,
 
     var payment: Int? = null
+
 )

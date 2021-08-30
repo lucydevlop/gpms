@@ -23,4 +23,10 @@ class StatisticsResource (
         // 일자별 입차 / 일반차량(입차기준) / 정기차량(입차기준) / 출차 / 주차금액 / 할인금액 / 결제금액
         return CommonResult.returnResult(CommonResult.data(statisticsService.getInoutByDays(startDate, endDate)))
     }
+
+    @RequestMapping(value = ["/statistic/inout/month"], method = [RequestMethod.GET])
+    fun getInoutByMonths(@RequestParam startDate: String, @RequestParam endDate: String) : ResponseEntity<CommonResult> {
+        // 일자별 입차 / 일반차량(입차기준) / 정기차량(입차기준) / 출차 / 주차금액 / 할인금액 / 결제금액
+        return CommonResult.returnResult(CommonResult.data(statisticsService.getInoutByMonths(startDate, endDate)))
+    }
 }

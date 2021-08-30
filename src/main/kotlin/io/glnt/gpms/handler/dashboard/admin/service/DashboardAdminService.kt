@@ -204,7 +204,7 @@ class DashboardAdminService(
     @Throws(CustomException::class)
     fun gateAction(action: String, gateId: String) : CommonResult {
         try {
-            relayService.actionGate(gateId, "GATE", action)
+            relayService.actionGate(gateId, "GATE", action, "manual")
             return CommonResult.data()
         }catch (e: CustomException){
             logger.error { "Admin gateAction failed ${e.message}" }
