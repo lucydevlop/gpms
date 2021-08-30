@@ -15,7 +15,7 @@ import javax.swing.text.html.Option
 @Repository
 interface ProductTicketRepository: JpaRepository<ProductTicket, Long> {
     fun findByVehicleNoAndValidDateGreaterThanEqualAndRegDateLessThanEqualAndDelYn(vehiclNo: String, date1: LocalDateTime, date2: LocalDateTime, delYn: DelYn): ProductTicket?
-    fun findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehiclNo: String, date1: LocalDateTime, date2: LocalDateTime, delYn: DelYn): ProductTicket?
+    fun findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehiclNo: String, date1: LocalDateTime, date2: LocalDateTime, delYn: DelYn): List<ProductTicket>?
     fun findByVehicleNoAndValidDateGreaterThanEqualAndDelYn(vehiclNo: String, date1: LocalDateTime, delYn: DelYn): ProductTicket?
     fun findAll(specification: Specification<ProductTicket>): List<ProductTicket>?
     fun findBySn(sn: Long): ProductTicket?

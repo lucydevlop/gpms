@@ -1344,12 +1344,12 @@ class InoutService(
     fun getLastInout(type: GateTypeStatus, gateId: String ): HashMap<String, Any?>? {
         try {
             var result = HashMap<String, Any?>()
+            var parkIn = parkInRepository.findTopByGateIdAndDelYnOrderByInDateDesc(gateId, DelYn.N)
+            var parkOut = parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N)
+
             when (type) {
                 GateTypeStatus.IN -> {
-                    parkInRepository.findTopByGateIdAndDelYnOrderByInDateDesc(gateId, DelYn.N
-//                        , DateUtil.minusSecLocalDateTime(
-//                        LocalDateTime.now(), 10)
-                    )?.let {
+                    parkIn?.let {
                         result =
                             hashMapOf<String, Any?>(
                                 "gateId" to gateId,
@@ -1361,10 +1361,7 @@ class InoutService(
                     }
                 }
                 GateTypeStatus.OUT -> {
-                    parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N
-//                        , DateUtil.minusSecLocalDateTime(
-//                        LocalDateTime.now(), 10)
-                    )?.let {
+                    parkOut?.let {
                         result =
                             hashMapOf<String, Any?>(
                                 "gateId" to gateId,
@@ -1376,56 +1373,20 @@ class InoutService(
                     }
                 }
                 else -> {
-                    parkInRepository.findTopByGateIdAndDelYnOrderByInDateDesc(gateId, DelYn.N
-//                        , DateUtil.minusSecLocalDateTime(
-//                        LocalDateTime.now(), 10)
-                    )?.let { parkIn ->
-                        parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N
-//                        , DateUtil.minusSecLocalDateTime(
-//                        LocalDateTime.now(), 10)
-                        )?.let { parkOut ->
-                            if (parkIn.inDate!! > parkOut.outDate) {
-                                result =
-                                    hashMapOf<String, Any?>(
-                                        "gateId" to gateId,
-                                        "vehicleNo" to parkIn.vehicleNo,
-                                        "date" to parkIn.inDate,
-                                        "carType" to parkIn.parkcartype,
-                                        "image" to getImagePath(parkIn.image) )
-                            } else {
-                                result =
-                                    hashMapOf<String, Any?>(
-                                        "gateId" to gateId,
-                                        "vehicleNo" to parkOut.vehicleNo,
-                                        "date" to parkOut.outDate,
-                                        "carType" to parkOut.parkcartype,
-                                        "image" to getImagePath(parkOut.image) )
-                            }
-                        }?.run {
-                            result =
-                                hashMapOf<String, Any?>(
-                                    "gateId" to gateId,
-                                    "vehicleNo" to parkIn.vehicleNo,
-                                    "date" to parkIn.inDate,
-                                    "carType" to parkIn.parkcartype,
-                                    "image" to getImagePath(parkIn.image) )
-                        }
-                    }?.run {
-                        parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N
-//                        , DateUtil.minusSecLocalDateTime(
-//                        LocalDateTime.now(), 10)
-                        )?.let {
-                            result =
-                                hashMapOf<String, Any?>(
-                                    "gateId" to gateId,
-                                    "vehicleNo" to it.vehicleNo,
-                                    "date" to it.outDate,
-                                    "carType" to it.parkcartype,
-                                    "image" to getImagePath(it.image)
-                                )
-                        }
+
+                        result =
+                            hashMapOf<String, Any?>(
+                                "gateId" to gateId,
+                                "vehicleNo" to (parkIn?.vehicleNo ?: ""),
+                                "date" to (parkIn?.inDate ?: ""),
+                                "carType" to (parkIn?.parkcartype ?: ""),
+                                "image" to getImagePath((parkIn?.image ?: "")),
+                                "outVehicleNo" to (parkOut?.vehicleNo ?: ""),
+                                "outDate" to (parkOut?.outDate ?: ""),
+                                "outCarType" to (parkOut?.parkcartype ?: ""),
+                                "outImage" to getImagePath((parkOut?.image ?: ""))
+                            )
                     }
-                }
             }
             return result
         }catch (e: CustomException) {
