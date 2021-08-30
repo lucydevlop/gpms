@@ -246,7 +246,8 @@ class DiscountService {
     fun addInoutDiscount(request: reqAddInoutDiscount): InoutDiscount {
         return inoutDiscountRepository.save(
             InoutDiscount(sn = null, discontType = request.discountType, discountClassSn = request.discountClassSn,
-                          ticketHistSn = request.ticketSn, inSn = request.inSn, quantity = request.quantity, delYn = DelYn.N, corpSn = request.corpSn))
+                          ticketHistSn = request.ticketSn, inSn = request.inSn, quantity = request.quantity, delYn = DelYn.N,
+                          corpSn = request.corpSn, ticketClassSn = request.ticketClassSn))
     }
 
     fun saveInoutDiscount(discount: InoutDiscount) : InoutDiscount {
@@ -366,10 +367,10 @@ class DiscountService {
         return true
     }
 
-    fun getTodayUseDiscountTicket(corpSn: Long, discountClassSn: Long) : Int {
+    fun getTodayUseDiscountTicket(corpSn: Long, ticketClassSn: Long) : Int {
         try {
-            inoutDiscountRepository.findByCorpSnAndDiscountClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(corpSn, discountClassSn, DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate), DateUtil.lastTimeToLocalDateTime(DateUtil.nowDate), DelYn.N)?.let {
-                return it.size
+            inoutDiscountRepository.findByCorpSnAndTicketClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(corpSn, ticketClassSn, DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate), DateUtil.lastTimeToLocalDateTime(DateUtil.nowDate), DelYn.N)?.let { inoutDiscounts ->
+                return inoutDiscounts.sumOf { it -> it.quantity ?: 0 }
             }?.run {
                 return 0
             }
@@ -385,7 +386,7 @@ class DiscountService {
             request.filter { it.cnt > 0 }.forEach { addDiscount ->
                 saveInoutDiscount(
                     InoutDiscount(sn = null, discontType = TicketType.DISCOUNT, discountClassSn = addDiscount.discountClassSn,
-                        inSn = addDiscount.inSn, quantity = addDiscount.cnt, delYn = DelYn.N, calcYn = DelYn.Y)
+                        inSn = addDiscount.inSn, quantity = addDiscount.cnt, delYn = DelYn.N, calcYn = DelYn.Y, )
                 )
             }
             return true

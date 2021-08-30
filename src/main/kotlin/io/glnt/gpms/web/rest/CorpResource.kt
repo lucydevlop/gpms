@@ -59,10 +59,10 @@ class CorpResource (
     @RequestMapping(value = ["/corps/{sn}/{inSn}/able/ticket"], method = [RequestMethod.GET])
     fun getCorpAbleTickets(@PathVariable sn: Long, @PathVariable inSn: String): ResponseEntity<CommonResult> {
         logger.debug { "store fetch able ticket" }
-        val tickets = corpService.getCorpTicketsByCorpSn(sn)
+        val tickets = corpService.getCorpTicketsByCorpSn(sn).filter { t -> t.delYn == DelYn.N }
         if (inSn == "ALL") {
             tickets.forEach{ ticket ->
-                ticket.todayUse = discountService.getTodayUseDiscountTicket(sn, ticket.corpTicketClass!!.discountClassSn!!)
+                ticket.todayUse = discountService.getTodayUseDiscountTicket(sn, ticket.corpTicketClass!!.sn!!)
                 ticket.totalCnt = ticket.totalQuantity
                 ticket.ableCnt = ticket.totalQuantity!! - ticket.useQuantity!!
             }
@@ -71,9 +71,9 @@ class CorpResource (
 
         tickets.forEach{ ticket ->
             corpService.getCorpTicketHistByTicketSn(ticket.sn!!)?.let {
-                ticket.todayUse = discountService.getTodayUseDiscountTicket(sn, ticket.corpTicketClass!!.discountClassSn!!)
+                ticket.todayUse = discountService.getTodayUseDiscountTicket(sn, ticket.corpTicketClass!!.sn!!)
                 ticket.totalCnt = ticket.totalQuantity!! - ticket.useQuantity!!
-                val ableCnt = inoutDiscountService.ableDiscountCntByInSn(inSn.toLong(), ticket.corpTicketClass!!.discountClass!!)?: 0
+                val ableCnt = inoutDiscountService.ableDiscountCntByInSn(inSn.toLong(), ticket.corpTicketClass!!)?: 0
                 ticket.ableCnt = if (ableCnt > ticket.totalQuantity!! - ticket.useQuantity!!) ticket.totalQuantity!! - ticket.useQuantity!! else ableCnt
             }
         }

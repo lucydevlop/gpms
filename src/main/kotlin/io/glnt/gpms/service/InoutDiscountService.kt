@@ -1,6 +1,7 @@
 package io.glnt.gpms.service
 
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.model.dto.CorpTicketClassDTO
 import io.glnt.gpms.model.dto.DiscountClassDTO
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.repository.InoutDiscountRepository
@@ -13,27 +14,27 @@ class InoutDiscountService(
 ) {
     companion object : KLogging()
 
-    fun ableDiscountCntByInSn(inSn: Long, discountClass: DiscountClassDTO): Int? {
-        val result = ArrayList<Int>()
+    fun ableDiscountCntByInSn(inSn: Long, corpTicketClassDTO: CorpTicketClassDTO): Int? {
+        val result = ArrayList<Long>()
 
-        inoutDiscountRepository.findByInSnAndDiscountClassSnAndDelYn(inSn, discountClass.sn!!, DelYn.N)?.sumBy { it -> it.quantity!! }.also {
-            if (it!! > discountClass.disMaxNo!!) return 0
-            if (it == 0) result.add(discountClass.disMaxNo!!) else  result.add(discountClass.disMaxNo!!-it)
+        inoutDiscountRepository.findByInSnAndDiscountClassSnAndDelYn(inSn, corpTicketClassDTO.discountClass!!.sn!!, DelYn.N)?.sumBy { it -> it.quantity!! }.also {
+            if (it!! > corpTicketClassDTO.onceMax!!) return 0
+            if (it == 0) result.add(corpTicketClassDTO.onceMax!!) else  result.add(corpTicketClassDTO.onceMax!!-it)
         }
         inoutDiscountRepository.findByDiscountClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(
-            discountClass.sn!!, DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate), DateUtil.lastTimeToLocalDateTime(
+            corpTicketClassDTO.discountClass!!.sn!!, DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate), DateUtil.lastTimeToLocalDateTime(
                 DateUtil.nowDate), DelYn.N )?.sumBy { it -> it.quantity!! }.also {
-            if (it!! > discountClass.disMaxDay!!) return 0
-            if (it == 0) result.add(discountClass.disMaxDay!!) else  result.add(discountClass.disMaxDay!!-it)
+            if (it!! > corpTicketClassDTO.dayMax!!) return 0
+            if (it == 0) result.add(corpTicketClassDTO.dayMax!!) else  result.add(corpTicketClassDTO.dayMax!!-it)
         }
         inoutDiscountRepository.findByDiscountClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(
-            discountClass.sn!!, DateUtil.firstDayToLocalDateTime(DateUtil.nowDate), DateUtil.lastDayToLocalDateTime(
+            corpTicketClassDTO.discountClass!!.sn!!, DateUtil.firstDayToLocalDateTime(DateUtil.nowDate), DateUtil.lastDayToLocalDateTime(
                 DateUtil.nowDate), DelYn.N )?.sumBy { it -> it.quantity!! }.also {
-            if (it!! > discountClass.disMaxMonth!!) return 0
-            if (it == 0) result.add(discountClass.disMaxMonth!!) else  result.add(discountClass.disMaxMonth!!-it)
+            if (it!! > corpTicketClassDTO.monthMax!!) return 0
+            if (it == 0) result.add(corpTicketClassDTO.monthMax!!) else  result.add(corpTicketClassDTO.monthMax!!-it)
         }
 
-        return result.minOrNull()
+        return result.minOrNull()?.toInt()
     }
 
 }

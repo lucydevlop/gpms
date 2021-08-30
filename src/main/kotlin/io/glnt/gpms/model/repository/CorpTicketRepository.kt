@@ -49,6 +49,7 @@ interface InoutDiscountRepository: JpaRepository<InoutDiscount, Long> {
     fun findByInSnAndDiscountClassSnAndDelYn(inSn: Long, discountClassSn: Long, delYn: DelYn): List<InoutDiscount>?
     fun findByDiscountClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(discountClassSn: Long, startDate: LocalDateTime, endDate: LocalDateTime, delYn: DelYn): List<InoutDiscount>?
     fun findByCorpSnAndDiscountClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(corpSn: Long, discountClassSn: Long, startDate: LocalDateTime, endDate: LocalDateTime, delYn: DelYn): List<InoutDiscount>?
+    fun findByCorpSnAndTicketClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(corpSn: Long, discountClassSn: Long, startDate: LocalDateTime, endDate: LocalDateTime, delYn: DelYn): List<InoutDiscount>?
     fun findByInSnAndDelYnAndCalcYn(inSn: Long, delYn: DelYn, calcYn: DelYn): List<InoutDiscount>?
     fun findAll(specification: Specification<InoutDiscount>): List<InoutDiscount>?
 }
