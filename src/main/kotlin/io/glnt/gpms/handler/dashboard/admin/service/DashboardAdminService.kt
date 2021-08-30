@@ -23,6 +23,7 @@ import io.glnt.gpms.model.dto.request.*
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DisplayMessageClass
+import io.glnt.gpms.model.enums.FacilityCategoryType
 import io.glnt.gpms.model.enums.UserRole
 import io.glnt.gpms.service.CorpService
 import io.glnt.gpms.service.GateService
@@ -212,7 +213,7 @@ class DashboardAdminService(
     }
 
     @Throws(CustomException::class)
-    fun gateResetAction(gateId: String, category: String) : CommonResult {
+    fun gateResetAction(gateId: String, category: FacilityCategoryType) : CommonResult {
         try {
             parkinglotService.getGate(gateId)?.let { gate ->
                 facilityService.getOneFacilityByGateIdAndCategory(gateId, category)?.let { facility ->

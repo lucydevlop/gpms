@@ -2,6 +2,7 @@ package io.glnt.gpms.model.repository
 
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.FacilityCategoryType
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
@@ -26,13 +27,13 @@ interface ParkFacilityRepository: JpaRepository<Facility, Long> {
 //    @Query("SELECT v from Facility v where v.category != 'LPR' or (v.category = 'LPR' and v.imagePath is not null)")
 //    fun findByGateSvrKey(gateSvrKey: String): List<Facility>?
     fun findByGateIdAndDelYn(gateId: String, delYn: DelYn): List<Facility>?
-    fun findByGateIdAndCategory(gateId: String, category: String): List<Facility>?
-    fun findByGateIdAndCategoryAndDelYn(gateId: String, category: String, delYn: DelYn): List<Facility>?
-    fun findByCategory(category: String): List<Facility>?
+    fun findByGateIdAndCategory(gateId: String, category: FacilityCategoryType): List<Facility>?
+    fun findByGateIdAndCategoryAndDelYn(gateId: String, category: FacilityCategoryType, delYn: DelYn): List<Facility>?
+    fun findByCategory(category: FacilityCategoryType): List<Facility>?
     fun findByGateId(gateId: String): List<Facility>?
 //    fun getDistinctByCategoryAndGateId(gateId: String): List<Facility>?
 //    fun countByGateIdAndCategoryAndHealth(gateId: String): List<Facility>?
-    fun findTopByGateIdAndCategoryOrderByStatusDate(gateId: String, category: String): Facility
+    fun findTopByGateIdAndCategoryOrderByStatusDate(gateId: String, category: FacilityCategoryType): Facility
 }
 
 @Repository

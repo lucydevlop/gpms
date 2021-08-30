@@ -7,6 +7,7 @@ import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.OnOff
 import io.glnt.gpms.model.enums.SaleType
 import io.glnt.gpms.model.enums.Yn
+import java.io.Serializable
 import java.time.LocalDateTime
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
@@ -46,7 +47,7 @@ data class CorpTicketClassDTO (
     var delYn: DelYn? = null,
 
     var discountClass: DiscountClassDTO? = null
-){
+): Serializable {
     constructor(corpTicketClass: CorpTicketClass) :
         this(
             corpTicketClass.sn, corpTicketClass.name, corpTicketClass.effectDate, corpTicketClass.expireDate,

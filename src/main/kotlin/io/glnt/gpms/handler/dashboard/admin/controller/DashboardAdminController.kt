@@ -11,6 +11,7 @@ import io.glnt.gpms.handler.rcs.model.ResAsyncParkinglot
 import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.model.dto.request.*
 import io.glnt.gpms.model.entity.TicketClass
+import io.glnt.gpms.model.enums.FacilityCategoryType
 import io.glnt.gpms.service.ParkSiteInfoService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -111,7 +112,7 @@ class DashboardAdminController(
 
     @RequestMapping(value = ["/gate/reset/{gateId}/{category}"], method = [RequestMethod.GET])
     @Throws(CustomException::class)
-    fun gateResetAction(@PathVariable gateId: String, @PathVariable category: String) : ResponseEntity<CommonResult> {
+    fun gateResetAction(@PathVariable gateId: String, @PathVariable category: FacilityCategoryType) : ResponseEntity<CommonResult> {
         logger.trace { "gateResetAction $gateId $category" }
         return CommonResult.returnResult(dashboardAdminService.gateResetAction(gateId, category))
     }

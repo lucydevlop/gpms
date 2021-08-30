@@ -28,7 +28,10 @@ data class ParkAlarmSetting(
     var gateAlarm: checkUseStatus? = checkUseStatus.N,
 
     @Column(name = "gate_limit_time")
-    var gateLimitTime: Int? = 0
+    var gateLimitTime: Int? = 0,
+
+    @Column(name = "gate_counter_reset_time")
+    var gateCounterResetTime: Int? = 0
 
 ): Auditable(), Serializable {
 

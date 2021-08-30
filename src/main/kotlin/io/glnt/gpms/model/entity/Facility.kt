@@ -3,6 +3,7 @@ package io.glnt.gpms.model.entity
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.FacilityCategoryType
 import io.glnt.gpms.model.enums.GateTypeStatus
 import io.glnt.gpms.model.enums.LprTypeStatus
 import org.springframework.format.annotation.DateTimeFormat
@@ -20,8 +21,9 @@ data class Facility (
     @Column(name = "sn", unique = true, nullable = false)
     var sn: Long?,
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false)
-    var category: String,
+    var category: FacilityCategoryType? = FacilityCategoryType.LPR,
 
     @Column(name = "modelid", nullable = false)
     var modelid: String,
@@ -86,7 +88,7 @@ data class Facility (
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gate_type", nullable = false)
-    var gateType: GateTypeStatus
+    var gateType: GateTypeStatus? = GateTypeStatus.IN
 //    ,
 //    @ManyToOne(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "gate_id", nullable = false)

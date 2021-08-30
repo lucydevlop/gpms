@@ -76,7 +76,7 @@ class ParkinglotController {
     @Throws(CustomException::class)
     fun getParkinglotfacilities(@RequestBody request: reqSearchParkinglotFeature): ResponseEntity<CommonResult> {
         logger.debug("parkinglot facility list  = $request")
-        val result = parkinglotService.getParkinglotfacilities(request, relayService.parkAlarmSetting.gateLimitTime)
+        val result = parkinglotService.getParkinglotfacilities(request)
 
         return when(result.code) {
             ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
