@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 data class ResAsyncFacility(
     var sn: Long,
-    var category: String,
+    var category: FacilityCategoryType,
     var modelid: String,
     var fname: String,
     var dtFacilitiesId: String,

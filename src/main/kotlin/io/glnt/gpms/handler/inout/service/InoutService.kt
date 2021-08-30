@@ -361,7 +361,7 @@ class InoutService(
                         gateId = gate.udpGateid!!,
                         inVehicleType = facility!!.lprType.toString().toLowerCase(),
                         vehicleNumber = vehicleNo,
-                        recognitionType = facility.category,
+                        recognitionType = facility.category!!,
                         recognitionResult = recognitionResult!!,
                         fileUploadId = fileUploadId!!
                     )
@@ -657,7 +657,7 @@ class InoutService(
                                 gateId = gate.udpGateid!!,
                                 seasonTicketYn = "Y",
                                 vehicleNumber = vehicleNo,
-                                recognitionType = facility!!.category,
+                                recognitionType = facility!!.category!!,
                                 recognitorResult = recognitionResult!!,
                                 fileUploadId = fileUploadId!! ),
                             requestId!!, fileName)
@@ -668,12 +668,12 @@ class InoutService(
                                     paymentMachineType = "exit",
                                     vehicleNumber = vehicleNo,
                                     recognitionType = facility!!.category,
-                                    facilitiesId = parkFacilityRepository.findByGateIdAndCategory(gate.gateId, "PAYSTATION")?.get(0)!!.facilitiesId!!,
+                                    facilitiesId = parkFacilityRepository.findByGateIdAndCategory(gate.gateId, FacilityCategoryType.PAYSTATION)?.get(0)!!.facilitiesId!!,
                                     fileuploadId = fileUploadId!!
                                 ),
                                 requestId!!
                             )
-                            vehicleListSearchRepository.save(VehicleListSearch(requestId, parkFacilityRepository.findByGateIdAndCategory(gate.gateId, "PAYSTATION")?.get(0)!!.facilitiesId!!))
+                            vehicleListSearchRepository.save(VehicleListSearch(requestId, parkFacilityRepository.findByGateIdAndCategory(gate.gateId, FacilityCategoryType.PAYSTATION)?.get(0)!!.facilitiesId!!))
                         }
                     }
                 }
@@ -1101,7 +1101,7 @@ class InoutService(
         logger.info { "createInout request $request" }
         try {
             var inResult: Any? = null
-            parkinglotService.getFacilityByGateAndCategory(request.inGateId!!, "LPR")?.let { its ->
+            parkinglotService.getFacilityByGateAndCategory(request.inGateId!!, FacilityCategoryType.LPR)?.let { its ->
                 its.filter { it.lprType == LprTypeStatus.FRONT }
             }?.let { facilies ->
                 val result = parkIn(

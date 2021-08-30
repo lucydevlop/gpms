@@ -19,6 +19,7 @@ import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.rcs.model.*
 import io.glnt.gpms.handler.relay.service.RelayService
+import io.glnt.gpms.model.dto.FacilityDTO
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.entity.Failure
@@ -119,13 +120,13 @@ class RcsService(
 //
 //    }
 
-    fun asyncFacilitiesHealth(request: List<ResAsyncFacility>) {
+    fun asyncFacilitiesHealth(request: List<FacilityDTO>) {
         try {
             logger.info { "Async facilities health $request"  }
             var result = ArrayList<ReqHealthCheck>()
             request.forEach { it ->
                 result.add(ReqHealthCheck(
-                    dtFacilitiesId = it.dtFacilitiesId,
+                    dtFacilitiesId = it.dtFacilitiesId!!,
                     health = it.health,
                     healthDateTime = it.healthDate?.let { DateUtil.formatDateTime(it) }
                 ))

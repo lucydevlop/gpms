@@ -28,6 +28,10 @@ enum class ResultType {
     SUCCESS, FAILURE
 }
 
+enum class FacilityCategoryType {
+    LPR, BREAKER, DISPLAY, PAYSTATION, VOIP
+}
+
 enum class DisplayMessageClass(val code: String, val desc: String) {
     IN("IN", "입차"),
     OUT("OUT", "출차"),

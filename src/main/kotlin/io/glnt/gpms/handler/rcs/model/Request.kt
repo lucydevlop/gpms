@@ -1,5 +1,6 @@
 package io.glnt.gpms.handler.rcs.model
 
+import io.glnt.gpms.model.dto.FacilityDTO
 import io.glnt.gpms.model.entity.ParkSiteInfo
 import io.glnt.gpms.model.enums.CityType
 import io.glnt.gpms.model.enums.checkUseStatus
@@ -30,7 +31,7 @@ data class ReqFacilityStatus(
 
 data class ReqParkinglot(
     var parkinglot: AsyncParkinglot,
-    var facilities: List<ResAsyncFacility>
+    var facilities: List<FacilityDTO>
 )
 
 data class AsyncParkinglot(

@@ -11,7 +11,7 @@ data class reqCreateFacility(
     var fname: String,
     var dtFacilitiesId: String,
     var modelid: String,
-    var category: String,
+    var category: FacilityCategoryType,
     var gateId: String,
     var facilitiesId: String? = null,
     var ip: String? = null,

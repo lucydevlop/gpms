@@ -2,6 +2,7 @@ package io.glnt.gpms.handler.tmap.model
 
 import io.glnt.gpms.handler.relay.model.FacilitiesFailureAlarm
 import io.glnt.gpms.handler.relay.model.FacilitiesStatusNoti
+import io.glnt.gpms.model.enums.FacilityCategoryType
 
 data class reqApiTmapIF (
     var eventType: String,
@@ -28,7 +29,7 @@ data class reqTmapInVehicle(
     var sessionId: String? = null,
     var inVehicleType: String? = null,
     var vehicleNumber: String,
-    var recognitionType: String,
+    var recognitionType: FacilityCategoryType,
     var recognitionResult: String,
     var fileUploadId: String
 )
@@ -64,7 +65,7 @@ data class reqOutVehicle(
     var gateId: String,
     var seasonTicketYn: String,
     var vehicleNumber: String,
-    var recognitionType: String,
+    var recognitionType: FacilityCategoryType,
     var recognitorResult: String,
     var fileUploadId: String
 
@@ -75,7 +76,7 @@ data class reqAdjustmentRequest(
     var paymentMachineType: String? = null,
     var gateId: String? = null,
     var facilitiesId: String? = null,
-    var recognitionType: String? = null,
+    var recognitionType: FacilityCategoryType? = null,
     var fileuploadId: String? = null,
     var recognitionResult: String? = null,
     var vehicleIntime: String? = null,
@@ -171,7 +172,7 @@ data class gateLists(
 )
 
 data class facilitiesLists(
-    var category: String,
+    var category: FacilityCategoryType,
     var modelId: String,
     var dtFacilitiesId: String,
     var facilitiesName: String,

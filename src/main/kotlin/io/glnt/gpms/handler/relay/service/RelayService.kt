@@ -24,10 +24,7 @@ import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.io.glnt.gpms.common.api.RcsClient
 import io.glnt.gpms.model.dto.BarcodeTicketsDTO
 import io.glnt.gpms.model.entity.*
-import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.SaleType
-import io.glnt.gpms.model.enums.TicketType
-import io.glnt.gpms.model.enums.checkUseStatus
+import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.*
 import io.glnt.gpms.service.BarcodeClassService
 import io.glnt.gpms.service.BarcodeService
@@ -155,9 +152,9 @@ class RelayService(
 //                        rcsService.asyncFacilitiesStatus(list)
                         var result = ArrayList<ReqFacilityStatus>()
                         list.forEach { it ->
-                            if (it.category == "BREAKER")
+                            if (it.category == FacilityCategoryType.BREAKER)
                                 result.add(ReqFacilityStatus(
-                                    dtFacilitiesId = it.dtFacilitiesId,
+                                    dtFacilitiesId = it.dtFacilitiesId!!,
                                     status = it.status,
                                     statusDateTime = it.statusDate?.let { DateUtil.formatDateTime(it) }
                                 ))
@@ -188,7 +185,7 @@ class RelayService(
                             failureCode = failure.failureAlarm,
                             failureType = failure.status)
                     )
-                    if (facility.category == "PAYSTATION")
+                    if (facility.category == FacilityCategoryType.PAYSTATION)
                         facilityService.updateStatusCheck(facility.facilitiesId!!, facility.status!!)
 //                    }
 //                    if (failure.failureAlarm == "crossingGateBarDamageDoubt") {
@@ -238,7 +235,7 @@ class RelayService(
             // 무료 주차장은 정산여부 CHECK skip
             if (parkinglotService.parkSite!!.saleType == SaleType.FREE) return
             val result = ArrayList<FacilitiesFailureAlarm>()
-            parkinglotService.getFacilityByCategory("PAYSTATION")?.let { facilities ->
+            parkinglotService.getFacilityByCategory(FacilityCategoryType.PAYSTATION)?.let { facilities ->
                 facilities.forEach { facility ->
                     inoutService.lastSettleData(facility.facilitiesId!!)?.let { out ->
                         //정산기 마지막 페이 시간 체크
@@ -389,7 +386,7 @@ class RelayService(
             } else {
                 val gateId = parkinglotService.getGateInfoByDtFacilityId(dtFacilityId)!!.gateId
                 inoutService.parkOut(reqAddParkOut(vehicleNo = contents.vehicleNumber,
-                                                   dtFacilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, "LPR")!![0].dtFacilitiesId,
+                                                   dtFacilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, FacilityCategoryType.LPR)!![0].dtFacilitiesId,
                                                    date = LocalDateTime.now(),
                                                    resultcode = "0",
                                                    uuid = JSONUtil.generateRandomBasedUUID()))
@@ -434,7 +431,7 @@ class RelayService(
                 barcodeTicketService.save(barcodeTicketDTO)
                 val gateId = parkinglotService.getGateInfoByDtFacilityId(dtFacilityId)!!.gateId
                 inoutService.parkOut(reqAddParkOut(vehicleNo = contents.vehicleNumber,
-                    dtFacilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, "LPR")!![0].dtFacilitiesId,
+                    dtFacilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, FacilityCategoryType.LPR)!![0].dtFacilitiesId,
                     date = it.outDate!!,
                     resultcode = it.resultcode!!.toString(),
                     uuid = JSONUtil.generateRandomBasedUUID(),
@@ -452,7 +449,7 @@ class RelayService(
         try {
             when (type) {
                 "GATE" -> {
-                    parkinglotService.getFacilityByGateAndCategory(id, "BREAKER")?.let { its ->
+                    parkinglotService.getFacilityByGateAndCategory(id, FacilityCategoryType.BREAKER)?.let { its ->
                         its.forEach {
                             val url = getRelaySvrUrl(id)
                             restAPIManager.sendGetRequest(
@@ -490,7 +487,7 @@ class RelayService(
 
     fun sendDisplayMessage(data: Any, gate: String, reset: String) {
         logger.warn { "sendPaystation request $data $gate" }
-        parkinglotService.getFacilityByGateAndCategory(gate, "DISPLAY")?.let { its ->
+        parkinglotService.getFacilityByGateAndCategory(gate, FacilityCategoryType.DISPLAY)?.let { its ->
             its.forEach {
                 restAPIManager.sendPostRequest(
                     getRelaySvrUrl(gate)+"/display/show",
