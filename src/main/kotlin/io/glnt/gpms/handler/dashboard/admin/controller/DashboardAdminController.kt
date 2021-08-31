@@ -7,8 +7,12 @@ import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.dashboard.admin.model.*
 import io.glnt.gpms.handler.dashboard.admin.service.DashboardAdminService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
+import io.glnt.gpms.handler.rcs.model.ResAsyncParkinglot
+import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.model.dto.request.*
 import io.glnt.gpms.model.entity.TicketClass
+import io.glnt.gpms.model.enums.FacilityCategoryType
+import io.glnt.gpms.service.ParkSiteInfoService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.FileSystemResource
@@ -24,7 +28,10 @@ import java.io.File
     path = ["/${ApiConfig.API_VERSION}/dashboard/admin"]
 )
 @CrossOrigin(origins = arrayOf("*"), allowedHeaders = arrayOf("*"))
-class DashboardAdminController {
+class DashboardAdminController(
+    private val parkSiteInfoService: ParkSiteInfoService,
+    private val rcsService: RcsService
+) {
     @Autowired
     private lateinit var dashboardAdminService: DashboardAdminService
 
@@ -105,7 +112,7 @@ class DashboardAdminController {
 
     @RequestMapping(value = ["/gate/reset/{gateId}/{category}"], method = [RequestMethod.GET])
     @Throws(CustomException::class)
-    fun gateResetAction(@PathVariable gateId: String, @PathVariable category: String) : ResponseEntity<CommonResult> {
+    fun gateResetAction(@PathVariable gateId: String, @PathVariable category: FacilityCategoryType) : ResponseEntity<CommonResult> {
         logger.trace { "gateResetAction $gateId $category" }
         return CommonResult.returnResult(dashboardAdminService.gateResetAction(gateId, category))
     }
@@ -223,12 +230,12 @@ class DashboardAdminController {
         return CommonResult.returnResult(dashboardAdminService.createProductTicketByFiles(file))
     }
 
-    @RequestMapping(value = ["/corp/list"], method = [RequestMethod.POST])
-    @Throws(CustomException::class)
-    fun searchCorpList(@RequestBody request: reqSearchCorp) : ResponseEntity<CommonResult> {
-        logger.trace("corp search : $request")
-        return CommonResult.returnResult(dashboardAdminService.searchCorpList(request))
-    }
+//    @RequestMapping(value = ["/corp/list"], method = [RequestMethod.POST])
+//    @Throws(CustomException::class)
+//    fun searchCorpList(@RequestBody request: reqSearchCorp) : ResponseEntity<CommonResult> {
+//        logger.trace("corp search : $request")
+//        return CommonResult.returnResult(dashboardAdminService.searchCorpList(request))
+//    }
 
     @RequestMapping(value = ["/corp/ticket/create"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
@@ -311,7 +318,17 @@ class DashboardAdminController {
     @Throws(CustomException::class)
     fun externalAsyncParkinglot(): ResponseEntity<CommonResult> {
         logger.trace("externalAsyncParkinglot")
-        return CommonResult.returnResult(dashboardAdminService.externalAsyncParkinglot())
+        val parkSiteInfo = parkSiteInfoService.find()
+        parkSiteInfo.ip?.let { ip ->
+            val result: ResAsyncParkinglot? = rcsService.asyncParkinglot()
+            result?.let {
+                parkSiteInfo.rcsParkId = it.data.toString().toLong()
+                parkSiteInfoService.save(parkSiteInfo)
+            }
+            return CommonResult.returnResult(CommonResult.data("Admin externalAsyncParkinglot success"))
+        }?: kotlin.run {
+            return CommonResult.returnResult(CommonResult.error("Admin externalAsyncParkinglot failed"))
+        }
     }
 
     @RequestMapping(value = ["/ticket/list"])

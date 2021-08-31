@@ -97,7 +97,7 @@ data class reqDiscountTicket(
 )
 
 data class resParkInList(
-    var type: DisplayMessageClass,
+    var type: DisplayMessageClass? = DisplayMessageClass.IN,
     var parkinSn: Long? = null,
     var vehicleNo: String? = null,
     var parkcartype: String,
@@ -119,6 +119,7 @@ data class resParkInList(
     var memo: String? = null,
     var paymentAmount: Int? = 0,
     var dayDiscountfee: Int? = 0,
+    var nonPayment: Int? = 0,
     var addDiscountClasses: ArrayList<ReqAddParkingDiscount>? = null,
     var aplyDiscountClasses: ArrayList<InoutDiscount>? = null
 )

@@ -8,8 +8,14 @@ import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
+import io.glnt.gpms.handler.rcs.service.RcsService
+import io.glnt.gpms.handler.relay.service.RelayService
+import io.glnt.gpms.model.dto.BarcodeClassDTO
+import io.glnt.gpms.model.dto.BarcodeDTO
 import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.entity.Gate
+import io.glnt.gpms.service.BarcodeClassService
+import io.glnt.gpms.service.BarcodeService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -26,6 +32,15 @@ class ParkinglotController {
 
     @Autowired
     private lateinit var parkinglotService: ParkinglotService
+
+    @Autowired
+    private lateinit var barcodeClassService: BarcodeClassService
+
+    @Autowired
+    private lateinit var barcodeService: BarcodeService
+
+    @Autowired
+    private lateinit var relayService: RelayService
 
     @RequestMapping(value= ["/create"], method = [RequestMethod.POST])
     fun createParkinglot() {
@@ -168,13 +183,46 @@ class ParkinglotController {
     @RequestMapping(value = ["/discount/ticket"], method = [RequestMethod.GET])
     @Throws(CustomException::class)
     fun getDiscountCoupon() : ResponseEntity<CommonResult> {
-        logger.trace { "getDiscountCoupon" }
-        val result = parkinglotService.getDiscountCoupon()
-        return when(result.code) {
-            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
-            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
-            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        logger.debug { "getDiscountCoupon" }
+        val discountClass = parkinglotService.getDiscountCoupon()
+
+        return when(discountClass.code) {
+            ResultCode.SUCCESS.getCode() -> {
+                var result = HashMap<String, Any?>()
+                result = hashMapOf(
+                    "discountClass" to discountClass.data,
+                    "barcodeClass" to barcodeClassService.findAll(),
+                    "barcodeInfo" to barcodeService.findAll()
+                )
+                ResponseEntity.ok(CommonResult.data(result))
+            }
+            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(discountClass, HttpStatus.NOT_FOUND)
+            else -> ResponseEntity(discountClass, HttpStatus.BAD_REQUEST)
         }
+    }
+
+    @RequestMapping(value = ["/discount/barcode/info"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun saveBarcodeInfo(@RequestBody request: BarcodeDTO): ResponseEntity<CommonResult> {
+        logger.debug { "save barcodeInfo request $request" }
+        val result = barcodeService.save(request)
+        return ResponseEntity.ok(CommonResult.data(result))
+    }
+
+    @RequestMapping(value = ["/discount/barcode/class"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun saveBarcodeClass(@RequestBody request: BarcodeClassDTO): ResponseEntity<CommonResult> {
+        logger.debug { "save BarcodeClass request $request" }
+        val result = barcodeClassService.save(request)
+        return ResponseEntity.ok(CommonResult.data(result))
+    }
+
+    @RequestMapping(value = ["/discount/barcode/class/{sn}"], method = [RequestMethod.DELETE])
+    @Throws(CustomException::class)
+    fun deleteBarcodeClass(@PathVariable("sn") sn: String): ResponseEntity<CommonResult> {
+        logger.debug { "delete BarcodeClass request $sn" }
+        val result = barcodeClassService.delete(sn.toLong())
+        return ResponseEntity.ok(CommonResult.data(result))
     }
 
 

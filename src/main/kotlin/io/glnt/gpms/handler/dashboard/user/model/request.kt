@@ -24,7 +24,7 @@ data class reqParkingDiscountAbleTicketsSearch(
 data class reqParkingDiscountAddTicket(
     var inSn: Long,
     var corpSn: Long,
-    var discountClassSn: Long,
+    var classSn: Long,
     var cnt: Int
 )
 

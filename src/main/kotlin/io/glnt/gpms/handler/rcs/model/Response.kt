@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 data class ResAsyncFacility(
     var sn: Long,
-    var category: String,
+    var category: FacilityCategoryType,
     var modelid: String,
     var fname: String,
     var dtFacilitiesId: String,
@@ -22,7 +22,8 @@ data class ResAsyncFacility(
     var status: String? = null,
     var statusDate: LocalDateTime? = null,
     var gateType: GateTypeStatus,
-    val delYn: DelYn
+    val delYn: DelYn,
+    val resetPort: Int?
 )
 
 

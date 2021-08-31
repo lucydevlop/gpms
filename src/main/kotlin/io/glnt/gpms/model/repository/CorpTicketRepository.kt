@@ -14,9 +14,11 @@ import java.time.LocalDateTime
 
 @Repository
 interface CorpTicketRepository: JpaRepository<CorpTicketInfo, Long> {
-    fun findByCorpSn(corpSn: Long) : List<CorpTicketInfo>?
+    fun findBySn(sn: Long): CorpTicketInfo
+    fun findByCorpSn(corpSn: Long) : List<CorpTicketInfo>
     fun findByCorpSnAndDelYn(corpSn: Long, delYn: DelYn): List<CorpTicketInfo>?
-    fun findByCorpSnAndDiscountClassSnAndDelYn(corpSn: Long, discountClassSn: Long, delYn: DelYn): CorpTicketInfo?
+    fun findByCorpSnAndClassSnAndDelYn(corpSn: Long, classSn: Long, delYn: DelYn): CorpTicketInfo?
+//    fun findByCorpSnAndDiscountClassSnAndDelYn(corpSn: Long, discountClassSn: Long, delYn: DelYn): CorpTicketInfo?
     fun findBySnAndDelYn(sn: Long, delYn: DelYn): CorpTicketInfo?
 //    fun findByCorpIdAndExpireDateGreaterThanEqualAndAbleCntIsGreaterThan(corpId: String, date: LocalDateTime, cnt: Int): List<CorpTicket>?
 //    fun findTopByCorpSnAndCorpClassSnAndDelYnAndAbleCntIsGreaterThanOrderByCreateDateAsc(corpSn: Long, corpClassNo: Long, delYn: DelYn, ableCnt: Int): CorpTicket?
@@ -47,6 +49,7 @@ interface InoutDiscountRepository: JpaRepository<InoutDiscount, Long> {
     fun findByInSnAndDiscountClassSnAndDelYn(inSn: Long, discountClassSn: Long, delYn: DelYn): List<InoutDiscount>?
     fun findByDiscountClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(discountClassSn: Long, startDate: LocalDateTime, endDate: LocalDateTime, delYn: DelYn): List<InoutDiscount>?
     fun findByCorpSnAndDiscountClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(corpSn: Long, discountClassSn: Long, startDate: LocalDateTime, endDate: LocalDateTime, delYn: DelYn): List<InoutDiscount>?
+    fun findByCorpSnAndTicketClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(corpSn: Long, discountClassSn: Long, startDate: LocalDateTime, endDate: LocalDateTime, delYn: DelYn): List<InoutDiscount>?
     fun findByInSnAndDelYnAndCalcYn(inSn: Long, delYn: DelYn, calcYn: DelYn): List<InoutDiscount>?
     fun findAll(specification: Specification<InoutDiscount>): List<InoutDiscount>?
 }

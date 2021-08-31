@@ -18,6 +18,7 @@ data class reqRegister(
 )
 
 data class reqUserRegister(
+    var corpId: String?,
     var password: String,
     var userName: String,
     var userPhone: String?,

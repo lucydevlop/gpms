@@ -5,7 +5,7 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.corp.service.CorpService
+//import io.glnt.gpms.handler.corp.service.CorpService
 import io.glnt.gpms.handler.dashboard.admin.model.reqSearchCorp
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.model.entity.Corp
@@ -13,6 +13,7 @@ import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.TicketType
 import io.glnt.gpms.model.enums.VehicleType
+import io.glnt.gpms.service.CorpService
 import mu.KLogging
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.xssf.usermodel.XSSFRow
@@ -79,10 +80,8 @@ class ExcelUploadService {
             }
             val list = cellString.split('$')
             val corpSn = if (list[7].isNotEmpty()) {
-                    corpService.getCorp(reqSearchCorp(searchLabel = "CORPNAME", searchText = list[7])).data.let {
-                        val corp = it as List<Corp>
-                        if (corp.isNotEmpty()) corp[0].sn else null
-                    }
+                corpService.getStoreByCorpName(list[7])
+
             } else null
 
             if (DataCheckUtil.isValidCarNumber(list[0])) {
@@ -95,7 +94,7 @@ class ExcelUploadService {
                     effectDate = DateUtil.beginTimeToLocalDateTime(list[4]),
                     expireDate = if (list[5].isNotEmpty()) DateUtil.lastTimeToLocalDateTime(list[5]) else DateUtil.stringToLocalDateTime("9999-12-31 23:59:59", "yyyy-MM-dd HH:mm:ss"),
                     vehiclekind = list[6],
-                    corpSn = corpSn,
+                    corpSn = corpSn as Long?,
                     etc = list[8],
                     etc1 = list[9],
                     delYn = DelYn.N,

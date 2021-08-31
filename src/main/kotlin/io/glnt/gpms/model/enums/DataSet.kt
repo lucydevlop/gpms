@@ -8,6 +8,10 @@ enum class DelYn {
     Y, N
 }
 
+enum class Yn {
+    Y, N
+}
+
 enum class GateTypeStatus {
     IN, OUT, IN_OUT
 }
@@ -22,6 +26,10 @@ enum class OnOff {
 
 enum class ResultType {
     SUCCESS, FAILURE
+}
+
+enum class FacilityCategoryType {
+    LPR, BREAKER, DISPLAY, PAYSTATION, VOIP
 }
 
 enum class DisplayMessageClass(val code: String, val desc: String) {
@@ -63,6 +71,7 @@ enum class TicketType(val code: String, val desc: String) {
     FREETICKET("FREETICKET", "무료주차권"),
     CORPTICKET("CORPTICKET", "입주사할인권"),
     DISCOUNT("DISCOUNT", "할인"),
+    BARCODE("BARCODE", "바코드할인"),
     ALL("ALL", "전체할인권"),
     ETC("ETC", "기타");
 
@@ -95,7 +104,7 @@ enum class WeekType(val code: Int, val desc: String) {
     WED(4, "수요일"),
     THU(5, "목요일"),
     FRI(6, "금요일"),
-    SAT(7, "요일"),
+    SAT(7, "토요일"),
     ALL(0, "ALL")
 }
 

@@ -97,7 +97,7 @@ class TmapCommandService {
             businessName = parkinglotService.parkSite!!.ceoname!!
         )
 
-        parkinglotService.getFacilityByCategory("PAYSTATION")?.let { its ->
+        parkinglotService.getFacilityByCategory(FacilityCategoryType.PAYSTATION)?.let { its ->
             its.forEach { it ->
                 facilityService.sendPaystation(contents, it.gateId, DateUtil.stringToNowDateTime(), "ParkingInfo")
             }

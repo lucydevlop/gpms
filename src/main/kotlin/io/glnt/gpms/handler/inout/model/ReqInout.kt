@@ -36,7 +36,8 @@ data class reqAddParkIn(
     var fileUploadId: String? = null,
     var fileFullPath: String? = null,
     var recognitionResult: String? = null,
-    var deviceIF: String? = "ON"
+    var deviceIF: String? = "ON",
+    var assistant: Boolean? = false
 )
 
 data class reqAddParkOut(
@@ -77,7 +78,8 @@ data class reqSearchParkin(
     @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd") var toDate: LocalDate? = null,
 //    var pageSize: Long? = 10,
 //    var page: Int? = 1,
-    var gateId: String? = null
+    var gateId: String? = null,
+    var parkcartype: String? = null
 )
 
 data class reqUpdatePayment(

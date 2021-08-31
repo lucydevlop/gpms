@@ -6,12 +6,14 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.JSONUtil
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.model.*
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqAddParkOut
 import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.inout.service.checkItemsAre
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.rcs.model.ReqFacilityStatus
 import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.handler.relay.model.FacilitiesFailureAlarm
 import io.glnt.gpms.handler.relay.model.FacilitiesStatusNoti
@@ -19,13 +21,14 @@ import io.glnt.gpms.handler.relay.model.paystationvehicleListSearch
 import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
+import io.glnt.gpms.io.glnt.gpms.common.api.RcsClient
+import io.glnt.gpms.model.dto.BarcodeTicketsDTO
 import io.glnt.gpms.model.entity.*
-import io.glnt.gpms.model.enums.SaleType
-import io.glnt.gpms.model.enums.checkUseStatus
-import io.glnt.gpms.model.repository.FailureRepository
-import io.glnt.gpms.model.repository.ParkAlarmSetttingRepository
-import io.glnt.gpms.model.repository.ParkFacilityRepository
-import io.glnt.gpms.model.repository.VehicleListSearchRepository
+import io.glnt.gpms.model.enums.*
+import io.glnt.gpms.model.repository.*
+import io.glnt.gpms.service.BarcodeClassService
+import io.glnt.gpms.service.BarcodeService
+import io.glnt.gpms.service.BarcodeTicketService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -33,7 +36,15 @@ import java.time.LocalDateTime
 import javax.annotation.PostConstruct
 
 @Service
-class RelayService() {
+class RelayService(
+    private val barcodeService: BarcodeService,
+    private val parkOutRepository: ParkOutRepository,
+    private val barcodeClassService: BarcodeClassService,
+    private val discountService: DiscountService,
+    private val barcodeTicketService: BarcodeTicketService,
+    private val parkInRepository: ParkInRepository,
+    private val rcsClient: RcsClient
+) {
     companion object : KLogging()
 
     lateinit var parkAlarmSetting: ParkAlarmSetting
@@ -50,8 +61,8 @@ class RelayService() {
     @Autowired
     private lateinit var inoutService: InoutService
 
-    @Autowired
-    private lateinit var rcsService: RcsService
+//    @Autowired
+//    private lateinit var rcsService: RcsService
 
     @Autowired
     private lateinit var restAPIManager: RestAPIManagerUtil
@@ -83,6 +94,13 @@ class RelayService() {
 
             request.facilitiesList.forEach { facility ->
                 facilityService.updateHealthCheck(facility.dtFacilitiesId, facility.status!!)
+                if (facility.failureAlarm == "icCardReaderFailure" && !facility.responseId.isNullOrEmpty()) {
+                    logger.warn { "정산기 결제 오류 $request" }
+                    // 정산기 요청 한 후 정산 실패 시 강제 오픈 처리
+                    facilityService.getGateByFacilityId(facility.dtFacilitiesId)?.let { it ->
+                        actionGate(it.gateId, "GATE", "open")
+                    }
+                }
             }
 
             if (parkAlarmSetting.payAlarm == checkUseStatus.Y && parkAlarmSetting.payLimitTime!! > 0) {
@@ -137,8 +155,20 @@ class RelayService() {
                 }
 
                 if (parkinglotService.isExternalSend()){
-                    facilityService.activeGateFacilities()?.let { it ->
-                        rcsService.asyncFacilitiesStatus(it)
+                    facilityService.activeGateFacilities()?.let { list ->
+//                        rcsService.asyncFacilitiesStatus(list)
+                        var result = ArrayList<ReqFacilityStatus>()
+                        list.forEach { it ->
+                            if (it.category == FacilityCategoryType.BREAKER)
+                                result.add(ReqFacilityStatus(
+                                    dtFacilitiesId = it.dtFacilitiesId!!,
+                                    status = it.status,
+                                    statusDateTime = it.statusDate?.let { DateUtil.formatDateTime(it) }
+                                ))
+                        }
+                        parkinglotService.parkSite!!.externalSvr?.let {
+                            rcsClient.asyncFacilitiesStatus(result, it, parkinglotService.parkSite!!.rcsParkId!!)
+                        }
                     }
                 }
             }
@@ -162,7 +192,7 @@ class RelayService() {
                             failureCode = failure.failureAlarm,
                             failureType = failure.status)
                     )
-                    if (facility.category == "PAYSTATION")
+                    if (facility.category == FacilityCategoryType.PAYSTATION)
                         facilityService.updateStatusCheck(facility.facilitiesId!!, facility.status!!)
 //                    }
 //                    if (failure.failureAlarm == "crossingGateBarDamageDoubt") {
@@ -212,7 +242,7 @@ class RelayService() {
             // 무료 주차장은 정산여부 CHECK skip
             if (parkinglotService.parkSite!!.saleType == SaleType.FREE) return
             val result = ArrayList<FacilitiesFailureAlarm>()
-            parkinglotService.getFacilityByCategory("PAYSTATION")?.let { facilities ->
+            parkinglotService.getFacilityByCategory(FacilityCategoryType.PAYSTATION)?.let { facilities ->
                 facilities.forEach { facility ->
                     inoutService.lastSettleData(facility.facilitiesId!!)?.let { out ->
                         //정산기 마지막 페이 시간 체크
@@ -258,7 +288,11 @@ class RelayService() {
                 )?.let {
                     it.expireDateTime = LocalDateTime.now()
                     failureRepository.save(it)
-                    rcsService.asyncRestoreAlarm(it)
+//                    rcsService.asyncRestoreAlarm(it)
+                    parkinglotService.parkSite!!.externalSvr?.let { externalSvrType ->
+                        rcsClient.asyncRestoreAlarm(it, externalSvrType, parkinglotService.parkSite!!.rcsParkId!!)
+                    }
+
                 }
             } else {
                 logger.info { "saveFailure $request" }
@@ -272,7 +306,10 @@ class RelayService() {
                     //rcsService.asyncFailureAlram(it)
                 }?: run {
                     failureRepository.save(request)
-                    rcsService.asyncFailureAlarm(request)
+//                    rcsService.asyncFailureAlarm(request)
+                    parkinglotService.parkSite!!.externalSvr?.let { externalSvrType ->
+                        rcsClient.asyncFailureAlarm(request, externalSvrType, parkinglotService.parkSite!!.rcsParkId!!)
+                    }
                 }
             }
         }catch (e: CustomException){
@@ -356,7 +393,7 @@ class RelayService() {
             } else {
                 val gateId = parkinglotService.getGateInfoByDtFacilityId(dtFacilityId)!!.gateId
                 inoutService.parkOut(reqAddParkOut(vehicleNo = contents.vehicleNumber,
-                                                   dtFacilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, "LPR")!![0].dtFacilitiesId,
+                                                   dtFacilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, FacilityCategoryType.LPR)!![0].dtFacilitiesId,
                                                    date = LocalDateTime.now(),
                                                    resultcode = "0",
                                                    uuid = JSONUtil.generateRandomBasedUUID()))
@@ -367,17 +404,70 @@ class RelayService() {
         }
     }
 
-    fun actionGate(id: String, type: String, action: String) {
-        logger.info { "actionGate request $type $id $action" }
+    fun aplyDiscountTicket(request: reqApiTmapCommon, dtFacilityId: String){
+        logger.info { "정산기 $dtFacilityId 할인 티켓 입력 $request" }
+
+        try {
+            val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqDiscountTicket::class.java)
+
+            val info = barcodeService.findAll().filter {
+                it.effectDate!! <= LocalDateTime.now() && it.expireDate!! >= LocalDateTime.now() && it.delYn == DelYn.N}.get(0)
+
+            // parkOut 확인
+            parkOutRepository.findBySn(request.requestId!!.toLong())?.let {
+                it.inSn
+                var barcodeTicketDTO: BarcodeTicketsDTO =  BarcodeTicketsDTO(
+                                        barcode = contents.parkTicketNumber,
+                                        inSn = it.inSn,
+                                        applyDate = DateUtil.stringToLocalDateTime(request.eventDateTime!!),
+                                        price = contents.parkTicketNumber.substring(info.startIndex!!, info.endIndex!!).toInt(),
+                                        vehicleNo = contents.vehicleNumber, delYn = DelYn.N
+                                        )
+
+                var barcodeClass = barcodeClassService.findByStartLessThanEqualAndEndGreaterThanAndDelYn(barcodeTicketDTO.price!!)
+
+                if (barcodeClass != null) {
+                    // 입차할인권 save
+                    barcodeTicketDTO.inSn?.let {
+                        discountService.saveInoutDiscount(
+                            InoutDiscount(
+                                sn = null, discontType = TicketType.BARCODE, discountClassSn = barcodeClass.discountClassSn, inSn = it,
+                                quantity = 1, useQuantity = 1, delYn = DelYn.N, applyDate = barcodeTicketDTO.applyDate))
+                    }
+                }
+                barcodeTicketService.save(barcodeTicketDTO)
+                val gateId = parkinglotService.getGateInfoByDtFacilityId(dtFacilityId)!!.gateId
+                inoutService.parkOut(reqAddParkOut(vehicleNo = contents.vehicleNumber,
+                    dtFacilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, FacilityCategoryType.LPR)!![0].dtFacilitiesId,
+                    date = it.outDate!!,
+                    resultcode = it.resultcode!!.toString(),
+                    uuid = JSONUtil.generateRandomBasedUUID(),
+                    parkIn = parkInRepository.findBySn(it.inSn!!)
+                ))
+            }
+
+        }catch (e: CustomException){
+            logger.error { "saveFailure failed ${e.message}" }
+        }
+    }
+
+    fun actionGate(id: String, type: String, action: String, manual: String? = null) {
+        logger.warn { "GATE $action $type $id" }
         try {
             when (type) {
                 "GATE" -> {
-                    parkinglotService.getFacilityByGateAndCategory(id, "BREAKER")?.let { its ->
+                    parkinglotService.getFacilityByGateAndCategory(id, FacilityCategoryType.BREAKER)?.let { its ->
                         its.forEach {
                             val url = getRelaySvrUrl(id)
-                            restAPIManager.sendGetRequest(
-                                url+"/breaker/${it.dtFacilitiesId}/$action"
-                            )
+                            if (manual.isNullOrEmpty()) {
+                                restAPIManager.sendGetRequest(
+                                    url+"/breaker/${it.dtFacilitiesId}/$action"
+                                )
+                            }else {
+                                restAPIManager.sendGetRequest(
+                                    url+"/breaker/${it.dtFacilitiesId}/$action/manual"
+                                )
+                            }
                         }
                     }
                 }
@@ -408,14 +498,29 @@ class RelayService() {
         }
     }
 
-    fun sendDisplayMessage(data: Any, gate: String, reset: String) {
-        logger.warn { "sendPaystation request $data $gate" }
-        parkinglotService.getFacilityByGateAndCategory(gate, "DISPLAY")?.let { its ->
-            its.forEach {
-                restAPIManager.sendPostRequest(
-                    getRelaySvrUrl(gate)+"/display/show",
-                    reqSendDisplay(it.dtFacilitiesId, data as ArrayList<reqDisplayMessage>, reset)
-                )
+    fun sendDisplayMessage(data: Any, gateId: String, reset: String, type: String) {
+        logger.warn { "sendDisplayMessage request $data $gateId" }
+        //양방향인 경우
+        parkinglotService.getGate(gateId)?.let { gate ->
+            if (gate.gateType == GateTypeStatus.IN_OUT) {
+                val type = if (type == "IN") LprTypeStatus.INFRONT else LprTypeStatus.OUTFRONT
+                parkinglotService.getFacilityGateAndCategoryAndLprType(gateId, FacilityCategoryType.DISPLAY, type)?.let { its ->
+                    its.forEach {
+                        restAPIManager.sendPostRequest(
+                            getRelaySvrUrl(gateId)+"/display/show",
+                            reqSendDisplay(it.dtFacilitiesId, data as ArrayList<reqDisplayMessage>, reset)
+                        )
+                    }
+                }
+            } else {
+                parkinglotService.getFacilityByGateAndCategory(gateId, FacilityCategoryType.DISPLAY)?.let { its ->
+                    its.forEach {
+                        restAPIManager.sendPostRequest(
+                            getRelaySvrUrl(gateId)+"/display/show",
+                            reqSendDisplay(it.dtFacilitiesId, data as ArrayList<reqDisplayMessage>, reset)
+                        )
+                    }
+                }
             }
         }
     }
@@ -451,14 +556,14 @@ class RelayService() {
         }
     }
 
-    fun callVoip(voipId: String) : CommonResult {
-        try {
-            return rcsService.asyncCallVoip(voipId)
-        }catch (e: RuntimeException) {
-            logger.error { "sendDisplayStatus $e"}
-            return CommonResult.error("send call voip $voipId")
-        }
-    }
+//    fun callVoip(voipId: String) : CommonResult {
+//        try {
+//            return rcsService.asyncCallVoip(voipId)
+//        }catch (e: RuntimeException) {
+//            logger.error { "sendDisplayStatus $e"}
+//            return CommonResult.error("send call voip $voipId")
+//        }
+//    }
 
     private fun getRelaySvrUrl(gateId: String): String {
         return facilityService.gates.filter { it.gateId == gateId }[0].relaySvr!!

@@ -1,0 +1,57 @@
+package io.glnt.gpms.model.dto
+
+import com.fasterxml.jackson.annotation.JsonFormat
+import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.model.entity.CorpTicketClass
+import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.OnOff
+import io.glnt.gpms.model.enums.SaleType
+import io.glnt.gpms.model.enums.Yn
+import java.io.Serializable
+import java.time.LocalDateTime
+import javax.persistence.EnumType
+import javax.persistence.Enumerated
+import javax.validation.constraints.NotNull
+
+data class CorpTicketClassDTO (
+    var sn: Long? = null,
+
+    @get: NotNull
+    var name: String? = null,
+
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var effectDate: LocalDateTime? = DateUtil.stringToLocalDateTime(DateUtil.nowDateTime, "yyyy-MM-dd HH:mm:ss"),
+
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var expireDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59"),
+
+    @get: NotNull
+    var discountClassSn: Long? = null,
+
+    var onceMax: Long? = null,
+
+    var dayMax: Long? = null,
+
+    var monthMax: Long? = null,
+
+    @get: NotNull
+    @Enumerated(EnumType.STRING)
+    var saleType: SaleType? = null,
+
+    var price: Long? = 0,
+
+    var extendYn: OnOff? = OnOff.OFF,
+
+    @get: NotNull
+    @Enumerated(EnumType.STRING)
+    var delYn: DelYn? = null,
+
+    var discountClass: DiscountClassDTO? = null
+): Serializable {
+    constructor(corpTicketClass: CorpTicketClass) :
+        this(
+            corpTicketClass.sn, corpTicketClass.name, corpTicketClass.effectDate, corpTicketClass.expireDate,
+            corpTicketClass.discountClassSn, corpTicketClass.onceMax, corpTicketClass.dayMax, corpTicketClass.monthMax,
+            corpTicketClass.saleType, corpTicketClass.price, corpTicketClass.extendYn, corpTicketClass.delYn
+        )
+}

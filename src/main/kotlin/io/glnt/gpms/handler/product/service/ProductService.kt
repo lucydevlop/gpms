@@ -12,6 +12,7 @@ import io.glnt.gpms.model.enums.DateType
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountRangeType
 import io.glnt.gpms.model.enums.TicketAplyType
+import io.glnt.gpms.model.repository.CorpRepository
 import io.glnt.gpms.model.repository.ProductTicketRepository
 import io.glnt.gpms.model.repository.TicketClassRepository
 import mu.KLogging
@@ -33,19 +34,26 @@ class ProductService {
     @Autowired
     private lateinit var ticketClassRepository: TicketClassRepository
 
+    @Autowired
+    private lateinit var corpRepository: CorpRepository
+
     fun getValidProductByVehicleNo(vehicleNo: String): ProductTicket? {
         return getValidProductByVehicleNo(vehicleNo, LocalDateTime.now(), LocalDateTime.now())
     }
 
     fun getValidProductByVehicleNo(vehicleNo: String, startTime: LocalDateTime, endTime: LocalDateTime): ProductTicket? {
-        productTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startTime, endTime, DelYn.N)?.let { productTicket ->
+        var tickets = productTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startTime, endTime, DelYn.N)
+
+        if (tickets.isNullOrEmpty()) return null
+
+        tickets.forEach { productTicket ->
             productTicket.ticket?.let { ticketClass ->
                 when (ticketClass.rangeType) {
                     DiscountRangeType.ALL -> {
                         if (ticketClass.aplyType == TicketAplyType.FULL) return productTicket
                         else {
                             var expireDate = if (ticketClass.startTime!! > ticketClass.endTime!!) {
-                                    DateUtil.makeLocalDateTime(
+                                DateUtil.makeLocalDateTime(
                                     DateUtil.LocalDateTimeToDateString(DateUtil.getAddDays(startTime, 1)),
                                     ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
                             } else DateUtil.makeLocalDateTime(
@@ -77,7 +85,49 @@ class ProductService {
             }?: kotlin.run {
                 return productTicket
             }
-        }?: kotlin.run { return null }
+        }
+//
+//        productTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startTime, endTime, DelYn.N)?.let { productTicket ->
+//            productTicket.ticket?.let { ticketClass ->
+//                when (ticketClass.rangeType) {
+//                    DiscountRangeType.ALL -> {
+//                        if (ticketClass.aplyType == TicketAplyType.FULL) return productTicket
+//                        else {
+//                            var expireDate = if (ticketClass.startTime!! > ticketClass.endTime!!) {
+//                                    DateUtil.makeLocalDateTime(
+//                                    DateUtil.LocalDateTimeToDateString(DateUtil.getAddDays(startTime, 1)),
+//                                    ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
+//                            } else DateUtil.makeLocalDateTime(
+//                                DateUtil.LocalDateTimeToDateString(startTime),
+//                                ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
+//
+//                            var effectDate = DateUtil.makeLocalDateTime(
+//                                DateUtil.LocalDateTimeToDateString(startTime),
+//                                ticketClass.startTime!!.substring(0, 2), ticketClass.startTime!!.substring(2, 4))
+//
+////                            var expireDate = DateUtil.makeLocalDateTime(
+////                                DateUtil.LocalDateTimeToDateString(startTime),
+////                                ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
+////                            if ((DateUtil.LocalDateTimeToDateString(startTime) == DateUtil.LocalDateTimeToDateString(productTicket.expireDate!!)) && startTime > expireDate ) return null
+//                            if ( ( expireDate < startTime ) || (effectDate > endTime) )
+//                                return null
+//                            else
+//                                return productTicket
+//                        }
+//                    }
+//                    DiscountRangeType.WEEKDAY -> {
+//
+//                    }
+//                }
+//                return productTicket
+////                if (ticketClass.rangeType == DiscountRangeType.ALL && ) return productTicket
+////                if (ticketClass.aplyType == TicketAplyType.FULL) return productTicket
+////                productTicket.ticket.aplyType
+//            }?: kotlin.run {
+//                return productTicket
+//            }
+//        }?: kotlin.run { return null }
+        return null
     }
 
     fun calcRemainDayProduct(vehicleNo: String): Int {
@@ -90,9 +140,17 @@ class ProductService {
     @Throws(CustomException::class)
     fun createProduct(request: reqCreateProductTicket): CommonResult {
         logger.info { "createProduct request $request" }
+        if (request.corpSn != null){
+            val findCorp = corpRepository.findBySn(request.corpSn!!)
+            findCorp.let {
+                if (it != null) {
+                    request.corpName = it.corpName
+                }
+            }
+        }
         try {
             val new = ProductTicket(
-                sn = request.sn,
+                sn = request.sn?.let { if (it > 0) it else null },
                 vehicleNo = request.vehicleNo,
                 delYn = DelYn.N,
                 effectDate = request.effectDate,
@@ -102,6 +160,7 @@ class ProductService {
                 ticketType = request.ticketType,
                 vehicleType = request.vehicleType,
                 corpSn = request.corpSn,
+                corpName = request.corpName,
                 etc = request.etc,
                 etc1 = request.etc1,
                 name = request.name,
@@ -109,7 +168,7 @@ class ProductService {
                 vehiclekind = request.vehiclekind,
                 ticketSn = request.ticketSn,
             )
-            request.sn?.let { sn ->
+            new.sn?.let { sn ->
                 // exists season ticket update
                 productTicketRepository.findBySn(sn)?.let { exists ->
                     new.apply {
@@ -122,16 +181,19 @@ class ProductService {
                     return CommonResult.error("product ticket create failed")
                 }
             }?: run {
-                //차량, 동일 일자 등록 시 skip
-                productTicketRepository.findByVehicleNoAndEffectDateAndExpireDateAndTicketTypeAndDelYn(request.vehicleNo, request.effectDate, request.expireDate, request.ticketType!!, DelYn.N)?.let {
-                    if (it.isNotEmpty()) return CommonResult.data("product ticket exists")
+                //차량, 동일 일자 등록 시 update
+                productTicketRepository.findByVehicleNoAndEffectDateAndExpireDateAndTicketTypeAndDelYn(request.vehicleNo, request.effectDate, request.expireDate, request.ticketType!!, DelYn.N)?.let { ticket ->
+                    new.sn = ticket.sn
+                    saveProductTicket(new)
+                    return CommonResult.data(new)
                 }
+
                 // 정기권 이력 안에 포함 시 skip
                 if (productTicketRepository.countByVehicleNoAndTicketTypeAndDelYnAndEffectDateLessThanEqualAndExpireDateGreaterThanEqual(request.vehicleNo, request.ticketType!!, DelYn.N, request.effectDate, request.expireDate) > 0) {
                     return CommonResult.data("product ticket exists")
                 }
                 // 차량, ticket list all fetch
-                productTicketRepository.findByRangedValidTickets(request.vehicleNo, request.ticketType!!, request.effectDate, request.expireDate)?.let { tickets ->
+                productTicketRepository.findByRangedValidTickets(request.vehicleNo, request.ticketType!!.code, request.effectDate, request.expireDate)?.let { tickets ->
 //                productTicketRepository.findByVehicleNoAndTicketTypeAndDelYnAndEffectDateGreaterThanAndExpireDateLessThanEqual(
 //                    request.vehicleNo, request.ticketType!!, DelYn.N, request.effectDate, request.expireDate
 //                )?.let { tickets ->

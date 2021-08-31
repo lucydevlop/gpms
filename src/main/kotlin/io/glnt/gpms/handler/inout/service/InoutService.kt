@@ -88,13 +88,15 @@ class InoutService(
 
 
     fun parkIn(request: reqAddParkIn) : CommonResult = with(request){
-        logger.warn{"parkIn service car_num:${request.vehicleNo} facility_id:${request.dtFacilitiesId} in_date:${request.date} result_code:${request.resultcode} uuid:${request.uuid}"}
+        logger.warn {" ##### 입차 요청 START #####"}
+        logger.warn {" 차량번호 ${request.vehicleNo} LPR시설정보 ${request.dtFacilitiesId} 입차시간 ${request.date} UUID ${request.uuid} OCR결과 ${request.resultcode}"  }
         try {
 
             // gate up(option check)
             parkinglotService.getGateInfoByDtFacilityId(dtFacilitiesId) ?.let { gate ->
-                // UUID 없을 경우(Back 입차) deviceIF -> OFF 로 전환
+                // UUID 없을 경우(후방 카메라 입차) deviceIF -> OFF 로 전환
                 // 동일 입차 처리 skip
+                assistant = false
                 if (uuid!!.isEmpty()) {
                     deviceIF = "OFF"
                     if (parkInRepository.findByVehicleNoEndsWithAndOutSnAndGateIdAndDelYn(vehicleNo, 0, gate.gateId, DelYn.N)!!.isNotEmpty()) {
@@ -103,17 +105,25 @@ class InoutService(
                     }
                 } else {
                     requestId = parkinglotService.generateRequestId()
-                    // UUID 확인 후 Update
+                    // UUID 확인 후 Update (보조 카메라 입차 이벤트인 경우 )
                     parkInRepository.findByUuid(uuid!!)?.let {
+
                         if (it.vehicleNo == vehicleNo) {
-                           // logger.warn{" 기 입차 car_num:${request.vehicleNo} skip "}
+                            logger.warn{" 기 입차 car_num:${request.vehicleNo} skip "}
                             return CommonResult.data()
                         }
-                                               deviceIF = "OFF"
+                        deviceIF = "OFF"
                         // inSn = it.sn
                         // requestId = it.requestid
                         if (resultcode == "0" || resultcode.toInt() >= 100) { return CommonResult.data() }
 
+                        if (gate.openAction == OpenActionType.RECOGNITION && it.parkcartype == "UNRECOGNIZED") {
+                                assistant = true
+                        }
+
+                        if (gate.openAction == OpenActionType.RESTRICT && (it.parkcartype == "UNRECOGNIZED" || it.parkcartype == "NORMAL")) {
+                            assistant = true
+                        }
                     }
                 }
 
@@ -136,18 +146,6 @@ class InoutService(
                             }
                         }
                     }
-
-                    //todo  만차제어
-//                    parkinglotService.parkSite.space!!.spaces!!.forEach { it ->
-//                    spaces.spaces!!.forEach {
-//                        if (it.gate.contains(gate.gateGroupId) || it.gate.contains("ALL")) {
-//                            if (parkInRepository.countByGateIdAndOutSn(gate.gateId, 0) >= it.space) {
-//                                displayMessage("FULL", vehicleNo, "IN", gate.gateId)
-//                                logger.warn{" car_num:${request.vehicleNo} 만차 skip "}
-//                                return CommonResult.data("Full limit $vehicleNo $parkingtype")
-//                            }
-//                        }
-//                    }
                 }
                 // image 파일 저장
                 if (base64Str != null) {
@@ -239,6 +237,7 @@ class InoutService(
                         if (DataCheckUtil.isRotation(it, vehicleNo)) {
                         } else {
                             displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
+                            logger.warn {" # 입차 차단 요일제적용 차량번호 $vehicleNo "}
                             return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
                         }
                     }
@@ -264,7 +263,8 @@ class InoutService(
                     uuid = uuid,
                     udpssid = if (gate.takeAction == "PCC") "11111" else "00000",
                     ticketSn = ticketSn,
-                    memo = memo
+                    memo = memo,
+                    date = date.toLocalDate()
                 )
                 parkInRepository.saveAndFlush(newData)
 
@@ -275,36 +275,85 @@ class InoutService(
                 // 2. 전광판
                 // 전광판 메세지 구성은 아래와 같이 진행한다.
                 // 'pcc' 인 경우 MEMBER -> MEMBER 로 아닌 경우 MEMBER -> NONMEMBER 로 정의
-                if (gate.takeAction != "PCC" && deviceIF == "ON") {
-                    // todo GATE 옵션인 경우 정기권/WHITE OPEN 옵션 정의
-                    when(gate.openAction){
-                        OpenActionType.RECOGNITION -> {
-                            if ("UNRECOGNIZED" == parkingtype) {
-                                displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
-                                return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
-                            }
-                        }
-                        OpenActionType.RESTRICT -> {
-                            if ("NORMAL" == parkingtype || "UNRECOGNIZED" == parkingtype) {
-                                displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
-                                return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
-                            }
-                        }
-                        else -> {
-
+                if (gate.takeAction != "PCC" && (deviceIF == "ON" || (deviceIF == "OFF" && assistant == true)) ){
+                    // NONE 인 경우 전방 LPR 만 처리
+                    if (gate.openAction == OpenActionType.NONE) {
+                        if (deviceIF == "ON") {
+                            displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+                            relayService.actionGate(gate.gateId, "GATE", "open")
                         }
                     }
 
-                    displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
-                    relayService.actionGate(gate.gateId, "GATE", "open")
+                    if (gate.openAction == OpenActionType.RECOGNITION) {
+                        if (deviceIF == "ON") {
+                            if ("UNRECOGNIZED" != parkingtype ) {
+                                displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+                                relayService.actionGate(gate.gateId, "GATE", "open")
+                            } else {
+                                displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
+                                logger.warn {" # 입차 차단 차량번호 $vehicleNo 차량타입 $parkingtype 게이트옵션 ${gate.openAction}"}
+                                return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
+                            }
+                        } else {
+                            if (assistant == true) {
+                                displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+                                relayService.actionGate(gate.gateId, "GATE", "open")
+                            }
+                        }
+                    }
+
+                    if (gate.openAction == OpenActionType.RESTRICT) {
+                        if (deviceIF == "ON") {
+                            when(parkingtype) {
+                                "UNRECOGNIZED", "NORMAL" -> {
+                                    displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
+                                    logger.warn {" # 입차 차단 차량번호 $vehicleNo 차량타입 $parkingtype 게이트옵션 ${gate.openAction}"}
+                                    return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
+                                }
+                                else -> {
+                                    displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+                                    relayService.actionGate(gate.gateId, "GATE", "open")
+                                }
+                            }
+                        } else {
+                            if (assistant == true && parkingtype != "NORMAL") {
+                                displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+                                relayService.actionGate(gate.gateId, "GATE", "open")
+                            }
+                        }
+                    }
+
+
+
+
+
+//                    // todo GATE 옵션인 경우 정기권/WHITE OPEN 옵션 정의
+//                    if (gate.openAction == OpenActionType.NONE) {
+//                        if (deviceIF == "ON") {
+//                            displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+//                            relayService.actionGate(gate.gateId, "GATE", "open")
+//                        }
+//                    } else {
+//                        if ("UNRECOGNIZED" == parkingtype || ((gate.openAction == OpenActionType.RESTRICT && "NORMAL" == parkingtype))) {
+//                            displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
+//                            logger.warn {" # 입차 차단 차량번호 $vehicleNo 차량타입 $parkingtype 게이트옵션 ${gate.openAction}"}
+//                            return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
+//                        }
+//                        displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
+//                        relayService.actionGate(gate.gateId, "GATE", "open")
+//                    }
                 }
+
 
                 //todo 아파트너 입차 정보 전송
-                if (parkinglotService.isVisitorExternalKeyType()){
+                visitorData?.let { visitorData ->
                     parkinglotService.getVisitorExternalInfo()?.let {
-                        parkinglotService.sendInVisitorExternal(it,visitorData,parkingtype!!)
+                        parkinglotService.sendInVisitorExternal(it, visitorData, parkingtype!!)
                     }
                 }
+
+
+
 
                 if (parkinglotService.isTmapSend()) {
                     //todo tmap 전송
@@ -312,12 +361,13 @@ class InoutService(
                         gateId = gate.udpGateid!!,
                         inVehicleType = facility!!.lprType.toString().toLowerCase(),
                         vehicleNumber = vehicleNo,
-                        recognitionType = facility.category,
+                        recognitionType = facility.category!!,
                         recognitionResult = recognitionResult!!,
                         fileUploadId = fileUploadId!!
                     )
                     tmapSendService.sendInVehicle(data, requestId!!, fileName)
                 }
+                logger.warn {" ##### 입차 요청 END #####"}
                 return CommonResult.data(newData)
             }
             logger.error("parkIn error failed gateId is not found {} ", dtFacilitiesId )
@@ -594,7 +644,8 @@ class InoutService(
                     payfee = if (price == null) null else price!!.totalPrice,
                     discountfee = if (price == null) null else price!!.discountPrice,
                     dayDiscountfee = if (price == null) null else price!!.dayilyMaxDiscount,
-                    inSn = parkIn?.sn ?: kotlin.run { null }
+                    inSn = parkIn?.sn ?: kotlin.run { null },
+                    date = date.toLocalDate()
                 )
                 parkOutRepository.saveAndFlush(newData)
 
@@ -606,7 +657,7 @@ class InoutService(
                                 gateId = gate.udpGateid!!,
                                 seasonTicketYn = "Y",
                                 vehicleNumber = vehicleNo,
-                                recognitionType = facility!!.category,
+                                recognitionType = facility!!.category!!,
                                 recognitorResult = recognitionResult!!,
                                 fileUploadId = fileUploadId!! ),
                             requestId!!, fileName)
@@ -617,12 +668,12 @@ class InoutService(
                                     paymentMachineType = "exit",
                                     vehicleNumber = vehicleNo,
                                     recognitionType = facility!!.category,
-                                    facilitiesId = parkFacilityRepository.findByGateIdAndCategory(gate.gateId, "PAYSTATION")?.get(0)!!.facilitiesId!!,
+                                    facilitiesId = parkFacilityRepository.findByGateIdAndCategory(gate.gateId, FacilityCategoryType.PAYSTATION)?.get(0)!!.facilitiesId!!,
                                     fileuploadId = fileUploadId!!
                                 ),
                                 requestId!!
                             )
-                            vehicleListSearchRepository.save(VehicleListSearch(requestId, parkFacilityRepository.findByGateIdAndCategory(gate.gateId, "PAYSTATION")?.get(0)!!.facilitiesId!!))
+                            vehicleListSearchRepository.save(VehicleListSearch(requestId, parkFacilityRepository.findByGateIdAndCategory(gate.gateId, FacilityCategoryType.PAYSTATION)?.get(0)!!.facilitiesId!!))
                         }
                     }
                 }
@@ -776,10 +827,11 @@ class InoutService(
                                     result.outGateId = out.gateId
                                     result.parktime = out.parktime
                                     result.parkfee = out.parkfee
-                                    result.payfee = out.payfee
+                                    result.payfee = out.payfee?: 0
                                     result.discountfee = out.discountfee
                                     result.dayDiscountfee = out.dayDiscountfee
                                     result.outImgBase64Str = if (out.image!!.contains("/park")) out.image!!.substring(out.image!!.indexOf("/park")) else null
+                                    result.nonPayment = result.payfee!! - result.paymentAmount!!
                                 }
                             } else {
                                 result.parkoutSn = it.outSn
@@ -848,6 +900,11 @@ class InoutService(
                 val likeValue = "%" + request.gateId + "%"
                 clues.add(
                     criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("gateId")), likeValue)
+                )
+            }
+            if (request.parkcartype != null) {
+                clues.add(
+                    criteriaBuilder.like(criteriaBuilder.upper(root.get<String>("parkcartype")), "%" + request.parkcartype + "%")
                 )
             }
             clues.add(criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N))
@@ -1000,7 +1057,7 @@ class InoutService(
 //             -> makeParkPhrase("")
             else -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, type)
         }
-        relayService.sendDisplayMessage(displayMessage, gateId, reset)
+        relayService.sendDisplayMessage(displayMessage, gateId, reset, type)
     }
 
     fun lastSettleData(facilityId: String): ParkOut? {
@@ -1044,7 +1101,7 @@ class InoutService(
         logger.info { "createInout request $request" }
         try {
             var inResult: Any? = null
-            parkinglotService.getFacilityByGateAndCategory(request.inGateId!!, "LPR")?.let { its ->
+            parkinglotService.getFacilityByGateAndCategory(request.inGateId!!, FacilityCategoryType.LPR)?.let { its ->
                 its.filter { it.lprType == LprTypeStatus.FRONT }
             }?.let { facilies ->
                 val result = parkIn(
@@ -1235,11 +1292,23 @@ class InoutService(
 
 
                 //결제 테이블 적재
-                inoutPaymentRepository.save(
-                    InoutPayment(sn = null, inSn = inSn, outSn = out.sn, approveDateTime = request.approveDatetime,
-                        payType = PayType.CARD, amount = request.cardAmount?.toInt() ?: kotlin.run { null }, cardCorp = request.cardCorp, cardNumber = request.cardNumber,
-                    transactionId = request.transactionId, result = if (request.failureMessage == null) ResultType.SUCCESS else ResultType.FAILURE, failureMessage = request.failureMessage)
-                )
+                // 중복 데이터 이슈 확인 -> 개선 진행
+                if (request.failureMessage == null) {
+                    inoutPaymentRepository.findByInSnAndResultAndTransactionIdAndDelYn(inSn, ResultType.SUCCESS, request.transactionId!!, DelYn.N)?.let {
+                    }?: kotlin.run {
+                        inoutPaymentRepository.saveAndFlush(
+                            InoutPayment(sn = null, inSn = inSn, outSn = out.sn, approveDateTime = request.approveDatetime,
+                                payType = PayType.CARD, amount = request.cardAmount?.toInt() ?: kotlin.run { null }, cardCorp = request.cardCorp, cardNumber = request.cardNumber,
+                                transactionId = request.transactionId, result = if (request.failureMessage == null) ResultType.SUCCESS else ResultType.FAILURE, failureMessage = request.failureMessage)
+                        )
+                    }
+                } else {
+                    inoutPaymentRepository.saveAndFlush(
+                        InoutPayment(sn = null, inSn = inSn, outSn = out.sn, approveDateTime = request.approveDatetime,
+                            payType = PayType.CARD, amount = request.cardAmount?.toInt() ?: kotlin.run { null }, cardCorp = request.cardCorp, cardNumber = request.cardNumber,
+                            transactionId = request.transactionId, result = if (request.failureMessage == null) ResultType.SUCCESS else ResultType.FAILURE, failureMessage = request.failureMessage)
+                    )
+                }
 
                 relayService.actionGate(gateId, "GATE", "open")
                 displayMessage(
@@ -1275,12 +1344,12 @@ class InoutService(
     fun getLastInout(type: GateTypeStatus, gateId: String ): HashMap<String, Any?>? {
         try {
             var result = HashMap<String, Any?>()
+            var parkIn = parkInRepository.findTopByGateIdAndDelYnOrderByInDateDesc(gateId, DelYn.N)
+            var parkOut = parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N)
+
             when (type) {
                 GateTypeStatus.IN -> {
-                    parkInRepository.findTopByGateIdAndDelYnOrderByInDateDesc(gateId, DelYn.N
-//                        , DateUtil.minusSecLocalDateTime(
-//                        LocalDateTime.now(), 10)
-                    )?.let {
+                    parkIn?.let {
                         result =
                             hashMapOf<String, Any?>(
                                 "gateId" to gateId,
@@ -1292,10 +1361,7 @@ class InoutService(
                     }
                 }
                 GateTypeStatus.OUT -> {
-                    parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N
-//                        , DateUtil.minusSecLocalDateTime(
-//                        LocalDateTime.now(), 10)
-                    )?.let {
+                    parkOut?.let {
                         result =
                             hashMapOf<String, Any?>(
                                 "gateId" to gateId,
@@ -1307,56 +1373,19 @@ class InoutService(
                     }
                 }
                 else -> {
-                    parkInRepository.findTopByGateIdAndDelYnOrderByInDateDesc(gateId, DelYn.N
-//                        , DateUtil.minusSecLocalDateTime(
-//                        LocalDateTime.now(), 10)
-                    )?.let { parkIn ->
-                        parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N
-//                        , DateUtil.minusSecLocalDateTime(
-//                        LocalDateTime.now(), 10)
-                        )?.let { parkOut ->
-                            if (parkIn.inDate!! > parkOut.outDate) {
-                                result =
-                                    hashMapOf<String, Any?>(
-                                        "gateId" to gateId,
-                                        "vehicleNo" to parkIn.vehicleNo,
-                                        "date" to parkIn.inDate,
-                                        "carType" to parkIn.parkcartype,
-                                        "image" to getImagePath(parkIn.image) )
-                            } else {
-                                result =
-                                    hashMapOf<String, Any?>(
-                                        "gateId" to gateId,
-                                        "vehicleNo" to parkOut.vehicleNo,
-                                        "date" to parkOut.outDate,
-                                        "carType" to parkOut.parkcartype,
-                                        "image" to getImagePath(parkOut.image) )
-                            }
-                        }?.run {
-                            result =
-                                hashMapOf<String, Any?>(
-                                    "gateId" to gateId,
-                                    "vehicleNo" to parkIn.vehicleNo,
-                                    "date" to parkIn.inDate,
-                                    "carType" to parkIn.parkcartype,
-                                    "image" to getImagePath(parkIn.image) )
-                        }
-                    }?.run {
-                        parkOutRepository.findTopByGateIdAndDelYnOrderByOutDateDesc(gateId, DelYn.N
-//                        , DateUtil.minusSecLocalDateTime(
-//                        LocalDateTime.now(), 10)
-                        )?.let {
-                            result =
-                                hashMapOf<String, Any?>(
-                                    "gateId" to gateId,
-                                    "vehicleNo" to it.vehicleNo,
-                                    "date" to it.outDate,
-                                    "carType" to it.parkcartype,
-                                    "image" to getImagePath(it.image)
-                                )
-                        }
+                    result =
+                        hashMapOf<String, Any?>(
+                            "gateId" to gateId,
+                            "vehicleNo" to (parkIn?.vehicleNo ?: ""),
+                            "date" to (parkIn?.inDate ?: ""),
+                            "carType" to (parkIn?.parkcartype ?: ""),
+                            "image" to getImagePath((parkIn?.image ?: "")),
+                            "outVehicleNo" to (parkOut?.vehicleNo ?: ""),
+                            "outDate" to (parkOut?.outDate ?: ""),
+                            "outCarType" to (parkOut?.parkcartype ?: ""),
+                            "outImage" to getImagePath((parkOut?.image ?: ""))
+                        )
                     }
-                }
             }
             return result
         }catch (e: CustomException) {

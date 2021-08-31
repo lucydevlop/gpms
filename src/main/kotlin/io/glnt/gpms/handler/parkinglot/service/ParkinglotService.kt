@@ -18,8 +18,10 @@ import io.glnt.gpms.handler.inout.model.reqVisitorExternal
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
 import io.glnt.gpms.handler.relay.service.RelayService
+import io.glnt.gpms.model.dto.FacilityDTO
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
+import io.glnt.gpms.model.mapper.FacilityMapper
 import io.glnt.gpms.model.repository.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,7 +35,9 @@ import javax.transaction.Transactional
 import kotlin.collections.ArrayList
 
 @Service
-class ParkinglotService {
+class ParkinglotService (
+    private val facilityMapper: FacilityMapper
+){
     companion object : KLogging()
 
     var parkSite: ParkSiteInfo? = null
@@ -49,9 +53,6 @@ class ParkinglotService {
 
     @Autowired
     lateinit var tmapSendService: TmapSendService
-
-    @Autowired
-    lateinit var relayService: RelayService
 
     @Autowired
     lateinit var facilityService: FacilityService
@@ -116,7 +117,7 @@ class ParkinglotService {
                 val facilities = parkFacilityRepository.findByGateIdAndDelYn(gate.gateId, DelYn.Y)!!
                 val FacilitiesId = facilities.map { it.dtFacilitiesId }.toTypedArray()
                 facilities.map {
-                    facility -> facilitiesList.add(facilitiesLists(category = facility.category, modelId = facility.modelid, dtFacilitiesId = facility.dtFacilitiesId, facilitiesName = facility.fname))
+                    facility -> facilitiesList.add(facilitiesLists(category = facility.category!!, modelId = facility.modelid, dtFacilitiesId = facility.dtFacilitiesId, facilitiesName = facility.fname))
                 }
                 gateList.add(gateLists(
                     dtGateId = gate.gateId+"_aa",
@@ -159,7 +160,7 @@ class ParkinglotService {
     }
 
     fun getParkinglotGates(requet: reqSearchParkinglotFeature): CommonResult {
-        logger.info { "getParkinglotGates request $requet" }
+        logger.trace { "getParkinglotGates request $requet" }
         try {
             requet.gateId?.let {
                 val gate = parkGateRepository.findByGateId(gateId = it)
@@ -176,7 +177,7 @@ class ParkinglotService {
     }
 
     fun updateGates(request: reqUpdateGates) : CommonResult{
-        logger.info { "update gates request:  $request" }
+        logger.trace { "update gates request:  $request" }
         try {
             request.gates.forEach {
                 parkGateRepository.save(it)
@@ -190,7 +191,7 @@ class ParkinglotService {
     }
 
     fun createGate(request: Gate) : CommonResult{
-        logger.info { "create gate: $request" }
+        logger.trace { "create gate: $request" }
         try {
             return CommonResult.data(parkGateRepository.save(request))
         }catch (e: CustomException) {
@@ -200,7 +201,7 @@ class ParkinglotService {
     }
 
     fun deleteGate(id: Long) : CommonResult {
-        logger.info{ "delete gate: $id"}
+        logger.trace { "delete gate: $id"}
         try{
             parkGateRepository.findBySn(id)?.let { gate ->
                 gate.delYn = DelYn.Y
@@ -213,7 +214,7 @@ class ParkinglotService {
     }
 
     fun changeDelYnGate(gateId: String, delYn: DelYn) : CommonResult {
-        logger.info { "changeDelYnGate $gateId $delYn" }
+        logger.trace { "changeDelYnGate $gateId $delYn" }
         try{
             parkGateRepository.findByGateId(gateId)?.let { gate ->
                 gate.delYn = delYn
@@ -233,7 +234,7 @@ class ParkinglotService {
     }
 
     fun changeDelYnFacility(dtFacilitiesId: String, delYn: DelYn) : CommonResult {
-        logger.info { "changeDelYnFacility $dtFacilitiesId $delYn" }
+        logger.trace { "changeDelYnFacility $dtFacilitiesId $delYn" }
         try{
             getFacilityByDtFacilityId(dtFacilitiesId)?.let { facility ->
                 facility.delYn = delYn
@@ -250,40 +251,44 @@ class ParkinglotService {
             parkFacilityRepository.findByFacilitiesId(it)?.let { facility ->
                 parkGateRepository.findByGateId(facility.gateId)?.let { gate ->
                     return CommonResult.data(
-                        resRelaySvrFacility(sn = facility.sn,
-                            category = facility.category, modelid = facility.modelid,
-                            fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
-                            facilitiesId = facility.facilitiesId, flagUse = facility.flagUse,
-                            gateId = facility.gateId, udpGateid = facility.udpGateid,
-                            ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
-                            resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
-                            imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey,
-                            checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0,
-                            delYn = facility.delYn
-                        ))
+                        facilityMapper.toDTO(facility)
+//                        resRelaySvrFacility(sn = facility.sn,
+//                            category = facility.category, modelid = facility.modelid,
+//                            fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
+//                            facilitiesId = facility.facilitiesId, flagUse = facility.flagUse,
+//                            gateId = facility.gateId, udpGateid = facility.udpGateid,
+//                            ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
+//                            resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
+//                            imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey,
+//                            checkTime = if (facility.category == "BREAKER") parkAlarmSetting.gateLimitTime else 0,
+//                            delYn = facility.delYn
+//                        )
+                    )
                 }
 
             }
             return CommonResult.notfound("parkinglot facilities")
         } ?: run {
-            val result = ArrayList<resRelaySvrFacility>()
+            val result = ArrayList<FacilityDTO>()
             requet.relaySvrKey?.let {
                 parkGateRepository.findByRelaySvrKey(it).let { gates ->
                     gates.forEach { gate ->
                         parkFacilityRepository.findByGateIdAndDelYn(gate.gateId, DelYn.N)?.let { facilities ->
-                            facilities.forEach { facility ->
+                            facilities.filter { f -> f.delYn == DelYn.N }.forEach { facility ->
                                 result.add(
-                                    resRelaySvrFacility(sn = facility.sn,
-                                        category = facility.category, modelid = facility.modelid,
-                                        fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
-                                        facilitiesId = facility.facilitiesId, flagUse = facility.flagUse,
-                                        gateId = facility.gateId, udpGateid = facility.udpGateid,
-                                        ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
-                                        resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
-                                        imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey,
-                                        checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0,
-                                        delYn = facility.delYn
-                                    ))
+                                    facilityMapper.toDTO(facility)
+//                                    resRelaySvrFacility(sn = facility.sn,
+//                                        category = facility.category, modelid = facility.modelid,
+//                                        fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
+//                                        facilitiesId = facility.facilitiesId, flagUse = facility.flagUse,
+//                                        gateId = facility.gateId, udpGateid = facility.udpGateid,
+//                                        ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
+//                                        resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
+//                                        imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey,
+//                                        checkTime = if (facility.category == "BREAKER") gateLimitTime else 0,
+//                                        delYn = facility.delYn
+//                                    )
+                                )
                             }
                         }
                     }
@@ -294,17 +299,19 @@ class ParkinglotService {
                         parkFacilityRepository.findByGateId(gate.gateId)?.let { facilities ->
                             facilities.forEach { facility ->
                                 result.add(
-                                    resRelaySvrFacility(sn = facility.sn,
-                                        category = facility.category, modelid = facility.modelid,
-                                        fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
-                                        facilitiesId = facility.facilitiesId, flagUse = facility.flagUse,
-                                        gateId = facility.gateId, udpGateid = facility.udpGateid,
-                                        ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
-                                        resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
-                                        imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey,
-                                        checkTime = if (facility.category == "BREAKER") relayService.parkAlarmSetting.gateLimitTime else 0,
-                                        delYn = facility.delYn
-                                    ))
+                                    facilityMapper.toDTO(facility)
+//                                    resRelaySvrFacility(sn = facility.sn,
+//                                        category = facility.category, modelid = facility.modelid,
+//                                        fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
+//                                        facilitiesId = facility.facilitiesId, flagUse = facility.flagUse,
+//                                        gateId = facility.gateId, udpGateid = facility.udpGateid,
+//                                        ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
+//                                        resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
+//                                        imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey,
+//                                        checkTime = if (facility.category == "BREAKER") gateLimitTime else 0,
+//                                        delYn = facility.delYn
+//                                    )
+                                )
                             }
                         }
                     }
@@ -359,14 +366,21 @@ class ParkinglotService {
         return null
     }
 
-    fun getFacilityByGateAndCategory(gate: String, category: String) : List<Facility>? {
+    fun getFacilityGateAndCategoryAndLprType(gate: String, category: FacilityCategoryType, lprType: LprTypeStatus) : List<Facility>? {
+        parkFacilityRepository.findByGateIdAndCategoryAndDelYnAndLprType(gate, category, DelYn.N, lprType)?.let {
+            return it
+        }
+        return null
+    }
+
+    fun getFacilityByGateAndCategory(gate: String, category: FacilityCategoryType) : List<Facility>? {
         parkFacilityRepository.findByGateIdAndCategory(gate, category)?.let {
             return it
         }
         return null
     }
 
-    fun getFacilityByCategory(category: String) : List<Facility>? {
+    fun getFacilityByCategory(category: FacilityCategoryType) : List<Facility>? {
         parkFacilityRepository.findByCategory(category)?.let {
             return it
         }
@@ -429,6 +443,7 @@ class ParkinglotService {
         try {
             parkSiteInfoRepository.findTopByOrderBySiteid()?.let {
                 request.siteId = it.siteid
+                request.rcsParkId = request.rcsParkId?.let { it }?: kotlin.run { it.rcsParkId }
             }
 
             val data = parkSiteInfoRepository.save(
@@ -460,7 +475,8 @@ class ParkinglotService {
                     ip = ip, city = city,
                     space = space,
                     visitorExternal = visitorExternal,
-                    visitorExternalKey = visitorExternalKey
+                    visitorExternalKey = visitorExternalKey,
+                    rcsParkId = rcsParkId
                 )
             )
             initalizeData()
@@ -578,28 +594,41 @@ class ParkinglotService {
     }
 
 
-    fun searchVisitorExternal(visitorExternalInfo: HashMap<String,String?>?,vehicleNo: String): HttpResponse<JsonNode>?{
-        val key = visitorExternalInfo?.get("key")
-        val host = visitorExternalInfo?.get("url")
-        val token = visitorExternalInfo?.get("token")
+    fun searchVisitorExternal(visitorExternalInfo: HashMap<String,String?>,vehicleNo: String): HttpResponse<JsonNode>?{
 
-        val request = host+"visit/check?kaptCode="+key+"&carNo="+vehicleNo
+        val key = visitorExternalInfo["key"]
+        val host = visitorExternalInfo["url"]
+        val token = visitorExternalInfo["token"]
+
+        val request = host+"/visit/check?kaptCode="+key+"&carNo="+vehicleNo
 
         return restAPIManagerUtil.sendGetRequestWithToken(request,token)
+
+        //todo 데이터 포멧폼 HasMap으로 만들기 (key: isVisitor value: "Y") ...
+
     }
 
-    fun sendInVisitorExternal(visitorExternalInfo: HashMap<String, String?>?, visitorData: reqVisitorExternal?, parkingtype: String){
+    fun sendInVisitorExternal(visitorExternalInfo: HashMap<String, String?>, visitorData: reqVisitorExternal, parkingtype: String){
         try {
-            val host = visitorExternalInfo?.get("url")
-            val token = visitorExternalInfo?.get("token")
 
-            val url = host+"access/in"
-            restAPIManagerUtil.sendPostRequestWithToken(url, token, visitorData).let {
-                logger.info { "sendInVisitorExternal success! ${it?.body}"}
+            visitorExternalInfo.let {
+
+                val host = visitorExternalInfo["url"]
+                val token = visitorExternalInfo["token"]
+                val url = host+"/access/in"
+
+                restAPIManagerUtil.sendPostRequestWithToken(url, token, visitorData)?.let {
+                    when(it.status){
+                        200 -> logger.warn { "sendInVisitorExternal success! ${it.body}" }
+
+                        else -> logger.warn { "sendInVisitorExternal failed. ${it.body}" }
+                    }
+                }?: kotlin.run {
+                    logger.warn { "no receive response data" }
+                }
             }
-
         } catch (e: RuntimeException){
-            logger.error { "sendInVisitorExternal error ${e.message}" }
+            logger.error { "sendInVisitorExternal error $e" }
         }
     }
 }

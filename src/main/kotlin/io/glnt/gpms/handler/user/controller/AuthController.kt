@@ -81,6 +81,19 @@ class AuthController {
         }
     }
 
+    @RequestMapping(value = ["/user/registers"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun userRegisters(@RequestBody request: Array<reqUserRegister>) : ResponseEntity<CommonResult> {
+        val result = authService.userRegisters(request)
+
+        return when(result.code) {
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            ResultCode.UNAUTHORIZED.getCode() -> ResponseEntity(result, HttpStatus.UNAUTHORIZED)
+            ResultCode.UNPROCESSABLE_ENTITY.getCode() -> ResponseEntity(result, HttpStatus.UNPROCESSABLE_ENTITY)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        }
+    }
+
     @RequestMapping(value = ["/tokens"], method = [RequestMethod.GET])
     @Throws(CustomException::class)
     fun token(servlet: HttpServletRequest) : ResponseEntity<CommonResult> {

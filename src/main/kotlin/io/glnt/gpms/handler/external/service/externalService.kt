@@ -3,13 +3,14 @@ package io.glnt.gpms.handler.external.service
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.corp.service.CorpService
+//import io.glnt.gpms.handler.corp.service.CorpService
 import io.glnt.gpms.handler.dashboard.admin.model.reqSearchCorp
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.entity.Corp
 import io.glnt.gpms.model.entity.ProductTicket
+import io.glnt.gpms.service.CorpService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -53,13 +54,12 @@ class externalService(
     fun createTickets(request: ArrayList<reqCreateProductTicket>) : CommonResult {
         try {
             request.forEach { it ->
-                val corpSn = it.corpName?.let {
-                    corpService.getCorp(reqSearchCorp(searchLabel = "CORPNAME", searchText = it)).data.let {
-                        val corp = it as List<Corp>
-                        if (corp.isNotEmpty()) corp[0].sn else null
-                    } } ?: run { null }
+                it.corpName?.let { text ->
+                    corpService.getStoreByCorpName(text).ifPresent { corp ->
+                        it.corpSn = corp.sn
+                    }
+                } ?: run { null }
 
-                it.corpSn = corpSn
                 val data = productService.createProduct(it)
 
                 when (data.code) {
