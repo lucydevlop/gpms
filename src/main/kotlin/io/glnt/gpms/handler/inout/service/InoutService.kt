@@ -1057,7 +1057,7 @@ class InoutService(
 //             -> makeParkPhrase("")
             else -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, type)
         }
-        relayService.sendDisplayMessage(displayMessage, gateId, reset)
+        relayService.sendDisplayMessage(displayMessage, gateId, reset, type)
     }
 
     fun lastSettleData(facilityId: String): ParkOut? {
@@ -1373,19 +1373,18 @@ class InoutService(
                     }
                 }
                 else -> {
-
-                        result =
-                            hashMapOf<String, Any?>(
-                                "gateId" to gateId,
-                                "vehicleNo" to (parkIn?.vehicleNo ?: ""),
-                                "date" to (parkIn?.inDate ?: ""),
-                                "carType" to (parkIn?.parkcartype ?: ""),
-                                "image" to getImagePath((parkIn?.image ?: "")),
-                                "outVehicleNo" to (parkOut?.vehicleNo ?: ""),
-                                "outDate" to (parkOut?.outDate ?: ""),
-                                "outCarType" to (parkOut?.parkcartype ?: ""),
-                                "outImage" to getImagePath((parkOut?.image ?: ""))
-                            )
+                    result =
+                        hashMapOf<String, Any?>(
+                            "gateId" to gateId,
+                            "vehicleNo" to (parkIn?.vehicleNo ?: ""),
+                            "date" to (parkIn?.inDate ?: ""),
+                            "carType" to (parkIn?.parkcartype ?: ""),
+                            "image" to getImagePath((parkIn?.image ?: "")),
+                            "outVehicleNo" to (parkOut?.vehicleNo ?: ""),
+                            "outDate" to (parkOut?.outDate ?: ""),
+                            "outCarType" to (parkOut?.parkcartype ?: ""),
+                            "outImage" to getImagePath((parkOut?.image ?: ""))
+                        )
                     }
             }
             return result

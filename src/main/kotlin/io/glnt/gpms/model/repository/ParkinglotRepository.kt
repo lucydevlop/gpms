@@ -3,6 +3,7 @@ package io.glnt.gpms.model.repository
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.FacilityCategoryType
+import io.glnt.gpms.model.enums.LprTypeStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
@@ -31,9 +32,8 @@ interface ParkFacilityRepository: JpaRepository<Facility, Long> {
     fun findByGateIdAndCategoryAndDelYn(gateId: String, category: FacilityCategoryType, delYn: DelYn): List<Facility>?
     fun findByCategory(category: FacilityCategoryType): List<Facility>?
     fun findByGateId(gateId: String): List<Facility>?
-//    fun getDistinctByCategoryAndGateId(gateId: String): List<Facility>?
-//    fun countByGateIdAndCategoryAndHealth(gateId: String): List<Facility>?
     fun findTopByGateIdAndCategoryOrderByStatusDate(gateId: String, category: FacilityCategoryType): Facility
+    fun findByGateIdAndCategoryAndDelYnAndLprType(gateId: String, category: FacilityCategoryType, delYn: DelYn, lprTypeStatus: LprTypeStatus) : List<Facility>?
 }
 
 @Repository

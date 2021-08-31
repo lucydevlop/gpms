@@ -94,6 +94,13 @@ class RelayService(
 
             request.facilitiesList.forEach { facility ->
                 facilityService.updateHealthCheck(facility.dtFacilitiesId, facility.status!!)
+                if (facility.failureAlarm == "icCardReaderFailure" && !facility.responseId.isNullOrEmpty()) {
+                    logger.warn { "정산기 결제 오류 $request" }
+                    // 정산기 요청 한 후 정산 실패 시 강제 오픈 처리
+                    facilityService.getGateByFacilityId(facility.dtFacilitiesId)?.let { it ->
+                        actionGate(it.gateId, "GATE", "open")
+                    }
+                }
             }
 
             if (parkAlarmSetting.payAlarm == checkUseStatus.Y && parkAlarmSetting.payLimitTime!! > 0) {
@@ -445,7 +452,7 @@ class RelayService(
     }
 
     fun actionGate(id: String, type: String, action: String, manual: String? = null) {
-        logger.info { "actionGate request $type $id $action" }
+        logger.warn { "GATE $action $type $id" }
         try {
             when (type) {
                 "GATE" -> {
@@ -491,14 +498,29 @@ class RelayService(
         }
     }
 
-    fun sendDisplayMessage(data: Any, gate: String, reset: String) {
-        logger.warn { "sendPaystation request $data $gate" }
-        parkinglotService.getFacilityByGateAndCategory(gate, FacilityCategoryType.DISPLAY)?.let { its ->
-            its.forEach {
-                restAPIManager.sendPostRequest(
-                    getRelaySvrUrl(gate)+"/display/show",
-                    reqSendDisplay(it.dtFacilitiesId, data as ArrayList<reqDisplayMessage>, reset)
-                )
+    fun sendDisplayMessage(data: Any, gateId: String, reset: String, type: String) {
+        logger.warn { "sendDisplayMessage request $data $gateId" }
+        //양방향인 경우
+        parkinglotService.getGate(gateId)?.let { gate ->
+            if (gate.gateType == GateTypeStatus.IN_OUT) {
+                val type = if (type == "IN") LprTypeStatus.INFRONT else LprTypeStatus.OUTFRONT
+                parkinglotService.getFacilityGateAndCategoryAndLprType(gateId, FacilityCategoryType.DISPLAY, type)?.let { its ->
+                    its.forEach {
+                        restAPIManager.sendPostRequest(
+                            getRelaySvrUrl(gateId)+"/display/show",
+                            reqSendDisplay(it.dtFacilitiesId, data as ArrayList<reqDisplayMessage>, reset)
+                        )
+                    }
+                }
+            } else {
+                parkinglotService.getFacilityByGateAndCategory(gateId, FacilityCategoryType.DISPLAY)?.let { its ->
+                    its.forEach {
+                        restAPIManager.sendPostRequest(
+                            getRelaySvrUrl(gateId)+"/display/show",
+                            reqSendDisplay(it.dtFacilitiesId, data as ArrayList<reqDisplayMessage>, reset)
+                        )
+                    }
+                }
             }
         }
     }

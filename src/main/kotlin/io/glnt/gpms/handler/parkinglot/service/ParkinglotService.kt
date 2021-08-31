@@ -160,7 +160,7 @@ class ParkinglotService (
     }
 
     fun getParkinglotGates(requet: reqSearchParkinglotFeature): CommonResult {
-        logger.info { "getParkinglotGates request $requet" }
+        logger.trace { "getParkinglotGates request $requet" }
         try {
             requet.gateId?.let {
                 val gate = parkGateRepository.findByGateId(gateId = it)
@@ -177,7 +177,7 @@ class ParkinglotService (
     }
 
     fun updateGates(request: reqUpdateGates) : CommonResult{
-        logger.info { "update gates request:  $request" }
+        logger.trace { "update gates request:  $request" }
         try {
             request.gates.forEach {
                 parkGateRepository.save(it)
@@ -191,7 +191,7 @@ class ParkinglotService (
     }
 
     fun createGate(request: Gate) : CommonResult{
-        logger.info { "create gate: $request" }
+        logger.trace { "create gate: $request" }
         try {
             return CommonResult.data(parkGateRepository.save(request))
         }catch (e: CustomException) {
@@ -201,7 +201,7 @@ class ParkinglotService (
     }
 
     fun deleteGate(id: Long) : CommonResult {
-        logger.info{ "delete gate: $id"}
+        logger.trace { "delete gate: $id"}
         try{
             parkGateRepository.findBySn(id)?.let { gate ->
                 gate.delYn = DelYn.Y
@@ -214,7 +214,7 @@ class ParkinglotService (
     }
 
     fun changeDelYnGate(gateId: String, delYn: DelYn) : CommonResult {
-        logger.info { "changeDelYnGate $gateId $delYn" }
+        logger.trace { "changeDelYnGate $gateId $delYn" }
         try{
             parkGateRepository.findByGateId(gateId)?.let { gate ->
                 gate.delYn = delYn
@@ -234,7 +234,7 @@ class ParkinglotService (
     }
 
     fun changeDelYnFacility(dtFacilitiesId: String, delYn: DelYn) : CommonResult {
-        logger.info { "changeDelYnFacility $dtFacilitiesId $delYn" }
+        logger.trace { "changeDelYnFacility $dtFacilitiesId $delYn" }
         try{
             getFacilityByDtFacilityId(dtFacilitiesId)?.let { facility ->
                 facility.delYn = delYn
@@ -362,6 +362,13 @@ class ParkinglotService (
             parkGateRepository.findByGateId(it.gateId)?.let {
                 return it
             }
+        }
+        return null
+    }
+
+    fun getFacilityGateAndCategoryAndLprType(gate: String, category: FacilityCategoryType, lprType: LprTypeStatus) : List<Facility>? {
+        parkFacilityRepository.findByGateIdAndCategoryAndDelYnAndLprType(gate, category, DelYn.N, lprType)?.let {
+            return it
         }
         return null
     }

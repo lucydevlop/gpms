@@ -726,4 +726,8 @@ class FacilityService(
         }
         return result
     }
+
+    fun getGateByFacilityId(dtFacilityId: String) : Facility? {
+        return facilityRepository.findByDtFacilitiesId(dtFacilityId)
+    }
 }
