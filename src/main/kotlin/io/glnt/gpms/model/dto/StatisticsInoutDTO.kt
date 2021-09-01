@@ -10,6 +10,8 @@ data class StatisticsInoutDTO (
 
     var vehicleNo: String? = null,
 
+    var out: Int? = 0,
+
     var parkFee: Int? = 0,
 
     var discountFee : Int? = 0,

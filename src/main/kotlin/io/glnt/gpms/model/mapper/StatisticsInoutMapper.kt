@@ -22,6 +22,7 @@ class StatisticsInoutMapper(
         return StatisticsInoutDTO(
             parkcartype = entity.parkcartype,
             vehicleNo = entity.vehicleNo,
+            out = if (out == null) 0 else 1,
             parkFee = out?.parkfee?: 0,
             discountFee = out?.discountfee?: 0,
             dayDiscountFee = out?.dayDiscountfee?: 0,

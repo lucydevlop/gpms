@@ -1,6 +1,7 @@
 package io.glnt.gpms.handler.inout.service
 
 import io.glnt.gpms.common.api.CommonResult
+import io.glnt.gpms.common.api.RelayClient
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.Base64Util
 import io.glnt.gpms.common.utils.DataCheckUtil
@@ -45,7 +46,8 @@ import kotlin.collections.HashMap
 class InoutService(
     private var inoutPaymentRepository: InoutPaymentRepository,
     private var feeCalculation: FeeCalculation,
-    private var gateRepository: GateRepository
+    private var gateRepository: GateRepository,
+    private var relayClient: RelayClient
 ) {
     companion object : KLogging()
 
@@ -280,7 +282,7 @@ class InoutService(
                     if (gate.openAction == OpenActionType.NONE) {
                         if (deviceIF == "ON") {
                             displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
-                            relayService.actionGate(gate.gateId, "GATE", "open")
+                            relayClient.sendActionBreaker(gate.gateId, "open")
                         }
                     }
 
@@ -288,7 +290,7 @@ class InoutService(
                         if (deviceIF == "ON") {
                             if ("UNRECOGNIZED" != parkingtype ) {
                                 displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
-                                relayService.actionGate(gate.gateId, "GATE", "open")
+                                relayClient.sendActionBreaker(gate.gateId, "open")
                             } else {
                                 displayMessage("RESTRICTE", vehicleNo, "IN", gate.gateId)
                                 logger.warn {" # 입차 차단 차량번호 $vehicleNo 차량타입 $parkingtype 게이트옵션 ${gate.openAction}"}
@@ -297,7 +299,7 @@ class InoutService(
                         } else {
                             if (assistant == true) {
                                 displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
-                                relayService.actionGate(gate.gateId, "GATE", "open")
+                                relayClient.sendActionBreaker(gate.gateId, "open")
                             }
                         }
                     }
@@ -312,13 +314,13 @@ class InoutService(
                                 }
                                 else -> {
                                     displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
-                                    relayService.actionGate(gate.gateId, "GATE", "open")
+                                    relayClient.sendActionBreaker(gate.gateId, "open")
                                 }
                             }
                         } else {
                             if (assistant == true && parkingtype != "NORMAL") {
                                 displayMessage(parkingtype!!, vehicleNo, "IN", gate.gateId)
-                                relayService.actionGate(gate.gateId, "GATE", "open")
+                                relayClient.sendActionBreaker(gate.gateId, "open")
                             }
                         }
                     }
@@ -1057,7 +1059,8 @@ class InoutService(
 //             -> makeParkPhrase("")
             else -> makeParkPhrase("FAILNUMBER", vehicleNo, vehicleNo, type)
         }
-        relayService.sendDisplayMessage(displayMessage, gateId, reset, type)
+        relayClient.sendShowDisplayMessages(gateId, type, displayMessage, reset)
+//        relayService.sendDisplayMessage(displayMessage, gateId, reset, type)
     }
 
     fun lastSettleData(facilityId: String): ParkOut? {
@@ -1192,6 +1195,8 @@ class InoutService(
                 displayMessage( parkIn.parkcartype!!,
                     (request.payfee?.let{ it.toString()+"원"}?: kotlin.run { "0원" }), "WAIT", request.outGateId!!)
 
+                val discountFee = request.dayDiscountfee?.let { request.discountfee?.plus(it) }
+
                 facilityService.sendPaystation(
                     reqPayStationData(
                         paymentMachineType = if (parkIn.parkcartype!! == "NORMAL") "exit" else "SEASON",
@@ -1201,7 +1206,7 @@ class InoutService(
                         recognitionResult = "RECOGNITION",
                         paymentAmount = if (request.payfee!! <= 0) "0" else if (request.parkfee != null) request.parkfee.toString() else "0",
                         parktime = request.parktime.toString(),
-                        parkTicketMoney = if (request.payfee!! <= 0) "0" else if (request.discountfee != null) request.discountfee.toString() else "0",  // 할인요금
+                        parkTicketMoney = if (request.payfee!! <= 0) "0" else discountFee?.toString() ?: "0",  // 할인요금
                         vehicleIntime = DateUtil.nowDateTimeHm
                     ),
                     gate = request.outGateId!!,
