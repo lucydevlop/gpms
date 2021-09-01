@@ -11,6 +11,7 @@ import io.glnt.gpms.model.entity.Gate
 import io.glnt.gpms.model.enums.DelYn
 import mu.KLogging
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import javax.annotation.PostConstruct
 
 @Service
@@ -42,6 +43,11 @@ class GateService(
                 gateGroupRepository.save(gateGroup)
             }
         }
+    }
+
+    @Transactional(readOnly = true)
+    fun findAll(): List<GateDTO> {
+        return gateRepository.findAll().map(gateMapper::toDto)
     }
 
     fun getGateGroups(): List<GateGroup> {

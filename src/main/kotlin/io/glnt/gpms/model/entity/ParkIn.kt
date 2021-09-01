@@ -20,26 +20,17 @@ data class ParkIn(
     @Column(name = "sn", unique = true, nullable = false)
     var sn: Long?,
 
-    @Column(name = "sitenum", nullable = true)
-    var sitenum: Int? = 1,
-
-    @Column(name = "groupnum", nullable = true)
-    var groupnum: Int? = 1,
-
     @Column(name = "gate_id")
     var gateId: String? = null,
 
     @Column(name = "parkcartype", nullable = true)
-    var parkcartype: String? = "일반차량",
+    var parkcartype: String? = "NORMAL",
 
     @Column(name = "user_sn", nullable = true)
     var userSn: Int? = 0,
 
     @Column(name = "vehicleNo", nullable = true)
     var vehicleNo: String? = null,
-
-    @Column(name = "devicenum", nullable = true)
-    var devicenum: Int? = null,
 
     @Column(name = "in_date", nullable = true)
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
