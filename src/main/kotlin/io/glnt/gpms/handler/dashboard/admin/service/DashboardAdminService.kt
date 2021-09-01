@@ -391,11 +391,16 @@ class DashboardAdminService(
     fun createProductTickets(request: ArrayList<reqCreateProductTicket>): CommonResult {
         try{
             request.forEach{ it ->
-                if (it.corpName!!.isNotEmpty()) {
-                    corpService.getStoreByCorpName(it.corpName!!).ifPresent { corp ->
+                it.corpName?.let { corpName ->
+                    corpService.getStoreByCorpName(corpName).ifPresent { corp ->
                         it.corpSn = corp.sn
                     }
                 }
+//                if (it.corpName!!.isNotEmpty()) {
+//                    corpService.getStoreByCorpName(it.corpName!!).ifPresent { corp ->
+//                        it.corpSn = corp.sn
+//                    }
+//                }
                 createProductTicket(it)
 
 //                createProductTicket(
