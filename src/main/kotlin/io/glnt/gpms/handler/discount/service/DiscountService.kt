@@ -305,6 +305,15 @@ class DiscountService {
                     DateUtil.lastTimeToLocalDateTime(request.endDate.toString())
                 )
             )
+
+            if(request.ticketClassSn != null){
+                clues.add(
+                    // criteriaBuilder.equal(root.get<Long>("discountClassSn"), request.discountClassSn)
+                    criteriaBuilder.equal(criteriaBuilder.lower(root.get<String>("ticketClassSn")),request.ticketClassSn)
+                )
+            }
+
+
 //            if (request.ticketType != TicketType.ALL) {
 //                clues.add(
 //                    criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("ticketType")), request.ticketType.code)
