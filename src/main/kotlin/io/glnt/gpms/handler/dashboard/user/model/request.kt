@@ -34,5 +34,6 @@ data class reqParkingDiscountApplyTicketSearch(
     @JsonFormat(pattern="yyyy-MM-dd") var endDate: LocalDate,
     var discountClassSn: Long? = null,
     var applyStatus: String?,
-    var vehicleNo: String?
+    var vehicleNo: String?,
+    var ticketClassSn: Long? = null
 )
