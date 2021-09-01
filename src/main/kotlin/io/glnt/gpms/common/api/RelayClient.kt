@@ -10,7 +10,6 @@ import io.glnt.gpms.model.enums.FacilityCategoryType
 import io.glnt.gpms.model.enums.GateTypeStatus
 import io.glnt.gpms.model.enums.LprTypeStatus
 import io.glnt.gpms.model.mapper.FacilityMapper
-import io.glnt.gpms.model.repository.GateRepository
 import io.glnt.gpms.model.repository.ParkFacilityRepository
 import io.glnt.gpms.service.GateService
 import mu.KLogging

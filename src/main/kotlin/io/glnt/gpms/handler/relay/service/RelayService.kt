@@ -348,23 +348,31 @@ class RelayService(
             vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = parkinglotService.getFacilityByDtFacilityId(dtFacilityId)!!.facilitiesId))
             tmapSendService.sendTmapInterface(request, requestId, "vehicleListSearch")
         } else {
-            val parkins = inoutService.searchParkInByVehicleNo(contents.vehicleNumber, "")
+            val parkIns = inoutService.searchParkInByVehicleNo(contents.vehicleNumber, "")
             val data = ArrayList<paystationvehicleListSearch>()
-
-             when(parkins.code) {
-                ResultCode.SUCCESS.getCode() -> {
-                    val lists = parkins.data as? List<*>?
-                    lists!!.checkItemsAre<ParkIn>()?.filter { it.outSn == 0L }?.let { list ->
-                        list.forEach {
-                            data.add(
-                                paystationvehicleListSearch(
-                                    vehicleNumber = it.vehicleNo!!,
-                                    inVehicleDateTime = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss")))
-                        }
-
-                    }
+            if (!parkIns.isNullOrEmpty()) {
+                parkIns.filter { it.outSn == 0L }.forEach {
+                    data.add(
+                        paystationvehicleListSearch(
+                            vehicleNumber = it.vehicleNo!!,
+                            inVehicleDateTime = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss")))
                 }
             }
+
+//             when(parkins.code) {
+//                ResultCode.SUCCESS.getCode() -> {
+//                    val lists = parkins.data as? List<*>?
+//                    lists!!.checkItemsAre<ParkIn>()?.filter { it.outSn == 0L }?.let { list ->
+//                        list.forEach {
+//                            data.add(
+//                                paystationvehicleListSearch(
+//                                    vehicleNumber = it.vehicleNo!!,
+//                                    inVehicleDateTime = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss")))
+//                        }
+//
+//                    }
+//                }
+//            }
 
             facilityService.sendPaystation(
                 reqVehicleSearchList(

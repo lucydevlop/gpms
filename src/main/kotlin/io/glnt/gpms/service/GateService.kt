@@ -12,7 +12,9 @@ import io.glnt.gpms.model.enums.DelYn
 import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.*
 import javax.annotation.PostConstruct
+import kotlin.collections.ArrayList
 
 @Service
 class GateService(
@@ -58,5 +60,11 @@ class GateService(
         var gate = gateMapper.toEntity(gateDTO)
         gate = gateRepository.save(gate!!)
         return gateMapper.toDto(gate)
+    }
+
+    fun findOne(gateId: String): Optional<GateDTO> {
+        logger.debug { "Request to get Gate $gateId" }
+        return gateRepository.findByGateId(gateId).map(gateMapper::toDto)
+
     }
 }
