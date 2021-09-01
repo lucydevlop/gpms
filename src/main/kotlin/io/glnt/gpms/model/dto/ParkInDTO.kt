@@ -35,6 +35,8 @@ data class ParkInDTO(
 
     var requestid: String? = null,
 
+    var uuid: String? = null,
+
     var ticketSn: Long? = null,
 
     var memo: String? = null,
@@ -51,6 +53,7 @@ data class ParkInDTO(
     constructor(parkIn: ParkIn) :
         this(
             parkIn.sn, parkIn.gateId, parkIn.parkcartype, parkIn.vehicleNo, parkIn.inDate, parkIn.date,
-            parkIn.image, parkIn.resultcode, parkIn.outSn, parkIn.requestid, parkIn.ticketSn, parkIn.memo, parkIn.delYn
+            parkIn.image, parkIn.resultcode, parkIn.outSn, parkIn.requestid, parkIn.uuid, parkIn.ticketSn,
+            parkIn.memo, parkIn.delYn
         )
 }

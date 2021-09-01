@@ -22,11 +22,15 @@ import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
+import io.glnt.gpms.model.dto.ParkInCriteria
+import io.glnt.gpms.model.dto.ParkInDTO
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.*
+import io.glnt.gpms.service.ParkInQueryService
+import io.glnt.gpms.service.ParkInService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -47,15 +51,14 @@ class InoutService(
     private var inoutPaymentRepository: InoutPaymentRepository,
     private var feeCalculation: FeeCalculation,
     private var gateRepository: GateRepository,
-    private var relayClient: RelayClient
+    private var relayClient: RelayClient,
+    private var parkInQueryService: ParkInQueryService,
+    private var parkInService: ParkInService
 ) {
     companion object : KLogging()
 
     @Value("\${image.filepath}")
     lateinit var imagePath: String
-
-    @Value("\${tmap.send}")
-    lateinit var tmapSend: String
 
     @Autowired
     private lateinit var parkinglotService: ParkinglotService
@@ -68,9 +71,6 @@ class InoutService(
 
     @Autowired
     lateinit var facilityService: FacilityService
-
-    @Autowired
-    lateinit var relayService: RelayService
 
     @Autowired
     lateinit var discountService: DiscountService
@@ -221,11 +221,10 @@ class InoutService(
 
                     // 기 입차 여부 확인 및 update
                     val parkins = searchParkInByVehicleNo(vehicleNo, gate.gateId)
-                    if (parkins.code == ResultCode.SUCCESS.getCode()) {
-                        val lists = parkins.data as? List<ParkIn>?
-                        lists!!.filter { it.outSn == 0L }.forEach {
+                    if (!parkins.isNullOrEmpty()) {
+                        parkins.filter { it.outSn == 0L }.forEach {
                             it.outSn = -1
-                            parkInRepository.saveAndFlush(it)
+                            parkInService.save(it)
                         }
                     }
                 } else {
@@ -421,15 +420,9 @@ class InoutService(
         }
     }
 
-    fun searchParkInByVehicleNo(vehicleNo: String, gateId: String) : CommonResult {
+    fun searchParkInByVehicleNo(vehicleNo: String, gateId: String) : MutableList<ParkInDTO> {
         logger.trace("VehicleService searchParkInByVehicleNo search param : $vehicleNo $gateId")
-
-        parkInRepository.findAll(findAllParkInSpecification(reqSearchParkin(searchLabel = "CARNUM", searchText = vehicleNo, gateId = gateId)))?.let { it ->
-            if (it.isNullOrEmpty()) return CommonResult.notfound("$vehicleNo park in data not found")
-            return CommonResult.data(it)
-        }
-
-        return CommonResult.notfound("$vehicleNo park-in data not found")
+        return parkInQueryService.findByCriteria(ParkInCriteria(vehicleNo = vehicleNo, gateId = gateId))
     }
 
     fun modifyInOutVehicleByTmap(request: reqInOutVehicleInformationSetup, requestId: String) {
@@ -737,12 +730,14 @@ class InoutService(
                                         //parkIn?.let { updateParkInExitComplete(it, newData.sn!! ) }
                                         //displayMessage(parkingtype!!, vehicleNo, "OUT", gate.gateId)
                                         logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
-                                        relayService.actionGate(gate.gateId, "GATE", "open")
+                                        //relayService.actionGate(gate.gateId, "GATE", "open")
+                                        relayClient.sendActionBreaker(gate.gateId, "open")
                                     }
                                 }
                             } else {
                                 logger.warn { "parkout car_number: ${request.vehicleNo} 출차 gate ${gate.gateId} open" }
-                                relayService.actionGate(gate.gateId, "GATE", "open")
+                                //relayService.actionGate(gate.gateId, "GATE", "open")
+                                relayClient.sendActionBreaker(gate.gateId, "open")
                             }
                         }
                     }
@@ -806,13 +801,22 @@ class InoutService(
             val results = ArrayList<resParkInList>()
             when (request.searchDateLabel) {
                 DisplayMessageClass.IN -> {
-                    parkInRepository.findAll(findAllParkInSpecification(request))?.let { list ->
+                    var criteria = ParkInCriteria(
+                        sn = if (request.searchLabel == "INSN" && request.searchText != null) request.searchText!!.toLong() else null,
+                        vehicleNo = if (request.searchLabel == "CARNUM" && request.searchText != null) request.searchText!! else null,
+                        fromDate = request.fromDate,
+                        toDate = request.toDate,
+                        gateId = request.gateId,
+                        parkcartype = request.parkcartype
+
+                    )
+                    parkInQueryService.findByCriteria(criteria).let { list ->
                         list.forEach {
                             val result = resParkInList(
                                 type = DisplayMessageClass.IN,
                                 parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
                                 inGateId = it.gateId, inDate = it.inDate!!,
-                                ticketCorpName = it.ticket?.corp?.corpName, memo = it.memo,
+                                ticketCorpName = it.seasonTicketDTO?.corp?.corpName, memo = it.memo,
                                 inImgBase64Str = it.image?.let { image -> image.substring(image.indexOf("/park")) }
                             )
                             result.paymentAmount = inoutPaymentRepository.findByInSnAndResultAndDelYn(it.sn!!, ResultType.SUCCESS, DelYn.N)?.let { payment ->
@@ -841,6 +845,41 @@ class InoutService(
                             results.add(result)
                         }
                     }
+//                    parkInRepository.findAll(findAllParkInSpecification(request))?.let { list ->
+//                        list.forEach {
+//                            val result = resParkInList(
+//                                type = DisplayMessageClass.IN,
+//                                parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
+//                                inGateId = it.gateId, inDate = it.inDate!!,
+//                                ticketCorpName = it.ticket?.corp?.corpName, memo = it.memo,
+//                                inImgBase64Str = it.image?.let { image -> image.substring(image.indexOf("/park")) }
+//                            )
+//                            result.paymentAmount = inoutPaymentRepository.findByInSnAndResultAndDelYn(it.sn!!, ResultType.SUCCESS, DelYn.N)?.let { payment ->
+//                                payment.sumBy { it.amount!! }
+//                            }?: kotlin.run { 0 }
+//
+//                            result.aplyDiscountClasses = discountService.searchInoutDiscount(it.sn!!) as ArrayList<InoutDiscount>?
+//
+//                            if (it.outSn!! > 0L && it.outSn != null) {
+//                                parkOutRepository.findBySn(it.outSn!!)?.let { out ->
+//                                    result.type = DisplayMessageClass.OUT
+//                                    result.parkoutSn = out.sn
+//                                    result.outDate = out.outDate
+//                                    result.outGateId = out.gateId
+//                                    result.parktime = out.parktime
+//                                    result.parkfee = out.parkfee
+//                                    result.payfee = out.payfee?: 0
+//                                    result.discountfee = out.discountfee
+//                                    result.dayDiscountfee = out.dayDiscountfee
+//                                    result.outImgBase64Str = if (out.image!!.contains("/park")) out.image!!.substring(out.image!!.indexOf("/park")) else null
+//                                    result.nonPayment = result.payfee!! - result.paymentAmount!!
+//                                }
+//                            } else {
+//                                result.parkoutSn = it.outSn
+//                            }
+//                            results.add(result)
+//                        }
+//                    }
                 }
                 DisplayMessageClass.OUT -> {
                     parkOutRepository.findAll(findAllParkOutSpecification(request))?.let{ list ->
@@ -872,49 +911,49 @@ class InoutService(
 
     }
 
-    private fun findAllParkInSpecification(request: reqSearchParkin): Specification<ParkIn> {
-        val spec = Specification<ParkIn> { root, query, criteriaBuilder ->
-            val clues = mutableListOf<Predicate>()
-
-            if(request.searchLabel == "CARNUM" && request.searchText != null) {
-                val likeValue = "%" + request.searchText + "%"
-                clues.add(
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("vehicleNo")), likeValue)
-                )
-            }
-
-            if(request.searchLabel == "INSN" && request.searchText != null) {
-                clues.add(
-                    criteriaBuilder.equal(root.get<Long>("sn"), request.searchText)
-                )
-            }
-
-            if (request.fromDate != null && request.toDate != null) {
-                clues.add(
-                    criteriaBuilder.between(
-                        root.get("inDate"),
-                        DateUtil.beginTimeToLocalDateTime(request.fromDate.toString()),
-                        DateUtil.lastTimeToLocalDateTime(request.toDate.toString())
-                    )
-                )
-            }
-            if (request.gateId != null) {
-                val likeValue = "%" + request.gateId + "%"
-                clues.add(
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("gateId")), likeValue)
-                )
-            }
-            if (request.parkcartype != null) {
-                clues.add(
-                    criteriaBuilder.like(criteriaBuilder.upper(root.get<String>("parkcartype")), "%" + request.parkcartype + "%")
-                )
-            }
-            clues.add(criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N))
-            query.orderBy(criteriaBuilder.desc(root.get<LocalDateTime>("inDate")))
-            criteriaBuilder.and(*clues.toTypedArray())
-        }
-        return spec
-    }
+//    private fun findAllParkInSpecification(request: reqSearchParkin): Specification<ParkIn> {
+//        val spec = Specification<ParkIn> { root, query, criteriaBuilder ->
+//            val clues = mutableListOf<Predicate>()
+//
+//            if(request.searchLabel == "CARNUM" && request.searchText != null) {
+//                val likeValue = "%" + request.searchText + "%"
+//                clues.add(
+//                    criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("vehicleNo")), likeValue)
+//                )
+//            }
+//
+//            if(request.searchLabel == "INSN" && request.searchText != null) {
+//                clues.add(
+//                    criteriaBuilder.equal(root.get<Long>("sn"), request.searchText)
+//                )
+//            }
+//
+//            if (request.fromDate != null && request.toDate != null) {
+//                clues.add(
+//                    criteriaBuilder.between(
+//                        root.get("inDate"),
+//                        DateUtil.beginTimeToLocalDateTime(request.fromDate.toString()),
+//                        DateUtil.lastTimeToLocalDateTime(request.toDate.toString())
+//                    )
+//                )
+//            }
+//            if (request.gateId != null) {
+//                val likeValue = "%" + request.gateId + "%"
+//                clues.add(
+//                    criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("gateId")), likeValue)
+//                )
+//            }
+//            if (request.parkcartype != null) {
+//                clues.add(
+//                    criteriaBuilder.like(criteriaBuilder.upper(root.get<String>("parkcartype")), "%" + request.parkcartype + "%")
+//                )
+//            }
+//            clues.add(criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N))
+//            query.orderBy(criteriaBuilder.desc(root.get<LocalDateTime>("inDate")))
+//            criteriaBuilder.and(*clues.toTypedArray())
+//        }
+//        return spec
+//    }
 
     private fun findAllParkOutSpecification(request: reqSearchParkin): Specification<ParkOut> {
 
@@ -950,7 +989,8 @@ class InoutService(
                     "SUCCESS" -> {
                         // open Gate
                         if (request.outVehicleAllowYn == "Y" || request.adjustmentAmount == 0) {
-                            relayService.actionGate(it.gateId!!, "GATE", "open")
+                            //relayService.actionGate(it.gateId!!, "GATE", "open")
+                            relayClient.sendActionBreaker(it.gateId ?: "", "open")
 
                             facilityService.sendPaystation(
                                 reqPayStationData(paymentMachineType = "exit",
@@ -1003,7 +1043,8 @@ class InoutService(
                     }
                     "FAILED" -> {
                         // open gate
-                        relayService.actionGate(it.gateId!!, "GATE", "open")
+//                        relayService.actionGate(it.gateId!!, "GATE", "open")
+                        relayClient.sendActionBreaker(it.gateId ?: "", "open")
                         it.outVehicle = 1
                         // todo 정산기 I/F
                         // todo 전광판
@@ -1215,7 +1256,8 @@ class InoutService(
                 )
 
                 if (request.payfee != null && request.payfee!! == 0) {
-                    relayService.actionGate(request.outGateId!!, "GATE", "open")
+//                    relayService.actionGate(request.outGateId!!, "GATE", "open")
+                    relayClient.sendActionBreaker(request.outGateId ?: "", "open")
                     discountService.applyInoutDiscount(parkIn.sn!!)
                 }
             }
@@ -1315,7 +1357,8 @@ class InoutService(
                     )
                 }
 
-                relayService.actionGate(gateId, "GATE", "open")
+                // relayService.actionGate(gateId, "GATE", "open")
+                relayClient.sendActionBreaker(gateId, "open")
                 displayMessage(
                     out.parkcartype!!,
                     request.vehicleNumber, "OUT", gateId)
