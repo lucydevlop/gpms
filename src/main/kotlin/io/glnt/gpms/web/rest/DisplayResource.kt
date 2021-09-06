@@ -1,4 +1,4 @@
-package io.glnt.gpms.io.glnt.gpms.web.rest
+package io.glnt.gpms.web.rest
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.configs.ApiConfig

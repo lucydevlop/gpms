@@ -93,7 +93,7 @@ data class ParkIn(
     @Column(name = "del_yn", nullable = false)
     var delYn: DelYn? = DelYn.N
 ): Auditable(), Serializable {
-    @OneToOne
-    @JoinColumn(name = "ticket_sn", referencedColumnName = "sn", insertable = false, updatable = false)
-    var ticket: ProductTicket? = null
+//    @OneToOne
+//    @JoinColumn(name = "ticket_sn", referencedColumnName = "sn", insertable = false, updatable = false)
+//    var ticket: ProductTicket? = null
 }

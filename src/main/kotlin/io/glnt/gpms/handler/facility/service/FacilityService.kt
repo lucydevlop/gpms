@@ -9,19 +9,19 @@ import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.dashboard.admin.model.ReqCreateMessage
 import io.glnt.gpms.handler.facility.model.*
 import io.glnt.gpms.handler.inout.model.reqUpdatePayment
-import io.glnt.gpms.handler.inout.service.InoutService
+import io.glnt.gpms.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
-import io.glnt.gpms.handler.rcs.model.*
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
-import io.glnt.gpms.io.glnt.gpms.common.utils.JacksonUtil
 import io.glnt.gpms.model.dto.FacilityDTO
+import io.glnt.gpms.model.dto.GateDTO
 import io.glnt.gpms.model.dto.request.reqDisplayInfo
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.mapper.FacilityMapper
 import io.glnt.gpms.model.repository.*
+import io.glnt.gpms.service.GateService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -34,11 +34,12 @@ class FacilityService(
     private var displayInfoRepository: DisplayInfoRepository,
     private var displayColorRepository: DisplayColorRepository,
     private var displayMessageRepository: DisplayMessageRepository,
-    private var facilityMapper: FacilityMapper
+    private var facilityMapper: FacilityMapper,
+    private var gateService: GateService
 ) {
     companion object : KLogging()
 
-    lateinit var gates: List<Gate>
+    lateinit var gates: List<GateDTO>
 
     /* static */
     lateinit var displayColors: List<DisplayColor>
@@ -85,7 +86,7 @@ class FacilityService(
 
     @PostConstruct
     fun initalizeData() {
-        parkGateRepository.findAll().let {
+        gateService.findAll().let {
             gates = it
         }
 
@@ -412,7 +413,7 @@ class FacilityService(
         return gates.filter { it.gateId == gateId }[0].relaySvr!!
     }
 
-    fun getGateByGateId(gateId: String) : Gate? {
+    fun getGateByGateId(gateId: String) : GateDTO? {
         return gates.filter { it.gateId == gateId }[0]
     }
 
@@ -530,10 +531,15 @@ class FacilityService(
         return jacksonObjectMapper().readValue(any, valueType)
     }
 
-    /* udp gate id */
-    fun getUdpGateId(gateId: String) : String? {
-        return parkGateRepository.findByGateId(gateId)?.udpGateid
-    }
+//    /* udp gate id */
+//    fun getUdpGateId(gateId: String) {
+//        val udpGateId = gateService.findOne(gateId)
+//            .ifPresentOrElse(
+//                { it.udpGateid },
+//                { null }
+//            )
+//        return udpGateId
+//    }
 
     fun updateFacility(facility: Facility): Facility {
         return facilityRepository.save(facility)
@@ -679,21 +685,11 @@ class FacilityService(
 
     fun activeGateFacilities(): List<FacilityDTO>? {
         var result = ArrayList<FacilityDTO>()
-        parkGateRepository.findByDelYn(DelYn.N).let { gates ->
+        gateService.findActiveGate().let { gates ->
             for (gate in gates) {
-                facilityRepository.findByGateIdAndDelYn(gate.gateId, DelYn.N)?.let { facilities ->
+                facilityRepository.findByGateIdAndDelYn(gate.gateId!!, DelYn.N)?.let { facilities ->
                     for (facility in facilities) {
                         result.add(facilityMapper.toDTO(facility)
-
-//                            ResAsyncFacility(sn = facility.sn!!, category = facility.category!!,
-//                            modelid = facility.modelid, fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
-//                            facilitiesId = if (facility.facilitiesId.isNullOrEmpty()) facility.dtFacilitiesId else facility.facilitiesId,
-//                            gateId = facility.gateId, gateName = gate.gateName!!,
-//                            ip = facility.ip!!, port = facility.port!!, lprType = facility.lprType, imagePath = facility.imagePath,
-//                            health = if (facility.ip == "0.0.0.0") "NORMAL" else facility.health,
-//                            healthDate = facility.healthDate, status = facility.status,
-//                            statusDate = facility.statusDate, gateType = facility.gateType!!,
-//                            delYn = if (gate.delYn!! == DelYn.Y) DelYn.Y else facility.delYn!!, resetPort = null )
                         )
                     }
                 }
@@ -704,21 +700,11 @@ class FacilityService(
 
     fun allFacilities(): List<FacilityDTO>? {
         var result = ArrayList<FacilityDTO>()
-        parkGateRepository.findAll().let { gates ->
+        gateService.findAll().let { gates ->
             for (gate in gates) {
-                facilityRepository.findByGateId(gate.gateId)?.let { facilities ->
+                facilityRepository.findByGateId(gate.gateId!!)?.let { facilities ->
                     for (facility in facilities) {
                         result.add(facilityMapper.toDTO(facility)
-//                            ResAsyncFacility(sn = facility.sn!!, category = facility.category!!,
-//                            modelid = facility.modelid, fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
-////                            facilitiesId = facility.facilitiesId!!,
-//                            resetPort = facility.resetPort,
-//                            gateId = facility.gateId, gateName = gate.gateName!!,
-//                            ip = facility.ip!!, port = facility.port!!, lprType = facility.lprType, imagePath = facility.imagePath,
-//                            health = if (facility.ip == "0.0.0.0") "NORMAL" else facility.health,
-//                            healthDate = facility.healthDate, status = facility.status,
-//                            statusDate = facility.statusDate, gateType = facility.gateType,
-//                            delYn = if (gate.delYn!! == DelYn.Y) DelYn.Y else facility.delYn!! )
                         )
                     }
                 }

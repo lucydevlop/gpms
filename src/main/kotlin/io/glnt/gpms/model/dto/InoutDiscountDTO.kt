@@ -20,6 +20,8 @@ data class InoutDiscountDTO (
 
     var ticketHistSn: Long? = null,
 
+    var ticketClassSn: Long? = null,
+
     var inSn: Long? = null,
 
     var quantity: Int? = 1,
@@ -33,15 +35,19 @@ data class InoutDiscountDTO (
 
     var outSn: Long? = null,
 
+    var createDate: LocalDateTime? = null,
+
     @Enumerated(EnumType.STRING)
     var delYn: DelYn? = DelYn.N,
 
-    var discountClass: DiscountClassDTO? = null
+    var discountClass: DiscountClassDTO? = null,
+
+    var parkInDTO: ParkInDTO? = null
 ): Serializable {
     constructor(inoutDiscount: InoutDiscount) :
         this(
             inoutDiscount.sn, inoutDiscount.discontType, inoutDiscount.corpSn, inoutDiscount.discountClassSn,
-            inoutDiscount.ticketHistSn, inoutDiscount.inSn, inoutDiscount.quantity, inoutDiscount.useQuantity,
-            inoutDiscount.applyDate, inoutDiscount.calcYn, inoutDiscount.outSn, inoutDiscount.delYn
+            inoutDiscount.ticketHistSn, inoutDiscount.ticketClassSn, inoutDiscount.inSn, inoutDiscount.quantity, inoutDiscount.useQuantity,
+            inoutDiscount.applyDate, inoutDiscount.calcYn, inoutDiscount.outSn, inoutDiscount.createDate, inoutDiscount.delYn
         )
 }

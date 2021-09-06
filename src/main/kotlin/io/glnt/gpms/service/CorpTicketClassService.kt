@@ -42,54 +42,54 @@ class CorpTicketClassService(
         return corpTicketClassMapper.toDTO(corpTicketClass)
     }
 
-    fun parkingDiscountSearchApplyTicket(request: reqParkingDiscountApplyTicketSearch) : CommonResult {
-        try {
-            val tickets = discountService.searchCorpTicketByCorp(
-                reqParkingDiscountSearchTicket(
-                    searchLabel = "CORPSN",
-                    searchText = request.corpSn.toString()
-                )
-            )
-            when (tickets.code) {
-                ResultCode.SUCCESS.getCode() -> {
-                    val result = ArrayList<ResDiscountTicetsApplyList>()
-                    val lists = tickets.data as List<CorpTicketInfo>
-                    lists.forEach { it ->
-                        if ( (request.discountClassSn != null && it.classSn == request.discountClassSn) || request.discountClassSn == null ) {
-                            discountService.searchInoutDiscount(
-                                reqApplyInoutDiscountSearch(
-                                    ticketSn = it.sn!!, startDate = request.startDate, endDate = request.endDate,
-                                    applyStatus = request.applyStatus, ticketClassSn = request.ticketClassSn
-                                )
-                            )?.let {
-                                its ->
-                                its.forEach {
-                                    result.add(
-                                        ResDiscountTicetsApplyList(
-                                            sn = it.sn!!,
-                                            vehicleNo = it.parkIn!!.vehicleNo!!,
-                                            discountType = it.discontType!!,
-                                            discountClassSn = it.discountClassSn!!,
-                                            //discountNm = it.ticketHist!!.ticketInfo!!.discountClass!!.discountNm,
-                                            discountNm = it.discountClass.discountNm,
-                                            calcYn = it.calcYn!!,
-                                            delYn = it.delYn!!,
-                                            createDate = it.createDate!!,
-                                            quantity = it.quantity!!,
-                                            ticketClassSn = it.ticketClassSn
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    return CommonResult.data(result.sortedByDescending { it.createDate })
-                }
-            }
-            return CommonResult.data()
-        }catch (e: CustomException) {
-            logger.error { "parkingDiscountSearchApplyTicket failed $e" }
-            return CommonResult.Companion.error("parkingDiscountSearchApplyTicket failed ${e.message}")
-        }
-    }
+//    fun parkingDiscountSearchApplyTicket(request: reqParkingDiscountApplyTicketSearch) : CommonResult {
+//        try {
+//            val tickets = discountService.searchCorpTicketByCorp(
+//                reqParkingDiscountSearchTicket(
+//                    searchLabel = "CORPSN",
+//                    searchText = request.corpSn.toString()
+//                )
+//            )
+//            when (tickets.code) {
+//                ResultCode.SUCCESS.getCode() -> {
+//                    val result = ArrayList<ResDiscountTicetsApplyList>()
+//                    val lists = tickets.data as List<CorpTicketInfo>
+//                    lists.forEach { it ->
+//                        if ( (request.discountClassSn != null && it.classSn == request.discountClassSn) || request.discountClassSn == null ) {
+//                            discountService.searchInoutDiscount(
+//                                reqApplyInoutDiscountSearch(
+//                                    ticketSn = it.sn!!, startDate = request.startDate, endDate = request.endDate,
+//                                    applyStatus = request.applyStatus, ticketClassSn = request.ticketClassSn
+//                                )
+//                            )?.let {
+//                                its ->
+//                                its.forEach {
+//                                    result.add(
+//                                        ResDiscountTicetsApplyList(
+//                                            sn = it.sn!!,
+//                                            vehicleNo = it.parkIn!!.vehicleNo!!,
+//                                            discountType = it.discontType!!,
+//                                            discountClassSn = it.discountClassSn!!,
+//                                            //discountNm = it.ticketHist!!.ticketInfo!!.discountClass!!.discountNm,
+//                                            discountNm = it.discountClass.discountNm,
+//                                            calcYn = it.calcYn!!,
+//                                            delYn = it.delYn!!,
+//                                            createDate = it.createDate!!,
+//                                            quantity = it.quantity!!,
+//                                            ticketClassSn = it.ticketClassSn
+//                                        )
+//                                    )
+//                                }
+//                            }
+//                        }
+//                    }
+//                    return CommonResult.data(result.sortedByDescending { it.createDate })
+//                }
+//            }
+//            return CommonResult.data()
+//        }catch (e: CustomException) {
+//            logger.error { "parkingDiscountSearchApplyTicket failed $e" }
+//            return CommonResult.Companion.error("parkingDiscountSearchApplyTicket failed ${e.message}")
+//        }
+//    }
 }

@@ -3,7 +3,7 @@ package io.glnt.gpms.handler.inout.controller
 import io.glnt.gpms.common.api.*
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.inout.service.InoutService
+import io.glnt.gpms.service.InoutService
 import io.glnt.gpms.handler.inout.model.reqAddParkIn
 import io.glnt.gpms.handler.inout.model.reqAddParkOut
 import io.glnt.gpms.model.dto.request.resParkInList
@@ -34,18 +34,18 @@ class InoutController {
         }
     }
 
-    @RequestMapping(value = ["/parkout"], method = [RequestMethod.POST])
-//    @ResponseStatus(CREATED)
-    @Throws(CustomException::class)
-    fun parkOut(@RequestBody request: reqAddParkOut) : ResponseEntity<CommonResult> {
-        val result = inoutService.parkOut(request)
-        return when(result.code){
-            ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
-            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
-            ResultCode.CONFLICT.getCode() -> ResponseEntity(result, HttpStatus.CONFLICT)
-            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
-        }
-    }
+//    @RequestMapping(value = ["/parkout"], method = [RequestMethod.POST])
+////    @ResponseStatus(CREATED)
+//    @Throws(CustomException::class)
+//    fun parkOut(@RequestBody request: reqAddParkOut) : ResponseEntity<CommonResult> {
+//        val result = inoutService.parkOut(request)
+//        return when(result.code){
+//            ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
+//            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+//            ResultCode.CONFLICT.getCode() -> ResponseEntity(result, HttpStatus.CONFLICT)
+//            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+//        }
+//    }
 
 //    @RequestMapping(value = ["/list"], method = [RequestMethod.POST])
 //    @Throws(CustomException::class)
@@ -74,10 +74,10 @@ class InoutController {
     fun updateInout(@PathVariable request: resParkInList) : ResponseEntity<CommonResult> {
         logger.trace { "update INOUT $request" }
         val result = inoutService.updateInout(request)
-        return when (result.code) {
-            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
-            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
+        if (result == null) {
+            return ResponseEntity(result, HttpStatus.BAD_REQUEST)
         }
+        return ResponseEntity.ok(CommonResult.data(result))
     }
 
     companion object : KLogging()

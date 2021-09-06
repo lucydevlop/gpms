@@ -3,7 +3,9 @@ package io.glnt.gpms.web.rest
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
+import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.dashboard.user.model.ResDiscountTicetsApplyList
 import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.model.dto.*
 import io.glnt.gpms.model.enums.DelYn
@@ -25,7 +27,8 @@ class CorpResource (
     private val parkSiteInfoService: ParkSiteInfoService,
     private val discountService: DiscountService,
     private val inoutDiscountService: InoutDiscountService,
-    private val corpTicketClassService: CorpTicketClassService
+    private val corpTicketClassService: CorpTicketClassService,
+    private val inoutDiscountQueryService: InoutDiscountQueryService
 ){
     companion object : KLogging()
 
@@ -125,9 +128,41 @@ class CorpResource (
 
     @RequestMapping(value = ["/corps/add/tickets"], method = [RequestMethod.POST])
     fun addCorpTickets(@Valid @RequestBody addCorpTicketDTO: AddCorpTicketDTO): ResponseEntity<CommonResult> {
-        logger.debug { "corp add ticket " }
+        logger.debug { "corp add ticket $addCorpTicketDTO" }
         corpService.addCorpTickets(addCorpTicketDTO)
         return getCorpTicketsSummary(addCorpTicketDTO.corpSn.toString())
+    }
+
+    @RequestMapping(value = ["/corps/{sn}/tickets"], method = [RequestMethod.GET])
+    fun getCorpsApplyTickets(@PathVariable sn: String,
+                             @RequestParam(name = "fromDate", required = false) fromDate: String,
+                             @RequestParam(name = "toDate", required = false) toDate: String,
+                             @RequestParam(name = "ticketClassSn", required = false) ticketClassSn: Long? = null
+    ): ResponseEntity<CommonResult> {
+        logger.debug { "corp get ticket $sn $fromDate, $toDate, $ticketClassSn" }
+        val result = ArrayList<ResDiscountTicetsApplyList>()
+        val inoutDiscounts = inoutDiscountQueryService.findByCriteria(
+                                    InoutDiscountCriteria(corpSn = sn.toLong(),
+                                                          fromDate = DateUtil.stringToLocalDate(fromDate),
+                                                          toDate = DateUtil.stringToLocalDate(toDate),
+                                                          ticketClassSn = ticketClassSn))
+        inoutDiscounts.forEach {
+            result.add(
+                ResDiscountTicetsApplyList(
+                    sn = it.sn!!,
+                    vehicleNo = it.parkInDTO!!.vehicleNo!!,
+                    discountType = it.discontType!!,
+                    discountClassSn = it.discountClassSn!!,
+                    discountNm = it.discountClass!!.discountNm!!,
+                    calcYn = it.calcYn!!,
+                    delYn = it.delYn!!,
+                    createDate = it.createDate!!,
+                    quantity = it.quantity!!,
+                    ticketClassSn = it.ticketClassSn!!
+                )
+            )
+        }
+        return CommonResult.returnResult(CommonResult.data(result))
     }
 
 }

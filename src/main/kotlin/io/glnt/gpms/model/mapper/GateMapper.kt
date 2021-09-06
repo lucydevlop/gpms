@@ -1,4 +1,4 @@
-package io.glnt.gpms.io.glnt.gpms.model.mapper
+package io.glnt.gpms.model.mapper
 
 import io.glnt.gpms.model.dto.GateDTO
 import io.glnt.gpms.model.entity.Gate

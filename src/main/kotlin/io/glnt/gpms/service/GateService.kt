@@ -1,8 +1,6 @@
 package io.glnt.gpms.service
 
-import io.glnt.gpms.common.api.ResultCode
-import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.io.glnt.gpms.model.mapper.GateMapper
+import io.glnt.gpms.model.mapper.GateMapper
 import io.glnt.gpms.model.dto.GateDTO
 import io.glnt.gpms.model.entity.GateGroup
 import io.glnt.gpms.model.repository.GateGroupRepository
@@ -66,5 +64,10 @@ class GateService(
         logger.debug { "Request to get Gate $gateId" }
         return gateRepository.findByGateId(gateId).map(gateMapper::toDto)
 
+    }
+
+    fun findActiveGate(): List<GateDTO> {
+        logger.debug { "Request to get Active Gate " }
+        return gateRepository.findByDelYn(DelYn.N).map(gateMapper::toDto)
     }
 }

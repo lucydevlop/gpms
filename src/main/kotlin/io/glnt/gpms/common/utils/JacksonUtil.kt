@@ -1,4 +1,4 @@
-package io.glnt.gpms.io.glnt.gpms.common.utils
+package io.glnt.gpms.common.utils
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonNode

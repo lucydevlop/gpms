@@ -14,7 +14,7 @@ import io.glnt.gpms.handler.discount.model.reqDiscountableTicket
 import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
-import io.glnt.gpms.handler.inout.service.InoutService
+import io.glnt.gpms.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.rcs.model.*
@@ -248,7 +248,7 @@ class RcsService(
     @Throws(CustomException::class)
     fun updateInout(request: resParkInList) : CommonResult {
         try {
-            return CommonResult.data(inoutService.updateInout(request).data)
+            return CommonResult.data(inoutService.updateInout(request))
         }catch (e: CustomException){
             logger.error { "rcs updateInout failed $e" }
             return CommonResult.error("rcs updateInout failed ${e.message}")

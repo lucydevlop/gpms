@@ -1,4 +1,4 @@
-package io.glnt.gpms.io.glnt.gpms.common.configs
+package io.glnt.gpms.common.configs
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.JsonGenerator

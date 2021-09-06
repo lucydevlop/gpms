@@ -10,8 +10,7 @@ import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.model.*
 import io.glnt.gpms.handler.facility.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqAddParkOut
-import io.glnt.gpms.handler.inout.service.InoutService
-import io.glnt.gpms.handler.inout.service.checkItemsAre
+import io.glnt.gpms.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.rcs.model.ReqFacilityStatus
 import io.glnt.gpms.handler.rcs.service.RcsService
@@ -21,7 +20,7 @@ import io.glnt.gpms.handler.relay.model.paystationvehicleListSearch
 import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
-import io.glnt.gpms.io.glnt.gpms.common.api.RcsClient
+import io.glnt.gpms.common.api.RcsClient
 import io.glnt.gpms.model.dto.BarcodeTicketsDTO
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
@@ -349,40 +348,30 @@ class RelayService(
             tmapSendService.sendTmapInterface(request, requestId, "vehicleListSearch")
         } else {
             val parkIns = inoutService.searchParkInByVehicleNo(contents.vehicleNumber, "")
-            val data = ArrayList<paystationvehicleListSearch>()
-            if (!parkIns.isNullOrEmpty()) {
-                parkIns.filter { it.outSn == 0L }.forEach {
-                    data.add(
-                        paystationvehicleListSearch(
-                            vehicleNumber = it.vehicleNo!!,
-                            inVehicleDateTime = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss")))
+            parkinglotService.getGateInfoByDtFacilityId(dtFacilityId)?.let { gate ->
+                val data = ArrayList<paystationvehicleListSearch>()
+                if (!parkIns.isNullOrEmpty()) {
+                    parkIns.filter { it.outSn == 0L }.forEach {
+                        data.add(
+                            paystationvehicleListSearch(
+                                vehicleNumber = it.vehicleNo!!,
+                                inVehicleDateTime = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss")))
+                    }
+
+                    facilityService.sendPaystation(
+                        reqVehicleSearchList(
+                            vehicleList = data,
+                            result = "SUCCESS"
+                        ),
+                        gate = gate.gateId,
+                        requestId = request.requestId!!,
+                        type = "vehicleListSearchResponse"
+                    )
+                } else {
+                    // 번호 검색 없을 시 게이트 오픈
+                    inoutService.outFacilityIF("UNRECOGNIZED", "", gate, null, 0)
                 }
             }
-
-//             when(parkins.code) {
-//                ResultCode.SUCCESS.getCode() -> {
-//                    val lists = parkins.data as? List<*>?
-//                    lists!!.checkItemsAre<ParkIn>()?.filter { it.outSn == 0L }?.let { list ->
-//                        list.forEach {
-//                            data.add(
-//                                paystationvehicleListSearch(
-//                                    vehicleNumber = it.vehicleNo!!,
-//                                    inVehicleDateTime = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss")))
-//                        }
-//
-//                    }
-//                }
-//            }
-
-            facilityService.sendPaystation(
-                reqVehicleSearchList(
-                    vehicleList = data,
-                    result = "SUCCESS"
-                ),
-                gate = parkinglotService.getFacilityByDtFacilityId(dtFacilityId)!!.gateId,
-                requestId = request.requestId!!,
-                type = "vehicleListSearchResponse"
-            )
         }
     }
 
@@ -422,7 +411,7 @@ class RelayService(
                 it.effectDate!! <= LocalDateTime.now() && it.expireDate!! >= LocalDateTime.now() && it.delYn == DelYn.N}.get(0)
 
             // parkOut 확인
-            parkOutRepository.findBySn(request.requestId!!.toLong())?.let {
+            parkOutRepository.findBySn(request.requestId!!.toLong()).ifPresent {
                 it.inSn
                 var barcodeTicketDTO: BarcodeTicketsDTO =  BarcodeTicketsDTO(
                                         barcode = contents.parkTicketNumber,

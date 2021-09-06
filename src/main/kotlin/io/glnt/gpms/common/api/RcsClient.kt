@@ -1,4 +1,4 @@
-package io.glnt.gpms.io.glnt.gpms.common.api
+package io.glnt.gpms.common.api
 
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.handler.rcs.model.ReqFacilityStatus

@@ -33,10 +33,10 @@ interface ParkInRepository: JpaRepository<ParkIn, Long>, JpaSpecificationExecuto
 }
 
 @Repository
-interface ParkOutRepository: JpaRepository<ParkOut, Long> {
-    fun findBySn(sn: Long): ParkOut?
+interface ParkOutRepository: JpaRepository<ParkOut, Long>, JpaSpecificationExecutor<ParkOut> {
+    fun findBySn(sn: Long): Optional<ParkOut>
     fun findByVehicleNoEndsWith(vehicleNo: String) : List<ParkOut>?
-    fun findAll(specification: Specification<ParkOut>): List<ParkOut>?
+//    fun findAll(specification: Specification<ParkOut>): List<ParkOut>?
     fun findByRequestid(requestId: String): ParkOut?
     fun findByUuid(uuid: String): ParkOut?
     fun findTopByPaystationAndApproveDatetimeIsNotNullOrderByOutDateDesc(paystation: String): ParkOut?
@@ -44,6 +44,7 @@ interface ParkOutRepository: JpaRepository<ParkOut, Long> {
     fun findTopByGateIdAndDelYnAndOutDateGreaterThanEqualOrderByOutDateDesc(gateId: String, delYn: DelYn, inDate: LocalDateTime ) : ParkOut?
     fun findTopByGateIdAndDelYnOrderByOutDateDesc(gateId: String, delYn: DelYn) : ParkOut?
     fun findTopByInSnAndDelYnOrderByOutDateDesc(inSn: Long, delYn: DelYn): ParkOut?
+    fun findTopByInSnAndDelYnOrderByOutDateDescSnDesc(inSn: Long, delYn: DelYn): Optional<ParkOut>
     fun findByOutDateBetweenAndDelYn(start: LocalDateTime, end: LocalDateTime, delYn: DelYn): List<ParkOut>?
 }
 

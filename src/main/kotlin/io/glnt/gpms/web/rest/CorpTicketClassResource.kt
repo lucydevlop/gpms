@@ -49,12 +49,4 @@ class CorpTicketClassResource (
         }
         return CommonResult.returnResult(CommonResult.data(corpTicketClassService.save(corpTicketClassDTO)))
     }
-
-    @RequestMapping(value = ["/corp/discount/apply/ticket"], method = [RequestMethod.POST])
-    fun parkingDiscountSearchApplyTicket(@RequestBody req: reqParkingDiscountApplyTicketSearch): ResponseEntity<CommonResult> {
-        return CommonResult.returnResult(CommonResult.data(corpTicketClassService.parkingDiscountSearchApplyTicket(req)))
-
-    }
-
-
 }

@@ -1,4 +1,4 @@
-package io.glnt.gpms.io.glnt.gpms.handler.dashboard.common.service
+package io.glnt.gpms.handler.dashboard.common.service
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.exception.CustomException
