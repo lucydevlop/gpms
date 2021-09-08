@@ -2,6 +2,7 @@ package io.glnt.gpms.model.mapper
 
 import io.glnt.gpms.model.dto.StatisticsInoutDTO
 import io.glnt.gpms.model.entity.ParkIn
+import io.glnt.gpms.model.entity.ParkOut
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.ResultType
 import io.glnt.gpms.model.repository.InoutPaymentRepository
@@ -10,25 +11,23 @@ import org.springframework.stereotype.Service
 
 @Service
 class StatisticsInoutMapper(
-    private val parkOutRepository: ParkOutRepository,
     private val inoutPaymentRepository: InoutPaymentRepository
 ) {
-    fun toDTO(entity: ParkIn) : StatisticsInoutDTO {
-        val out = parkOutRepository.findTopByInSnAndDelYnOrderByOutDateDesc(entity.sn!!, DelYn.N)
-        val payment = inoutPaymentRepository.findByInSnAndResultAndDelYn(entity.sn!!, ResultType.SUCCESS, DelYn.N)?.let { payment ->
+    fun toDTO(entity: ParkOut) : StatisticsInoutDTO {
+        val payment = inoutPaymentRepository.findByOutSnAndResultAndDelYn(entity.sn!!, ResultType.SUCCESS, DelYn.N)?.let { payment ->
             payment.sumBy { it.amount!! }
         }?: kotlin.run { 0 }
 
         return StatisticsInoutDTO(
-            parkcartype = entity.parkcartype,
+            inSn = entity.inSn,
             vehicleNo = entity.vehicleNo,
-            out = if (out == null) 0 else 1,
-            parkFee = out?.parkfee?: 0,
-            discountFee = out?.discountfee?: 0,
-            dayDiscountFee = out?.dayDiscountfee?: 0,
-            payFee = out?.payfee?: 0,
+            outSn = entity.sn,
+            parkFee = entity.parkfee?: 0,
+            discountFee = entity.discountfee?: 0,
+            dayDiscountFee = entity.dayDiscountfee?: 0,
+            payFee = entity.payfee?: 0,
             payment = payment,
-            nonPayment = out?.payfee?.minus(payment)
+            nonPayment = entity.payfee?.minus(payment)
         )
     }
 }

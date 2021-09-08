@@ -16,16 +16,16 @@
 <!--        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
 <!--            <level>INFO</level>-->
 <!--        </filter>-->
-        <file>log/gpms.log</file>
+        <file>/logs/gpms/gpms.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <Pattern>
-                %d{yyyy-MM-dd HH:mm:ss} [%-5level] %logger{36} - %msg%n
+                %d{yyyy-MM-dd HH:mm:ss} [%-5level] [%logger{0}:%line] - %msg%n
             </Pattern>
             <charset>UTF-8</charset>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- rollover daily -->
-            <fileNamePattern>log/gpms-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>/logs/gpms/gpms-%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
 <!--            <timeBasedFileNamingAndTriggeringPolicy-->
 <!--                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">-->
@@ -39,16 +39,16 @@
         <!--        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
         <!--            <level>INFO</level>-->
         <!--        </filter>-->
-        <file>log/gpms_relay.log</file>
+        <file>/logs/gpms/gpms_relay.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <Pattern>
-                %d{yyyy-MM-dd HH:mm:ss} [%-5level] %logger{36} - %msg%n
+                %d{yyyy-MM-dd HH:mm:ss} [%-5level] [%logger{0}:%line] - %msg%n
             </Pattern>
             <charset>UTF-8</charset>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- rollover daily -->
-            <fileNamePattern>log/gpms-relay-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>/logs/gpms/gpms-relay-%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
             <!--            <timeBasedFileNamingAndTriggeringPolicy-->
             <!--                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">-->
@@ -60,9 +60,9 @@
 
     <!--파일에 로그를 남깁니다. (Roling)-->
     <appender name="RollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>log/gpms_roling.log</file>
+        <file>/logs/gpms/gpms_roling.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <Pattern>%d{yyyy-MM-dd HH:mm:ss} [%-5level] %logger{36} - %msg%n</Pattern>
+            <Pattern>%d{yyyy-MM-dd HH:mm:ss} [%-5level] [%logger{0}:%line] - %msg%n</Pattern>
             <charset>UTF-8</charset>
         </encoder>
 
@@ -74,7 +74,7 @@
 
         <!-- 파일을 덮어쓰는 정책 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <FileNamePattern>log/gpms_roling.%i.log.zip</FileNamePattern>
+            <FileNamePattern>/logs/gpms/gpms_roling.%i.log.zip</FileNamePattern>
             <!--
                 100MB단위로 로그 압축 파일이 생성된다. (1 ~ 10)
                 10개가 넘어가면 오래된순으로 덮어쓰기 됩니다.
@@ -91,16 +91,16 @@
             <onMatch>ACCEPT</onMatch>
             <onMismatch>DENY</onMismatch>
         </filter>
-        <file>log/gpms-error.log</file>
+        <file>/logs/gpms/gpms-error.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <Pattern>
-                %d{yyyy-MM-dd HH:mm:ss} [%-5level] %logger{36} - %msg%n
+                %d{yyyy-MM-dd HH:mm:ss} [%-5level] [%logger{0}:%line] - %msg%n
             </Pattern>
             <charset>UTF-8</charset>
         </encoder>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>log/gpms-error-error.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>/logs/gpms/gpms-error-%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
     </appender>

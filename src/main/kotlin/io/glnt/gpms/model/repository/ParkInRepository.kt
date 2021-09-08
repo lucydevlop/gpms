@@ -36,12 +36,10 @@ interface ParkInRepository: JpaRepository<ParkIn, Long>, JpaSpecificationExecuto
 interface ParkOutRepository: JpaRepository<ParkOut, Long>, JpaSpecificationExecutor<ParkOut> {
     fun findBySn(sn: Long): Optional<ParkOut>
     fun findByVehicleNoEndsWith(vehicleNo: String) : List<ParkOut>?
-//    fun findAll(specification: Specification<ParkOut>): List<ParkOut>?
+    fun findByInSnAndDelYn(inSn: Long, delYn: DelYn): Optional<ParkOut>
     fun findByRequestid(requestId: String): ParkOut?
     fun findByUuid(uuid: String): ParkOut?
-    fun findTopByPaystationAndApproveDatetimeIsNotNullOrderByOutDateDesc(paystation: String): ParkOut?
     fun findTopByPaystationOrderByOutDateDesc(paystation: String): ParkOut?
-    fun findTopByGateIdAndDelYnAndOutDateGreaterThanEqualOrderByOutDateDesc(gateId: String, delYn: DelYn, inDate: LocalDateTime ) : ParkOut?
     fun findTopByGateIdAndDelYnOrderByOutDateDesc(gateId: String, delYn: DelYn) : ParkOut?
     fun findTopByInSnAndDelYnOrderByOutDateDesc(inSn: Long, delYn: DelYn): ParkOut?
     fun findTopByInSnAndDelYnOrderByOutDateDescSnDesc(inSn: Long, delYn: DelYn): Optional<ParkOut>
@@ -51,6 +49,7 @@ interface ParkOutRepository: JpaRepository<ParkOut, Long>, JpaSpecificationExecu
 @Repository
 interface InoutPaymentRepository: JpaRepository<InoutPayment, Long> {
     fun findByInSnAndResultAndDelYn(sn: Long, resultType: ResultType, delYn: DelYn): List<InoutPayment>?
+    fun findByOutSnAndResultAndDelYn(sn: Long, resultType: ResultType, delYn: DelYn): List<InoutPayment>?
     fun findByInSnAndResultAndTransactionIdAndDelYn(sn: Long, resultType: ResultType, transactionId: String, delYn: DelYn): InoutPayment?
 
 }

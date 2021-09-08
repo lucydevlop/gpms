@@ -830,24 +830,23 @@ class InoutService(
                             }?: kotlin.run { 0 }
 
                             result.aplyDiscountClasses = discountService.searchInoutDiscount(it.sn!!) as ArrayList<InoutDiscount>?
-
-                            if (it.outSn!! > 0L && it.outSn != null) {
-                                parkOutRepository.findBySn(it.outSn!!).ifPresent { out ->
-                                    result.type = DisplayMessageClass.OUT
-                                    result.parkoutSn = out.sn
-                                    result.outDate = out.outDate
-                                    result.outGateId = out.gateId
-                                    result.parktime = out.parktime
-                                    result.parkfee = out.parkfee
-                                    result.payfee = out.payfee?: 0
-                                    result.discountfee = out.discountfee
-                                    result.dayDiscountfee = out.dayDiscountfee
-                                    result.outImgBase64Str = out.image?.let { if (out.image!!.contains("/park")) out.image!!.substring(out.image!!.indexOf("/park")) else null }?: kotlin.run { null }
-                                    result.nonPayment = result.payfee!! - result.paymentAmount!!
-                                }
-                            } else {
-                                result.parkoutSn = it.outSn
+//                            if (it.outSn!! > 0L && it.outSn != null) {
+                            parkOutRepository.findByInSnAndDelYn(it.sn!!, DelYn.N).ifPresent { out ->
+                                result.type = DisplayMessageClass.OUT
+                                result.parkoutSn = out.sn
+                                result.outDate = out.outDate
+                                result.outGateId = out.gateId
+                                result.parktime = out.parktime
+                                result.parkfee = out.parkfee
+                                result.payfee = out.payfee?: 0
+                                result.discountfee = out.discountfee
+                                result.dayDiscountfee = out.dayDiscountfee
+                                result.outImgBase64Str = out.image?.let { if (out.image!!.contains("/park")) out.image!!.substring(out.image!!.indexOf("/park")) else null }?: kotlin.run { null }
+                                result.nonPayment = result.payfee!! - result.paymentAmount!!
                             }
+//                            } else {
+//                                result.parkoutSn = it.outSn
+//                            }
                             results.add(result)
                         }
                     }
@@ -1248,7 +1247,6 @@ class InoutService(
                                 request.dayDiscountfee?.let {  parkOut.dayDiscountfee = request.dayDiscountfee }
                                 request.discountfee?.let {  parkOut.discountfee = request.discountfee}
                                 parkOutRepository.saveAndFlush(parkOut)
-                                parkIn.outSn = parkOut.sn
                             }
                         }?: kotlin.run {
                             //신규 출차 데이터
@@ -1628,7 +1626,7 @@ class InoutService(
                 facilitiesId = gate.udpGateid ?: kotlin.run { gate.gateId },
                 recognitionType = if (parkCarType == "NORMAL") "FREE" else if (payFee > 0) "FREE" else "SEASON",
                 recognitionResult = "RECOGNITION",
-                paymentAmount = if (payFee <= 0) "0" else (payFee).toString(),
+                paymentAmount = if (parkOutDTO.parkfee ?: 0 <= 0) "0" else (parkOutDTO.parkfee ?: 0).toString(),
                 parktime = parkOutDTO.parktime.toString(),
                 parkTicketMoney = if (payFee <= 0) "0" else (parkOutDTO.discountfee?.plus(parkOutDTO.dayDiscountfee!!)).toString(),  // 할인요금
                 vehicleIntime = DateUtil.formatDateTime(inDate, "yyyy-MM-dd HH:mm")

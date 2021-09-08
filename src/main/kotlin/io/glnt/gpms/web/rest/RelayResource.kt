@@ -64,7 +64,7 @@ class RelayResource (
     }
 
     @RequestMapping(value = ["/inout/parkout"], method = [RequestMethod.POST])
-    fun parkOut(@Valid @RequestBody requestParkOutDTO: RequestParkOutDTO) {
+    fun parkOut(@Valid @RequestBody requestParkOutDTO: RequestParkOutDTO) : ResponseEntity<CommonResult> {
         logger.warn {" ##### 출차 요청 START #####"}
         logger.warn {" 차량번호 ${requestParkOutDTO.vehicleNo} LPR시설정보 ${requestParkOutDTO.dtFacilitiesId} 입차시간 ${requestParkOutDTO.date} UUID ${requestParkOutDTO.uuid} OCR결과 ${requestParkOutDTO.resultcode}"  }
 
@@ -168,6 +168,7 @@ class RelayResource (
                     inoutService.outFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkIn, parkOutDTO.sn!!)
                 }
             }
+            return ResponseEntity.ok(CommonResult.data())
 
         }?: kotlin.run {
             logger.warn {" ##### 입차 요청 ERROR ${requestParkOutDTO.dtFacilitiesId} gate not found #####"}
