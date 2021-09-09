@@ -7,12 +7,10 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.JSONUtil
 import io.glnt.gpms.handler.facility.model.reqParkingSiteInfo
-import io.glnt.gpms.handler.facility.model.reqPayStationData
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
-import io.glnt.gpms.handler.facility.service.FacilityService
+import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
-import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.tmap.model.*

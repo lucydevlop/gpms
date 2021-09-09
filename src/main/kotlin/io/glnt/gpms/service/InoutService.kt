@@ -2,24 +2,21 @@ package io.glnt.gpms.service
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.RelayClient
-import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.Base64Util
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.calc.model.BasicPrice
 import io.glnt.gpms.handler.calc.service.FeeCalculation
-import io.glnt.gpms.handler.dashboard.user.service.DashboardUserService
 import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.model.reqDisplayMessage
 import io.glnt.gpms.handler.facility.model.reqPayData
 import io.glnt.gpms.handler.facility.model.reqPayStationData
 import io.glnt.gpms.handler.facility.model.reqPaymentResult
-import io.glnt.gpms.handler.facility.service.FacilityService
+import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.handler.inout.model.*
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
-import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.model.dto.*
@@ -29,20 +26,15 @@ import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.*
-import io.glnt.gpms.service.ParkInQueryService
-import io.glnt.gpms.service.ParkInService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
-import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
-import javax.persistence.criteria.Predicate
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
@@ -422,7 +414,7 @@ class InoutService(
     }
 
     fun searchParkInByVehicleNo(vehicleNo: String, gateId: String) : MutableList<ParkInDTO> {
-        logger.trace("VehicleService searchParkInByVehicleNo search param : $vehicleNo $gateId")
+        logger.debug { "VehicleService searchParkInByVehicleNo search param : $vehicleNo $gateId" }
         return parkInQueryService.findByCriteria(ParkInCriteria(vehicleNo = vehicleNo, gateId = gateId))
     }
 
@@ -823,7 +815,8 @@ class InoutService(
                                 parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
                                 inGateId = it.gateId, inDate = it.inDate!!,
                                 ticketCorpName = it.seasonTicketDTO?.corp?.corpName, memo = it.memo,
-                                inImgBase64Str = it.image?.let { image -> image.substring(image.indexOf("/park")) }
+                                inImgBase64Str = it.image?.let { image -> image.substring(image.indexOf("/park")) },
+                                parkoutSn = it.outSn
                             )
                             result.paymentAmount = inoutPaymentRepository.findByInSnAndResultAndDelYn(it.sn!!, ResultType.SUCCESS, DelYn.N)?.let { payment ->
                                 payment.sumBy { it.amount!! }

@@ -5,6 +5,8 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.model.dto.GateDTO
+import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.service.GateService
 import mu.KLogging
 import org.springframework.http.ResponseEntity
@@ -17,7 +19,8 @@ import javax.validation.Valid
 )
 @CrossOrigin(origins = arrayOf("*"), allowedHeaders = arrayOf("*"))
 class GateResource (
-    private val gateService: GateService
+    private val gateService: GateService,
+    private val facilityService: FacilityService
 ){
     companion object : KLogging()
 
@@ -35,7 +38,16 @@ class GateResource (
                 ResultCode.FAILED
             )
         }
-        return CommonResult.returnResult(CommonResult.data(gateService.saveGate(gateDTO)))
+        val gate = gateService.saveGate(gateDTO)
+        // 시설 상태 정보 update
+        facilityService.findByGateId(gate.gateId ?: "")?.let { facilities ->
+            facilities.forEach { facilityDTO ->
+                facilityDTO.delYn = gate.delYn
+                facilityService.save(facilityDTO)
+            }
+        }
+
+        return CommonResult.returnResult(CommonResult.data(gate))
     }
 
     @RequestMapping(value = ["/gate"], method = [RequestMethod.POST])

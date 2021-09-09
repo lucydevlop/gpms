@@ -2,7 +2,6 @@ package io.glnt.gpms.handler.parkinglot.service
 
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.JsonNode
-import com.mashape.unirest.http.Unirest
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.common.utils.DataCheckUtil
@@ -12,12 +11,10 @@ import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.common.utils.FileUtils
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.facility.model.resRelaySvrFacility
-import io.glnt.gpms.handler.facility.service.FacilityService
+import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqVisitorExternal
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
-import io.glnt.gpms.handler.relay.service.RelayService
 import io.glnt.gpms.model.dto.FacilityDTO
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*

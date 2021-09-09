@@ -1,4 +1,4 @@
-package io.glnt.gpms.handler.facility.service
+package io.glnt.gpms.service
 
 import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.core.JsonParser
@@ -541,10 +541,6 @@ class FacilityService(
 //        return udpGateId
 //    }
 
-    fun updateFacility(facility: Facility): Facility {
-        return facilityRepository.save(facility)
-    }
-
     fun updateHealthCheck(dtFacilitiesId: String, status: String) {
         logger.trace { "updateHealthCheck facility $dtFacilitiesId status $status" }
         try {
@@ -715,5 +711,15 @@ class FacilityService(
 
     fun getGateByFacilityId(dtFacilityId: String) : Facility? {
         return facilityRepository.findByDtFacilitiesId(dtFacilityId)
+    }
+
+    fun save(facilityDTO: FacilityDTO) : FacilityDTO {
+        var facility = facilityMapper.toEntity(facilityDTO)
+        facility = facilityRepository.saveAndFlush(facility!!)
+        return facilityMapper.toDTO(facility)
+    }
+
+    fun findByGateId(gateId: String): List<FacilityDTO>? {
+        return facilityRepository.findByGateId(gateId)?.map(facilityMapper::toDTO) ?: kotlin.run { null }
     }
 }

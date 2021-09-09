@@ -3,12 +3,10 @@ package io.glnt.gpms.handler.facility.controller
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
-import io.glnt.gpms.handler.facility.model.reqPayStationData
 import io.glnt.gpms.handler.facility.model.reqSetDisplayColor
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
-import io.glnt.gpms.handler.facility.service.FacilityService
+import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
-import io.glnt.gpms.handler.tmap.model.reqSendVehicleListSearch
 import io.glnt.gpms.handler.facility.model.reqUpdateFacilities
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired

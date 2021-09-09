@@ -1,10 +1,8 @@
 package io.glnt.gpms.handler.rcs.controller
 
 import io.glnt.gpms.common.api.CommonResult
-import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.common.configs.ApiConfig.API_VERSION
-import io.glnt.gpms.handler.discount.model.reqDiscountableTicket
-import io.glnt.gpms.handler.facility.service.FacilityService
+import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
@@ -15,7 +13,6 @@ import io.glnt.gpms.model.enums.DisplayMessageClass
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @RestController

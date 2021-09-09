@@ -70,7 +70,13 @@ class ParkInQueryService(
 
                 if (criteria.gateId != null && criteria.gateId!!.isNotEmpty()) {
                     clues.add(
-                        criteriaBuilder.equal((root.get<String>("uuid")), criteria.gateId)
+                        criteriaBuilder.equal((root.get<String>("gateId")), criteria.gateId)
+                    )
+                }
+
+                if (criteria.outSn != null) {
+                    clues.add(
+                        criteriaBuilder.equal((root.get<String>("outSn")), criteria.outSn)
                     )
                 }
 

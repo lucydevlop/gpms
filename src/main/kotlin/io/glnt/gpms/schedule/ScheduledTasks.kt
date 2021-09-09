@@ -1,6 +1,6 @@
 package io.glnt.gpms.schedule
 
-import io.glnt.gpms.handler.facility.service.FacilityService
+import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.rcs.service.RcsService
 import mu.KLogging

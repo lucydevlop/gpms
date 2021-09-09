@@ -20,6 +20,8 @@ data class ParkInCriteria (
 
     var gateId: String? = null,
 
+    var outSn: Long? = null,
+
     var delYn: DelYn? = null
 
 ): Serializable {
@@ -32,6 +34,7 @@ data class ParkInCriteria (
             other.toDate,
             other.parkcartype,
             other.gateId,
+            other.outSn,
             other.delYn
         )
 
