@@ -23,37 +23,13 @@ class InoutController {
     @Autowired
     private lateinit var inoutService: InoutService
 
-    @RequestMapping(value = ["/parkin"], method = [RequestMethod.POST])
-    @Throws(CustomException::class)
-    fun parkIn(@RequestBody request: reqAddParkIn) : ResponseEntity<CommonResult> {
-        val result = inoutService.parkIn(request)
-        return when(result.code){
-            ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
-            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
-            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
-        }
-    }
-
-//    @RequestMapping(value = ["/parkout"], method = [RequestMethod.POST])
-////    @ResponseStatus(CREATED)
+//    @RequestMapping(value = ["/parkin"], method = [RequestMethod.POST])
 //    @Throws(CustomException::class)
-//    fun parkOut(@RequestBody request: reqAddParkOut) : ResponseEntity<CommonResult> {
-//        val result = inoutService.parkOut(request)
+//    fun parkIn(@RequestBody request: reqAddParkIn) : ResponseEntity<CommonResult> {
+//        val result = inoutService.parkIn(request)
 //        return when(result.code){
 //            ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
 //            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
-//            ResultCode.CONFLICT.getCode() -> ResponseEntity(result, HttpStatus.CONFLICT)
-//            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
-//        }
-//    }
-
-//    @RequestMapping(value = ["/list"], method = [RequestMethod.POST])
-//    @Throws(CustomException::class)
-//    fun getAllParkInLists(@RequestBody request: reqSearchParkin) : ResponseEntity<CommonResult> {
-//        logger.trace { "getAllParkInLists $request" }
-//        val result = inoutService.getAllParkLists(request)
-//        return when(result.code){
-//            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
 //            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
 //        }
 //    }

@@ -91,11 +91,11 @@ class DashboardAdminController(
         return CommonResult.returnResult(dashboardAdminService.deleteParkInout(sn))
     }
 
-    @RequestMapping(value = ["/gate/list"], method = [RequestMethod.GET])
-    @Throws(CustomException::class)
-    fun getGates(): ResponseEntity<CommonResult> {
-        return CommonResult.returnResult(dashboardAdminService.getGates())
-    }
+//    @RequestMapping(value = ["/gate/list"], method = [RequestMethod.GET])
+//    @Throws(CustomException::class)
+//    fun getGates(): ResponseEntity<CommonResult> {
+//        return CommonResult.returnResult(dashboardAdminService.getGates())
+//    }
 
     @RequestMapping(value = ["/gate_groups"], method = [RequestMethod.GET])
     @Throws(CustomException::class)
@@ -319,11 +319,11 @@ class DashboardAdminController(
     fun externalAsyncParkinglot(): ResponseEntity<CommonResult> {
         logger.trace("externalAsyncParkinglot")
         val parkSiteInfo = parkSiteInfoService.find()
-        parkSiteInfo.ip?.let { ip ->
+        parkSiteInfo?.ip?.let { ip ->
             val result: ResAsyncParkinglot? = rcsService.asyncParkinglot()
             result?.let {
                 parkSiteInfo.rcsParkId = it.data.toString().toLong()
-                parkSiteInfoService.save(parkSiteInfo)
+//                parkSiteInfoService.save(parkSiteInfo)
             }
             return CommonResult.returnResult(CommonResult.data("Admin externalAsyncParkinglot success"))
         }?: kotlin.run {

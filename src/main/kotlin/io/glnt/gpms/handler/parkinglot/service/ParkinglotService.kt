@@ -20,6 +20,7 @@ import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.mapper.FacilityMapper
 import io.glnt.gpms.model.repository.*
+import io.glnt.gpms.service.ParkSiteInfoService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -33,17 +34,18 @@ import kotlin.collections.ArrayList
 
 @Service
 class ParkinglotService (
-    private val facilityMapper: FacilityMapper
+    private val facilityMapper: FacilityMapper,
+    private val parkSiteInfoService: ParkSiteInfoService
 ){
     companion object : KLogging()
 
-    var parkSite: ParkSiteInfo? = null
+//    var parkSite: ParkSiteInfo? = null
 
-    @Value("\${visitor-external.url}")
-    var visitorExternalUrl: String? = null
-
-    @Value("\${visitor-external.token}")
-    var visitorExternalToken: String? = null
+//    @Value("\${visitor-external.url}")
+//    var visitorExternalUrl: String? = null
+//
+//    @Value("\${visitor-external.token}")
+//    var visitorExternalToken: String? = null
 
     @Autowired
     lateinit var enviroment: Environment
@@ -71,9 +73,9 @@ class ParkinglotService (
 
     @PostConstruct
     fun initalizeData() {
-        parkSiteInfoRepository.findTopByOrderBySiteid()?.let {
-            parkSite = it
-        }
+//        parkSiteInfoRepository.findTopByOrderBySiteid()?.let {
+//            parkSite = it
+//        }
         parkGateRepository.findByGateId("GATE001")?: run {
             parkGateRepository.saveAndFlush(
                 Gate(sn = null, gateId = "GATE001", gateName = "입구게이트1", gateType = GateTypeStatus.IN, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
@@ -128,7 +130,7 @@ class ParkinglotService (
             FileUtils.writeDatesToJsonFile(request, "/Users/lucy/project/glnt/parking/gpms/test.json")
 
             // tmap request 'facilitiesRegistRequest'
-            val requestId = generateRequestId()
+            val requestId = parkSiteInfoService.generateRequestId()
             val fileUploadId = DateUtil.stringToNowDateTimeMS()+"_F"
             // send_event
             tmapSendService.sendFacilitiesRegist(reqFacilitiesRegist(fileUploadId = fileUploadId), requestId, "/Users/lucy/project/glnt/parking/gpms/test.json")
@@ -319,13 +321,13 @@ class ParkinglotService (
         }
     }
 
-    fun parkSiteId() : String? {
-        return parkSite!!.parkId
-    }
-
-    fun parkSiteSiteId(): String? {
-        return parkSite!!.siteid
-    }
+//    fun parkSiteId() : String? {
+//        return parkSite!!.parkId
+//    }
+//
+//    fun parkSiteSiteId(): String? {
+//        return parkSite!!.siteid
+//    }
 
     fun getFacility(facilityId: String) : Facility? {
         return parkFacilityRepository.findByDtFacilitiesId(facilityId) ?: run {
@@ -391,17 +393,17 @@ class ParkinglotService (
         return null
     }
 
-    fun saveParkSiteInfo(data: ParkSiteInfo): Boolean {
-        try {
-            data.flagMessage = 1
-            parkSiteInfoRepository.save(data)
-            initalizeData()
-        } catch (e: CustomException) {
-            logger.error { "save tb_parksite error ${e.message}" }
-            return false
-        }
-        return true
-    }
+//    fun saveParkSiteInfo(data: ParkSiteInfo): Boolean {
+//        try {
+//            data.flagMessage = 1
+//            parkSiteInfoRepository.save(data)
+//            initalizeData()
+//        } catch (e: CustomException) {
+//            logger.error { "save tb_parksite error ${e.message}" }
+//            return false
+//        }
+//        return true
+//    }
 
     fun saveGate(data: Gate): Boolean {
         try {
@@ -413,9 +415,9 @@ class ParkinglotService (
         return true
     }
 
-    fun generateRequestId() : String {
-        return DataCheckUtil.generateRequestId(parkSiteId()!!)
-    }
+//    fun generateRequestId() : String {
+//        return DataCheckUtil.generateRequestId(parkSiteId()!!)
+//    }
 
     @Throws(CustomException::class)
     fun searchFacility(id: String) : CommonResult {
@@ -566,29 +568,29 @@ class ParkinglotService (
         }
     }
 
-    fun isTmapSend(): Boolean {
-        return parkSite!!.tmapSend!! == OnOff.ON
-    }
+//    fun isTmapSend(): Boolean {
+//        return parkSite!!.tmapSend!! == OnOff.ON
+//    }
 
-    fun isExternalSend() : Boolean {
-        return parkSite!!.externalSvr != ExternalSvrType.NONE
-    }
+//    fun isExternalSend() : Boolean {
+//        return parkSite!!.externalSvr != ExternalSvrType.NONE
+//    }
+//
+//    fun isVisitorExternalKeyType(): Boolean {
+//        return parkSite!!.visitorExternal == VisitorExternalKeyType.APTNER
+//    }
 
-    fun isVisitorExternalKeyType(): Boolean {
-        return parkSite!!.visitorExternal == VisitorExternalKeyType.APTNER
-    }
-
-    fun getVisitorExternalInfo(): HashMap<String, String?>? {
-        return parkSite!!.visitorExternal?.let {
-             hashMapOf<String, String?>(
-                "url" to visitorExternalUrl,
-                "token" to visitorExternalToken,
-                "key" to parkSite!!.visitorExternalKey
-             )
-        }?: kotlin.run {
-            null
-        }
-    }
+//    fun getVisitorExternalInfo(): HashMap<String, String?>? {
+//        return parkSite!!.visitorExternal?.let {
+//             hashMapOf<String, String?>(
+//                "url" to visitorExternalUrl,
+//                "token" to visitorExternalToken,
+//                "key" to parkSite!!.visitorExternalKey
+//             )
+//        }?: kotlin.run {
+//            null
+//        }
+//    }
 
 
     fun searchVisitorExternal(visitorExternalInfo: HashMap<String,String?>,vehicleNo: String): HttpResponse<JsonNode>?{

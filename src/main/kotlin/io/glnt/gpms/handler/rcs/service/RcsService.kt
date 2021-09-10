@@ -24,6 +24,7 @@ import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.ExternalSvrType
 import io.glnt.gpms.service.CorpService
+import io.glnt.gpms.service.ParkSiteInfoService
 import io.reactivex.Observable
 import mu.KLogging
 import org.apache.http.HttpStatus
@@ -40,7 +41,8 @@ class RcsService(
     private var restAPIManager: RestAPIManagerUtil,
     private var productService: ProductService,
     private var discountService: DiscountService,
-    private var corpService: CorpService
+    private var corpService: CorpService,
+    private var parkSiteInfoService: ParkSiteInfoService
 ) {
     companion object : KLogging()
 
@@ -55,12 +57,14 @@ class RcsService(
 
     fun asyncParkinglot(): ResAsyncParkinglot? {
         try {
-            when (parkinglotService.parkSite!!.externalSvr) {
+            val parkSite = parkSiteInfoService.parkSite
+
+            when (parkSite?.externalSvr) {
                 ExternalSvrType.GLNT -> {
                     val response: HttpResponse<JsonNode?>? = restAPIManager.sendPostRequest(
-                        glntUrl+"/async/parkinglot",
+                        "$glntUrl/async/parkinglot",
                         ReqParkinglot(
-                            parkinglot = AsyncParkinglot(ip = parkinglotService.parkSite!!.ip!!, name = parkinglotService.parkSite!!.sitename, city = parkinglotService.parkSite!!.city!!, address = parkinglotService.parkSite!!.address!! ),
+                            parkinglot = AsyncParkinglot(ip = parkSite.ip!!, name = parkSite.siteName!!, city = parkSite.city!!, address = parkSite.address!! ),
                             facilities = facilityService.allFacilities()!!)
                     )
                     response?.let { response ->
@@ -119,7 +123,10 @@ class RcsService(
     fun asyncFacilitiesHealth(request: List<FacilityDTO>) {
         try {
             logger.info { "Async facilities health $request"  }
-            var result = ArrayList<ReqHealthCheck>()
+
+            val parkSite = parkSiteInfoService.parkSite
+
+            val result = ArrayList<ReqHealthCheck>()
             request.forEach { it ->
                 result.add(ReqHealthCheck(
                     dtFacilitiesId = it.dtFacilitiesId!!,
@@ -128,10 +135,10 @@ class RcsService(
                 ))
             }
 
-            when (parkinglotService.parkSite!!.externalSvr) {
+            when (parkSite?.externalSvr) {
                 ExternalSvrType.GLNT -> {
                     restAPIManager.sendPatchRequest(
-                        glntUrl+"/parkinglots/"+parkinglotService.parkSite!!.rcsParkId!!+"/facilities",
+                        glntUrl+"/parkinglots/"+parkSite.rcsParkId!!+"/facilities",
                         result
                     )
                 }
@@ -296,8 +303,9 @@ class RcsService(
     @Throws(CustomException::class)
     fun asyncCallVoip(voipId: String): CommonResult {
         try {
+            val parkSite = parkSiteInfoService.parkSite
             restAPIManager.sendGetRequest(
-                glntUrl + "/parkinglots/" + parkinglotService.parkSite!!.rcsParkId!! + "/call/" + voipId
+                glntUrl + "/parkinglots/" + parkSite?.rcsParkId!! + "/call/" + voipId
             )
             return CommonResult.data()
         }catch (e: CustomException) {

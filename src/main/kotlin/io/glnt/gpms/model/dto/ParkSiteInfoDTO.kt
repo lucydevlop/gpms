@@ -8,10 +8,10 @@ import javax.persistence.Enumerated
 import javax.validation.constraints.NotNull
 
 data class ParkSiteInfoDTO (
-    var siteid: String? = null,
+    var siteId: String? = null,
 
     @get: NotNull
-    var sitename: String? = null,
+    var siteName: String? = null,
 
     var limitqty: Int? = 10,
 
@@ -72,7 +72,11 @@ data class ParkSiteInfoDTO (
     @Enumerated(EnumType.STRING)
     var visitorExternal: VisitorExternalKeyType? = null,
 
-    var visitorExternalKey: String? = null
+    var visitorExternalKey: String? = null,
+
+    @Enumerated(EnumType.STRING)
+    var operatingDays: DiscountRangeType? = null
+
 ): Serializable {
     constructor(parkSiteInfo: ParkSiteInfo) :
         this(
@@ -82,6 +86,7 @@ data class ParkSiteInfoDTO (
             parkSiteInfo.overfee, parkSiteInfo.addtime, parkSiteInfo.dayfee, parkSiteInfo.parkingSpotStatusNotiCycle,
             parkSiteInfo.facilitiesStatusNotiCycle, parkSiteInfo.flagMessage, parkSiteInfo.businame, parkSiteInfo.parkId,
             parkSiteInfo.space, parkSiteInfo.saleType, parkSiteInfo.tmapSend, parkSiteInfo.externalSvr, parkSiteInfo.rcsParkId,
-            parkSiteInfo.ip, parkSiteInfo.vehicleDayOption, parkSiteInfo.visitorExternal, parkSiteInfo.visitorExternalKey
+            parkSiteInfo.ip, parkSiteInfo.vehicleDayOption, parkSiteInfo.visitorExternal, parkSiteInfo.visitorExternalKey,
+            parkSiteInfo.operatingDays
         )
 }

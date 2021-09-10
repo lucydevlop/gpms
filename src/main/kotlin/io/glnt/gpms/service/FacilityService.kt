@@ -35,7 +35,8 @@ class FacilityService(
     private var displayColorRepository: DisplayColorRepository,
     private var displayMessageRepository: DisplayMessageRepository,
     private var facilityMapper: FacilityMapper,
-    private var gateService: GateService
+    private var gateService: GateService,
+    private var parkSiteInfoService: ParkSiteInfoService
 ) {
     companion object : KLogging()
 
@@ -463,13 +464,13 @@ class FacilityService(
                         paymentType = "CARD",
                         paymentAmount = it.payfee!!
                     ),
-                    parkinglotService.generateRequestId(),
+                    parkSiteInfoService.generateRequestId(),
                     "payment"
                 )
                 fileName = it.image!!
                 fileUploadId = it.fileuploadid
             }
-            val requestId = parkinglotService.generateRequestId()
+            val requestId = parkSiteInfoService.generateRequestId()
             // todo tmap-outvehicle
             tmapSendService.sendOutVehicle(
                 reqOutVehicle(
@@ -495,7 +496,7 @@ class FacilityService(
     fun setPaystationRequest(type: String, requestId: String?, contents: Any) : reqApiTmapCommon {
         return reqApiTmapCommon(
             type = type,
-            parkingSiteId = parkinglotService.parkSiteId()!!,
+            parkingSiteId = parkSiteInfoService.getParkSiteId()!!,
             requestId = requestId?.let { requestId },
             eventDateTime = DateUtil.stringToNowDateTime(),
             contents = contents

@@ -1,17 +1,19 @@
 package io.glnt.gpms.model.dto
 
 import io.glnt.gpms.model.entity.ParkinglotVehicle
-import io.glnt.gpms.model.entity.ParkinglotVehicleId
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.GateTypeStatus
 import java.io.Serializable
+import java.time.LocalDateTime
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 import javax.validation.constraints.NotNull
 
 data class ParkinglotVehicleDTO(
+    var sn: Long? = null,
+
     @get: NotNull
-    var id: ParkinglotVehicleId? = null,
+    var date: LocalDateTime? = null,
 
     var vehicleNo: String? = null,
 
@@ -32,7 +34,7 @@ data class ParkinglotVehicleDTO(
 
     constructor(parkinglotVehicle: ParkinglotVehicle) :
         this(
-            parkinglotVehicle.id, parkinglotVehicle.vehicleNo, parkinglotVehicle.type,
+            parkinglotVehicle.sn, parkinglotVehicle.date, parkinglotVehicle.vehicleNo, parkinglotVehicle.type,
             parkinglotVehicle.uuid, parkinglotVehicle.image, parkinglotVehicle.memo, parkinglotVehicle.delYn
         )
 

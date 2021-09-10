@@ -16,7 +16,8 @@ class ParkinglotVehicleMapper {
             null -> null
             else -> {
                 ParkinglotVehicle(
-                    id = dto.id,
+                    sn = dto.sn,
+                    date = dto.date,
                     delYn = dto.delYn,
                     vehicleNo = dto.vehicleNo,
                     type = dto.type,

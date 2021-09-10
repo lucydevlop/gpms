@@ -27,7 +27,7 @@ class GateResource (
     @RequestMapping(value = ["/gates"], method = [RequestMethod.GET])
     fun findAll(): ResponseEntity<CommonResult> {
         logger.debug { "gate fetch all" }
-        return CommonResult.returnResult(CommonResult.data())
+        return CommonResult.returnResult(CommonResult.data(gateService.findAll()))
     }
 
     @RequestMapping(value = ["/gates"], method = [RequestMethod.PUT])

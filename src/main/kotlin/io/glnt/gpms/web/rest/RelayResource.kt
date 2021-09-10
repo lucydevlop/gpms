@@ -6,18 +6,19 @@ import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.inout.model.reqAddParkIn
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.model.dto.ParkOutDTO
 import io.glnt.gpms.model.dto.ParkinglotVehicleDTO
 import io.glnt.gpms.model.dto.RequestParkInDTO
 import io.glnt.gpms.model.dto.RequestParkOutDTO
-import io.glnt.gpms.model.entity.ParkinglotVehicleId
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.GateTypeStatus
 import io.glnt.gpms.model.enums.OpenActionType
 import io.glnt.gpms.model.enums.VehicleType
 import io.glnt.gpms.service.*
 import mu.KLogging
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -33,33 +34,52 @@ class RelayResource (
     private val inoutService: InoutService,
     private val parkInService: ParkInService,
     private val parkOutService: ParkOutService,
-    private val parkinglotVehicleService: ParkinglotVehicleService
+    private val parkinglotVehicleService: ParkinglotVehicleService,
+    private val parkSiteInfoService: ParkSiteInfoService
 ){
     companion object : KLogging()
 
-    fun parkIn(@Valid @RequestBody requestParkInDTO: RequestParkInDTO): ResponseEntity<CommonResult> {
+//    fun parkIn(@Valid @RequestBody requestParkInDTO: RequestParkInDTO): ResponseEntity<CommonResult> {
+//        logger.warn {" ##### 입차 요청 START #####"}
+//        logger.warn {" 차량번호 ${requestParkInDTO.vehicleNo} LPR시설정보 ${requestParkInDTO.dtFacilitiesId} 입차시간 ${requestParkInDTO.date} UUID ${requestParkInDTO.uuid} OCR결과 ${requestParkInDTO.resultcode}"  }
+//
+//        parkinglotService.getGateInfoByDtFacilityId(requestParkInDTO.dtFacilitiesId ?: "")?.let { gate ->
+//            //사진 이미지 저장
+//            requestParkInDTO.base64Str?.let {
+//                requestParkInDTO.fileFullPath = inoutService.saveImage(it, requestParkInDTO.vehicleNo?: "", gate.udpGateid?: "")
+//                requestParkInDTO.fileName = DataCheckUtil.getFileName(requestParkInDTO.fileFullPath!!)
+//                requestParkInDTO.fileUploadId = DateUtil.stringToNowDateTimeMS()+"_F"
+//            }
+//            // 후방 카메라 입차 시 시설 연계 OFF 로 변경.
+//            // 단, gate 오픈 설정이 none 이 아닌 경우 on 으로 설정
+//            var action = !requestParkInDTO.uuid.isNullOrEmpty() && gate.openAction == OpenActionType.NONE
+//
+//
+//            return CommonResult.returnResult(CommonResult.data())
+//        }?: kotlin.run {
+//            logger.warn {" ##### 입차 요청 ERROR ${requestParkInDTO.dtFacilitiesId} gate not found #####"}
+//            throw CustomException(
+//                "${requestParkInDTO.dtFacilitiesId} gate not found",
+//                ResultCode.FAILED
+//            )
+//        }
+//    }
+
+    @RequestMapping(value = ["/inout/parkin"], method = [RequestMethod.POST])
+    fun parkIn(@Valid @RequestBody requestParkInDTO: reqAddParkIn) : ResponseEntity<CommonResult> {
         logger.warn {" ##### 입차 요청 START #####"}
         logger.warn {" 차량번호 ${requestParkInDTO.vehicleNo} LPR시설정보 ${requestParkInDTO.dtFacilitiesId} 입차시간 ${requestParkInDTO.date} UUID ${requestParkInDTO.uuid} OCR결과 ${requestParkInDTO.resultcode}"  }
+        // 주차장 운영일 확인 후 입차 진행
+        if (!parkSiteInfoService.checkOperationDay(requestParkInDTO.date)) {
+            logger.warn {" ##### 주차장 운영일이 아님 입차 처리 skip #####"}
+            return ResponseEntity.ok(CommonResult.data())
+        }
 
-        parkinglotService.getGateInfoByDtFacilityId(requestParkInDTO.dtFacilitiesId ?: "")?.let { gate ->
-            //사진 이미지 저장
-            requestParkInDTO.base64Str?.let {
-                requestParkInDTO.fileFullPath = inoutService.saveImage(it, requestParkInDTO.vehicleNo?: "", gate.udpGateid?: "")
-                requestParkInDTO.fileName = DataCheckUtil.getFileName(requestParkInDTO.fileFullPath!!)
-                requestParkInDTO.fileUploadId = DateUtil.stringToNowDateTimeMS()+"_F"
-            }
-            // 후방 카메라 입차 시 시설 연계 OFF 로 변경.
-            // 단, gate 오픈 설정이 none 이 아닌 경우 on 으로 설정
-            var action = !requestParkInDTO.uuid.isNullOrEmpty() && gate.openAction == OpenActionType.NONE
-
-
-            return CommonResult.returnResult(CommonResult.data())
-        }?: kotlin.run {
-            logger.warn {" ##### 입차 요청 ERROR ${requestParkInDTO.dtFacilitiesId} gate not found #####"}
-            throw CustomException(
-                "${requestParkInDTO.dtFacilitiesId} gate not found",
-                ResultCode.FAILED
-            )
+        val result = inoutService.parkIn(requestParkInDTO)
+        return when(result.code){
+            ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
+            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
+            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
         }
     }
 
@@ -95,7 +115,8 @@ class RelayResource (
             // 모든 사진 정보 저장(차후 미인식 리스트 이용)
             parkinglotVehicleService.save(
                 ParkinglotVehicleDTO(
-                    id = ParkinglotVehicleId(sn = null, date = requestParkOutDTO.date),
+                    sn = null,
+                    date = requestParkOutDTO.date,
                     vehicleNo = requestParkOutDTO.vehicleNo,
                     type = GateTypeStatus.OUT,
                     uuid = requestParkOutDTO.uuid,
@@ -139,7 +160,7 @@ class RelayResource (
                     vehicleNo = requestParkOutDTO.vehicleNo,
                     image = requestParkOutDTO.fileFullPath,
                     resultcode = requestParkOutDTO.resultcode?.toInt(),
-                    requestid = parkinglotService.generateRequestId(),
+                    requestid = parkSiteInfoService.generateRequestId(),
                     fileuploadid = requestParkOutDTO.fileUploadId,
                     outDate = requestParkOutDTO.date,
                     uuid = requestParkOutDTO.uuid,

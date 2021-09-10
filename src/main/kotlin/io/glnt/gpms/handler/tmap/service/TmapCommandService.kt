@@ -17,6 +17,7 @@ import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.model.entity.TmapCommand
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.TmapCommandRepository
+import io.glnt.gpms.service.ParkSiteInfoService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -25,7 +26,9 @@ import kotlin.collections.ArrayList
 
 
 @Service
-class TmapCommandService {
+class TmapCommandService(
+    private var parkSiteInfoService: ParkSiteInfoService
+) {
     companion object : KLogging()
 
     @Autowired
@@ -39,9 +42,6 @@ class TmapCommandService {
 
     @Autowired
     private lateinit var tmapSendService: TmapSendService
-
-    @Autowired
-    private lateinit var productService: ProductService
 
     @Autowired
     private lateinit var inoutService: InoutService
@@ -85,14 +85,15 @@ class TmapCommandService {
     }
 
     fun commandParkingSiteInfo() {
+        val parkSite = parkSiteInfoService.parkSite
         val contents = reqParkingSiteInfo(
-            parkingSiteName = parkinglotService.parkSite!!.sitename,
+            parkingSiteName = parkSite!!.siteName!!,
             lotNumberAddress = "--",
-            roadNameAddress = parkinglotService.parkSite!!.address!!,
+            roadNameAddress = parkSite.address!!,
             detailsAddress = "**",
-            telephoneNumber = parkinglotService.parkSite!!.tel!!,
-            saupno = parkinglotService.parkSite!!.saupno!!,
-            businessName = parkinglotService.parkSite!!.ceoname!!
+            telephoneNumber = parkSite.tel!!,
+            saupno = parkSite.saupno!!,
+            businessName = parkSite.ceoname!!
         )
 
         parkinglotService.getFacilityByCategory(FacilityCategoryType.PAYSTATION)?.let { its ->
@@ -138,12 +139,13 @@ class TmapCommandService {
     fun commandProfileSetup(request: reqApiTmapCommon) {
         val contents = readValue(request.contents.toString(), reqCommandProfileSetup::class.java)
 
+        val parkSite = parkSiteInfoService.parkSite
         // parksite update
-        contents.facilitiesStatusNotiCycle?.let {  parkinglotService.parkSite!!.facilitiesStatusNotiCycle = contents.facilitiesStatusNotiCycle!!.toInt() }
-        contents.parkingSpotStatusnotiCycle?.let {  parkinglotService.parkSite!!.parkingSpotStatusNotiCycle = contents.parkingSpotStatusnotiCycle!!.toInt() }
-        if (!parkinglotService.saveParkSiteInfo(parkinglotService.parkSite!!)) {
-            tmapSendService.sendTmapInterface(reqSendResultResponse(result = "FAIL"), request.requestId!!, "profileSetupResponse")
-        }
+        contents.facilitiesStatusNotiCycle?.let {  parkSite?.facilitiesStatusNotiCycle = contents.facilitiesStatusNotiCycle!!.toInt() }
+        contents.parkingSpotStatusnotiCycle?.let {  parkSite?.parkingSpotStatusNotiCycle = contents.parkingSpotStatusnotiCycle!!.toInt() }
+//        if (!parkSiteInfoService.saveParkSiteInfo(parkSite!!)) {
+//            tmapSendService.sendTmapInterface(reqSendResultResponse(result = "FAIL"), request.requestId!!, "profileSetupResponse")
+//        }
 
         // gate update
         contents.gateList!!.forEach { gate ->
