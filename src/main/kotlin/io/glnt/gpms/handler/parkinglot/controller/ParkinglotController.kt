@@ -33,15 +33,6 @@ class ParkinglotController {
     @Autowired
     private lateinit var parkinglotService: ParkinglotService
 
-    @Autowired
-    private lateinit var barcodeClassService: BarcodeClassService
-
-    @Autowired
-    private lateinit var barcodeService: BarcodeService
-
-    @Autowired
-    private lateinit var relayService: RelayService
-
     @RequestMapping(value= ["/create"], method = [RequestMethod.POST])
     fun createParkinglot() {
         logger.debug("parkinglot createParkinglot  = ")
@@ -179,53 +170,6 @@ class ParkinglotController {
             else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
         }
     }
-
-    @RequestMapping(value = ["/discount/ticket"], method = [RequestMethod.GET])
-    @Throws(CustomException::class)
-    fun getDiscountCoupon() : ResponseEntity<CommonResult> {
-        logger.debug { "getDiscountCoupon" }
-        val discountClass = parkinglotService.getDiscountCoupon()
-
-        return when(discountClass.code) {
-            ResultCode.SUCCESS.getCode() -> {
-                var result = HashMap<String, Any?>()
-                result = hashMapOf(
-                    "discountClass" to discountClass.data,
-                    "barcodeClass" to barcodeClassService.findAll(),
-                    "barcodeInfo" to barcodeService.findAll()
-                )
-                ResponseEntity.ok(CommonResult.data(result))
-            }
-            ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(discountClass, HttpStatus.NOT_FOUND)
-            else -> ResponseEntity(discountClass, HttpStatus.BAD_REQUEST)
-        }
-    }
-
-    @RequestMapping(value = ["/discount/barcode/info"], method = [RequestMethod.POST])
-    @Throws(CustomException::class)
-    fun saveBarcodeInfo(@RequestBody request: BarcodeDTO): ResponseEntity<CommonResult> {
-        logger.debug { "save barcodeInfo request $request" }
-        val result = barcodeService.save(request)
-        return ResponseEntity.ok(CommonResult.data(result))
-    }
-
-    @RequestMapping(value = ["/discount/barcode/class"], method = [RequestMethod.POST])
-    @Throws(CustomException::class)
-    fun saveBarcodeClass(@RequestBody request: BarcodeClassDTO): ResponseEntity<CommonResult> {
-        logger.debug { "save BarcodeClass request $request" }
-        val result = barcodeClassService.save(request)
-        return ResponseEntity.ok(CommonResult.data(result))
-    }
-
-    @RequestMapping(value = ["/discount/barcode/class/{sn}"], method = [RequestMethod.DELETE])
-    @Throws(CustomException::class)
-    fun deleteBarcodeClass(@PathVariable("sn") sn: String): ResponseEntity<CommonResult> {
-        logger.debug { "delete BarcodeClass request $sn" }
-        val result = barcodeClassService.delete(sn.toLong())
-        return ResponseEntity.ok(CommonResult.data(result))
-    }
-
-
 
 //    @RequestMapping(value = ["/add"], method = [RequestMethod.POST])
 //    @Throws(CustomException::class)

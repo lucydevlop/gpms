@@ -19,10 +19,7 @@ import io.glnt.gpms.handler.user.service.AuthService
 import io.glnt.gpms.handler.file.service.ExcelUploadService
 import io.glnt.gpms.model.dto.request.*
 import io.glnt.gpms.model.entity.*
-import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.DisplayMessageClass
-import io.glnt.gpms.model.enums.FacilityCategoryType
-import io.glnt.gpms.model.enums.UserRole
+import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.service.CorpService
 import io.glnt.gpms.service.GateService
 import io.reactivex.Observable
@@ -39,7 +36,6 @@ import java.util.concurrent.TimeUnit
 @Service
 class DashboardAdminService(
     private var restAPIManager: RestAPIManagerUtil,
-//    private var rcsService: RcsService,
     private var corpService: CorpService
 ) {
     companion object : KLogging()
@@ -79,43 +75,104 @@ class DashboardAdminService(
         try {
             val result = ArrayList<HashMap<String, Any?>>()
 
-            val gates = parkinglotService.getParkinglotGates(reqSearchParkinglotFeature())
-            when (gates.code) {
-                ResultCode.SUCCESS.getCode() -> {
-                    gates.data?.let {
-                        val lists = gates.data as List<Gate>
-                        lists.forEach {
-                            if (it.delYn == DelYn.N) {
-                                // gate 당 입출차 내역 조회
-                                val inout = inoutService.getLastInout(it.gateType, it.gateId)
-                                // 각 장비 상태 조회
-                                val gateStatus = facilityService.getStatusByGate(it.gateId)
-                                result.add(
-                                    hashMapOf<String, Any?>(
-                                        "gateId" to it.gateId,
-                                        "gateName" to it.gateName,
-                                        "gateType" to it.gateType,
-                                        "image" to inout!!["image"],
-                                        "vehicleNo" to inout["vehicleNo"],
-                                        "date" to inout["date"],
-                                        "carType" to inout["carType"],
-                                        "outImage" to inout["outImage"],
-                                        "outVehicleNo" to inout["outVehicleNo"],
-                                        "outDate" to inout["outDate"],
-                                        "outCarType" to inout["outCarType"],
-                                        "breakerAction" to gateStatus!!["breakerAction"],
-                                        "breakerStatus" to gateStatus["breakerStatus"],
-                                        "displayStatus" to gateStatus["displayStatus"],
-                                        "paystationStatus" to gateStatus["paystationStatus"],
-                                        "paystationAction" to gateStatus["paystationAction"],
-                                        "lprStatus" to gateStatus["lprStatus"]
-                                    )
-                                )
-                            }
-                        }
+            gateService.findActiveGate().let { gates ->
+                gates.forEach {
+                    // gate 당 입출차 내역 조회
+                    val inout = inoutService.getLastInout(it.gateType!!, it.gateId?: "")
+                    // 각 장비 상태 조회
+                    val gateStatus = facilityService.getStatusByGate(it.gateId?: "")
+
+                    if (it.gateType!! == GateTypeStatus.IN_OUT) {
+                        result.add(
+                            hashMapOf<String, Any?>(
+                                "gateId" to it.gateId,
+                                "gateName" to it.gateName,
+                                "gateType" to it.gateType,
+                                "image" to inout!!["image"],
+                                "vehicleNo" to inout["vehicleNo"],
+                                "date" to inout["date"],
+                                "carType" to inout["carType"],
+                                "outImage" to inout["outImage"],
+                                "outVehicleNo" to inout["outVehicleNo"],
+                                "outDate" to inout["outDate"],
+                                "outCarType" to inout["outCarType"],
+                                "breakerAction" to gateStatus!!["breakerAction"],
+                                "breakerStatus" to gateStatus["breakerStatus"],
+                                "inDisplayStatus" to gateStatus["inDisplayStatus"],
+                                "outDisplayStatus" to gateStatus["outDisplayStatus"],
+                                "paystationStatus" to gateStatus["paystationStatus"],
+                                "paystationAction" to gateStatus["paystationAction"],
+                                "inLprStatus" to gateStatus["inLprStatus"],
+                                "outLprStatus" to gateStatus["outLprStatus"]
+                            )
+                        )
+                    } else {
+                        result.add(
+                            hashMapOf<String, Any?>(
+                                "gateId" to it.gateId,
+                                "gateName" to it.gateName,
+                                "gateType" to it.gateType,
+                                "image" to inout!!["image"],
+                                "vehicleNo" to inout["vehicleNo"],
+                                "date" to inout["date"],
+                                "carType" to inout["carType"],
+                                "outImage" to inout["outImage"],
+                                "outVehicleNo" to inout["outVehicleNo"],
+                                "outDate" to inout["outDate"],
+                                "outCarType" to inout["outCarType"],
+                                "breakerAction" to gateStatus!!["breakerAction"],
+                                "breakerStatus" to gateStatus["breakerStatus"],
+                                "displayStatus" to gateStatus["displayStatus"],
+                                "paystationStatus" to gateStatus["paystationStatus"],
+                                "paystationAction" to gateStatus["paystationAction"],
+                                "lprStatus" to gateStatus["lprStatus"]
+                            )
+                        )
                     }
+
                 }
+
+
             }
+
+
+
+//            when (gates.code) {
+//                ResultCode.SUCCESS.getCode() -> {
+//                    gates.data?.let {
+//                        val lists = gates.data as List<Gate>
+//                        lists.forEach {
+//                            if (it.delYn == DelYn.N) {
+//                                // gate 당 입출차 내역 조회
+//                                val inout = inoutService.getLastInout(it.gateType, it.gateId)
+//                                // 각 장비 상태 조회
+//                                val gateStatus = facilityService.getStatusByGate(it.gateId)
+//                                result.add(
+//                                    hashMapOf<String, Any?>(
+//                                        "gateId" to it.gateId,
+//                                        "gateName" to it.gateName,
+//                                        "gateType" to it.gateType,
+//                                        "image" to inout!!["image"],
+//                                        "vehicleNo" to inout["vehicleNo"],
+//                                        "date" to inout["date"],
+//                                        "carType" to inout["carType"],
+//                                        "outImage" to inout["outImage"],
+//                                        "outVehicleNo" to inout["outVehicleNo"],
+//                                        "outDate" to inout["outDate"],
+//                                        "outCarType" to inout["outCarType"],
+//                                        "breakerAction" to gateStatus!!["breakerAction"],
+//                                        "breakerStatus" to gateStatus["breakerStatus"],
+//                                        "displayStatus" to gateStatus["displayStatus"],
+//                                        "paystationStatus" to gateStatus["paystationStatus"],
+//                                        "paystationAction" to gateStatus["paystationAction"],
+//                                        "lprStatus" to gateStatus["lprStatus"]
+//                                    )
+//                                )
+//                            }
+//                        }
+//                    }
+//                }
+//            }
             return CommonResult.data(result)
         }catch (e: CustomException){
             logger.error { "Admin getMainGates failed ${e.message}" }

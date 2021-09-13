@@ -578,7 +578,7 @@ class FacilityService(
                 val total = facilities.filter {
                     it.lprType != LprTypeStatus.ASSIST
                 }
-                if (total.size == 0) {
+                if (total.isEmpty()) {
                     return null
                 }
                 val normal = facilities.filter {
@@ -607,6 +607,39 @@ class FacilityService(
             logger.error { "getStatusByGateAndCategory error $e" }
         }
         return null
+    }
+
+    fun getStatusByGateAndCategoryAndLprType(gateId: String, category: FacilityCategoryType, lprType: LprTypeStatus): HashMap<String, Any?>? {
+        var result = HashMap<String, Any?>()
+        facilityRepository.findByGateIdAndCategoryAndDelYnAndLprType(gateId, category, DelYn.N, lprType)?.let { facilities ->
+            val total = facilities.filter {
+                it.lprType != LprTypeStatus.ASSIST
+            }
+            if (total.isEmpty()) {
+                return null
+            }
+            val normal = facilities.filter {
+                it.health == "NORMAL"
+            }
+            when (normal.size) {
+                total.size -> {
+                    result = hashMapOf(
+                        "category" to category,
+                        "status" to "NORMAL")
+                }
+                0 -> {
+                    result = hashMapOf(
+                        "category" to category,
+                        "status" to "NORESPONSE")
+                }
+                else -> {
+                    result = hashMapOf(
+                        "category" to category,
+                        "status" to "PARTNORMAL")
+                }
+            }
+        }
+        return result
     }
 
     fun getActionByGateAndCategory(gateId: String, category: FacilityCategoryType): HashMap<String, Any?>? {
@@ -663,6 +696,45 @@ class FacilityService(
                 "breakerAction" to if (breakerAction==null) "NONE" else breakerAction["status"],
                 "breakerFailure" to if (breakerAction==null) null else breakerAction["failure"],
                 "displayStatus" to if (display==null) "NONE" else display["status"],
+                "paystationStatus" to if (paystation==null) "NONE" else paystation["status"],
+                "paystationAction" to if (paystationAction==null) null else paystationAction["status"],
+                "paystationFailure" to if (paystationAction==null) null else paystationAction["failure"]
+            )
+
+        }catch (e: CustomException){
+            logger.error { "getStatusByGate error ${e.message}" }
+        }
+        return null
+    }
+
+    fun getStatusByINOUTGate(gateId: String): HashMap<String, Any?>? {
+        try {
+            // 입구, 출구 LPR
+            val inLpr = getStatusByGateAndCategoryAndLprType(gateId, FacilityCategoryType.LPR, LprTypeStatus.INFRONT)
+            val outLpr = getStatusByGateAndCategoryAndLprType(gateId, FacilityCategoryType.LPR, LprTypeStatus.OUTFRONT)
+
+            //BREAKER
+            val breaker = getStatusByGateAndCategory(gateId, FacilityCategoryType.BREAKER)
+            val breakerAction = getActionByGateAndCategory(gateId, FacilityCategoryType.BREAKER)
+
+            // 입구, 출구 DISPLAY
+            val inDisplay = getStatusByGateAndCategoryAndLprType(gateId, FacilityCategoryType.DISPLAY, LprTypeStatus.INFRONT)
+            val outDisplay = getStatusByGateAndCategoryAndLprType(gateId, FacilityCategoryType.DISPLAY, LprTypeStatus.OUTFRONT)
+
+            //PAYSTATION
+            val paystation = getStatusByGateAndCategory(gateId, FacilityCategoryType.PAYSTATION)
+            val paystationAction = getActionByGateAndCategory(gateId, FacilityCategoryType.PAYSTATION)
+
+            logger.debug { "breaker status ${breaker!!["status"]} action ${breakerAction!!["status"]}" }
+
+            return hashMapOf<String, Any?>(
+                "inLprStatus" to if (inLpr==null) "NONE" else  inLpr["status"],
+                "outLprStatus" to if (outLpr==null) "NONE" else  outLpr["status"],
+                "breakerStatus" to if (breaker==null) "NONE" else breaker["status"],
+                "breakerAction" to if (breakerAction==null) "NONE" else breakerAction["status"],
+                "breakerFailure" to if (breakerAction==null) null else breakerAction["failure"],
+                "inDisplayStatus" to if (inDisplay==null) "NONE" else inDisplay["status"],
+                "outDisplayStatus" to if (outDisplay==null) "NONE" else outDisplay["status"],
                 "paystationStatus" to if (paystation==null) "NONE" else paystation["status"],
                 "paystationAction" to if (paystationAction==null) null else paystationAction["status"],
                 "paystationFailure" to if (paystationAction==null) null else paystationAction["failure"]

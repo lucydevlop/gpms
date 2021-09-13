@@ -797,10 +797,10 @@ class InoutService(
     fun getAllParkLists(request: reqSearchParkin): List<resParkInList>? {
         logger.info { "getAllParkLists $request" }
         try {
-            val results = ArrayList<resParkInList>()
             when (request.searchDateLabel) {
                 DisplayMessageClass.IN -> {
-                    var criteria = ParkInCriteria(
+                    val results = ArrayList<resParkInList>()
+                    val criteria = ParkInCriteria(
                         sn = if (request.searchLabel == "INSN" && request.searchText != null) request.searchText!!.toLong() else null,
                         vehicleNo = if (request.searchLabel == "CARNUM" && request.searchText != null) request.searchText!! else null,
                         fromDate = request.fromDate,
@@ -838,49 +838,14 @@ class InoutService(
                                 result.outImgBase64Str = out.image?.let { if (out.image!!.contains("/park")) out.image!!.substring(out.image!!.indexOf("/park")) else null }?: kotlin.run { null }
                                 result.nonPayment = result.payfee!! - result.paymentAmount!!
                             }
-//                            } else {
-//                                result.parkoutSn = it.outSn
-//                            }
                             results.add(result)
                         }
                     }
-//                    parkInRepository.findAll(findAllParkInSpecification(request))?.let { list ->
-//                        list.forEach {
-//                            val result = resParkInList(
-//                                type = DisplayMessageClass.IN,
-//                                parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
-//                                inGateId = it.gateId, inDate = it.inDate!!,
-//                                ticketCorpName = it.ticket?.corp?.corpName, memo = it.memo,
-//                                inImgBase64Str = it.image?.let { image -> image.substring(image.indexOf("/park")) }
-//                            )
-//                            result.paymentAmount = inoutPaymentRepository.findByInSnAndResultAndDelYn(it.sn!!, ResultType.SUCCESS, DelYn.N)?.let { payment ->
-//                                payment.sumBy { it.amount!! }
-//                            }?: kotlin.run { 0 }
-//
-//                            result.aplyDiscountClasses = discountService.searchInoutDiscount(it.sn!!) as ArrayList<InoutDiscount>?
-//
-//                            if (it.outSn!! > 0L && it.outSn != null) {
-//                                parkOutRepository.findBySn(it.outSn!!)?.let { out ->
-//                                    result.type = DisplayMessageClass.OUT
-//                                    result.parkoutSn = out.sn
-//                                    result.outDate = out.outDate
-//                                    result.outGateId = out.gateId
-//                                    result.parktime = out.parktime
-//                                    result.parkfee = out.parkfee
-//                                    result.payfee = out.payfee?: 0
-//                                    result.discountfee = out.discountfee
-//                                    result.dayDiscountfee = out.dayDiscountfee
-//                                    result.outImgBase64Str = if (out.image!!.contains("/park")) out.image!!.substring(out.image!!.indexOf("/park")) else null
-//                                    result.nonPayment = result.payfee!! - result.paymentAmount!!
-//                                }
-//                            } else {
-//                                result.parkoutSn = it.outSn
-//                            }
-//                            results.add(result)
-//                        }
-//                    }
+                    results.sortedByDescending { it.inDate }
+                    return results
                 }
                 DisplayMessageClass.OUT -> {
+                    val results = ArrayList<resParkInList>()
                     val criteria = ParkOutCriteria(
                         sn = if (request.searchLabel == "INSN" && request.searchText != null) request.searchText!!.toLong() else null,
                         vehicleNo = if (request.searchLabel == "CARNUM" && request.searchText != null) request.searchText!! else null,
@@ -892,7 +857,7 @@ class InoutService(
                     )
 
                     parkOutQueryService.findByCriteria(criteria).let { list ->
-                        list.forEach {
+                        list.filter { it.inSn != null }.forEach {
                             results.add(
                                 resParkInList(
                                     type = DisplayMessageClass.OUT,
@@ -910,110 +875,18 @@ class InoutService(
                                     aplyDiscountClasses = discountService.searchInoutDiscount(it.parkInDTO?.sn!!) as ArrayList<InoutDiscount>?
                                 )
                             )
-
                         }
                     }
-
-
-//                    parkOutRepository.findAll(findAllParkOutSpecification(request))?.let{ list ->
-//
-//                        list.forEach { out ->
-//                            parkInRepository.findTopByOutSnAndDelYnOrderByInDateDesc(out.sn!!, DelYn.N)?.let { parkin ->
-//                                val result = resParkInList(
-//                                    type = DisplayMessageClass.OUT,
-//                                    parkinSn = parkin.sn!!, vehicleNo = parkin.vehicleNo, parkcartype = parkin.parkcartype!!,
-//                                    inGateId = parkin.gateId, inDate = parkin.inDate!!,
-//                                    ticketCorpName = parkin.ticket?.corp?.corpName,
-//                                    parkoutSn = out.sn , outDate = out.outDate, outGateId = out.gateId, parktime = out.parktime,
-//                                    parkfee = out.parkfee, payfee = out.payfee, discountfee = out.discountfee,
-//                                    aplyDiscountClasses = discountService.searchInoutDiscount(parkin.sn!!) as ArrayList<InoutDiscount>?
-//                                )
-//                                results.add(result)
-//                            }
-//
-//                        }
-//                    }
+                    results.sortedByDescending { it.outDate }
+                    return results
                 }
                 else -> return null
             }
-            return results.sortedByDescending { it.inDate }
         } catch (e: RuntimeException) {
             logger.error { "getAllParkLists $e" }
             return null
         }
-//        val pageable: Pageable = PageRequest.of(request.page!!, request.pageSize!!.toInt())
-
     }
-
-//    private fun findAllParkInSpecification(request: reqSearchParkin): Specification<ParkIn> {
-//        val spec = Specification<ParkIn> { root, query, criteriaBuilder ->
-//            val clues = mutableListOf<Predicate>()
-//
-//            if(request.searchLabel == "CARNUM" && request.searchText != null) {
-//                val likeValue = "%" + request.searchText + "%"
-//                clues.add(
-//                    criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("vehicleNo")), likeValue)
-//                )
-//            }
-//
-//            if(request.searchLabel == "INSN" && request.searchText != null) {
-//                clues.add(
-//                    criteriaBuilder.equal(root.get<Long>("sn"), request.searchText)
-//                )
-//            }
-//
-//            if (request.fromDate != null && request.toDate != null) {
-//                clues.add(
-//                    criteriaBuilder.between(
-//                        root.get("inDate"),
-//                        DateUtil.beginTimeToLocalDateTime(request.fromDate.toString()),
-//                        DateUtil.lastTimeToLocalDateTime(request.toDate.toString())
-//                    )
-//                )
-//            }
-//            if (request.gateId != null) {
-//                val likeValue = "%" + request.gateId + "%"
-//                clues.add(
-//                    criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("gateId")), likeValue)
-//                )
-//            }
-//            if (request.parkcartype != null) {
-//                clues.add(
-//                    criteriaBuilder.like(criteriaBuilder.upper(root.get<String>("parkcartype")), "%" + request.parkcartype + "%")
-//                )
-//            }
-//            clues.add(criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N))
-//            query.orderBy(criteriaBuilder.desc(root.get<LocalDateTime>("inDate")))
-//            criteriaBuilder.and(*clues.toTypedArray())
-//        }
-//        return spec
-//    }
-
-//    private fun findAllParkOutSpecification(request: reqSearchParkin): Specification<ParkOut> {
-//
-//        val spec = Specification<ParkOut> { root, query, criteriaBuilder ->
-//            val clues = mutableListOf<Predicate>()
-//
-//            if(request.searchLabel == "CARNUM" && request.searchText != null) {
-//                val likeValue = "%" + request.searchText + "%"
-//                clues.add(
-//                    criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("vehicleNo")), likeValue)
-//                )
-//            }
-//            if (request.fromDate != null && request.toDate != null) {
-//                clues.add(
-//                    criteriaBuilder.between(
-//                        root.get("outDate"),
-//                        DateUtil.beginTimeToLocalDateTime(request.fromDate.toString()),
-//                        DateUtil.lastTimeToLocalDateTime(request.toDate.toString())
-//                    )
-//                )
-//            }
-//            clues.add(criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N))
-//            criteriaBuilder.and(*clues.toTypedArray())
-//        }
-//        return spec
-//    }
 
     fun adjustmentRequestResponse(request: reqAdjustmentRequestResponse, requestId: String) {
         // 5s skip
