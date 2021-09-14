@@ -8,14 +8,7 @@ import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
-import io.glnt.gpms.handler.rcs.service.RcsService
-import io.glnt.gpms.handler.relay.service.RelayService
-import io.glnt.gpms.model.dto.BarcodeClassDTO
-import io.glnt.gpms.model.dto.BarcodeDTO
-import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.entity.Gate
-import io.glnt.gpms.service.BarcodeClassService
-import io.glnt.gpms.service.BarcodeService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus

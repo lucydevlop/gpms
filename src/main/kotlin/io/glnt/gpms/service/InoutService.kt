@@ -811,7 +811,7 @@ class InoutService(
 
                     )
                     parkInQueryService.findByCriteria(criteria).let { list ->
-                        list.forEach {
+                        list.forEach { it ->
                             val result = resParkInList(
                                 type = DisplayMessageClass.IN,
                                 parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
@@ -1136,10 +1136,10 @@ class InoutService(
         try {
             parkInQueryService.findByCriteria(ParkInCriteria(sn = request.parkinSn)).let { parkIns ->
                 parkIns.forEach { parkIn ->
-                    parkIn.inDate = request.inDate?: parkIn.inDate
+                    parkIn.inDate = request.inDate
                     parkIn.gateId = request.inGateId?: parkIn.gateId
                     parkIn.vehicleNo = request.vehicleNo?: parkIn.vehicleNo
-                    parkIn.parkcartype = request.parkcartype?: parkIn.parkcartype
+                    parkIn.parkcartype = request.parkcartype
                     parkIn.memo = request.memo?: parkIn.memo
 
                     parkInService.save(parkIn)
@@ -1530,7 +1530,7 @@ class InoutService(
 
     fun waitFacilityIF(parkCarType: String, vehicleNo: String, gate: Gate, parkOutDTO: ParkOutDTO, inDate: LocalDateTime) {
         // 결제금액 전광판
-        var payFee = parkOutDTO.payfee?: 0
+        val payFee = parkOutDTO.payfee?: 0
 
         displayMessage(parkCarType, (payFee.toString() + "원") as String, "WAIT", gate.gateId)
 
@@ -1547,7 +1547,7 @@ class InoutService(
                 recognitionResult = "RECOGNITION",
                 paymentAmount = if (parkOutDTO.parkfee ?: 0 <= 0) "0" else (parkOutDTO.parkfee ?: 0).toString(),
                 parktime = parkOutDTO.parktime.toString(),
-                parkTicketMoney = if (payFee <= 0) "0" else (parkOutDTO.discountfee?.plus(parkOutDTO.dayDiscountfee!!)).toString(),  // 할인요금
+                parkTicketMoney = parkOutDTO.discountfee?.plus(parkOutDTO.dayDiscountfee!!).toString(),  // 할인요금
                 vehicleIntime = DateUtil.formatDateTime(inDate, "yyyy-MM-dd HH:mm")
             )
         )

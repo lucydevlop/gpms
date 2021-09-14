@@ -8,6 +8,7 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.inout.model.reqAddParkIn
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
 import io.glnt.gpms.model.dto.ParkOutDTO
 import io.glnt.gpms.model.dto.ParkinglotVehicleDTO
 import io.glnt.gpms.model.dto.RequestParkInDTO
@@ -35,7 +36,8 @@ class RelayResource (
     private val parkInService: ParkInService,
     private val parkOutService: ParkOutService,
     private val parkinglotVehicleService: ParkinglotVehicleService,
-    private val parkSiteInfoService: ParkSiteInfoService
+    private val parkSiteInfoService: ParkSiteInfoService,
+    private val relayService: RelayService
 ){
     companion object : KLogging()
 
@@ -198,6 +200,13 @@ class RelayResource (
                 ResultCode.FAILED
             )
         }
+    }
+
+    // 사전 정산기 번호 요청
+    @RequestMapping(value = ["/relay/paystation/search/vehicle/{dtFacilityId}"], method = [RequestMethod.POST])
+    fun searchCarNumber(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String) {
+        logger.info { "searchCarNumber $request " }
+        relayService.searchCarNumber(request, dtFacilityId)
     }
 
 }

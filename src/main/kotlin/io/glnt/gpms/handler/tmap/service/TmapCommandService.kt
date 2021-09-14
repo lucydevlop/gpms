@@ -11,8 +11,7 @@ import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
 import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
-import io.glnt.gpms.handler.product.service.ProductService
-import io.glnt.gpms.handler.relay.service.RelayService
+import io.glnt.gpms.service.RelayService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.model.entity.TmapCommand
 import io.glnt.gpms.model.enums.*
@@ -121,7 +120,7 @@ class TmapCommandService(
                     // gate
                     relayService.actionGate(contents.facilitiesId, "FACILITY", "open")
                     // display
-                    val facility = parkinglotService.getFacility(contents.facilitiesId)
+                    parkinglotService.getFacility(contents.facilitiesId)
 //                    facilityService.displayOutGate(facility!!.gateId, "감사합니다", "안녕히가세요")
                 }
                 "CLOSE" -> {

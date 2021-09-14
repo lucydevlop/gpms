@@ -1,4 +1,4 @@
-package io.glnt.gpms.handler.relay.service
+package io.glnt.gpms.service
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.utils.DateUtil
@@ -352,8 +352,11 @@ class RelayService(
                     parkIns.filter { it.outSn == 0L }.forEach {
                         data.add(
                             paystationvehicleListSearch(
+                                inSn = it.sn!!.toString(),
                                 vehicleNumber = it.vehicleNo!!,
-                                inVehicleDateTime = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss")))
+                                inVehicleDateTime = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss")
+                            )
+                        )
                     }
 
                     facilityService.sendPaystation(

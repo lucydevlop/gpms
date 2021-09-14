@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.JsonNode
 import io.glnt.gpms.common.api.CommonResult
+import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
@@ -16,8 +17,9 @@ import io.glnt.gpms.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.rcs.model.*
-import io.glnt.gpms.handler.relay.service.RelayService
+import io.glnt.gpms.service.RelayService
 import io.glnt.gpms.model.dto.FacilityDTO
+import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.entity.ProductTicket
@@ -67,13 +69,18 @@ class RcsService(
                             parkinglot = AsyncParkinglot(ip = parkSite.ip!!, name = parkSite.siteName!!, city = parkSite.city!!, address = parkSite.address!! ),
                             facilities = facilityService.allFacilities()!!)
                     )
-                    response?.let { response ->
-                        if (response.status == 200 || response.status == 201) {
-                            val obj = response.body!!.`object`
-                            val contents = jacksonObjectMapper().readValue(obj.toString(), ResAsyncParkinglot::class.java) as ResAsyncParkinglot
-                            return contents
+                    response?.let { it ->
+                        if (it.status == 200 || it.status == 201) {
+                            val obj = it.body!!.`object`
+                            return jacksonObjectMapper().readValue(
+                                obj.toString(),
+                                ResAsyncParkinglot::class.java
+                            ) as ResAsyncParkinglot
                         }
                     }
+                }
+                else -> {
+                    logger.error { "RCS 연계 코드 오류" }
                 }
             }
         }catch (e: RuntimeException) {
@@ -141,6 +148,9 @@ class RcsService(
                         glntUrl+"/parkinglots/"+parkSite.rcsParkId!!+"/facilities",
                         result
                     )
+                }
+                else -> {
+                    logger.error { "RCS 연계 코드 오류" }
                 }
             }
         }catch (e: RuntimeException) {
@@ -270,10 +280,18 @@ class RcsService(
 
 
     @Throws(CustomException::class)
-    fun createTicket(request: ProductTicket) : CommonResult {
+    fun createTicket(request: reqCreateProductTicket) : CommonResult {
         try {
-            request.delYn = DelYn.N
-            return CommonResult.data(productService.saveProductTicket(request))
+            val data = productService.createProduct(request)
+            when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(data.data)
+                }
+                else -> {
+                    logger.error { "rcs createTicket failed ${data.msg}" }
+                    return CommonResult.error("rcs createTicket failed")
+                }
+            }
         }catch (e: CustomException) {
             logger.error { "rcs createTicket failed $e" }
             return CommonResult.error("rcs createTicket failed")

@@ -14,7 +14,7 @@ import io.glnt.gpms.service.InoutService
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
-import io.glnt.gpms.handler.relay.service.RelayService
+import io.glnt.gpms.service.RelayService
 import io.glnt.gpms.handler.user.service.AuthService
 import io.glnt.gpms.handler.file.service.ExcelUploadService
 import io.glnt.gpms.model.dto.request.*
@@ -79,10 +79,10 @@ class DashboardAdminService(
                 gates.forEach {
                     // gate 당 입출차 내역 조회
                     val inout = inoutService.getLastInout(it.gateType!!, it.gateId?: "")
-                    // 각 장비 상태 조회
-                    val gateStatus = facilityService.getStatusByGate(it.gateId?: "")
 
                     if (it.gateType!! == GateTypeStatus.IN_OUT) {
+                        // 각 장비 상태 조회
+                        val gateStatus = facilityService.getStatusByINOUTGate(it.gateId?: "")
                         result.add(
                             hashMapOf<String, Any?>(
                                 "gateId" to it.gateId,
@@ -107,6 +107,9 @@ class DashboardAdminService(
                             )
                         )
                     } else {
+                        // 각 장비 상태 조회
+                        val gateStatus = facilityService.getStatusByGate(it.gateId?: "")
+
                         result.add(
                             hashMapOf<String, Any?>(
                                 "gateId" to it.gateId,
@@ -183,9 +186,9 @@ class DashboardAdminService(
     @Throws(CustomException::class)
     fun getParkInLists(request: reqSearchParkin): CommonResult {
         try {
-            val result = inoutService.getAllParkLists(request)
+            val results = inoutService.getAllParkLists(request)
 
-            result?.let { result ->
+            results?.let { result ->
                 request.searchDateLabel?.let { label ->
                     when (label) {
                         DisplayMessageClass.IN -> result.sortedByDescending { it.inDate }
@@ -194,7 +197,7 @@ class DashboardAdminService(
                     }
                 }
             }
-            return CommonResult.data(result)
+            return CommonResult.data(results)
         }catch (e: CustomException){
             logger.error { "Admin getParkInLists failed ${e.message}" }
             return CommonResult.error("Admin getParkInLists failed ${e.message}")
@@ -825,10 +828,10 @@ class DashboardAdminService(
     }
 }
 
-inline fun singleTimer(delay: Long = 1000, unit: TimeUnit = TimeUnit.MILLISECONDS) =
+fun singleTimer(delay: Long = 1000, unit: TimeUnit = TimeUnit.MILLISECONDS) =
     Single.timer(delay, unit)
 
-inline fun interval(period: Long = 10000, unit: TimeUnit = TimeUnit.MILLISECONDS, initDelay: Long = -1) =
+fun interval(period: Long = 10000, unit: TimeUnit = TimeUnit.MILLISECONDS, initDelay: Long = -1) =
     if (initDelay == -1L)
         Observable.interval(period, unit)
     else

@@ -40,7 +40,7 @@ class RelayClient (
     }
 
     fun sendShowDisplayMessages(gateId: String, type: String?, data: ArrayList<reqDisplayMessage>, reset: String ) {
-        logger.trace { "전광판 메세지 $gateId $type $data $reset" }
+        logger.warn { "전광판 메세지 $gateId $type $data $reset" }
         getFacilityByGateId(gateId, FacilityCategoryType.DISPLAY, type)?.let { facilityDTOs ->
             facilityDTOs.forEach { facilityDTO ->
                 restAPIManager.sendPostRequest(getUrl(gateId)+"/display/show",
