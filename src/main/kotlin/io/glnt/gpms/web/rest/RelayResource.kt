@@ -109,14 +109,14 @@ class RelayResource (
                 requestParkOutDTO.fileUploadId = DateUtil.stringToNowDateTimeMS()+"_F"
             }
 
-            requestParkOutDTO.parkCarType = inoutService.confirmParkCarType(requestParkOutDTO.vehicleNo ?: "", requestParkOutDTO.date!!)
+            val parkCarType = inoutService.confirmParkCarType(requestParkOutDTO.vehicleNo ?: "", requestParkOutDTO.date!!, "OUT")
+            requestParkOutDTO.parkCarType = parkCarType["parkCarType"] as String?
             requestParkOutDTO.recognitionResult = if (requestParkOutDTO.parkCarType == "UNRECOGNIZED") "NOTRECOGNITION" else "RECOGNITION"
 
             // 모든 사진 정보 저장(차후 미인식 리스트 이용)
             parkinglotVehicleService.save(
                 ParkinglotVehicleDTO(
-                    sn = null,
-                    date = requestParkOutDTO.date,
+                    sn = null, date = requestParkOutDTO.date,
                     vehicleNo = requestParkOutDTO.vehicleNo,
                     type = GateTypeStatus.OUT,
                     uuid = requestParkOutDTO.uuid,

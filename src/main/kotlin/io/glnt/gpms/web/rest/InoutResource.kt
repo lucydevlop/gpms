@@ -43,6 +43,12 @@ class InoutResource (
         return CommonResult.returnResult(CommonResult.data(inoutService.updateInout(resParkInList)))
     }
 
+    @RequestMapping(value = ["/inouts"], method = [RequestMethod.POST])
+    fun create(@Valid @RequestBody resParkInList: resParkInList): ResponseEntity<CommonResult> {
+        logger.debug { "inout create $resParkInList" }
+        return CommonResult.returnResult(CommonResult.data())
+    }
+
     @RequestMapping(value = ["/inouts/transfer"], method = [RequestMethod.PUT])
     fun parkOutTransfer(@Valid @RequestBody resParkInList: resParkInList): ResponseEntity<CommonResult> {
         logger.debug { "inout transfer $resParkInList" }

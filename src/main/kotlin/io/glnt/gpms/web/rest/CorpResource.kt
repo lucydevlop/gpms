@@ -158,7 +158,7 @@ class CorpResource (
                     delYn = it.delYn!!,
                     createDate = it.createDate!!,
                     quantity = it.quantity!!,
-                    ticketClassSn = it.ticketClassSn!!
+                    ticketClassSn = it.ticketClassSn
                 )
             )
         }

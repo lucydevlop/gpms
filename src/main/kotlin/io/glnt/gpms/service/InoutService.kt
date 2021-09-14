@@ -47,7 +47,8 @@ class InoutService(
     private var parkInQueryService: ParkInQueryService,
     private var parkInService: ParkInService,
     private var parkOutQueryService: ParkOutQueryService,
-    private var parkSiteInfoService: ParkSiteInfoService
+    private var parkSiteInfoService: ParkSiteInfoService,
+    private var gateService: GateService
 ) {
     companion object : KLogging()
 
@@ -1057,29 +1058,76 @@ class InoutService(
     fun createInout(request: resParkInList): CommonResult {
         logger.info { "createInout request $request" }
         try {
-            var inResult: Any? = null
-            parkinglotService.getFacilityByGateAndCategory(request.inGateId!!, FacilityCategoryType.LPR)?.let { its ->
-                its.filter { it.lprType == LprTypeStatus.FRONT }
-            }?.let { facilies ->
-                val result = parkIn(
-                    reqAddParkIn(vehicleNo = request.vehicleNo!!,
-                        dtFacilitiesId = facilies[0].dtFacilitiesId,
-                        date = request.inDate,
-                        resultcode = "0",
-                        base64Str = request.inImgBase64Str,
-                        uuid = UUID.randomUUID().toString(),
-                        inSn = if (request.parkinSn == 0L) null else request.parkinSn,
-                        deviceIF = "OFF", memo = request.memo
-                    )).data!! as ParkIn
-                inResult = parkInRepository.findBySn(result.sn!!)!!
-            }?.run {
-                return CommonResult.error("updateInout failed")
+            val gate = gateService.findOne(request.inGateId ?: "").orElse(null)
+
+            gate?.let { gateDTO ->
+                val uuid = UUID.randomUUID().toString()
+                if (parkInRepository.findByVehicleNoEndsWithAndOutSnAndGateIdAndDelYn(request.vehicleNo?: "", 0, gateDTO.gateId!!, DelYn.N)!!.isNotEmpty()) {
+                    logger.warn{" 기 입차 car_num:${request.vehicleNo} skip "}
+                    return CommonResult.data()
+                }
+
+                // 기 입차 여부 확인 및 update
+                val parkins = searchParkInByVehicleNo(request.vehicleNo?: "", gate.gateId!!)
+                if (!parkins.isNullOrEmpty()) {
+                    parkins.filter { it.outSn == 0L }.forEach {
+                        it.outSn = -1
+                        parkInService.save(it)
+                    }
+                }
+
+                val parkCarType = confirmParkCarType(request.vehicleNo ?: "", request.inDate, "IN")
+                val recognitionResult = if (parkCarType["parkCarType"] == "UNRECOGNIZED") "NOTRECOGNITION" else "RECOGNITION"
+
+                // 입차 정보 DB insert
+                val new = ParkIn(
+                    sn = null,
+                    gateId = gate.gateId,
+                    parkcartype = parkCarType["parkCarType"] as String?,
+                    userSn = 0,
+                    vehicleNo = request.vehicleNo ?: "",
+                    image = null,
+                    flag = 0,
+                    resultcode = 0,
+                    requestid = parkSiteInfoService.generateRequestId(),
+                    hour = DateUtil.nowTimeDetail.substring(0, 2),
+                    min = DateUtil.nowTimeDetail.substring(3, 5),
+                    inDate = request.inDate,
+                    uuid = uuid,
+                    udpssid = if (gate.takeAction == "PCC") "11111" else "00000",
+                    ticketSn = parkCarType["ticketSn"] as Long?,
+                    memo = request.memo,
+                    date = request.inDate.toLocalDate()
+                )
+                parkInRepository.saveAndFlush(new)
+                logger.warn { "### 수동입차등록 차량번호 ${new.vehicleNo} 입차일시 ${new.inDate} 차량타입 ${new.parkcartype}" }
+                return CommonResult.data(new)
             }
+
+            return CommonResult.data()
+//
+//
+//            parkinglotService.getFacilityByGateAndCategory(request.inGateId!!, FacilityCategoryType.LPR)?.let { its ->
+//                its.filter { it.lprType == LprTypeStatus.FRONT || it.lprType == LprTypeStatus.INFRONT }
+//            }?.let { facilies ->
+//                val result = parkIn(
+//                    reqAddParkIn(vehicleNo = request.vehicleNo!!,
+//                        dtFacilitiesId = facilies[0].dtFacilitiesId,
+//                        date = request.inDate,
+//                        resultcode = "0",
+//                        base64Str = request.inImgBase64Str,
+//                        uuid = UUID.randomUUID().toString(),
+//                        inSn = if (request.parkinSn == 0L) null else request.parkinSn,
+//                        deviceIF = "OFF", memo = request.memo
+//                    )).data!! as ParkIn
+//                inResult = parkInRepository.findBySn(result.sn!!)!!
+//            }?.run {
+//                return CommonResult.error("updateInout failed")
+//            }
         }catch (e: RuntimeException){
             logger.error { "createInout failed $e" }
             return CommonResult.error("createInout failed")
         }
-        return CommonResult.data()
     }
 
     @Throws(CustomException::class)
@@ -1116,9 +1164,13 @@ class InoutService(
                                 parkOutRepository.saveAndFlush(parkOut)
                             }
                         }?: kotlin.run {
+                            // 입차 기준으로 출차 데이터 확인
+                            val existIn = request.parkinSn?.let { it1 -> parkOutRepository.findByInSnAndDelYn(it1, DelYn.N).orElse(null) }
+                            val sn = existIn?.sn
+
                             //신규 출차 데이터
                             val new = ParkOut(
-                                sn = null,
+                                sn = sn,
                                 gateId = request.outGateId,
                                 parkcartype = parkIn.parkcartype,
                                 userSn = 0,
@@ -1522,18 +1574,32 @@ class InoutService(
         displayMessage(parkCarType, vehicleNo, "WAIT", gate.gateId)
     }
 
-    fun confirmParkCarType(vehicleNo: String, date: LocalDateTime): String {
-        var parkCarType = "NORMAL"
+    fun confirmParkCarType(vehicleNo: String, date: LocalDateTime, type: String): HashMap<String, Any?> {
+        var result = HashMap<String, Any?>()
+//        var parkCarType = "NORMAL"
 
         if (DataCheckUtil.isValidCarNumber(vehicleNo)) {
             //todo 정기권 차량 여부 확인
             productService.getValidProductByVehicleNo(vehicleNo, date, date)?.let {
-                parkCarType = it.ticketType!!.code
+                result =
+                    hashMapOf<String, Any?>(
+                        "parkCarType" to it.ticketType!!.code,
+                        "ticketSn" to it.sn
+                    )
+
+            }?: kotlin.run {
+                result =
+                    hashMapOf<String, Any?>(
+                        "parkCarType" to "NORMAL"
+                    )
             }
         } else {
-            parkCarType = "UNRECOGNIZED"
+            result =
+                hashMapOf<String, Any?>(
+                    "parkCarType" to "UNRECOGNIZED"
+                )
         }
-        return parkCarType
+        return result
     }
 }
 
