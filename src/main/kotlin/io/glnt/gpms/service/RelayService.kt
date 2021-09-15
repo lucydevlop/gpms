@@ -390,6 +390,8 @@ class RelayService(
 //                tmapSendService.sendTmapInterface(request, requestId, "vehicleListSearch")
             } else {
                 val gateId = parkinglotService.getGateInfoByDtFacilityId(dtFacilityId)!!.gateId
+                // 사전 정산 시 현재 기준으로 금액 계산만 처리 -> 정산쪽만 연계
+                // 출차 정산 시 출차 형식 따름
                 inoutService.parkOut(reqAddParkOut(vehicleNo = contents.vehicleNumber,
                                                    dtFacilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, FacilityCategoryType.LPR)!![0].dtFacilitiesId,
                                                    date = LocalDateTime.now(),

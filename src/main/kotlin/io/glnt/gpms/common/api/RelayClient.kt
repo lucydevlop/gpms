@@ -51,7 +51,7 @@ class RelayClient (
     }
 
     fun sendActionBreaker(gateId: String, action: String, manual: String? = null) {
-        logger.trace { "차단기 메세지 $gateId $action $manual " }
+        logger.warn { "차단기 메세지 $gateId $action $manual " }
         getFacilityByGateId(gateId, FacilityCategoryType.BREAKER)?.let { facilityDTOs ->
             facilityDTOs.forEach { facilityDTO ->
                 if (manual.isNullOrEmpty()) {

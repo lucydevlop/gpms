@@ -471,7 +471,7 @@ class ProductService {
                     clues.add(
                         criteriaBuilder.lessThanOrEqualTo(
                             root.get("effectDate"),
-                            DateUtil.lastTimeToLocalDateTime(request.toDate.toString())
+                            DateUtil.beginTimeToLocalDateTime(request.toDate.toString())
                         )
                     )
                     clues.add(
