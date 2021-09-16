@@ -1,4 +1,4 @@
-package io.glnt.gpms.io.glnt.gpms.handler.file.service
+package io.glnt.gpms.handler.file.service
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode

@@ -11,11 +11,13 @@ import io.glnt.gpms.handler.discount.model.reqApplyInoutDiscountSearch
 import io.glnt.gpms.handler.discount.model.reqDiscountableTicket
 import io.glnt.gpms.handler.discount.model.reqSearchInoutDiscount
 import io.glnt.gpms.handler.discount.service.DiscountService
-import io.glnt.gpms.handler.inout.service.InoutService
-import io.glnt.gpms.handler.inout.service.checkItemsAre
+import io.glnt.gpms.service.InoutService
+//import io.glnt.gpms.handler.inout.service.checkItemsAre
+import io.glnt.gpms.model.dto.ParkInCriteria
 import io.glnt.gpms.model.entity.CorpTicketInfo
 import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.enums.TicketType
+import io.glnt.gpms.service.ParkInQueryService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -25,7 +27,9 @@ import kotlin.collections.ArrayList
 
 
 @Service
-class DashboardUserService {
+class DashboardUserService(
+    private val parkInQueryService: ParkInQueryService
+) {
     companion object : KLogging()
 
     @Autowired
@@ -37,27 +41,24 @@ class DashboardUserService {
     @Throws(CustomException::class)
     fun parkingDiscountSearchVehicle(request: reqVehicleSearch) : CommonResult {
         try {
-            val parkins = inoutService.searchParkInByVehicleNo(request.vehicleNo, "")
-            val data = ArrayList<resVehicleSearch>()
-            when(parkins.code) {
-                ResultCode.SUCCESS.getCode() -> {
-                    val lists = parkins.data as? List<*>?
-                    lists!!.checkItemsAre<ParkIn>()?.filter { it.outSn == 0L }?.let { list ->
-                        list.forEach {
-//                            logger.debug { "image path ${it.image!!.substring(it.image!!.indexOf("/park"))}" }
-                            data.add(
-                                resVehicleSearch(
-                                    sn = it.sn!!,
-                                    vehicleNo = it.vehicleNo!!,
-                                    inDate = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss"),
-                                    imImagePath = it.image?.let { if (it.contains("/park")) it.substring(it.indexOf("/park")) else null }?: kotlin.run { null }
-                                )
-                            )
-                        }
-
-                    }
-                }
-            }
+            val data = getParkInByVehicleNo(request.vehicleNo)
+//                ResultCode.SUCCESS.getCode() -> {
+//                    val lists = parkins.data as? List<*>?
+//                    lists!!.checkItemsAre<ParkIn>()?.filter { it.outSn == 0L }?.let { list ->
+//                        list.forEach {
+////                            logger.debug { "image path ${it.image!!.substring(it.image!!.indexOf("/park"))}" }
+//                            data.add(
+//                                resVehicleSearch(
+//                                    sn = it.sn!!,
+//                                    vehicleNo = it.vehicleNo!!,
+//                                    inDate = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss"),
+//                                    imImagePath = it.image?.let { if (it.contains("/park")) it.substring(it.indexOf("/park")) else null }?: kotlin.run { null }
+//                                )
+//                            )
+//                        }
+//
+//                    }
+//                }
             return CommonResult.data(data)
         }catch (e: CustomException){
             logger.error { "parkingDiscountSearchVehicle failed ${e.message}" }
@@ -68,32 +69,52 @@ class DashboardUserService {
     @Throws(CustomException::class)
     fun parkingDiscountSearchTicket(request: reqParkingDiscounTicketSearch) : CommonResult {
         try {
-            val parkins = inoutService.searchParkInByVehicleNo(request.vehicleNo, "")
-            val data = ArrayList<resVehicleSearch>()
-            when(parkins.code) {
-                ResultCode.SUCCESS.getCode() -> {
-                    val lists = parkins.data as? List<*>?
-                    lists!!.checkItemsAre<ParkIn>()?.filter { it.outSn == 0L }?.let { list ->
-                        list.forEach {
-//                            logger.debug { "image path ${it.image!!.substring(it.image!!.indexOf("/park"))}" }
-                            data.add(
-                                resVehicleSearch(
-                                    sn = it.sn!!,
-                                    vehicleNo = it.vehicleNo!!,
-                                    inDate = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss"),
-                                    imImagePath = it.image!!.substring(it.image!!.indexOf("/park"))
-                                )
-                            )
-                        }
-
-                    }
-                }
-            }
+            val data = getParkInByVehicleNo(request.vehicleNo)
+//            val parkins = inoutService.searchParkInByVehicleNo(request.vehicleNo, "")
+//            val data = ArrayList<resVehicleSearch>()
+//            when(parkins.code) {
+//                ResultCode.SUCCESS.getCode() -> {
+//                    val lists = parkins.data as? List<*>?
+//                    lists!!.checkItemsAre<ParkIn>()?.filter { it.outSn == 0L }?.let { list ->
+//                        list.forEach {
+////                            logger.debug { "image path ${it.image!!.substring(it.image!!.indexOf("/park"))}" }
+//                            data.add(
+//                                resVehicleSearch(
+//                                    sn = it.sn!!,
+//                                    vehicleNo = it.vehicleNo!!,
+//                                    inDate = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss"),
+//                                    imImagePath = it.image!!.substring(it.image!!.indexOf("/park"))
+//                                )
+//                            )
+//                        }
+//
+//                    }
+//                }
+//            }
             return CommonResult.data(data)
         }catch (e: CustomException){
             logger.error { "parkingDiscountSearchVehicle failed ${e.message}" }
             return CommonResult.error("parkingDiscountSearchVehicle failed ${e.message}")
         }
+    }
+
+    private fun getParkInByVehicleNo(vehicleNo: String) : ArrayList<resVehicleSearch> {
+        val parkIns = parkInQueryService.findByCriteria(ParkInCriteria(vehicleNo = vehicleNo, outSn = 0L))
+        val data = ArrayList<resVehicleSearch>()
+        if (!parkIns.isNullOrEmpty()) {
+            parkIns.filter { it.outSn == 0L }.forEach { it ->
+                logger.debug { "image path ${it.image!!.substring(it.image!!.indexOf("/park"))}" }
+                data.add(
+                    resVehicleSearch(
+                        sn = it.sn!!,
+                        vehicleNo = it.vehicleNo!!,
+                        inDate = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss"),
+                        imImagePath = it.image?.let { if (it.contains("/park")) it.substring(it.indexOf("/park")) else null }?: kotlin.run { null }
+                    )
+                )
+            }
+        }
+        return data
     }
 
 //    @Throws(CustomException::class)

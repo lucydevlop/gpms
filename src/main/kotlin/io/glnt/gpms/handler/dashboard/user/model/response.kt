@@ -21,5 +21,6 @@ data class ResDiscountTicetsApplyList(
     var calcYn: DelYn,
     var delYn: DelYn,
     var createDate: LocalDateTime,
-    var quantity: Int
+    var quantity: Int,
+    var ticketClassSn: Long? = null
 )

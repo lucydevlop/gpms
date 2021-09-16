@@ -124,7 +124,6 @@ data class resParkInList(
     var aplyDiscountClasses: ArrayList<InoutDiscount>? = null
 )
 
-
 data class ReqAddParkingDiscount(
     var inSn: Long,
     var discountClassSn: Long,

@@ -15,8 +15,8 @@ class ParkSiteInfoMapper {
             null -> null
             else -> {
                 ParkSiteInfo(
-                    siteid = dto.siteid!!,
-                    sitename = dto.sitename!!,
+                    siteid = dto.siteId ?: "",
+                    sitename = dto.siteName?: "",
                     limitqty = dto.limitqty,
                     saupno = dto.saupno,
                     tel = dto.tel,
@@ -44,7 +44,8 @@ class ParkSiteInfoMapper {
                     ip = dto.ip,
                     vehicleDayOption = dto.vehicleDayOption,
                     visitorExternal = dto.visitorExternal,
-                    visitorExternalKey = dto.visitorExternalKey
+                    visitorExternalKey = dto.visitorExternalKey,
+                    operatingDays = dto.operatingDays
                 )
             }
         }

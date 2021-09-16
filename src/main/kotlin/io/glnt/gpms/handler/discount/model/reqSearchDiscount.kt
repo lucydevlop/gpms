@@ -37,5 +37,6 @@ data class reqApplyInoutDiscountSearch(
     var endDate: LocalDate,
     //var ticketType: TicketType,
     var applyStatus: String?,
-    var ticketsSn: List<Long>? = null
+    var ticketsSn: List<Long>? = null,
+    var ticketClassSn: Long? = null
 )

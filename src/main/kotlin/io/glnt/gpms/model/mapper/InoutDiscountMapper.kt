@@ -2,17 +2,21 @@ package io.glnt.gpms.model.mapper
 
 import io.glnt.gpms.model.dto.DiscountClassDTO
 import io.glnt.gpms.model.dto.InoutDiscountDTO
+import io.glnt.gpms.model.dto.ParkInDTO
 import io.glnt.gpms.model.entity.InoutDiscount
 import io.glnt.gpms.model.repository.DiscountClassRepository
+import io.glnt.gpms.model.repository.ParkInRepository
 import org.springframework.stereotype.Service
 
 @Service
 class InoutDiscountMapper(
-    private val discountClassRepository: DiscountClassRepository
+    private val discountClassRepository: DiscountClassRepository,
+    private val parkInRepository: ParkInRepository
 ) {
     fun toDTO(entity: InoutDiscount): InoutDiscountDTO {
         InoutDiscountDTO(entity).apply {
             this.discountClass = DiscountClassDTO(discountClassRepository.findBySn(this.discountClassSn!!))
+            this.parkInDTO = parkInRepository.findBySn(this.inSn!!)?.let { ParkInDTO(it) }
             return this
         }
     }

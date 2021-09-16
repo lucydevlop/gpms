@@ -36,5 +36,4 @@ class InoutDiscountService(
 
         return result.minOrNull()?.toInt()
     }
-
 }

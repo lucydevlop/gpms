@@ -4,30 +4,29 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.JsonNode
 import io.glnt.gpms.common.api.CommonResult
+import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
 //import io.glnt.gpms.handler.corp.service.CorpService
-import io.glnt.gpms.handler.dashboard.admin.model.reqSearchCorp
 import io.glnt.gpms.handler.dashboard.admin.service.singleTimer
-import io.glnt.gpms.handler.discount.model.reqDiscountableTicket
 import io.glnt.gpms.handler.discount.service.DiscountService
-import io.glnt.gpms.handler.facility.service.FacilityService
+import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
-import io.glnt.gpms.handler.inout.service.InoutService
+import io.glnt.gpms.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.rcs.model.*
-import io.glnt.gpms.handler.relay.service.RelayService
+import io.glnt.gpms.service.RelayService
 import io.glnt.gpms.model.dto.FacilityDTO
+import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.dto.request.resParkInList
-import io.glnt.gpms.model.entity.Failure
 import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.ExternalSvrType
-import io.glnt.gpms.model.enums.checkUseStatus
 import io.glnt.gpms.service.CorpService
+import io.glnt.gpms.service.ParkSiteInfoService
 import io.reactivex.Observable
 import mu.KLogging
 import org.apache.http.HttpStatus
@@ -44,7 +43,8 @@ class RcsService(
     private var restAPIManager: RestAPIManagerUtil,
     private var productService: ProductService,
     private var discountService: DiscountService,
-    private var corpService: CorpService
+    private var corpService: CorpService,
+    private var parkSiteInfoService: ParkSiteInfoService
 ) {
     companion object : KLogging()
 
@@ -59,21 +59,28 @@ class RcsService(
 
     fun asyncParkinglot(): ResAsyncParkinglot? {
         try {
-            when (parkinglotService.parkSite!!.externalSvr) {
+            val parkSite = parkSiteInfoService.parkSite
+
+            when (parkSite?.externalSvr) {
                 ExternalSvrType.GLNT -> {
                     val response: HttpResponse<JsonNode?>? = restAPIManager.sendPostRequest(
-                        glntUrl+"/async/parkinglot",
+                        "$glntUrl/async/parkinglot",
                         ReqParkinglot(
-                            parkinglot = AsyncParkinglot(ip = parkinglotService.parkSite!!.ip!!, name = parkinglotService.parkSite!!.sitename, city = parkinglotService.parkSite!!.city!!, address = parkinglotService.parkSite!!.address!! ),
+                            parkinglot = AsyncParkinglot(ip = parkSite.ip!!, name = parkSite.siteName!!, city = parkSite.city!!, address = parkSite.address!! ),
                             facilities = facilityService.allFacilities()!!)
                     )
-                    response?.let { response ->
-                        if (response.status == 200 || response.status == 201) {
-                            val obj = response.body!!.`object`
-                            val contents = jacksonObjectMapper().readValue(obj.toString(), ResAsyncParkinglot::class.java) as ResAsyncParkinglot
-                            return contents
+                    response?.let { it ->
+                        if (it.status == 200 || it.status == 201) {
+                            val obj = it.body!!.`object`
+                            return jacksonObjectMapper().readValue(
+                                obj.toString(),
+                                ResAsyncParkinglot::class.java
+                            ) as ResAsyncParkinglot
                         }
                     }
+                }
+                else -> {
+                    logger.error { "RCS 연계 코드 오류" }
                 }
             }
         }catch (e: RuntimeException) {
@@ -123,7 +130,10 @@ class RcsService(
     fun asyncFacilitiesHealth(request: List<FacilityDTO>) {
         try {
             logger.info { "Async facilities health $request"  }
-            var result = ArrayList<ReqHealthCheck>()
+
+            val parkSite = parkSiteInfoService.parkSite
+
+            val result = ArrayList<ReqHealthCheck>()
             request.forEach { it ->
                 result.add(ReqHealthCheck(
                     dtFacilitiesId = it.dtFacilitiesId!!,
@@ -132,12 +142,15 @@ class RcsService(
                 ))
             }
 
-            when (parkinglotService.parkSite!!.externalSvr) {
+            when (parkSite?.externalSvr) {
                 ExternalSvrType.GLNT -> {
                     restAPIManager.sendPatchRequest(
-                        glntUrl+"/parkinglots/"+parkinglotService.parkSite!!.rcsParkId!!+"/facilities",
+                        glntUrl+"/parkinglots/"+parkSite.rcsParkId!!+"/facilities",
                         result
                     )
+                }
+                else -> {
+                    logger.error { "RCS 연계 코드 오류" }
                 }
             }
         }catch (e: RuntimeException) {
@@ -248,7 +261,7 @@ class RcsService(
     @Throws(CustomException::class)
     fun updateInout(request: resParkInList) : CommonResult {
         try {
-            return CommonResult.data(inoutService.updateInout(request).data)
+            return CommonResult.data(inoutService.updateInout(request))
         }catch (e: CustomException){
             logger.error { "rcs updateInout failed $e" }
             return CommonResult.error("rcs updateInout failed ${e.message}")
@@ -267,10 +280,18 @@ class RcsService(
 
 
     @Throws(CustomException::class)
-    fun createTicket(request: ProductTicket) : CommonResult {
+    fun createTicket(request: reqCreateProductTicket) : CommonResult {
         try {
-            request.delYn = DelYn.N
-            return CommonResult.data(productService.saveProductTicket(request))
+            val data = productService.createProduct(request)
+            when (data.code) {
+                ResultCode.SUCCESS.getCode() -> {
+                    return CommonResult.data(data.data)
+                }
+                else -> {
+                    logger.error { "rcs createTicket failed ${data.msg}" }
+                    return CommonResult.error("rcs createTicket failed")
+                }
+            }
         }catch (e: CustomException) {
             logger.error { "rcs createTicket failed $e" }
             return CommonResult.error("rcs createTicket failed")
@@ -300,8 +321,9 @@ class RcsService(
     @Throws(CustomException::class)
     fun asyncCallVoip(voipId: String): CommonResult {
         try {
+            val parkSite = parkSiteInfoService.parkSite
             restAPIManager.sendGetRequest(
-                glntUrl + "/parkinglots/" + parkinglotService.parkSite!!.rcsParkId!! + "/call/" + voipId
+                glntUrl + "/parkinglots/" + parkSite?.rcsParkId!! + "/call/" + voipId
             )
             return CommonResult.data()
         }catch (e: CustomException) {

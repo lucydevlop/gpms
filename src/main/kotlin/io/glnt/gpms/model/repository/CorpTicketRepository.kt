@@ -7,6 +7,7 @@ import io.glnt.gpms.model.entity.InoutDiscount
 import io.glnt.gpms.model.enums.DelYn
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
@@ -40,7 +41,7 @@ interface DiscountClassRepository: JpaRepository<DiscountClass, Long>{
 }
 
 @Repository
-interface InoutDiscountRepository: JpaRepository<InoutDiscount, Long> {
+interface InoutDiscountRepository: JpaRepository<InoutDiscount, Long>, JpaSpecificationExecutor<InoutDiscount> {
     fun findBySnAndDelYn(Sn: Long, delYn: DelYn): InoutDiscount?
     fun findByTicketHistSn(ticketSn: Long): List<InoutDiscount>?
     fun findByInSnAndDelYn(inSn: Long, delYn: DelYn): List<InoutDiscount>?
@@ -51,5 +52,5 @@ interface InoutDiscountRepository: JpaRepository<InoutDiscount, Long> {
     fun findByCorpSnAndDiscountClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(corpSn: Long, discountClassSn: Long, startDate: LocalDateTime, endDate: LocalDateTime, delYn: DelYn): List<InoutDiscount>?
     fun findByCorpSnAndTicketClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(corpSn: Long, discountClassSn: Long, startDate: LocalDateTime, endDate: LocalDateTime, delYn: DelYn): List<InoutDiscount>?
     fun findByInSnAndDelYnAndCalcYn(inSn: Long, delYn: DelYn, calcYn: DelYn): List<InoutDiscount>?
-    fun findAll(specification: Specification<InoutDiscount>): List<InoutDiscount>?
+//    fun findAll(specification: Specification<InoutDiscount>): List<InoutDiscount>?
 }
