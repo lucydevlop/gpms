@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import java.time.LocalDateTime
 import javax.validation.constraints.NotNull
 
-data class RequestParkInDTO(
+data class RequestParkOutDTO(
     /** INPUT START **/
     @get: NotNull
     var vehicleNo: String? = null,
@@ -28,5 +28,8 @@ data class RequestParkInDTO(
 
     var fileFullPath: String? = null,
     var fileName: String? = null,
-    var fileUploadId: String? = null
+    var fileUploadId: String? = null,
+
+    var parkCarType: String? = null,
+    var recognitionResult: String? = null
 )

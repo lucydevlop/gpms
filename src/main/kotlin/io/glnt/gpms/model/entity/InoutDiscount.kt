@@ -73,10 +73,10 @@ data class InoutDiscount(
     @JoinColumn(name = "discount_class_sn", referencedColumnName = "sn", insertable = false, updatable = false)
     lateinit var discountClass: DiscountClass
 
-    @OneToOne//(mappedBy = "serviceProduct", cascade = arrayOf(CascadeType.ALL), fetch = FetchType.EAGER)
-    @JoinColumn(name = "in_sn", referencedColumnName = "sn", insertable = false, updatable = false)
-    @Where(clause = "del_yn = 'N'")
-    lateinit var parkIn: ParkIn
+//    @OneToOne//(mappedBy = "serviceProduct", cascade = arrayOf(CascadeType.ALL), fetch = FetchType.EAGER)
+//    @JoinColumn(name = "in_sn", referencedColumnName = "sn", insertable = false, updatable = false)
+//    @Where(clause = "del_yn = 'N'")
+//    lateinit var parkIn: ParkIn
 
     @OneToOne//(mappedBy = "serviceProduct", cascade = arrayOf(CascadeType.ALL), fetch = FetchType.EAGER)
     @JoinColumn(name = "corp_sn", referencedColumnName = "sn", insertable = false, updatable = false)

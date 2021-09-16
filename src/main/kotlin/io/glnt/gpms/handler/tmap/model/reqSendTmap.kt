@@ -76,7 +76,7 @@ data class reqAdjustmentRequest(
     var paymentMachineType: String? = null,
     var gateId: String? = null,
     var facilitiesId: String? = null,
-    var recognitionType: FacilityCategoryType? = null,
+    var recognitionType: String? = null,
     var fileuploadId: String? = null,
     var recognitionResult: String? = null,
     var vehicleIntime: String? = null,

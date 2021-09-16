@@ -3,8 +3,7 @@ package io.glnt.gmps
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
-import io.glnt.gpms.handler.relay.service.RelayService
-import io.glnt.gpms.model.entity.Failure
+import io.glnt.gpms.service.RelayService
 import io.vertx.core.Vertx
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.unit.junit.Timeout
@@ -14,8 +13,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.File
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.*
 
 @RunWith(VertxUnitRunner::class)

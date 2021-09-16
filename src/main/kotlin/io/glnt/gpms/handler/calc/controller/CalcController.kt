@@ -1,4 +1,4 @@
-package io.glnt.gpms.io.glnt.gpms.handler.calc.controller
+package io.glnt.gpms.handler.calc.controller
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode

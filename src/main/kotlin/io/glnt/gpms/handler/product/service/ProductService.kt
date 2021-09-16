@@ -178,6 +178,7 @@ class ProductService {
                     }
                     return CommonResult.data(saveProductTicket(new))
                 }?: run {
+                    logger.error { "product ticket create failed $request" }
                     return CommonResult.error("product ticket create failed")
                 }
             }?: run {
@@ -190,6 +191,7 @@ class ProductService {
 
                 // 정기권 이력 안에 포함 시 skip
                 if (productTicketRepository.countByVehicleNoAndTicketTypeAndDelYnAndEffectDateLessThanEqualAndExpireDateGreaterThanEqual(request.vehicleNo, request.ticketType!!, DelYn.N, request.effectDate, request.expireDate) > 0) {
+                    logger.warn { "product ticket exists $request" }
                     return CommonResult.data("product ticket exists")
                 }
                 // 차량, ticket list all fetch
@@ -206,6 +208,7 @@ class ProductService {
                         val ticket = tickets[i]
                         // skip 조건
                         if (ticket.effectDate!! >= request.effectDate && ticket.expireDate!! >= request.expireDate) {
+                            logger.warn { "product ticket exists $request" }
                             return CommonResult.data("product ticket exists")
                         }
 
@@ -247,21 +250,6 @@ class ProductService {
                                 }
                                 saveProductTicket(ticket)
                             }
-//                            if ( ticket.expireDate!! > request.effectDate ) {
-//                                ticket.expireDate = DateUtil.lastTimeToLocalDateTime(
-//                                    DateUtil.LocalDateTimeToDateString(
-//                                        DateUtil.getAddDays(
-//                                            request.effectDate,
-//                                            -1
-//                                        )
-//                                    )
-//                                )
-//                                saveProductTicket(ticket)
-//                                if (tickets[i+1].effectDate)
-//                                    new.apply {
-//                                        effectDate
-//                                    }
-//                            }
                         }
                         if ( ticket.effectDate!! == request.effectDate ) {
                           
@@ -411,7 +399,7 @@ class ProductService {
 //                }
             }
         } catch (e: RuntimeException) {
-            logger.info { "createProduct error $e" }
+            logger.error { "createProduct error $e" }
             return CommonResult.error("product ticket create failed")
         }
         return CommonResult.data()
@@ -483,7 +471,7 @@ class ProductService {
                     clues.add(
                         criteriaBuilder.lessThanOrEqualTo(
                             root.get("effectDate"),
-                            DateUtil.lastTimeToLocalDateTime(request.toDate.toString())
+                            DateUtil.beginTimeToLocalDateTime(request.toDate.toString())
                         )
                     )
                     clues.add(

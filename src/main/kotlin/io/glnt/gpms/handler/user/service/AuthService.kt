@@ -19,6 +19,7 @@ import io.glnt.gpms.model.enums.UserRole
 import io.glnt.gpms.model.repository.CorpRepository
 import io.glnt.gpms.model.repository.UserRepository
 import io.glnt.gpms.security.jwt.JwtTokenProvider
+import io.glnt.gpms.service.ParkSiteInfoService
 import mu.KLogging
 import okhttp3.internal.format
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,7 +37,9 @@ import javax.servlet.http.HttpServletRequest
 import kotlin.math.log
 
 @Service
-class AuthService {
+class AuthService(
+    private var parkSiteInfoService: ParkSiteInfoService
+) {
     companion object : KLogging()
 
     @Autowired
@@ -204,7 +207,7 @@ class AuthService {
                 dong = dong, ho = ho, ceoName = userName, tel = userPhone, corpId = " ",
                 delYn = DelYn.N
             ))
-            corp.corpId = parkinglotService.parkSiteSiteId()+"_"+ format("%05d", corp.sn!!)
+            corp.corpId = parkSiteInfoService.getParkSiteId()+"_"+ format("%05d", corp.sn!!)
             corp = corpRepository.save(corp)
             return CommonResult.data(userRepository.save(
                 SiteUser(
@@ -235,7 +238,7 @@ class AuthService {
                     if (!corp.corpId.equals("NoCorpId")) {
                         corpRepository.save(corp);
                     } else {
-                        corp.corpId = parkinglotService.parkSiteSiteId()+"_"+ format("%05d", corp.sn!!)
+                        corp.corpId = parkSiteInfoService.getParkSiteId()+"_"+ format("%05d", corp.sn!!)
                         corp = corpRepository.save(corp)
                     }
                     userRepository.save(

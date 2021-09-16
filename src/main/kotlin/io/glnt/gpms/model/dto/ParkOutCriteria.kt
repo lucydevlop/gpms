@@ -5,7 +5,7 @@ import io.glnt.gpms.model.enums.DelYn
 import java.io.Serializable
 import java.time.LocalDate
 
-data class ParkInCriteria (
+data class ParkOutCriteria (
     var sn: Long? = null,
 
     var uuid: String? = null,
@@ -20,12 +20,10 @@ data class ParkInCriteria (
 
     var gateId: String? = null,
 
-    var outSn: Long? = null,
-
     var delYn: DelYn? = null
 
 ): Serializable {
-    constructor(other: ParkInCriteria) :
+    constructor(other: ParkOutCriteria) :
         this(
             other.sn,
             other.uuid,
@@ -34,7 +32,6 @@ data class ParkInCriteria (
             other.toDate,
             other.parkcartype,
             other.gateId,
-            other.outSn,
             other.delYn
         )
 

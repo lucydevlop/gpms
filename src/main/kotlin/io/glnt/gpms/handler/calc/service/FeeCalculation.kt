@@ -388,6 +388,7 @@ class FeeCalculation {
         if (retPrice.dailySplits == null) {
             logger.debug { "basic fare is null" }
             calcData.getBizHourInfoForDateTime(DateUtil.LocalDateTimeToDateString(inTime), DateUtil.getHourMinuteByLocalDateTime(inTime), vehicleType).let {
+                logger.info { "기본 요금제 $inTime ${it.basicFare?.fareName}" }
                 val basic = getBasicFare(it.basicFare!!)
                 val basicTime = TimeRange()
 //                basicTime.startTime = retPrice.service!!.endTime
@@ -447,6 +448,7 @@ class FeeCalculation {
                         DateUtil.getHourMinuteByLocalDateTime(dailySplit.startTime),
                         vehicleType
                     ).let {
+                        logger.info { "요금제 ${dailySplit.date} ${it.addFare?.fareName}" }
                         // todo 앞요금 / 뒷요금
                         val endTime = if (seasonTicket != null && seasonTicket.startTime!! > dailySplit.startTime)
                             seasonTicket.startTime!!

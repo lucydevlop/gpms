@@ -6,11 +6,11 @@ import io.glnt.gpms.model.entity.ParkOut
 import java.io.Serializable
 
 data class StatisticsInoutDTO (
-    var parkcartype: String? = null,
+    var inSn: Long? = null,
 
     var vehicleNo: String? = null,
 
-    var out: Int? = 0,
+    var outSn: Long? = null,
 
     var parkFee: Int? = 0,
 

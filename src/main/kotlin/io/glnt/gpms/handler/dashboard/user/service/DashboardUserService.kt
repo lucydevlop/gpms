@@ -11,8 +11,8 @@ import io.glnt.gpms.handler.discount.model.reqApplyInoutDiscountSearch
 import io.glnt.gpms.handler.discount.model.reqDiscountableTicket
 import io.glnt.gpms.handler.discount.model.reqSearchInoutDiscount
 import io.glnt.gpms.handler.discount.service.DiscountService
-import io.glnt.gpms.handler.inout.service.InoutService
-import io.glnt.gpms.handler.inout.service.checkItemsAre
+import io.glnt.gpms.service.InoutService
+//import io.glnt.gpms.handler.inout.service.checkItemsAre
 import io.glnt.gpms.model.dto.ParkInCriteria
 import io.glnt.gpms.model.entity.CorpTicketInfo
 import io.glnt.gpms.model.entity.ParkIn
@@ -99,7 +99,7 @@ class DashboardUserService(
     }
 
     private fun getParkInByVehicleNo(vehicleNo: String) : ArrayList<resVehicleSearch> {
-        val parkIns = parkInQueryService.findByCriteria(ParkInCriteria(vehicleNo = vehicleNo))
+        val parkIns = parkInQueryService.findByCriteria(ParkInCriteria(vehicleNo = vehicleNo, outSn = 0L))
         val data = ArrayList<resVehicleSearch>()
         if (!parkIns.isNullOrEmpty()) {
             parkIns.filter { it.outSn == 0L }.forEach { it ->

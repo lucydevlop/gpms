@@ -1,4 +1,4 @@
-package io.glnt.gpms.io.glnt.gpms.handler.external.controller
+package io.glnt.gpms.handler.external.controller
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.configs.ApiConfig

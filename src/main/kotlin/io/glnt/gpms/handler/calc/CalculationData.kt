@@ -7,7 +7,9 @@ import io.glnt.gpms.model.repository.FarePolicyRepository
 import io.glnt.gpms.model.entity.FarePolicy
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.VehicleType
+import io.glnt.gpms.model.enums.WeekType
 import io.glnt.gpms.model.repository.CgBasicRepository
+import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
@@ -18,12 +20,14 @@ import javax.annotation.PostConstruct
 @Service
 class CalculationData(
     // 주차장 요금 설정
-    private var parkingFareInfo: List<FarePolicy>,
     private var farePolicyRepository: FarePolicyRepository
 ) {
+    companion object : KLogging()
 
     // 주차장 기본 설정
     lateinit var cgBasic: CgBasic
+
+    lateinit var parkingFareInfo: List<FarePolicy>
 
     @Autowired
     private lateinit var cgBasicRepository: CgBasicRepository
@@ -62,13 +66,14 @@ class CalculationData(
     }
 
     fun getBizHourInfoForDateTime(date: String, time: String, vehicleType: VehicleType): FarePolicy {
+
         val data = parkingFareInfo.filter {
             it.delYn == DelYn.N &&
                     it.vehicleType == vehicleType &&
                     ( (it.startTime!! <= time && time < it.endTime!! && it.startTime!! < it.endTime!!) ||
                       (it.startTime!! > it.endTime!! && it.endTime!! > time && it.startTime!! >= time) ||
                       (it.startTime!! > it.endTime!! && it.endTime!! < time && it.startTime!! <= time) ) &&
-//                    ( it.week == DateUtil.getWeek(date) || it.week!!.contains(WeekType.ALL)) &&
+                    ( it.week!!.contains(DateUtil.getWeek(date).toString()) || it.week!!.contains(WeekType.ALL.toString())) &&
                     ( it.effectDate!! <= DateUtil.beginTimeToLocalDateTime(date) &&
                             it.expireDate!! > DateUtil.lastTimeToLocalDateTime(date) )
 

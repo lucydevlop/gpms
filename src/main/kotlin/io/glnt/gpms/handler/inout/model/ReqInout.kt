@@ -36,7 +36,6 @@ data class reqAddParkIn(
     var fileUploadId: String? = null,
     var fileFullPath: String? = null,
     var recognitionResult: String? = null,
-    var deviceIF: String? = "ON",
     var assistant: Boolean? = false
 )
 

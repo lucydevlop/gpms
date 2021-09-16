@@ -8,23 +8,18 @@ import io.glnt.gpms.handler.calc.service.FareRefService
 import io.glnt.gpms.handler.dashboard.admin.model.*
 import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
-import io.glnt.gpms.handler.facility.service.FacilityService
+import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
-import io.glnt.gpms.handler.inout.service.InoutService
+import io.glnt.gpms.service.InoutService
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
-import io.glnt.gpms.handler.rcs.model.ResAsyncParkinglot
-import io.glnt.gpms.handler.rcs.service.RcsService
-import io.glnt.gpms.handler.relay.service.RelayService
+import io.glnt.gpms.service.RelayService
 import io.glnt.gpms.handler.user.service.AuthService
-import io.glnt.gpms.io.glnt.gpms.handler.file.service.ExcelUploadService
+import io.glnt.gpms.handler.file.service.ExcelUploadService
 import io.glnt.gpms.model.dto.request.*
 import io.glnt.gpms.model.entity.*
-import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.DisplayMessageClass
-import io.glnt.gpms.model.enums.FacilityCategoryType
-import io.glnt.gpms.model.enums.UserRole
+import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.service.CorpService
 import io.glnt.gpms.service.GateService
 import io.reactivex.Observable
@@ -41,7 +36,6 @@ import java.util.concurrent.TimeUnit
 @Service
 class DashboardAdminService(
     private var restAPIManager: RestAPIManagerUtil,
-//    private var rcsService: RcsService,
     private var corpService: CorpService
 ) {
     companion object : KLogging()
@@ -81,43 +75,107 @@ class DashboardAdminService(
         try {
             val result = ArrayList<HashMap<String, Any?>>()
 
-            val gates = parkinglotService.getParkinglotGates(reqSearchParkinglotFeature())
-            when (gates.code) {
-                ResultCode.SUCCESS.getCode() -> {
-                    gates.data?.let {
-                        val lists = gates.data as List<Gate>
-                        lists.forEach {
-                            if (it.delYn == DelYn.N) {
-                                // gate 당 입출차 내역 조회
-                                val inout = inoutService.getLastInout(it.gateType, it.gateId)
-                                // 각 장비 상태 조회
-                                val gateStatus = facilityService.getStatusByGate(it.gateId)
-                                result.add(
-                                    hashMapOf<String, Any?>(
-                                        "gateId" to it.gateId,
-                                        "gateName" to it.gateName,
-                                        "gateType" to it.gateType,
-                                        "image" to inout!!["image"],
-                                        "vehicleNo" to inout["vehicleNo"],
-                                        "date" to inout["date"],
-                                        "carType" to inout["carType"],
-                                        "outImage" to inout["outImage"],
-                                        "outVehicleNo" to inout["outVehicleNo"],
-                                        "outDate" to inout["outDate"],
-                                        "outCarType" to inout["outCarType"],
-                                        "breakerAction" to gateStatus!!["breakerAction"],
-                                        "breakerStatus" to gateStatus["breakerStatus"],
-                                        "displayStatus" to gateStatus["displayStatus"],
-                                        "paystationStatus" to gateStatus["paystationStatus"],
-                                        "paystationAction" to gateStatus["paystationAction"],
-                                        "lprStatus" to gateStatus["lprStatus"]
-                                    )
-                                )
-                            }
-                        }
+            gateService.findActiveGate().let { gates ->
+                gates.forEach {
+                    // gate 당 입출차 내역 조회
+                    val inout = inoutService.getLastInout(it.gateType!!, it.gateId?: "")
+
+                    if (it.gateType!! == GateTypeStatus.IN_OUT) {
+                        // 각 장비 상태 조회
+                        val gateStatus = facilityService.getStatusByINOUTGate(it.gateId?: "")
+                        result.add(
+                            hashMapOf<String, Any?>(
+                                "gateId" to it.gateId,
+                                "gateName" to it.gateName,
+                                "gateType" to it.gateType,
+                                "image" to inout!!["image"],
+                                "vehicleNo" to inout["vehicleNo"],
+                                "date" to inout["date"],
+                                "carType" to inout["carType"],
+                                "outImage" to inout["outImage"],
+                                "outVehicleNo" to inout["outVehicleNo"],
+                                "outDate" to inout["outDate"],
+                                "outCarType" to inout["outCarType"],
+                                "breakerAction" to gateStatus!!["breakerAction"],
+                                "breakerStatus" to gateStatus["breakerStatus"],
+                                "inDisplayStatus" to gateStatus["inDisplayStatus"],
+                                "outDisplayStatus" to gateStatus["outDisplayStatus"],
+                                "paystationStatus" to gateStatus["paystationStatus"],
+                                "paystationAction" to gateStatus["paystationAction"],
+                                "inLprStatus" to gateStatus["inLprStatus"],
+                                "outLprStatus" to gateStatus["outLprStatus"]
+                            )
+                        )
+                    } else {
+                        // 각 장비 상태 조회
+                        val gateStatus = facilityService.getStatusByGate(it.gateId?: "")
+
+                        result.add(
+                            hashMapOf<String, Any?>(
+                                "gateId" to it.gateId,
+                                "gateName" to it.gateName,
+                                "gateType" to it.gateType,
+                                "image" to inout!!["image"],
+                                "vehicleNo" to inout["vehicleNo"],
+                                "date" to inout["date"],
+                                "carType" to inout["carType"],
+                                "outImage" to inout["outImage"],
+                                "outVehicleNo" to inout["outVehicleNo"],
+                                "outDate" to inout["outDate"],
+                                "outCarType" to inout["outCarType"],
+                                "breakerAction" to gateStatus!!["breakerAction"],
+                                "breakerStatus" to gateStatus["breakerStatus"],
+                                "displayStatus" to gateStatus["displayStatus"],
+                                "paystationStatus" to gateStatus["paystationStatus"],
+                                "paystationAction" to gateStatus["paystationAction"],
+                                "lprStatus" to gateStatus["lprStatus"]
+                            )
+                        )
                     }
+
                 }
+
+
             }
+
+
+
+//            when (gates.code) {
+//                ResultCode.SUCCESS.getCode() -> {
+//                    gates.data?.let {
+//                        val lists = gates.data as List<Gate>
+//                        lists.forEach {
+//                            if (it.delYn == DelYn.N) {
+//                                // gate 당 입출차 내역 조회
+//                                val inout = inoutService.getLastInout(it.gateType, it.gateId)
+//                                // 각 장비 상태 조회
+//                                val gateStatus = facilityService.getStatusByGate(it.gateId)
+//                                result.add(
+//                                    hashMapOf<String, Any?>(
+//                                        "gateId" to it.gateId,
+//                                        "gateName" to it.gateName,
+//                                        "gateType" to it.gateType,
+//                                        "image" to inout!!["image"],
+//                                        "vehicleNo" to inout["vehicleNo"],
+//                                        "date" to inout["date"],
+//                                        "carType" to inout["carType"],
+//                                        "outImage" to inout["outImage"],
+//                                        "outVehicleNo" to inout["outVehicleNo"],
+//                                        "outDate" to inout["outDate"],
+//                                        "outCarType" to inout["outCarType"],
+//                                        "breakerAction" to gateStatus!!["breakerAction"],
+//                                        "breakerStatus" to gateStatus["breakerStatus"],
+//                                        "displayStatus" to gateStatus["displayStatus"],
+//                                        "paystationStatus" to gateStatus["paystationStatus"],
+//                                        "paystationAction" to gateStatus["paystationAction"],
+//                                        "lprStatus" to gateStatus["lprStatus"]
+//                                    )
+//                                )
+//                            }
+//                        }
+//                    }
+//                }
+//            }
             return CommonResult.data(result)
         }catch (e: CustomException){
             logger.error { "Admin getMainGates failed ${e.message}" }
@@ -128,9 +186,9 @@ class DashboardAdminService(
     @Throws(CustomException::class)
     fun getParkInLists(request: reqSearchParkin): CommonResult {
         try {
-            val result = inoutService.getAllParkLists(request)
+            val results = inoutService.getAllParkLists(request)
 
-            result?.let { result ->
+            results?.let { result ->
                 request.searchDateLabel?.let { label ->
                     when (label) {
                         DisplayMessageClass.IN -> result.sortedByDescending { it.inDate }
@@ -139,7 +197,7 @@ class DashboardAdminService(
                     }
                 }
             }
-            return CommonResult.data(result)
+            return CommonResult.data(results)
         }catch (e: CustomException){
             logger.error { "Admin getParkInLists failed ${e.message}" }
             return CommonResult.error("Admin getParkInLists failed ${e.message}")
@@ -158,7 +216,7 @@ class DashboardAdminService(
     @Throws(CustomException::class)
     fun editParkInout(request: resParkInList): CommonResult {
         try {
-            return CommonResult.data(inoutService.updateInout(request).data)
+            return CommonResult.data(inoutService.updateInout(request))
         }catch (e: CustomException){
             logger.error { "Admin getParkInLists failed ${e.message}" }
             return CommonResult.error("Admin getParkInLists failed ${e.message}")
@@ -770,10 +828,10 @@ class DashboardAdminService(
     }
 }
 
-inline fun singleTimer(delay: Long = 1000, unit: TimeUnit = TimeUnit.MILLISECONDS) =
+fun singleTimer(delay: Long = 1000, unit: TimeUnit = TimeUnit.MILLISECONDS) =
     Single.timer(delay, unit)
 
-inline fun interval(period: Long = 10000, unit: TimeUnit = TimeUnit.MILLISECONDS, initDelay: Long = -1) =
+fun interval(period: Long = 10000, unit: TimeUnit = TimeUnit.MILLISECONDS, initDelay: Long = -1) =
     if (initDelay == -1L)
         Observable.interval(period, unit)
     else

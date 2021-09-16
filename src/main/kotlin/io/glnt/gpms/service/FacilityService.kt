@@ -1,4 +1,4 @@
-package io.glnt.gpms.handler.facility.service
+package io.glnt.gpms.service
 
 import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.core.JsonParser
@@ -9,14 +9,12 @@ import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.dashboard.admin.model.ReqCreateMessage
 import io.glnt.gpms.handler.facility.model.*
 import io.glnt.gpms.handler.inout.model.reqUpdatePayment
-import io.glnt.gpms.handler.inout.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
-import io.glnt.gpms.handler.rcs.model.*
-import io.glnt.gpms.handler.relay.service.RelayService
+import io.glnt.gpms.service.RelayService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
-import io.glnt.gpms.io.glnt.gpms.common.utils.JacksonUtil
 import io.glnt.gpms.model.dto.FacilityDTO
+import io.glnt.gpms.model.dto.GateDTO
 import io.glnt.gpms.model.dto.request.reqDisplayInfo
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
@@ -34,11 +32,13 @@ class FacilityService(
     private var displayInfoRepository: DisplayInfoRepository,
     private var displayColorRepository: DisplayColorRepository,
     private var displayMessageRepository: DisplayMessageRepository,
-    private var facilityMapper: FacilityMapper
+    private var facilityMapper: FacilityMapper,
+    private var gateService: GateService,
+    private var parkSiteInfoService: ParkSiteInfoService
 ) {
     companion object : KLogging()
 
-    lateinit var gates: List<Gate>
+    lateinit var gates: List<GateDTO>
 
     /* static */
     lateinit var displayColors: List<DisplayColor>
@@ -85,7 +85,7 @@ class FacilityService(
 
     @PostConstruct
     fun initalizeData() {
-        parkGateRepository.findAll().let {
+        gateService.findAll().let {
             gates = it
         }
 
@@ -412,7 +412,7 @@ class FacilityService(
         return gates.filter { it.gateId == gateId }[0].relaySvr!!
     }
 
-    fun getGateByGateId(gateId: String) : Gate? {
+    fun getGateByGateId(gateId: String) : GateDTO? {
         return gates.filter { it.gateId == gateId }[0]
     }
 
@@ -462,13 +462,13 @@ class FacilityService(
                         paymentType = "CARD",
                         paymentAmount = it.payfee!!
                     ),
-                    parkinglotService.generateRequestId(),
+                    parkSiteInfoService.generateRequestId(),
                     "payment"
                 )
                 fileName = it.image!!
                 fileUploadId = it.fileuploadid
             }
-            val requestId = parkinglotService.generateRequestId()
+            val requestId = parkSiteInfoService.generateRequestId()
             // todo tmap-outvehicle
             tmapSendService.sendOutVehicle(
                 reqOutVehicle(
@@ -494,7 +494,7 @@ class FacilityService(
     fun setPaystationRequest(type: String, requestId: String?, contents: Any) : reqApiTmapCommon {
         return reqApiTmapCommon(
             type = type,
-            parkingSiteId = parkinglotService.parkSiteId()!!,
+            parkingSiteId = parkSiteInfoService.getParkSiteId()!!,
             requestId = requestId?.let { requestId },
             eventDateTime = DateUtil.stringToNowDateTime(),
             contents = contents
@@ -530,14 +530,15 @@ class FacilityService(
         return jacksonObjectMapper().readValue(any, valueType)
     }
 
-    /* udp gate id */
-    fun getUdpGateId(gateId: String) : String? {
-        return parkGateRepository.findByGateId(gateId)?.udpGateid
-    }
-
-    fun updateFacility(facility: Facility): Facility {
-        return facilityRepository.save(facility)
-    }
+//    /* udp gate id */
+//    fun getUdpGateId(gateId: String) {
+//        val udpGateId = gateService.findOne(gateId)
+//            .ifPresentOrElse(
+//                { it.udpGateid },
+//                { null }
+//            )
+//        return udpGateId
+//    }
 
     fun updateHealthCheck(dtFacilitiesId: String, status: String) {
         logger.trace { "updateHealthCheck facility $dtFacilitiesId status $status" }
@@ -575,7 +576,7 @@ class FacilityService(
                 val total = facilities.filter {
                     it.lprType != LprTypeStatus.ASSIST
                 }
-                if (total.size == 0) {
+                if (total.isEmpty()) {
                     return null
                 }
                 val normal = facilities.filter {
@@ -604,6 +605,39 @@ class FacilityService(
             logger.error { "getStatusByGateAndCategory error $e" }
         }
         return null
+    }
+
+    fun getStatusByGateAndCategoryAndLprType(gateId: String, category: FacilityCategoryType, lprType: LprTypeStatus): HashMap<String, Any?>? {
+        var result = HashMap<String, Any?>()
+        facilityRepository.findByGateIdAndCategoryAndDelYnAndLprType(gateId, category, DelYn.N, lprType)?.let { facilities ->
+            val total = facilities.filter {
+                it.lprType != LprTypeStatus.ASSIST
+            }
+            if (total.isEmpty()) {
+                return null
+            }
+            val normal = facilities.filter {
+                it.health == "NORMAL"
+            }
+            when (normal.size) {
+                total.size -> {
+                    result = hashMapOf(
+                        "category" to category,
+                        "status" to "NORMAL")
+                }
+                0 -> {
+                    result = hashMapOf(
+                        "category" to category,
+                        "status" to "NORESPONSE")
+                }
+                else -> {
+                    result = hashMapOf(
+                        "category" to category,
+                        "status" to "PARTNORMAL")
+                }
+            }
+        }
+        return result
     }
 
     fun getActionByGateAndCategory(gateId: String, category: FacilityCategoryType): HashMap<String, Any?>? {
@@ -671,6 +705,45 @@ class FacilityService(
         return null
     }
 
+    fun getStatusByINOUTGate(gateId: String): HashMap<String, Any?>? {
+        try {
+            // 입구, 출구 LPR
+            val inLpr = getStatusByGateAndCategoryAndLprType(gateId, FacilityCategoryType.LPR, LprTypeStatus.INFRONT)
+            val outLpr = getStatusByGateAndCategoryAndLprType(gateId, FacilityCategoryType.LPR, LprTypeStatus.OUTFRONT)
+
+            //BREAKER
+            val breaker = getStatusByGateAndCategory(gateId, FacilityCategoryType.BREAKER)
+            val breakerAction = getActionByGateAndCategory(gateId, FacilityCategoryType.BREAKER)
+
+            // 입구, 출구 DISPLAY
+            val inDisplay = getStatusByGateAndCategoryAndLprType(gateId, FacilityCategoryType.DISPLAY, LprTypeStatus.INFRONT)
+            val outDisplay = getStatusByGateAndCategoryAndLprType(gateId, FacilityCategoryType.DISPLAY, LprTypeStatus.OUTFRONT)
+
+            //PAYSTATION
+            val paystation = getStatusByGateAndCategory(gateId, FacilityCategoryType.PAYSTATION)
+            val paystationAction = getActionByGateAndCategory(gateId, FacilityCategoryType.PAYSTATION)
+
+            logger.debug { "breaker status ${breaker!!["status"]} action ${breakerAction!!["status"]}" }
+
+            return hashMapOf<String, Any?>(
+                "inLprStatus" to if (inLpr==null) "NONE" else  inLpr["status"],
+                "outLprStatus" to if (outLpr==null) "NONE" else  outLpr["status"],
+                "breakerStatus" to if (breaker==null) "NONE" else breaker["status"],
+                "breakerAction" to if (breakerAction==null) "NONE" else breakerAction["status"],
+                "breakerFailure" to if (breakerAction==null) null else breakerAction["failure"],
+                "inDisplayStatus" to if (inDisplay==null) "NONE" else inDisplay["status"],
+                "outDisplayStatus" to if (outDisplay==null) "NONE" else outDisplay["status"],
+                "paystationStatus" to if (paystation==null) "NONE" else paystation["status"],
+                "paystationAction" to if (paystationAction==null) null else paystationAction["status"],
+                "paystationFailure" to if (paystationAction==null) null else paystationAction["failure"]
+            )
+
+        }catch (e: CustomException){
+            logger.error { "getStatusByGate error ${e.message}" }
+        }
+        return null
+    }
+
     fun getOneFacilityByGateIdAndCategory(gateId: String, category: FacilityCategoryType): Facility? {
         return facilityRepository.findByGateIdAndCategoryAndDelYn(gateId, category, DelYn.N)?.let { list ->
             list[0]
@@ -679,21 +752,11 @@ class FacilityService(
 
     fun activeGateFacilities(): List<FacilityDTO>? {
         var result = ArrayList<FacilityDTO>()
-        parkGateRepository.findByDelYn(DelYn.N).let { gates ->
+        gateService.findActiveGate().let { gates ->
             for (gate in gates) {
-                facilityRepository.findByGateIdAndDelYn(gate.gateId, DelYn.N)?.let { facilities ->
+                facilityRepository.findByGateIdAndDelYn(gate.gateId!!, DelYn.N)?.let { facilities ->
                     for (facility in facilities) {
                         result.add(facilityMapper.toDTO(facility)
-
-//                            ResAsyncFacility(sn = facility.sn!!, category = facility.category!!,
-//                            modelid = facility.modelid, fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
-//                            facilitiesId = if (facility.facilitiesId.isNullOrEmpty()) facility.dtFacilitiesId else facility.facilitiesId,
-//                            gateId = facility.gateId, gateName = gate.gateName!!,
-//                            ip = facility.ip!!, port = facility.port!!, lprType = facility.lprType, imagePath = facility.imagePath,
-//                            health = if (facility.ip == "0.0.0.0") "NORMAL" else facility.health,
-//                            healthDate = facility.healthDate, status = facility.status,
-//                            statusDate = facility.statusDate, gateType = facility.gateType!!,
-//                            delYn = if (gate.delYn!! == DelYn.Y) DelYn.Y else facility.delYn!!, resetPort = null )
                         )
                     }
                 }
@@ -704,21 +767,11 @@ class FacilityService(
 
     fun allFacilities(): List<FacilityDTO>? {
         var result = ArrayList<FacilityDTO>()
-        parkGateRepository.findAll().let { gates ->
+        gateService.findAll().let { gates ->
             for (gate in gates) {
-                facilityRepository.findByGateId(gate.gateId)?.let { facilities ->
+                facilityRepository.findByGateId(gate.gateId!!)?.let { facilities ->
                     for (facility in facilities) {
                         result.add(facilityMapper.toDTO(facility)
-//                            ResAsyncFacility(sn = facility.sn!!, category = facility.category!!,
-//                            modelid = facility.modelid, fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
-////                            facilitiesId = facility.facilitiesId!!,
-//                            resetPort = facility.resetPort,
-//                            gateId = facility.gateId, gateName = gate.gateName!!,
-//                            ip = facility.ip!!, port = facility.port!!, lprType = facility.lprType, imagePath = facility.imagePath,
-//                            health = if (facility.ip == "0.0.0.0") "NORMAL" else facility.health,
-//                            healthDate = facility.healthDate, status = facility.status,
-//                            statusDate = facility.statusDate, gateType = facility.gateType,
-//                            delYn = if (gate.delYn!! == DelYn.Y) DelYn.Y else facility.delYn!! )
                         )
                     }
                 }
@@ -729,5 +782,15 @@ class FacilityService(
 
     fun getGateByFacilityId(dtFacilityId: String) : Facility? {
         return facilityRepository.findByDtFacilitiesId(dtFacilityId)
+    }
+
+    fun save(facilityDTO: FacilityDTO) : FacilityDTO {
+        var facility = facilityMapper.toEntity(facilityDTO)
+        facility = facilityRepository.saveAndFlush(facility!!)
+        return facilityMapper.toDTO(facility)
+    }
+
+    fun findByGateId(gateId: String): List<FacilityDTO>? {
+        return facilityRepository.findByGateId(gateId)?.map(facilityMapper::toDTO) ?: kotlin.run { null }
     }
 }
