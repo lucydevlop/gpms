@@ -13,7 +13,7 @@ enum class Yn {
 }
 
 enum class GateTypeStatus {
-    IN, OUT, IN_OUT
+    IN, OUT, IN_OUT, ETC
 }
 
 enum class LprTypeStatus {
@@ -134,6 +134,10 @@ enum class DiscountApplyType(val code: String, val desc: String) {
     TIME("TIME", "시간"),
     WON("WON", "금액"),
     PERCENT("PERCENT", "%")
+}
+
+enum class DiscountApplyRateType {
+    FIX, VARIABLE
 }
 
 enum class DiscountType {

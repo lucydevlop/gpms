@@ -73,6 +73,7 @@ data class reqOutVehicle(
 
 data class reqAdjustmentRequest(
     var vehicleNumber: String,
+    var inSn: String? = null,
     var paymentMachineType: String? = null,
     var gateId: String? = null,
     var facilitiesId: String? = null,

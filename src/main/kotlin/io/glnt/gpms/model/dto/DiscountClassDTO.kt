@@ -24,6 +24,9 @@ data class DiscountClassDTO(
     @Enumerated(EnumType.STRING)
     var discountApplyType: DiscountApplyType? = DiscountApplyType.TIME,
 
+    @Enumerated(EnumType.STRING)
+    var discountApplyRate: DiscountApplyRateType? = DiscountApplyRateType.VARIABLE,
+
     @get: NotNull
     @Enumerated(EnumType.STRING)
     var timeTarget: TimeTarget? = TimeTarget.NOW,
@@ -61,8 +64,8 @@ data class DiscountClassDTO(
     constructor(discountClass: DiscountClass) :
         this(
             discountClass.sn, discountClass.discountType, discountClass.discountNm, discountClass.discountApplyType,
-            discountClass.timeTarget, discountClass.dayRange, discountClass.timeRange, discountClass.unitTime,
-            discountClass.disUse, discountClass.disMaxNo, discountClass.disMaxDay, discountClass.disMaxMonth,
+            discountClass.discountApplyRate, discountClass.timeTarget, discountClass.dayRange, discountClass.timeRange,
+            discountClass.unitTime, discountClass.disUse, discountClass.disMaxNo, discountClass.disMaxDay, discountClass.disMaxMonth,
             discountClass.disPrice, discountClass.effectDate, discountClass.expireDate, discountClass.delYn
         )
 

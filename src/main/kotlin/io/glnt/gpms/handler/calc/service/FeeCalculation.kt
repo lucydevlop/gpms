@@ -11,10 +11,7 @@ import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.model.dto.request.ReqAddParkingDiscount
 import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.entity.FareInfo
-import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.DiscountApplyType
-import io.glnt.gpms.model.enums.TicketAplyType
-import io.glnt.gpms.model.enums.VehicleType
+import io.glnt.gpms.model.enums.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -207,27 +204,28 @@ class FeeCalculation {
             discountService.searchInoutDiscount(inSn)?.let { discounts ->
                 discounts.forEach { discount ->
                     val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
-                    var discountTime = discountClass!!.unitTime * discount.quantity!!
-                    retPrice.dailySplits!!.forEach { dailySplit ->
-                        if (dailySplit.priceType == "Normal" && discountClass.discountApplyType == DiscountApplyType.TIME) {
-                            val min = if (dailySplit.discountRange != null)  DateUtil.diffMins(dailySplit.discountRange!!.endTime!!, dailySplit.endTime!!)
+                    if (discountClass.discountApplyType == DiscountApplyType.TIME) {
+                        var discountTime = discountClass.unitTime * discount.quantity!!
+                        retPrice.dailySplits!!.forEach { dailySplit ->
+                            if (dailySplit.priceType == "Normal") {
+                                val min = if (dailySplit.discountRange != null)  DateUtil.diffMins(dailySplit.discountRange!!.endTime!!, dailySplit.endTime!!)
                                 else DateUtil.diffMins(dailySplit.startTime, dailySplit.endTime!!)
-                            if (min > 0) {
-                                val applyTime = if (min > discountTime) discountTime else min
-                                if (dailySplit.discountRange != null) {
-                                    dailySplit.discountRange!!.endTime = DateUtil.getAddMinutes(dailySplit.discountRange!!.endTime!!, applyTime.toLong())
-                                } else {
-                                    val discount = TimeRange(startTime = dailySplit.startTime,
-                                        endTime = DateUtil.getMinByDates(DateUtil.getAddMinutes(dailySplit.startTime, applyTime.toLong()), dailySplit.endTime!! ), type = "DiscountTicket")
-                                    dailySplit.discountRange = discount
+                                if (min > 0) {
+                                    val applyTime = if (min > discountTime) discountTime else min
+                                    if (dailySplit.discountRange != null) {
+                                        dailySplit.discountRange!!.endTime = DateUtil.getAddMinutes(dailySplit.discountRange!!.endTime!!, applyTime.toLong())
+                                    } else {
+                                        val disCount = TimeRange(startTime = dailySplit.startTime,
+                                            endTime = DateUtil.getMinByDates(DateUtil.getAddMinutes(dailySplit.startTime, applyTime.toLong()), dailySplit.endTime!! ), type = "DiscountTicket")
+                                        dailySplit.discountRange = disCount
+                                    }
+                                    discountTime = discountTime.minus(applyTime)
                                 }
-
-                                discountTime = discountTime.minus(applyTime)
                             }
                         }
+                        discount.calcYn = DelYn.Y
+                        discountService.saveInoutDiscount(discount)
                     }
-                    discount.calcYn = DelYn.Y
-                    discountService.saveInoutDiscount(discount)
                 }
             }
         }
@@ -275,9 +273,57 @@ class FeeCalculation {
             retPrice.dayilyMaxDiscount = retPrice.dayilyMaxDiscount!!.plus(it.dayMaxDiscount!!)
         }
 
+        val wonDiscountAmt = applyInoutDiscountWon(inSn ?: -1, retPrice.totalPrice ?: 0, "out")
+        retPrice.discountPrice!!.plus(wonDiscountAmt)
+        retPrice.totalPrice!!.minus(wonDiscountAmt)
+
         logger.info { "-------------------getBasicPayment-------------------" }
         logger.info { retPrice }
         return retPrice
+    }
+
+    fun applyInoutDiscountWon(inSn: Long, totalPrice: Int, type: String, discountClasses: ArrayList<ReqAddParkingDiscount>? = null): Int {
+        val discountAmt = 0
+
+        discountService.searchInoutDiscount(inSn)?.let { discounts ->
+            discounts.forEach { discount ->
+                val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
+                if (discountClass.discountApplyType == DiscountApplyType.WON) {
+                    when(discountClass.discountApplyRate) {
+                        DiscountApplyRateType.FIX -> {
+                            return if (totalPrice > discountClass.unitTime)  totalPrice - discountClass.unitTime else 0
+                        }
+                        else -> {
+                            if (totalPrice > discountClass.unitTime) discountAmt.plus(discountClass.unitTime) else discountAmt.plus(totalPrice)
+                        }
+                    }
+                }
+                if (type == "out") {
+                    discount.calcYn = DelYn.Y
+                    discountService.saveInoutDiscount(discount)
+                }
+            }
+        }
+
+        discountClasses?.let { discounts ->
+            discounts.forEach { discount ->
+                val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
+                if (discountClass.discountApplyType == DiscountApplyType.WON) {
+                    when (discountClass.discountApplyRate) {
+                        DiscountApplyRateType.FIX -> {
+                            return if (totalPrice - discountAmt > discountClass.unitTime) totalPrice - discountAmt - discountClass.unitTime else 0
+                        }
+                        else -> {
+                            if (totalPrice - discountAmt > discountClass.unitTime)
+                                discountAmt.plus(discountClass.unitTime)
+                            else
+                                discountAmt.plus(totalPrice)
+                        }
+                    }
+                }
+            }
+        }
+        return discountAmt
     }
 
     fun getSeasonTicket(vehicleNo: String, startTime: LocalDateTime, endTime: LocalDateTime): TimeRange? {
@@ -292,10 +338,10 @@ class FeeCalculation {
                            type = "SEASONTICKET"
                        )
                     } else {
-                        var effectDate = DateUtil.makeLocalDateTime(
+                        val effectDate = DateUtil.makeLocalDateTime(
                             DateUtil.LocalDateTimeToDateString(startTime),
                             ticketClass.startTime!!.substring(0, 2), ticketClass.startTime!!.substring(2, 4))
-                       var expireDate = if (ticketClass.startTime!! > ticketClass.endTime!!) {
+                       val expireDate = if (ticketClass.startTime!! > ticketClass.endTime!!) {
                            DateUtil.makeLocalDateTime(
                                DateUtil.LocalDateTimeToDateString(DateUtil.getAddDays(startTime, 1)),
                                ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
@@ -571,6 +617,10 @@ class FeeCalculation {
             retPrice.discountPrice = retPrice.discountPrice!!.plus(it.discount!!)
             retPrice.dayilyMaxDiscount = retPrice.dayilyMaxDiscount!!.plus(it.dayMaxDiscount!!)
         }
+
+        val wonDiscountAmt = applyInoutDiscountWon(inSn ?: -1, retPrice.totalPrice ?: 0, "calc", discountClasses)
+        retPrice.discountPrice = retPrice.discountPrice!!.plus(wonDiscountAmt)
+        retPrice.totalPrice = retPrice.totalPrice!!.minus(wonDiscountAmt)
 
         logger.info { "-------------------getBasicPayment-------------------" }
         logger.info { retPrice }

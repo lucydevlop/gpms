@@ -51,18 +51,6 @@ class RelayController (
         relayService.paymentHealthCheck()
     }
 
-    @RequestMapping(value=["/paystation/result/{dtFacilityId}"], method=[RequestMethod.POST])
-    fun resultPayment(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String) {
-        logger.info { "resultPayment $request " }
-        relayService.resultPayment(request, dtFacilityId)
-    }
-
-    @RequestMapping(value = ["/paystation/request/adjustment/{dtFacilityId}"], method = [RequestMethod.POST])
-    fun requestAdjustment(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String) {
-        logger.info { "requestAdjustment $request " }
-        relayService.requestAdjustment(request, dtFacilityId)
-    }
-
     @RequestMapping(value=["/paystation/aply/discount/{dtFacilityId}"], method = [RequestMethod.POST])
     fun aplyBarcode(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String) {
         logger.info { "aplyBarcode request $request" }

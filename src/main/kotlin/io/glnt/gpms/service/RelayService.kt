@@ -17,6 +17,7 @@ import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.common.api.RcsClient
+import io.glnt.gpms.common.api.RelayClient
 import io.glnt.gpms.model.dto.BarcodeTicketsDTO
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
@@ -37,7 +38,8 @@ class RelayService(
     private val barcodeTicketService: BarcodeTicketService,
     private val parkInRepository: ParkInRepository,
     private val rcsClient: RcsClient,
-    private val parkSiteInfoService: ParkSiteInfoService
+    private val parkSiteInfoService: ParkSiteInfoService,
+    private val relayClient: RelayClient
 ) {
     companion object : KLogging()
 
@@ -314,23 +316,44 @@ class RelayService(
         }
     }
 
-    @Throws(CustomException::class)
-    fun resultPayment(request: reqApiTmapCommon, dtFacilityId: String){
-        logger.info { "resultPayment request $request facilityId $dtFacilityId" }
-//        request.contents = JSONUtil.getJsObject(request.contents)
-        val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqPaymentResult::class.java)
-        val gateId = parkinglotService.getFacilityByDtFacilityId(dtFacilityId)!!.gateId
-        facilityService.sendPaystation(
-            reqPaymentResponse(
-                chargingId = contents.transactionId,
-                vehicleNumber = contents.vehicleNumber
-            ),
-            gate = gateId,
-            requestId = request.requestId!!,
-            type = "paymentResponse"
-        )
-        inoutService.paymentResult(contents, request.requestId!!, gateId)
-    }
+//    @Throws(CustomException::class)
+//    fun resultPayment(sn: String, request: reqPaymentResult, dtFacilityId: String){
+//        logger.info { "resultPayment request $request facilityId $dtFacilityId" }
+//
+////        val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqPaymentResult::class.java)
+//
+//        facilityService.getGateByFacilityId(dtFacilityId)?.let { facility ->
+//            inoutService.paymentResult(request, sn, facility.gateId)
+////            relayClient.sendPayStation(
+////                gateId = facility.gateId,
+////                type = "paymentResponse",
+////                requestId = request.requestId!!,
+////                data = reqPaymentResponse(
+////                    chargingId = request.transactionId,
+////                    vehicleNumber = request.vehicleNumber
+////                ))
+//        }
+////        val gateId = parkinglotService.getFacilityByDtFacilityId(dtFacilityId)!!.gateId
+////        inoutService.paymentResult(contents, request.requestId!!, gateId)
+////
+////        relayClient.sendPayStation(
+////            gateId = gateId,
+////            type = "paymentResponse",
+////            requestId = request.requestId!!,
+////            data = reqPaymentResponse(
+////                chargingId = contents.transactionId,
+////                vehicleNumber = contents.vehicleNumber
+////        ))
+////        facilityService.sendPaystation(
+////            reqPaymentResponse(
+////                chargingId = contents.transactionId,
+////                vehicleNumber = contents.vehicleNumber
+////            ),
+////            gate = gateId,
+////            requestId = request.requestId!!,
+////            type = "paymentResponse"
+////        )
+//    }
 
     @Throws(CustomException::class)
     fun searchCarNumber(request: reqApiTmapCommon, dtFacilityId: String){
@@ -345,11 +368,11 @@ class RelayService(
             vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = parkinglotService.getFacilityByDtFacilityId(dtFacilityId)!!.facilitiesId))
             tmapSendService.sendTmapInterface(request, requestId, "vehicleListSearch")
         } else {
-            val parkIns = inoutService.searchParkInByVehicleNo(contents.vehicleNumber, "")
+            val parkIns = inoutService.searchParkInByVehicleNo(contents.vehicleNumber, "").filter { it.outSn == 0L }
             parkinglotService.getGateInfoByDtFacilityId(dtFacilityId)?.let { gate ->
                 val data = ArrayList<paystationvehicleListSearch>()
                 if (!parkIns.isNullOrEmpty()) {
-                    parkIns.filter { it.outSn == 0L }.forEach {
+                    parkIns.forEach {
                         data.add(
                             paystationvehicleListSearch(
                                 inSn = it.sn!!.toString(),
@@ -358,27 +381,38 @@ class RelayService(
                             )
                         )
                     }
-
-                    facilityService.sendPaystation(
-                        reqVehicleSearchList(
-                            vehicleList = data,
-                            result = "SUCCESS"
-                        ),
-                        gate = gate.gateId,
-                        requestId = request.requestId!!,
-                        type = "vehicleListSearchResponse"
-                    )
                 } else {
+                    // todo 사전 정산기 요청 시 게이트 오픈 skip
                     // 번호 검색 없을 시 게이트 오픈
-                    inoutService.outFacilityIF("UNRECOGNIZED", "", gate, null, 0)
+                    if (gate.gateType == GateTypeStatus.OUT)
+                        inoutService.outFacilityIF("UNRECOGNIZED", "", gate, null, 0)
                 }
+
+                relayClient.sendPayStation(
+                    gate.gateId,
+                    "vehicleListSearchResponse",
+                    request.requestId!!,
+                    reqVehicleSearchList(
+                        vehicleList = data,
+                        result = "SUCCESS"
+                    ),
+                    dtFacilityId
+                )
+//                facilityService.sendPaystation(
+//                    reqVehicleSearchList(
+//                        vehicleList = data,
+//                        result = "SUCCESS"
+//                    ),
+//                    gate = gate.gateId,
+//                    requestId = request.requestId!!,
+//                    type = "vehicleListSearchResponse"
+//                )
             }
         }
     }
 
     @Throws(CustomException::class)
     fun requestAdjustment(request: reqApiTmapCommon, dtFacilityId: String){
-        logger.info { "requestAdjustment request $request facilityId $dtFacilityId" }
         try {
             val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqAdjustmentRequest::class.java)
             request.requestId = parkSiteInfoService.generateRequestId()
@@ -389,6 +423,9 @@ class RelayService(
 //                vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = facilityId))
 //                tmapSendService.sendTmapInterface(request, requestId, "vehicleListSearch")
             } else {
+
+
+
                 val gateId = parkinglotService.getGateInfoByDtFacilityId(dtFacilityId)!!.gateId
                 // 사전 정산 시 현재 기준으로 금액 계산만 처리 -> 정산쪽만 연계
                 // 출차 정산 시 출차 형식 따름

@@ -1,27 +1,32 @@
 package io.glnt.gpms.web.rest
 
 import io.glnt.gpms.common.api.CommonResult
+import io.glnt.gpms.common.api.RelayClient
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.common.utils.JSONUtil
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.handler.calc.model.BasicPrice
+import io.glnt.gpms.handler.calc.service.FareRefService
+import io.glnt.gpms.handler.discount.service.DiscountService
+import io.glnt.gpms.handler.facility.model.reqPaymentResponse
+import io.glnt.gpms.handler.facility.model.reqPaymentResult
 import io.glnt.gpms.handler.inout.model.reqAddParkIn
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.tmap.model.reqAdjustmentRequest
 import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
-import io.glnt.gpms.model.dto.ParkOutDTO
-import io.glnt.gpms.model.dto.ParkinglotVehicleDTO
-import io.glnt.gpms.model.dto.RequestParkInDTO
-import io.glnt.gpms.model.dto.RequestParkOutDTO
-import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.GateTypeStatus
-import io.glnt.gpms.model.enums.OpenActionType
-import io.glnt.gpms.model.enums.VehicleType
+import io.glnt.gpms.model.dto.*
+import io.glnt.gpms.model.entity.InoutPayment
+import io.glnt.gpms.model.enums.*
+import io.glnt.gpms.model.mapper.ParkInMapper
 import io.glnt.gpms.service.*
 import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDateTime
 import java.util.*
 import javax.validation.Valid
 
@@ -37,7 +42,12 @@ class RelayResource (
     private val parkOutService: ParkOutService,
     private val parkinglotVehicleService: ParkinglotVehicleService,
     private val parkSiteInfoService: ParkSiteInfoService,
-    private val relayService: RelayService
+    private val relayService: RelayService,
+    private val facilityService: FacilityService,
+    private val relayClient: RelayClient,
+    private val parkInMapper: ParkInMapper,
+    private val inoutPaymentService: InoutPaymentService,
+    private val fareRefService: FareRefService
 ){
     companion object : KLogging()
 
@@ -147,11 +157,22 @@ class RelayResource (
                 }
             }
 
-            //todo 사전 정산 시 inout-payment 데이터 확인 후 legTime 이후 out_date 이면 시간만큼 요금 계산
+            var price: BasicPrice? = null
             //유료 주차장인 경우 요금 계산
-            var price = if ( parkIn!= null && parkinglotService.isPaid() && requestParkOutDTO.parkCarType != "UNRECOGNIZED") {
-                inoutService.calcParkFee("OUT", parkIn.inDate!!, requestParkOutDTO.date!!, VehicleType.SMALL, requestParkOutDTO.vehicleNo ?: "", parkIn.sn ?: -1)
-            } else null
+            if (parkIn!= null && parkinglotService.isPaid() && requestParkOutDTO.parkCarType != "UNRECOGNIZED") {
+                // 사전 정산 시 inout-payment 데이터 확인 후 legTime 이후 out_date 이면 시간만큼 요금 계산
+                inoutPaymentService.findByInSn(parkIn.sn ?: -1)?.let { prePayments ->
+                    prePayments.sortedByDescending { it.approveDateTime }
+                    fareRefService.getFareBasic()?.let { cgBasic ->
+                        val diffMins = DateUtil.diffMins(DateUtil.stringToLocalDateTime(prePayments[0].approveDateTime!!), requestParkOutDTO.date ?: LocalDateTime.now())
+                        if (diffMins > cgBasic.regTime ?: 0) {
+                            price = inoutService.calcParkFee("OUT", DateUtil.stringToLocalDateTime(prePayments[0].approveDateTime!!), requestParkOutDTO.date!!, VehicleType.SMALL, requestParkOutDTO.vehicleNo ?: "", parkIn.sn ?: -1)
+                        }
+                    }
+                }?: kotlin.run {
+                    price = inoutService.calcParkFee("OUT", parkIn.inDate!!, requestParkOutDTO.date!!, VehicleType.SMALL, requestParkOutDTO.vehicleNo ?: "", parkIn.sn ?: -1)
+                }
+            }
 
             // parkOut 데이터 생성
             val parkOutDTO = parkOutService.save(
@@ -202,11 +223,92 @@ class RelayResource (
         }
     }
 
-    // 사전 정산기 번호 요청
+    // (사전) 정산기 번호 검색 요청
     @RequestMapping(value = ["/relay/paystation/search/vehicle/{dtFacilityId}"], method = [RequestMethod.POST])
     fun searchCarNumber(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String) {
-        logger.info { "searchCarNumber $request " }
+        logger.info { "번호 검색 요청 $request " }
         relayService.searchCarNumber(request, dtFacilityId)
+    }
+
+    // 번호 검색 후 출차(결제) 요청
+    @RequestMapping(value = ["/relay/paystation/request/adjustment/{dtFacilityId}"], method = [RequestMethod.POST])
+    fun requestAdjustment(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String) {
+        logger.info { "정산기 결제 요청 $dtFacilityId $request " }
+        val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqAdjustmentRequest::class.java)
+        parkinglotService.getGateInfoByDtFacilityId(dtFacilityId )?.let { gate ->
+            if (gate.gateType == GateTypeStatus.ETC) {
+                // 결제만 처리
+                val inSn = contents.inSn ?: "-1"
+                parkInService.findOne(inSn.toLong())?.let { parkInDTO ->
+                    val price = if ( parkinglotService.isPaid()) {
+                        inoutService.calcParkFee("OUT", parkInDTO.inDate!!, LocalDateTime.now(), VehicleType.SMALL, parkInDTO.vehicleNo ?: "", parkInDTO.sn ?: -1)
+                    } else null
+
+                    // 정산 처리
+                    val parkOutDTO = ParkOutDTO(
+                                        sn = parkInDTO.sn,
+                                        vehicleNo = parkInDTO.vehicleNo,
+                                        payfee = price?.totalPrice ?: 0,
+                                        parktime = price?.parkTime ?: DateUtil.diffMins(parkInDTO.inDate!!, LocalDateTime.now()),
+                                        discountfee = price?.discountPrice ?: 0,
+                                        dayDiscountfee = price?.dayilyMaxDiscount ?: 0,
+                                        parkfee = price?.orgTotalPrice ?: 0
+                    )
+                    inoutService.waitFacilityIF(parkInDTO.parkcartype ?: "", parkInDTO.vehicleNo!!, gate, parkOutDTO, parkInDTO.inDate!!, dtFacilityId)
+                }
+            } else {
+                // 출차 진행
+                parkOut(RequestParkOutDTO(
+                            vehicleNo = contents.vehicleNumber,
+                            dtFacilitiesId = facilityService.getOneFacilityByGateIdAndCategory(gate.gateId, FacilityCategoryType.LPR)!!.dtFacilitiesId,
+                            date = LocalDateTime.now(),
+                            resultcode = "0",
+                            uuid = JSONUtil.generateRandomBasedUUID()
+                ))
+            }
+        }
+    }
+
+    // 결제 완료 후 정보 전달
+    @RequestMapping(value=["/relay/paystation/result/{dtFacilityId}"], method=[RequestMethod.POST])
+    fun resultPayment(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String): ResponseEntity<CommonResult> {
+        logger.info { "정산 완료 $dtFacilityId $request " }
+
+        val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqPaymentResult::class.java)
+
+        parkinglotService.getGateInfoByDtFacilityId(dtFacilityId )?.let { gate ->
+            if (gate.gateType == GateTypeStatus.ETC) {
+                logger.warn { "사전 정산 완료 $dtFacilityId ${contents.vehicleNumber} " }
+                // 사전 정산 시
+                val inSn = (request.requestId ?: "-1").toLong()
+                inoutService.savePayment("PREPAYMENT", contents, inSn)
+            } else {
+                logger.warn { "출차 정산 완료 $dtFacilityId ${contents.vehicleNumber} " }
+                // 정상 출차 시
+                val outSn = (request.requestId ?: "-1").toLong()
+                val parkOut = parkOutService.findOne(outSn).orElse(null)
+                parkOut?.let { parkOutDTO ->
+                    val paymentDTO = inoutService.savePayment("PAYMENT", contents, parkOutDTO.inSn ?: -1, parkOut.sn)
+
+                    parkInService.findOne(parkOutDTO.inSn ?: -1)?.let {
+                        inoutService.outFacilityIF(
+                            parkOut.parkcartype ?: "", parkOut.vehicleNo ?: "", gate, parkInMapper.toEntity(it), parkOut.sn!!)
+                    }
+                }
+//                relayService.resultPayment(request.requestId!!, contents, dtFacilityId)
+            }
+            relayClient.sendPayStation(
+                gateId = gate.gateId,
+                type = "paymentResponse",
+                requestId = request.requestId!!,
+                data = reqPaymentResponse(
+                    chargingId = contents.transactionId,
+                    vehicleNumber = contents.vehicleNumber
+                ),
+                dtFacilityId
+            )
+        }
+        return ResponseEntity.ok(CommonResult.data())
     }
 
 }

@@ -33,6 +33,10 @@ data class DiscountClass(
     var discountApplyType: DiscountApplyType? = DiscountApplyType.TIME,
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "discount_apply_rate")
+    var discountApplyRate: DiscountApplyRateType? = DiscountApplyRateType.VARIABLE,
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "time_target", nullable = true)
     var timeTarget: TimeTarget? = TimeTarget.NOW,
 

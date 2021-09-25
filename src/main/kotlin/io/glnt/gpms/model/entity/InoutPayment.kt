@@ -19,8 +19,11 @@ data class InoutPayment(
     @Column(name = "sn", unique = true, nullable = false)
     var sn: Long?,
 
+    @Column(name = "type")
+    var type: String? = null,
+
     @Column(name = "in_sn")
-    var inSn: Long,
+    var inSn: Long? = null,
 
     @Column(name = "out_sn")
     var outSn: Long? = null,
