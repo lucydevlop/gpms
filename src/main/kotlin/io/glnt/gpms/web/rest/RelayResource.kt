@@ -183,34 +183,32 @@ class RelayResource (
                 }
             }
 
+            var parkOutDTO = ParkOutDTO(sn = existsParkOut?.sn,
+                                        gateId = gate.gateId,
+                                        parkcartype = requestParkOutDTO.parkCarType,
+                                        vehicleNo = requestParkOutDTO.vehicleNo,
+                                        image = requestParkOutDTO.fileFullPath,
+                                        resultcode = requestParkOutDTO.resultcode?.toInt(),
+                                        requestid = parkSiteInfoService.generateRequestId(),
+                                        fileuploadid = requestParkOutDTO.fileUploadId,
+                                        outDate = requestParkOutDTO.date,
+                                        uuid = requestParkOutDTO.uuid,
+                                        parktime = (price?.parkTime ?: 0) + (prePrice?.parkTime ?: 0),
+                                        parkfee = (price?.orgTotalPrice ?: 0) + (prePrice?.orgTotalPrice ?: 0),
+                                        payfee = (price?.totalPrice ?: 0) + (prePrice?.totalPrice ?: 0),
+                                        discountfee = (price?.discountPrice ?: 0) + (prePrice?.discountPrice ?: 0),
+                                        dayDiscountfee = (price?.dayilyMaxDiscount ?: 0) + (prePrice?.dayilyMaxDiscount ?: 0),
+                                        date = requestParkOutDTO.date!!.toLocalDate(),
+                                        delYn = DelYn.N ,
+                                        inSn = parkIn?.sn,
+                                        originDiscountFee = price?.discountPrice?: 0,
+                                        originParkFee = price?.orgTotalPrice?: 0,
+                                        originPayFee = price?.totalPrice?: 0,
+                                        originDayDiscountFee = price?.dayilyMaxDiscount?: 0,
+                                        originParkTime = price?.parkTime?: 0 )
+
             // parkOut 데이터 생성
-            val parkOutDTO = parkOutService.save(
-                ParkOutDTO(
-                    sn = existsParkOut?.sn,
-                    gateId = gate.gateId,
-                    parkcartype = requestParkOutDTO.parkCarType,
-                    vehicleNo = requestParkOutDTO.vehicleNo,
-                    image = requestParkOutDTO.fileFullPath,
-                    resultcode = requestParkOutDTO.resultcode?.toInt(),
-                    requestid = parkSiteInfoService.generateRequestId(),
-                    fileuploadid = requestParkOutDTO.fileUploadId,
-                    outDate = requestParkOutDTO.date,
-                    uuid = requestParkOutDTO.uuid,
-                    parktime = price?.parkTime?: 0.plus(prePrice?.parkTime?: 0) ?: (parkIn?.let { DateUtil.diffMins(parkIn.inDate!!, requestParkOutDTO.date!!) }?: kotlin.run { 0 }),
-                    parkfee = price?.orgTotalPrice?: 0.plus(prePrice?.orgTotalPrice?: 0) ?: 0,
-                    payfee = price?.totalPrice?: 0.plus(prePrice?.totalPrice?: 0) ?: 0,
-                    discountfee = price?.discountPrice?: 0.plus(prePrice?.discountPrice?: 0) ?: 0,
-                    dayDiscountfee = price?.dayilyMaxDiscount?: 0.plus(prePrice?.dayilyMaxDiscount?: 0) ?: 0,
-                    date = requestParkOutDTO.date!!.toLocalDate(),
-                    delYn = DelYn.N ,
-                    inSn = parkIn?.sn,
-                    originDiscountFee = price?.discountPrice?: 0,
-                    originParkFee = price?.orgTotalPrice?: 0,
-                    originPayFee = price?.totalPrice?: 0,
-                    originDayDiscountFee = price?.dayilyMaxDiscount?: 0,
-                    originParkTime = price?.parkTime?: 0
-                )
-            )
+            parkOutDTO = parkOutService.save(parkOutDTO)
 
             // 번호 검색 요청 조건
             // 1. 유료 주차장인 경우 차량번호로 입차 데이터 미확인, 미인식 인 경우
@@ -222,7 +220,7 @@ class RelayResource (
                     inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!)
                 }
                 // total 0원, 무료 주차장 출차 처리
-                if ( (!parkinglotService.isPaid()) || ( parkinglotService.isPaid() && price?.totalPrice?: 0 > 0)) {
+                if ( (!parkinglotService.isPaid()) || ( parkinglotService.isPaid() && price?.totalPrice?: 0 <= 0)) {
                     // 출차 처리
                     inoutService.outFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkIn, parkOutDTO.sn!!)
                 }

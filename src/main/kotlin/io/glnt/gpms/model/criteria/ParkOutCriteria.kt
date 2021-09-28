@@ -1,28 +1,38 @@
-package io.glnt.gpms.model.dto
+package io.glnt.gpms.model.criteria
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import io.glnt.gpms.model.enums.DelYn
 import java.io.Serializable
 import java.time.LocalDate
 
-data class InoutDiscountCriteria (
+data class ParkOutCriteria (
     var sn: Long? = null,
 
-    var corpSn: Long? = null,
+    var uuid: String? = null,
 
-    var ticketClassSn: Long? = null,
+    var vehicleNo: String? = null,
 
     @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd") var fromDate: LocalDate? = null,
 
     @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd") var toDate: LocalDate? = null,
 
-    ) : Serializable {
-    constructor(other: InoutDiscountCriteria):
+    var parkcartype: String? = null,
+
+    var gateId: String? = null,
+
+    var delYn: DelYn? = null
+
+): Serializable {
+    constructor(other: ParkOutCriteria) :
         this(
             other.sn,
-            other.corpSn,
-            other.ticketClassSn,
+            other.uuid,
+            other.vehicleNo,
             other.fromDate,
-            other.toDate
+            other.toDate,
+            other.parkcartype,
+            other.gateId,
+            other.delYn
         )
 
     companion object {

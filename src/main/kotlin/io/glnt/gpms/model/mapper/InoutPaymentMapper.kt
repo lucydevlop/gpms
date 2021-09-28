@@ -41,7 +41,8 @@ class InoutPaymentMapper (
                     parkTime = dto.parkTime,
                     parkFee = dto.parkFee,
                     discount = dto.discount,
-                    dayDiscount = dto.dayDiscount
+                    dayDiscount = dto.dayDiscount,
+                    vehicleNo = dto.vehicleNo
                 )
             }
         }

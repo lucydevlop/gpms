@@ -2,7 +2,7 @@ package io.glnt.gpms.service
 
 import io.github.jhipster.service.QueryService
 import io.glnt.gpms.common.utils.DateUtil
-import io.glnt.gpms.model.dto.ParkOutCriteria
+import io.glnt.gpms.model.criteria.ParkOutCriteria
 import io.glnt.gpms.model.dto.ParkOutDTO
 import io.glnt.gpms.model.entity.ParkOut
 import io.glnt.gpms.model.enums.DelYn

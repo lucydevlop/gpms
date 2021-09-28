@@ -5,16 +5,14 @@ import io.glnt.gpms.common.configs.ApiConfig.API_VERSION
 import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.rcs.service.RcsService
-import io.glnt.gpms.model.dto.CorpCriteria
+import io.glnt.gpms.model.criteria.CorpCriteria
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.dto.request.resParkInList
-import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.model.enums.DateType
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.service.CorpQueryService
-import io.glnt.gpms.service.CorpTicketClassService
 import io.glnt.gpms.service.TicketClassService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*

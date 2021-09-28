@@ -2,14 +2,14 @@ package io.glnt.gpms.web.rest
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.configs.ApiConfig
+import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.model.criteria.InoutPaymentCriteria
 import io.glnt.gpms.model.dto.request.resParkInList
+import io.glnt.gpms.model.enums.ResultType
 import io.glnt.gpms.model.mapper.GateMapper
 import io.glnt.gpms.model.mapper.ParkInMapper
-import io.glnt.gpms.service.GateService
-import io.glnt.gpms.service.InoutService
-import io.glnt.gpms.service.ParkInService
-import io.glnt.gpms.service.ParkOutService
+import io.glnt.gpms.service.*
 import mu.KLogging
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -27,7 +27,8 @@ class InoutResource (
     private val gateMapper: GateMapper,
     private val parkOutService: ParkOutService,
     private val parkInService: ParkInService,
-    private val parkInMapper: ParkInMapper
+    private val parkInMapper: ParkInMapper,
+    private val inoutPaymentQueryService: InoutPaymentQueryService
 ){
     companion object : KLogging()
 
@@ -81,5 +82,16 @@ class InoutResource (
             }
         }
         return CommonResult.returnResult(CommonResult.data(result))
+    }
+
+    @RequestMapping(value = ["/inouts/payments"], method = [RequestMethod.GET])
+    fun getInoutPayments(@RequestParam(name = "fromDate", required = false) fromDate: String,
+                         @RequestParam(name = "toDate", required = false) toDate: String): ResponseEntity<CommonResult> {
+        val result = inoutPaymentQueryService.findByCriteria(InoutPaymentCriteria(
+                                                                fromDate = DateUtil.stringToLocalDate(fromDate),
+                                                                toDate = DateUtil.stringToLocalDate(toDate)))
+        return CommonResult.returnResult(
+            CommonResult.data(result.filter { it -> it.result != ResultType.WAIT })
+        )
     }
 }

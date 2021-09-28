@@ -13,12 +13,13 @@ import io.glnt.gpms.handler.facility.model.reqDisplayMessage
 import io.glnt.gpms.handler.facility.model.reqPayData
 import io.glnt.gpms.handler.facility.model.reqPayStationData
 import io.glnt.gpms.handler.facility.model.reqPaymentResult
-import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.handler.inout.model.*
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
+import io.glnt.gpms.model.criteria.ParkInCriteria
+import io.glnt.gpms.model.criteria.ParkOutCriteria
 import io.glnt.gpms.model.dto.*
 import io.glnt.gpms.model.dto.request.ReqAddParkingDiscount
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
@@ -1530,6 +1531,7 @@ class InoutService(
             var inoutPayment = InoutPaymentDTO(
                                     sn = null,
                                     inSn = it,
+                                    vehicleNo = vehicleNo,
                                     type = type,
                                     parkTime = if (type == "PAYMENT") parkOutDTO.originParkTime else parkOutDTO.parktime,
                                     parkFee = if (type == "PAYMENT") parkOutDTO.originParkFee else parkOutDTO.parkfee,

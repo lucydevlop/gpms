@@ -4,25 +4,20 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.dashboard.common.model.reqParkingDiscountSearchTicket
 import io.glnt.gpms.handler.dashboard.user.model.*
 import io.glnt.gpms.handler.discount.model.reqAddInoutDiscount
-import io.glnt.gpms.handler.discount.model.reqApplyInoutDiscountSearch
-import io.glnt.gpms.handler.discount.model.reqDiscountableTicket
 import io.glnt.gpms.handler.discount.model.reqSearchInoutDiscount
 import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.service.InoutService
 //import io.glnt.gpms.handler.inout.service.checkItemsAre
-import io.glnt.gpms.model.dto.ParkInCriteria
+import io.glnt.gpms.model.criteria.ParkInCriteria
 import io.glnt.gpms.model.entity.CorpTicketInfo
-import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.enums.TicketType
 import io.glnt.gpms.service.ParkInQueryService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.lang.Integer.min
-import java.util.*
 import kotlin.collections.ArrayList
 
 

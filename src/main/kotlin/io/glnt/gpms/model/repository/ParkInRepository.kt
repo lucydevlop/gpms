@@ -47,7 +47,7 @@ interface ParkOutRepository: JpaRepository<ParkOut, Long>, JpaSpecificationExecu
 }
 
 @Repository
-interface InoutPaymentRepository: JpaRepository<InoutPayment, Long> {
+interface InoutPaymentRepository: JpaRepository<InoutPayment, Long>, JpaSpecificationExecutor<InoutPayment> {
     fun findByInSnAndResultAndDelYn(sn: Long, resultType: ResultType, delYn: DelYn): List<InoutPayment>?
     fun findByOutSnAndResultAndDelYn(sn: Long, resultType: ResultType, delYn: DelYn): List<InoutPayment>?
     fun findByInSnAndResultAndTransactionIdAndDelYn(sn: Long, resultType: ResultType, transactionId: String, delYn: DelYn): InoutPayment?

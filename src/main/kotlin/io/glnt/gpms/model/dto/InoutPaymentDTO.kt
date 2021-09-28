@@ -17,6 +17,9 @@ data class InoutPaymentDTO(
     @get: NotNull
     var inSn: Long? = null,
 
+    @get: NotNull
+    var vehicleNo: String? = null,
+
     var approveDateTime: String? = null,
 
     @Enumerated(EnumType.STRING)
@@ -55,6 +58,7 @@ data class InoutPaymentDTO(
             sn = inoutPayment.sn,
             type = inoutPayment.type,
             inSn = inoutPayment.inSn,
+            vehicleNo = inoutPayment.vehicleNo,
             approveDateTime = inoutPayment.approveDateTime,
             payType = inoutPayment.payType,
             parkTime = inoutPayment.parkTime,

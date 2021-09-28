@@ -154,17 +154,17 @@ class RelayService(
                     } else {
                         facilityService.activeGateFacilities()?.let { list ->
 //                        rcsService.asyncFacilitiesStatus(list)
-                            val result = ArrayList<ReqFacilityStatus>()
+                            val data = ArrayList<ReqFacilityStatus>()
                             list.forEach { it ->
                                 if (it.category == FacilityCategoryType.BREAKER)
-                                    result.add(ReqFacilityStatus(
+                                    data.add(ReqFacilityStatus(
                                         dtFacilitiesId = it.dtFacilitiesId!!,
                                         status = it.status,
                                         statusDateTime = it.statusDate?.let { DateUtil.formatDateTime(it) }
                                     ))
                             }
                             rcsClient.asyncFacilitiesStatus(
-                                result,
+                                data,
                                 parkSiteInfoService.parkSite!!.externalSvr!!,
                                 parkSiteInfoService.parkSite!!.rcsParkId!!)
                         }

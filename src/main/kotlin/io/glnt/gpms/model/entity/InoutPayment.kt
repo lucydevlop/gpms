@@ -28,6 +28,9 @@ data class InoutPayment(
     @Column(name = "out_sn")
     var outSn: Long? = null,
 
+    @Column(name = "vehicle_no")
+    var vehicleNo: String? = null,
+
     @Column(name = "approve_datetime")
     var approveDateTime: String? = null,
 

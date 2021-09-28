@@ -7,13 +7,14 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.dashboard.user.model.ResDiscountTicetsApplyList
 import io.glnt.gpms.handler.discount.service.DiscountService
+import io.glnt.gpms.model.criteria.CorpCriteria
+import io.glnt.gpms.model.criteria.InoutDiscountCriteria
 import io.glnt.gpms.model.dto.*
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.service.*
 import mu.KLogging
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.concurrent.ConcurrentHashMap
 import javax.validation.Valid
 
 @RestController
@@ -145,7 +146,8 @@ class CorpResource (
                                     InoutDiscountCriteria(corpSn = sn.toLong(),
                                                           fromDate = DateUtil.stringToLocalDate(fromDate),
                                                           toDate = DateUtil.stringToLocalDate(toDate),
-                                                          ticketClassSn = ticketClassSn))
+                                                          ticketClassSn = ticketClassSn)
+        )
         inoutDiscounts.forEach {
             result.add(
                 ResDiscountTicetsApplyList(
