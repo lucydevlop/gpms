@@ -19,6 +19,7 @@ import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.common.api.RcsClient
 import io.glnt.gpms.common.api.RelayClient
 import io.glnt.gpms.model.dto.BarcodeTicketsDTO
+import io.glnt.gpms.model.dto.ParkOutDTO
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.*
@@ -39,7 +40,8 @@ class RelayService(
     private val parkInRepository: ParkInRepository,
     private val rcsClient: RcsClient,
     private val parkSiteInfoService: ParkSiteInfoService,
-    private val relayClient: RelayClient
+    private val relayClient: RelayClient,
+    private val parkOutService: ParkOutService
 ) {
     companion object : KLogging()
 
@@ -411,38 +413,33 @@ class RelayService(
         }
     }
 
-    @Throws(CustomException::class)
-    fun requestAdjustment(request: reqApiTmapCommon, dtFacilityId: String){
-        try {
-            val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqAdjustmentRequest::class.java)
-            request.requestId = parkSiteInfoService.generateRequestId()
-
-            if (parkSiteInfoService.isTmapSend()) {
-                // table db insert
-//                val requestId = parkinglotService.generateRequestId()
-//                vehicleListSearchRepository.save(VehicleListSearch(requestId = requestId, facilityId = facilityId))
-//                tmapSendService.sendTmapInterface(request, requestId, "vehicleListSearch")
-            } else {
-
-
-
-                val gateId = parkinglotService.getGateInfoByDtFacilityId(dtFacilityId)!!.gateId
-                // 사전 정산 시 현재 기준으로 금액 계산만 처리 -> 정산쪽만 연계
-                // 출차 정산 시 출차 형식 따름
-                inoutService.parkOut(reqAddParkOut(vehicleNo = contents.vehicleNumber,
-                                                   dtFacilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, FacilityCategoryType.LPR)!![0].dtFacilitiesId,
-                                                   date = LocalDateTime.now(),
-                                                   resultcode = "0",
-                                                   uuid = JSONUtil.generateRandomBasedUUID()))
-            }
-
-        }catch (e: CustomException){
-            logger.error { "saveFailure failed ${e.message}" }
-        }
-    }
+//    @Throws(CustomException::class)
+//    fun requestAdjustment(request: reqApiTmapCommon, dtFacilityId: String){
+//        try {
+//            val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqAdjustmentRequest::class.java)
+//            request.requestId = parkSiteInfoService.generateRequestId()
+//
+//            if (parkSiteInfoService.isTmapSend()) {
+//                // table db insert
+//            } else {
+//                val gateId = parkinglotService.getGateInfoByDtFacilityId(dtFacilityId)!!.gateId
+//                // 사전 정산 시 현재 기준으로 금액 계산만 처리 -> 정산쪽만 연계
+//
+//                // 출차 정산 시 출차 형식 따름
+//                inoutService.parkOut(reqAddParkOut(vehicleNo = contents.vehicleNumber,
+//                                                   dtFacilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, FacilityCategoryType.LPR)!![0].dtFacilitiesId,
+//                                                   date = LocalDateTime.now(),
+//                                                   resultcode = "0",
+//                                                   uuid = JSONUtil.generateRandomBasedUUID()))
+//            }
+//
+//        }catch (e: CustomException){
+//            logger.error { "saveFailure failed ${e.message}" }
+//        }
+//    }
 
     fun aplyDiscountTicket(request: reqApiTmapCommon, dtFacilityId: String){
-        logger.info { "정산기 $dtFacilityId 할인 티켓 입력 $request" }
+        logger.warn { "정산기 $dtFacilityId 할인 티켓 입력 ${request.contents}" }
 
         try {
             val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqDiscountTicket::class.java)
@@ -450,39 +447,107 @@ class RelayService(
             val info = barcodeService.findAll().filter {
                 it.effectDate!! <= LocalDateTime.now() && it.expireDate!! >= LocalDateTime.now() && it.delYn == DelYn.N}.get(0)
 
-            // parkOut 확인
-            parkOutRepository.findBySn(request.requestId!!.toLong()).ifPresent {
-                it.inSn
-                var barcodeTicketDTO: BarcodeTicketsDTO =  BarcodeTicketsDTO(
-                                        barcode = contents.parkTicketNumber,
-                                        inSn = it.inSn,
-                                        applyDate = DateUtil.stringToLocalDateTime(request.eventDateTime!!),
-                                        price = contents.parkTicketNumber.substring(info.startIndex!!, info.endIndex!!).toInt(),
-                                        vehicleNo = contents.vehicleNumber, delYn = DelYn.N
-                                        )
+            val sn = request.requestId!!.toLong()
 
-                var barcodeClass = barcodeClassService.findByStartLessThanEqualAndEndGreaterThanAndDelYn(barcodeTicketDTO.price!!)
+            parkinglotService.getGateInfoByDtFacilityId(dtFacilityId )?.let { gate ->
+                if (gate.gateType == GateTypeStatus.ETC) {
+                    // 사전 정산기
+                    parkInRepository.findBySn(sn)?.let { parkIn ->
+                        val barcodeTicketDTO =  BarcodeTicketsDTO(
+                            barcode = contents.parkTicketNumber,
+                            inSn = parkIn.sn,
+                            applyDate = DateUtil.stringToLocalDateTime(request.eventDateTime!!),
+                            price = contents.parkTicketNumber.substring(info.startIndex!!, info.endIndex!!).toInt(),
+                            vehicleNo = contents.vehicleNumber, delYn = DelYn.N
+                        )
 
-                if (barcodeClass != null) {
-                    // 입차할인권 save
-                    barcodeTicketDTO.inSn?.let {
-                        discountService.saveInoutDiscount(
-                            InoutDiscount(
-                                sn = null, discontType = TicketType.BARCODE, discountClassSn = barcodeClass.discountClassSn, inSn = it,
-                                quantity = 1, useQuantity = 1, delYn = DelYn.N, applyDate = barcodeTicketDTO.applyDate))
+                        val barcodeClass = barcodeClassService.findByStartLessThanEqualAndEndGreaterThanAndDelYn(barcodeTicketDTO.price!!)
+
+                        if (barcodeClass != null) {
+                            // 입차할인권 save
+                            barcodeTicketDTO.inSn?.let {
+                                discountService.saveInoutDiscount(
+                                    InoutDiscount(
+                                        sn = null, discontType = TicketType.BARCODE, discountClassSn = barcodeClass.discountClassSn, inSn = it,
+                                        quantity = 1, useQuantity = 1, delYn = DelYn.N, applyDate = barcodeTicketDTO.applyDate))
+                            }
+                        }
+                        barcodeTicketService.save(barcodeTicketDTO)
+
+                        val price = if ( parkinglotService.isPaid()) {
+                            inoutService.calcParkFee("OUT", parkIn.inDate!!, LocalDateTime.now(), VehicleType.SMALL, parkIn.vehicleNo ?: "", parkIn.sn ?: -1)
+                        } else null
+
+                        // 정산 처리
+                        val parkOutDTO = ParkOutDTO(
+                            inSn = parkIn.sn,
+                            vehicleNo = parkIn.vehicleNo,
+                            payfee = price?.totalPrice ?: 0,
+                            parktime = price?.parkTime ?: DateUtil.diffMins(parkIn.inDate!!, LocalDateTime.now()),
+                            discountfee = price?.discountPrice ?: 0,
+                            dayDiscountfee = price?.dayilyMaxDiscount ?: 0,
+                            parkfee = price?.orgTotalPrice ?: 0
+                        )
+                        inoutService.waitFacilityIF("PREPAYMENT",parkIn.parkcartype ?: "", parkIn.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!, dtFacilityId)
+                    }
+                } else {
+                    // 일반 출차
+                    // parkOut 확인
+                    parkOutRepository.findBySn(sn).ifPresent {
+                        it.inSn
+                        val barcodeTicketDTO =  BarcodeTicketsDTO(
+                            barcode = contents.parkTicketNumber,
+                            inSn = it.inSn,
+                            applyDate = DateUtil.stringToLocalDateTime(request.eventDateTime!!),
+                            price = contents.parkTicketNumber.substring(info.startIndex!!, info.endIndex!!).toInt(),
+                            vehicleNo = contents.vehicleNumber, delYn = DelYn.N
+                        )
+
+                        val barcodeClass = barcodeClassService.findByStartLessThanEqualAndEndGreaterThanAndDelYn(barcodeTicketDTO.price!!)
+
+                        if (barcodeClass != null) {
+                            // 입차할인권 save
+                            barcodeTicketDTO.inSn?.let {
+                                discountService.saveInoutDiscount(
+                                    InoutDiscount(
+                                        sn = null, discontType = TicketType.BARCODE, discountClassSn = barcodeClass.discountClassSn, inSn = it,
+                                        quantity = 1, useQuantity = 1, delYn = DelYn.N, applyDate = barcodeTicketDTO.applyDate))
+                            }
+                        }
+                        barcodeTicketService.save(barcodeTicketDTO)
+                        // 금액 계산
+                        parkInRepository.findBySn(it.inSn ?: -1)?.let { parkIn ->
+                            val price = inoutService.calcParkFee("OUT", parkIn.inDate!!, it.outDate!!, VehicleType.SMALL, parkIn.vehicleNo ?: "", parkIn.sn ?: -1)
+                            val parkOutDTO = parkOutService.save(
+                                ParkOutDTO(
+                                    sn = it.sn,
+                                    gateId = it.gateId,
+                                    parkcartype = it.parkcartype,
+                                    vehicleNo = it.vehicleNo,
+                                    image = it.image,
+                                    resultcode = it.resultcode,
+                                    requestid = it.requestid,
+                                    fileuploadid = it.fileuploadid,
+                                    outDate = it.outDate,
+                                    uuid = it.uuid,
+                                    parktime = it.parktime,
+                                    parkfee = price?.orgTotalPrice ?: 0,
+                                    payfee = price?.totalPrice ?: 0,
+                                    discountfee = price?.discountPrice ?: 0,
+                                    dayDiscountfee = price?.dayilyMaxDiscount ?: 0,
+                                    delYn = DelYn.N,
+                                    inSn = it.inSn
+                                )
+                            )
+                            // 정산 대기 처리
+                            inoutService.waitFacilityIF("PAYMENT", it.parkcartype!!, it.vehicleNo!!,
+                                parkinglotService.getGate(it.gateId ?: "")!!,
+                                parkOutDTO,
+                                parkIn.inDate!!)
+                        }
                     }
                 }
-                barcodeTicketService.save(barcodeTicketDTO)
-                val gateId = parkinglotService.getGateInfoByDtFacilityId(dtFacilityId)!!.gateId
-                inoutService.parkOut(reqAddParkOut(vehicleNo = contents.vehicleNumber,
-                    dtFacilitiesId = parkingFacilityRepository.findByGateIdAndCategory(gateId, FacilityCategoryType.LPR)!![0].dtFacilitiesId,
-                    date = it.outDate!!,
-                    resultcode = it.resultcode!!.toString(),
-                    uuid = JSONUtil.generateRandomBasedUUID(),
-                    parkIn = parkInRepository.findBySn(it.inSn!!)
-                ))
             }
-
         }catch (e: CustomException){
             logger.error { "saveFailure failed ${e.message}" }
         }

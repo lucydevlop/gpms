@@ -94,7 +94,7 @@ class FeeCalculation {
                 val basicTime = TimeRange()
 //                basicTime.startTime = retPrice.service!!.endTime
                 basicTime.startTime = inTime //retPrice.service!!.endTime
-                basicTime.endTime = if (DateUtil.getAddMinutes(basicTime.startTime!!, basic.toLong()) > retPrice.origin.endTime) retPrice.origin.endTime else DateUtil.getAddMinutes(
+                basicTime.endTime = if (DateUtil.getAddMinutes(basicTime.startTime!!, basic.toLong()) > retPrice.origin?.endTime) retPrice.origin?.endTime else DateUtil.getAddMinutes(
                     basicTime.startTime!!,
                     basic.toLong()
                 )
@@ -129,7 +129,7 @@ class FeeCalculation {
             }
         }
 
-        if (retPrice.basic!!.endTime!! <= retPrice.origin.endTime) {
+        if (retPrice.basic!!.endTime!! <= retPrice.origin?.endTime) {
             var startTime = retPrice.basic!!.endTime!!
             do {
                 val seasonTicket = getSeasonTicket(vehicleNo!!, startTime, outTime)
@@ -274,8 +274,8 @@ class FeeCalculation {
         }
 
         val wonDiscountAmt = applyInoutDiscountWon(inSn ?: -1, retPrice.totalPrice ?: 0, "out")
-        retPrice.discountPrice!!.plus(wonDiscountAmt)
-        retPrice.totalPrice!!.minus(wonDiscountAmt)
+        retPrice.discountPrice = retPrice.discountPrice!!.plus(wonDiscountAmt)
+        retPrice.totalPrice = retPrice.totalPrice!!.minus(wonDiscountAmt)
 
         logger.info { "-------------------getBasicPayment-------------------" }
         logger.info { retPrice }
@@ -283,21 +283,18 @@ class FeeCalculation {
     }
 
     fun applyInoutDiscountWon(inSn: Long, totalPrice: Int, type: String, discountClasses: ArrayList<ReqAddParkingDiscount>? = null): Int {
-        val discountAmt = 0
+        var discountAmt = 0
+
+        // todo 할인 방식 수정
+       discountClasses?.let { discounts ->
+            discounts.forEach { discount ->
+                discountAmt = discountAmt.plus(calcDiscountWonByVariable(discount.discountClassSn, totalPrice, discountAmt))
+            }
+        }
 
         discountService.searchInoutDiscount(inSn)?.let { discounts ->
             discounts.forEach { discount ->
-                val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
-                if (discountClass.discountApplyType == DiscountApplyType.WON) {
-                    when(discountClass.discountApplyRate) {
-                        DiscountApplyRateType.FIX -> {
-                            return if (totalPrice > discountClass.unitTime)  totalPrice - discountClass.unitTime else 0
-                        }
-                        else -> {
-                            if (totalPrice > discountClass.unitTime) discountAmt.plus(discountClass.unitTime) else discountAmt.plus(totalPrice)
-                        }
-                    }
-                }
+                discountAmt = discountAmt.plus(calcDiscountWonByVariable(discount.discountClassSn, totalPrice, discountAmt))
                 if (type == "out") {
                     discount.calcYn = DelYn.Y
                     discountService.saveInoutDiscount(discount)
@@ -307,23 +304,52 @@ class FeeCalculation {
 
         discountClasses?.let { discounts ->
             discounts.forEach { discount ->
-                val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
-                if (discountClass.discountApplyType == DiscountApplyType.WON) {
-                    when (discountClass.discountApplyRate) {
-                        DiscountApplyRateType.FIX -> {
-                            return if (totalPrice - discountAmt > discountClass.unitTime) totalPrice - discountAmt - discountClass.unitTime else 0
-                        }
-                        else -> {
-                            if (totalPrice - discountAmt > discountClass.unitTime)
-                                discountAmt.plus(discountClass.unitTime)
-                            else
-                                discountAmt.plus(totalPrice)
-                        }
-                    }
+                discountAmt = calcDiscountWonByFix(discount.discountClassSn, totalPrice, discountAmt)
+            }
+        }
+
+        discountService.searchInoutDiscount(inSn)?.let { discounts ->
+            discounts.forEach { discount ->
+                discountAmt = calcDiscountWonByFix(discount.discountClassSn, totalPrice, discountAmt)
+                if (type == "out") {
+                    discount.calcYn = DelYn.Y
+                    discountService.saveInoutDiscount(discount)
                 }
             }
         }
+
         return discountAmt
+    }
+
+    fun calcDiscountWonByFix(sn: Long, totalPrice: Int, discountAmt: Int): Int {
+        var discount = 0
+
+        val discountClass = discountService.getDiscountClassBySn(sn)
+        if (discountClass.discountApplyType == DiscountApplyType.WON) {
+            if (discountClass.discountApplyRate == DiscountApplyRateType.FIX) {
+                if (totalPrice - discountAmt > discountClass.unitTime)
+                    discount = totalPrice - discountAmt - discountClass.unitTime
+                else
+                    discount = totalPrice - discountAmt
+            }
+        }
+        return discount
+    }
+
+    fun calcDiscountWonByVariable(sn: Long, totalPrice: Int, discountAmt: Int): Int {
+        var discount = 0
+
+        val discountClass = discountService.getDiscountClassBySn(sn)
+        if (discountClass.discountApplyType == DiscountApplyType.WON) {
+            if (discountClass.discountApplyRate == DiscountApplyRateType.VARIABLE) {
+                if (totalPrice - discountAmt > discountClass.unitTime)
+                    discount = discountAmt.plus(discountClass.unitTime)
+                else
+                    discount = discountAmt.plus(totalPrice)
+            }
+        }
+
+        return discount
     }
 
     fun getSeasonTicket(vehicleNo: String, startTime: LocalDateTime, endTime: LocalDateTime): TimeRange? {
@@ -439,7 +465,7 @@ class FeeCalculation {
                 val basicTime = TimeRange()
 //                basicTime.startTime = retPrice.service!!.endTime
                 basicTime.startTime = inTime //retPrice.service!!.endTime
-                basicTime.endTime = if (DateUtil.getAddMinutes(basicTime.startTime!!, basic.toLong()) > retPrice.origin.endTime) retPrice.origin.endTime else DateUtil.getAddMinutes(
+                basicTime.endTime = if (DateUtil.getAddMinutes(basicTime.startTime!!, basic.toLong()) > retPrice.origin?.endTime) retPrice.origin?.endTime else DateUtil.getAddMinutes(
                     basicTime.startTime!!,
                     basic.toLong()
                 )
@@ -474,7 +500,7 @@ class FeeCalculation {
             }
         }
 
-        if (retPrice.basic!!.endTime!! <= retPrice.origin.endTime) {
+        if (retPrice.basic!!.endTime!! <= retPrice.origin?.endTime) {
             var startTime = retPrice.basic!!.endTime!!
             do {
                 val seasonTicket = getSeasonTicket(vehicleNo!!, startTime, outTime)

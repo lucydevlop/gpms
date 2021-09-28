@@ -22,6 +22,14 @@ data class InoutPaymentDTO(
     @Enumerated(EnumType.STRING)
     var payType: PayType? = null,
 
+    var parkTime: Int? = null,
+
+    var parkFee: Int? = null,
+
+    var discount: Int? = null,
+
+    var dayDiscount: Int? = null,
+
     var amount: Int? = null,
 
     var cardCorp: String? = null,
@@ -31,7 +39,7 @@ data class InoutPaymentDTO(
     var transactionId: String? = null,
 
     @Enumerated(EnumType.STRING)
-    var result: ResultType? = null,
+    var result: ResultType? = ResultType.WAIT,
 
     var failureMessage: String? = null,
 
@@ -49,6 +57,10 @@ data class InoutPaymentDTO(
             inSn = inoutPayment.inSn,
             approveDateTime = inoutPayment.approveDateTime,
             payType = inoutPayment.payType,
+            parkTime = inoutPayment.parkTime,
+            parkFee = inoutPayment.parkFee,
+            discount = inoutPayment.discount,
+            dayDiscount = inoutPayment.dayDiscount,
             amount = inoutPayment.amount,
             cardCorp = inoutPayment.cardCorp,
             cardNumber = inoutPayment.cardNumber,

@@ -35,6 +35,18 @@ data class InoutPayment(
     @Column(name = "pay_type")
     var payType: PayType? = PayType.CARD,
 
+    @Column(name = "park_time")
+    var parkTime: Int? = 0,
+
+    @Column(name = "park_fee")
+    var parkFee: Int? = 0,
+
+    @Column(name = "discount")
+    var discount: Int? = 0,
+
+    @Column(name = "day_discount")
+    var dayDiscount: Int? = 0,
+
     @Column(name = "amount")
     var amount: Int? = 0,
 
@@ -49,7 +61,7 @@ data class InoutPayment(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "result")
-    var result: ResultType = ResultType.FAILURE,
+    var result: ResultType? = null,
 
     @Column(name = "failure_message")
     var failureMessage: String? = null,

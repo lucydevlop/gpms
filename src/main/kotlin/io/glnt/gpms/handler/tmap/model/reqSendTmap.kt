@@ -97,7 +97,8 @@ data class reqSendResultResponse(
 
 data class reqSendVehicleListSearch(
     var vehicleNumber: String,
-    var facilityId: String?
+    var facilityId: String?,
+    var paymentMachineType: String?
 )
 
 data class reqSendPayment(

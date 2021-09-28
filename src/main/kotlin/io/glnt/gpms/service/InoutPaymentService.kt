@@ -9,6 +9,7 @@ import io.glnt.gpms.model.repository.InoutPaymentRepository
 import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.*
 
 @Service
 class InoutPaymentService (
@@ -22,6 +23,11 @@ class InoutPaymentService (
         return inoutPaymentRepository.findAll().map(inoutPaymentMapper::toDTO)
     }
 
+    fun findOne(sn: Long): Optional<InoutPaymentDTO> {
+        logger.debug { "Request to get InoutPayment $sn" }
+        return inoutPaymentRepository.findBySn(sn).map(inoutPaymentMapper::toDTO)
+    }
+
     @Transactional(readOnly = true)
     fun findByInSn(sn: Long): List<InoutPaymentDTO>? {
         logger.debug { "Request to get InoutPayment $sn" }
@@ -30,17 +36,21 @@ class InoutPaymentService (
 
     fun save(inoutPaymentDTO: InoutPaymentDTO) : InoutPaymentDTO {
         inoutPaymentMapper.toEntity(inoutPaymentDTO)?.let { inoutPayment ->
-            // 중복 데이터 check 후 save
-            if (inoutPayment.failureMessage == null) {
-                inoutPaymentRepository.findByInSnAndResultAndTransactionIdAndDelYn(inoutPayment.inSn ?: -1, ResultType.SUCCESS, inoutPayment.transactionId!!, DelYn.N)?.let { it ->
-                    return inoutPaymentMapper.toDTO(it)
+            inoutPaymentDTO.sn?.let {
+                inoutPaymentRepository.save(inoutPayment)
+                return inoutPaymentMapper.toDTO(inoutPayment)
+            }?: kotlin.run {
+                // 중복 데이터 check 후 save
+                if (inoutPayment.failureMessage == null && inoutPayment.transactionId != null) {
+                    inoutPaymentRepository.findByInSnAndResultAndTransactionIdAndDelYn(inoutPayment.inSn ?: -1, ResultType.SUCCESS, inoutPayment.transactionId!!, DelYn.N)?.let { it ->
+                        return inoutPaymentMapper.toDTO(it)
+                    }
+                } else {
+                    inoutPaymentRepository.save(inoutPayment)
+                    return inoutPaymentMapper.toDTO(inoutPayment)
                 }
             }
-            inoutPaymentRepository.save(inoutPayment)
-            return inoutPaymentMapper.toDTO(inoutPayment)
         }
         return inoutPaymentDTO
     }
-
-
 }

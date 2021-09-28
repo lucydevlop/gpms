@@ -26,6 +26,7 @@ class InoutPaymentMapper (
             else -> {
                 InoutPayment(
                     sn = dto.sn,
+                    type = dto.type,
                     inSn = dto.inSn,
                     approveDateTime = dto.approveDateTime,
                     payType = dto.payType,
@@ -36,7 +37,11 @@ class InoutPaymentMapper (
                     result = dto.result ?: ResultType.FAILURE,
                     failureMessage = dto.failureMessage,
                     delYn = dto.delYn,
-                    outSn = dto.outSn
+                    outSn = dto.outSn,
+                    parkTime = dto.parkTime,
+                    parkFee = dto.parkFee,
+                    discount = dto.discount,
+                    dayDiscount = dto.dayDiscount
                 )
             }
         }

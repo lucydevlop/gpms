@@ -54,7 +54,18 @@ data class ParkOutDTO(
 
     var gate: GateDTO? = null,
 
-    var parkInDTO: ParkInDTO? = null
+    var parkInDTO: ParkInDTO? = null,
+
+    // non entity
+    var originParkFee: Int? = null,
+
+    var originPayFee: Int? = null,
+
+    var originDiscountFee: Int? = null,
+
+    var originDayDiscountFee: Int? = null,
+
+    var originParkTime: Int? = null
 ): Serializable {
     constructor(parkOut: ParkOut) :
         this(

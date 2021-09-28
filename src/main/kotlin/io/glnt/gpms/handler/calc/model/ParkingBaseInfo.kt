@@ -29,7 +29,7 @@ data class BasicPrice(
     // 총 주차시간
     // origin
     var parkTime: Int = 0,
-    var origin: TimeRange,
+    var origin: TimeRange? = null,
     // 서비스시간
     var serviceTime: Int = 0,
     var service: TimeRange? = null,
@@ -39,7 +39,7 @@ data class BasicPrice(
     // 추가요금
     var add: TimeRange? = null,
     // fare list
-    var dailySplits: ArrayList<DailySplit>?
+    var dailySplits: ArrayList<DailySplit>? = null
 )
 
 data class DailyPrice(
