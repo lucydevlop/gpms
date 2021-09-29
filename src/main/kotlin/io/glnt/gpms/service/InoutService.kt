@@ -761,7 +761,7 @@ class InoutService(
                                 type = DisplayMessageClass.IN,
                                 parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
                                 inGateId = it.gateId, inDate = it.inDate!!,
-                                ticketCorpName = it.seasonTicketDTO?.corp?.corpName, memo = it.memo,
+                                ticketCorpName = it.seasonTicketDTO?.corpName, memo = it.memo,
                                 inImgBase64Str = it.image?.let { image -> image.substring(image.indexOf("/park")) },
                                 parkoutSn = it.outSn
                             )
