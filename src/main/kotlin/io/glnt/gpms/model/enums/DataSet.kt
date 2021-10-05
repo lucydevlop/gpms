@@ -25,7 +25,7 @@ enum class OnOff {
 }
 
 enum class ResultType {
-    SUCCESS, FAILURE, WAIT
+    SUCCESS, FAILURE, WAIT, ERROR
 }
 
 enum class FacilityCategoryType {

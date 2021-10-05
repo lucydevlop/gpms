@@ -27,12 +27,6 @@ class RelayController (
     @Autowired
     private lateinit var relayService: RelayService
 
-    @RequestMapping(value=["/health_check"], method=[RequestMethod.POST])
-    fun healthCheck(@RequestBody request: reqRelayHealthCheck) {
-        logger.debug { "healthCheck category $request" }
-        relayService.facilitiesHealthCheck(request)
-    }
-
     @RequestMapping(value=["/failure_alarm"], method=[RequestMethod.POST])
     fun failureAlarm(@RequestBody request: reqRelayHealthCheck) {
         logger.debug { "healthCheck category $request" }

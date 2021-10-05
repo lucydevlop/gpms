@@ -75,17 +75,10 @@ class InoutService(
     lateinit var discountService: DiscountService
 
     @Autowired
-    private lateinit var parkFacilityRepository: ParkFacilityRepository
-
-    @Autowired
     private lateinit var parkInRepository: ParkInRepository
 
     @Autowired
     private lateinit var parkOutRepository: ParkOutRepository
-
-    @Autowired
-    private lateinit var vehicleListSearchRepository: VehicleListSearchRepository
-
 
 
     fun parkIn(request: reqAddParkIn) : CommonResult = with(request){
@@ -1305,32 +1298,25 @@ class InoutService(
         return price
     }
 
-    fun savePayment(contents: reqPaymentResult, sn: Long, outSn: Long? = null): InoutPaymentDTO {
+    fun savePayment(contents: reqPaymentResult, sn: Long, outSn: Long? = null): InoutPaymentDTO? {
         logger.debug { "savePayment $sn $contents $outSn" }
 
-//        // 할인권 적용 완료 처리
-//        discountService.applyInoutDiscount(inSn)
-
         val inoutPayment = inoutPaymentService.findOne(sn).orElse(null)
-        // 결제 금액 저장
-        return inoutPaymentService.save(
-                InoutPaymentDTO(sn = inoutPayment.sn,
-                    inSn = inoutPayment.inSn,
-                    type = inoutPayment.type,
-                    parkTime = inoutPayment.parkTime,
-                    parkFee = inoutPayment.parkFee,
-                    discount = inoutPayment.discount,
-                    dayDiscount = inoutPayment.dayDiscount,
-                    approveDateTime = contents.approveDatetime,
-                    payType = PayType.CARD,
-                    amount = contents.cardAmount?.toInt() ?: kotlin.run { null },
-                    cardCorp = contents.cardCorp,
-                    cardNumber = contents.cardNumber,
-                    transactionId = contents.transactionId,
-                    result = if (contents.failureMessage == null) ResultType.SUCCESS else ResultType.FAILURE,
-                    failureMessage = contents.failureMessage,
-                    outSn = outSn)
-        )
+        inoutPayment?.let { inoutPaymentDTO ->
+            inoutPaymentDTO.approveDateTime = contents.approveDatetime
+            inoutPaymentDTO.payType = PayType.CARD
+            inoutPaymentDTO.amount = contents.cardAmount?.toInt() ?: kotlin.run { null }
+            inoutPaymentDTO.cardCorp = contents.cardCorp
+            inoutPaymentDTO.cardNumber = contents.cardNumber
+            inoutPaymentDTO.transactionId = contents.transactionId
+            inoutPaymentDTO.result = contents.result
+            inoutPaymentDTO.failureMessage = contents.failureMessage
+            inoutPayment.outSn = outSn
+
+            // 결제 금액 저장
+            return inoutPaymentService.save(inoutPayment)
+        }
+        return null
     }
 
 //    fun paymentResult(request: reqPaymentResult, requestId: String, gateId: String) : CommonResult {
@@ -1503,19 +1489,22 @@ class InoutService(
 
         // parkIn update
         parkIn?.let { it ->
-            updateParkInExitComplete(parkInMapper.toDTO(parkIn), parkOutSn)
-
             inoutPaymentService.findByInSn(it.sn ?: -1)?.let { payments ->
                 payments.forEach { payment ->
                     updateInoutPaymentExitComplete(payment, parkOutSn)
                 }
+            }
+            if (parkCarType != "FAILURE") {
+                updateParkInExitComplete(parkInMapper.toDTO(parkIn), parkOutSn)
             }
         }
 
         // 출차 메세지
         displayMessage(parkCarType, vehicleNo, "OUT", gate.gateId)
         // gate open
-        relayClient.sendActionBreaker(gate.gateId, "open")
+        if (parkCarType != "FAILURE") {
+            relayClient.sendActionBreaker(gate.gateId, "open")
+        }
     }
 
     fun waitFacilityIF(type: String, parkCarType: String, vehicleNo: String, gate: Gate, parkOutDTO: ParkOutDTO, inDate: LocalDateTime, dtFacilityId: String? = null) {

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.JsonNode
 import io.glnt.gpms.common.api.CommonResult
+import io.glnt.gpms.common.api.RcsClient
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
@@ -44,7 +45,8 @@ class RcsService(
     private var productService: ProductService,
     private var discountService: DiscountService,
     private var corpService: CorpService,
-    private var parkSiteInfoService: ParkSiteInfoService
+    private var parkSiteInfoService: ParkSiteInfoService,
+    private var rcsClient: RcsClient
 ) {
     companion object : KLogging()
 
@@ -141,18 +143,7 @@ class RcsService(
                     healthDateTime = it.healthDate?.let { DateUtil.formatDateTime(it) }
                 ))
             }
-
-            when (parkSite?.externalSvr) {
-                ExternalSvrType.GLNT -> {
-                    restAPIManager.sendPatchRequest(
-                        glntUrl+"/parkinglots/"+parkSite.rcsParkId!!+"/facilities",
-                        result
-                    )
-                }
-                else -> {
-                    logger.error { "RCS 연계 코드 오류" }
-                }
-            }
+            rcsClient.asyncFacilitiesHealth(result, parkSite?.externalSvr?: ExternalSvrType.NONE, parkSite?.rcsParkId?: -1)
         }catch (e: RuntimeException) {
             logger.error { "RCS Async facilities health $request $e" }
         }
@@ -322,9 +313,9 @@ class RcsService(
     fun asyncCallVoip(voipId: String): CommonResult {
         try {
             val parkSite = parkSiteInfoService.parkSite
-            restAPIManager.sendGetRequest(
-                glntUrl + "/parkinglots/" + parkSite?.rcsParkId!! + "/call/" + voipId
-            )
+            val url = glntUrl + "/parkinglots/" + parkSite?.rcsParkId!! + "/call/" + voipId
+            logger.warn { "callVoip $url" }
+            restAPIManager.sendGetRequest(url)
             return CommonResult.data()
         }catch (e: CustomException) {
             logger.error { "rcs asyncCallVoip failed $voipId $e" }

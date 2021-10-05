@@ -92,13 +92,14 @@ class RelayService(
 
             request.facilitiesList.forEach { facility ->
                 facilityService.updateHealthCheck(facility.dtFacilitiesId, facility.status!!)
-                if (facility.failureAlarm == "icCardReaderFailure" && !facility.responseId.isNullOrEmpty()) {
-                    logger.warn { "정산기 결제 오류 $request" }
-                    // 정산기 요청 한 후 정산 실패 시 강제 오픈 처리
-                    facilityService.getGateByFacilityId(facility.dtFacilitiesId)?.let { it ->
-                        actionGate(it.gateId, "GATE", "open")
-                    }
-                }
+//                //2021-10-01 정산 실패 메세지 변경 삭제 처리
+//                if (facility.failureAlarm == "icCardReaderFailure" && !facility.responseId.isNullOrEmpty()) {
+//                    logger.warn { "정산기 결제 오류 $request" }
+//                    // 정산기 요청 한 후 정산 실패 시 강제 오픈 처리 ->
+//                    facilityService.getGateByFacilityId(facility.dtFacilitiesId)?.let { it ->
+//                        actionGate(it.gateId, "GATE", "open")
+//                    }
+//                }
             }
 
             if (parkAlarmSetting.payAlarm == checkUseStatus.Y && parkAlarmSetting.payLimitTime!! > 0) {
@@ -379,6 +380,7 @@ class RelayService(
                             paystationvehicleListSearch(
                                 inSn = it.sn!!.toString(),
                                 vehicleNumber = it.vehicleNo!!,
+                                imageUrl = it.image?.let { image -> image.substring(image.indexOf("/park")) }?: kotlin.run { "/park/noImage.jpg" },
                                 inVehicleDateTime = DateUtil.formatDateTime(it.inDate!!, "yyyy-MM-dd HH:mm:ss")
                             )
                         )

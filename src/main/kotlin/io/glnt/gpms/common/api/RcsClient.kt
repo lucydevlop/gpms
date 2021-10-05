@@ -3,6 +3,7 @@ package io.glnt.gpms.common.api
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.handler.rcs.model.ReqFacilityStatus
 import io.glnt.gpms.handler.rcs.model.ReqFailureAlarm
+import io.glnt.gpms.handler.rcs.model.ReqHealthCheck
 import io.glnt.gpms.model.entity.Failure
 import io.glnt.gpms.model.enums.ExternalSvrType
 import io.glnt.gpms.model.enums.checkUseStatus
@@ -27,6 +28,16 @@ class RcsClient(
             ExternalSvrType.GLNT -> {
                 restAPIManager.sendPatchRequest("$glntUrl/parkinglots/$rcsParkId/facilities",
                     reqeust
+                )
+            }
+        }
+    }
+
+    fun asyncFacilitiesHealth(request: List<ReqHealthCheck>, externalSvr: ExternalSvrType, rcsParkId: Long) {
+        when (externalSvr) {
+            ExternalSvrType.GLNT -> {
+                restAPIManager.sendPatchRequest("$glntUrl/parkinglots/$rcsParkId/facilities",
+                    request
                 )
             }
         }

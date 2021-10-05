@@ -15,6 +15,7 @@ import io.glnt.gpms.handler.facility.model.reqPaymentResponse
 import io.glnt.gpms.handler.facility.model.reqPaymentResult
 import io.glnt.gpms.handler.inout.model.reqAddParkIn
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
 import io.glnt.gpms.handler.tmap.model.reqAdjustmentRequest
 import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
 import io.glnt.gpms.model.dto.*
@@ -236,6 +237,13 @@ class RelayResource (
         }
     }
 
+    // Health Check
+    @RequestMapping(value=["/relay/health_check"], method=[RequestMethod.POST])
+    fun healthCheck(@RequestBody request: reqRelayHealthCheck) {
+        logger.debug { "[Health Check] category $request" }
+        relayService.facilitiesHealthCheck(request)
+    }
+
     // (사전) 정산기 번호 검색 요청
     @RequestMapping(value = ["/relay/paystation/search/vehicle/{dtFacilityId}"], method = [RequestMethod.POST])
     fun searchCarNumber(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String) {
@@ -300,14 +308,20 @@ class RelayResource (
                 inoutPaymentService.findOne(sn).ifPresent { inoutPayment ->
                     val parkOut = parkOutService.findByInSn(inoutPayment.inSn ?: -1).orElse(null)
                     parkOut?.let { parkOutDTO ->
-                        val paymentDTO = inoutService.savePayment(contents, sn, parkOut.sn)
+                        inoutService.savePayment(contents, sn, parkOut.sn)
                         parkInService.findOne(parkOutDTO.inSn ?: -1)?.let {
+
+                            val parkCarType = when(contents.result?: ResultType.SUCCESS) {
+                                ResultType.ERROR -> "ERROR"
+                                ResultType.FAILURE -> "FAILURE"
+                                else -> parkOut.parkcartype ?: ""
+                            }
+
                             inoutService.outFacilityIF(
-                                parkOut.parkcartype ?: "", parkOut.vehicleNo ?: "", gate, parkInMapper.toEntity(it), parkOut.sn!!)
+                                parkCarType, parkOut.vehicleNo ?: "", gate, parkInMapper.toEntity(it), parkOut.sn!!)
                         }
                     }
                 }
-//                relayService.resultPayment(request.requestId!!, contents, dtFacilityId)
             }
             relayClient.sendPayStation(
                 gateId = gate.gateId,
