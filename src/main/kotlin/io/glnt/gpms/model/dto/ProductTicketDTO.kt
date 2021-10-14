@@ -11,7 +11,7 @@ import javax.persistence.EnumType
 import javax.persistence.Enumerated
 import javax.validation.constraints.NotNull
 
-data class SeasonTicketDTO (
+data class ProductTicketDTO (
     var sn: Long? = null,
 
     var corpSn: Long? = null,
@@ -54,7 +54,7 @@ data class SeasonTicketDTO (
 
     var corp: CorpDTO? = null,
 
-    var ticketClassDTO: TicketClassDTO? = null
+    var ticket: TicketClassDTO? = null
 
 ) : Serializable {
 
@@ -67,7 +67,7 @@ data class SeasonTicketDTO (
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is SeasonTicketDTO) return false
+        if (other !is ProductTicketDTO) return false
         return sn != null && sn == other.sn
     }
 

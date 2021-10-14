@@ -3,10 +3,7 @@ package io.glnt.gpms.model.dto
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.entity.CorpTicketClass
-import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.OnOff
-import io.glnt.gpms.model.enums.SaleType
-import io.glnt.gpms.model.enums.Yn
+import io.glnt.gpms.model.enums.*
 import java.io.Serializable
 import java.time.LocalDateTime
 import javax.persistence.EnumType
@@ -46,12 +43,20 @@ data class CorpTicketClassDTO (
     @Enumerated(EnumType.STRING)
     var delYn: DelYn? = null,
 
+    @Enumerated(EnumType.STRING)
+    var applyTarget: DiscountApplyTargetType? = DiscountApplyTargetType.NOW,
+
+    @get: NotNull
+    @Enumerated(EnumType.STRING)
+    var applyType: DiscountRangeType? = null,
+
     var discountClass: DiscountClassDTO? = null
 ): Serializable {
     constructor(corpTicketClass: CorpTicketClass) :
         this(
             corpTicketClass.sn, corpTicketClass.name, corpTicketClass.effectDate, corpTicketClass.expireDate,
             corpTicketClass.discountClassSn, corpTicketClass.onceMax, corpTicketClass.dayMax, corpTicketClass.monthMax,
-            corpTicketClass.saleType, corpTicketClass.price, corpTicketClass.extendYn, corpTicketClass.delYn
+            corpTicketClass.saleType, corpTicketClass.price, corpTicketClass.extendYn, corpTicketClass.delYn,
+            corpTicketClass.applyTarget, corpTicketClass.applyType
         )
 }

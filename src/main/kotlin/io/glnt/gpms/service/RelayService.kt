@@ -310,7 +310,7 @@ class RelayService(
                     failureRepository.save(request)
 //                    rcsService.asyncFailureAlarm(request)
                     parkSiteInfoService.parkSite!!.externalSvr?.let { externalSvrType ->
-                        rcsClient.asyncFailureAlarm(request, externalSvrType, parkSiteInfoService.parkSite!!.rcsParkId!!)
+                        rcsClient.asyncFailureAlarm(request, externalSvrType, parkSiteInfoService.parkSite!!.rcsParkId?: 0)
                     }
                 }
             }

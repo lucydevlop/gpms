@@ -118,7 +118,10 @@ data class ParkSiteInfo(
     var visitorExternalKey: String? = null,
 
     @Enumerated(EnumType.STRING)
-    var operatingDays: DiscountRangeType? = DiscountRangeType.ALL
+    var operatingDays: DiscountRangeType? = DiscountRangeType.ALL,
+
+    @Enumerated(EnumType.STRING)
+    var visitorRegister: OnOff? = OnOff.ON
 ) : Auditable(), Serializable {
 
 }

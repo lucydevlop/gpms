@@ -759,7 +759,7 @@ class InoutService(
                                 parkoutSn = it.outSn
                             )
                             result.paymentAmount = inoutPaymentRepository.findByInSnAndResultAndDelYn(it.sn!!, ResultType.SUCCESS, DelYn.N)?.let { payment ->
-                                payment.sumBy { it.amount!! }
+                                payment.sumBy { it.amount?: 0 }
                             }?: kotlin.run { 0 }
 
                             result.aplyDiscountClasses = discountService.searchInoutDiscount(it.sn!!) as ArrayList<InoutDiscount>?
@@ -1309,7 +1309,7 @@ class InoutService(
             inoutPaymentDTO.cardCorp = contents.cardCorp
             inoutPaymentDTO.cardNumber = contents.cardNumber
             inoutPaymentDTO.transactionId = contents.transactionId
-            inoutPaymentDTO.result = contents.result
+            inoutPaymentDTO.result = contents.result?: ResultType.SUCCESS
             inoutPaymentDTO.failureMessage = contents.failureMessage
             inoutPayment.outSn = outSn
 
@@ -1539,23 +1539,40 @@ class InoutService(
             displayMessage(parkCarType, (payFee.toString() + "원") as String, "WAIT", gate.gateId)
 
             // 정산기
-            relayClient.sendPayStation(
-                gateId = gate.gateId,
-                type = "adjustmentRequest",
-                requestId = paymentSn.toString(),  //사전 정산시에는 parkIn.SN 으로 정의 -> 모든 정산기 requestId는 정산 SN으로 변경 2021.09.27
-                reqPayStationData(
-                    paymentMachineType = if (parkCarType == "NORMAL") "exit" else if (payFee > 0) "exit" else "SEASON",
-                    vehicleNumber = vehicleNo,
-                    facilitiesId = gate.udpGateid ?: kotlin.run { gate.gateId },
-                    recognitionType = if (parkCarType == "NORMAL") "FREE" else if (payFee > 0) "FREE" else "SEASON",
-                    recognitionResult = "RECOGNITION",
-                    paymentAmount = (inoutPayment.parkFee?: 0).toString(),
-                    parktime = parkOutDTO.parktime.toString(),
-                    parkTicketMoney = inoutPayment.discount?.plus(inoutPayment.dayDiscount?: 0).toString(),  // 할인요금
-                    vehicleIntime = DateUtil.formatDateTime(inDate, "yyyy-MM-dd HH:mm")
-                ),
-                dtFacilityId = dtFacilityId
-            )
+            // 정산기 보내기전 connetion check
+            facilityService.getStatusByGateAndCategory(gate.gateId, FacilityCategoryType.PAYSTATION)?.let { state ->
+                if (state["status"] == "NORMAL") {
+                    relayClient.sendPayStation(
+                        gateId = gate.gateId,
+                        type = "adjustmentRequest",
+                        requestId = paymentSn.toString(),  //사전 정산시에는 parkIn.SN 으로 정의 -> 모든 정산기 requestId는 정산 SN으로 변경 2021.09.27
+                        reqPayStationData(
+                            paymentMachineType = if (parkCarType == "NORMAL") "exit" else if (payFee > 0) "exit" else "SEASON",
+                            vehicleNumber = vehicleNo,
+                            facilitiesId = gate.udpGateid ?: kotlin.run { gate.gateId },
+                            recognitionType = if (parkCarType == "NORMAL") "FREE" else if (payFee > 0) "FREE" else "SEASON",
+                            recognitionResult = "RECOGNITION",
+                            paymentAmount = (inoutPayment.parkFee?: 0).toString(),
+                            parktime = parkOutDTO.parktime.toString(),
+                            parkTicketMoney = inoutPayment.discount?.plus(inoutPayment.dayDiscount?: 0).toString(),  // 할인요금
+                            vehicleIntime = DateUtil.formatDateTime(inDate, "yyyy-MM-dd HH:mm")
+                        ),
+                        dtFacilityId = dtFacilityId
+                    )
+                } else {
+                    // 정산기 접속 오류로 인한 출차 진행
+                    inoutPayment.result = ResultType.ERROR
+                    inoutPayment.failureMessage = "PAYSTATION tcp connection error"
+                    inoutPayment = inoutPaymentService.save(inoutPayment)
+
+                    parkInService.findOne(parkOutDTO.inSn ?: -1)?.let {
+                        outFacilityIF(
+                            "ERROR", parkOutDTO.vehicleNo ?: "", gate, parkInMapper.toEntity(it), parkOutDTO.sn!!)
+                    }
+
+                }
+            }
+
         }
     }
 

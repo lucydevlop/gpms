@@ -45,7 +45,8 @@ class ParkSiteInfoMapper {
                     vehicleDayOption = dto.vehicleDayOption,
                     visitorExternal = dto.visitorExternal,
                     visitorExternalKey = dto.visitorExternalKey,
-                    operatingDays = dto.operatingDays
+                    operatingDays = dto.operatingDays,
+                    visitorRegister = dto.visitorRegister
                 )
             }
         }

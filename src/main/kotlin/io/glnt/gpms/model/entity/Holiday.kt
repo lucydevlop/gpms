@@ -11,7 +11,7 @@ import java.time.LocalDate
 import javax.persistence.*
 
 @Entity
-@Table(schema = "glnt_parking", name="tb_cgholiday")
+@Table(schema = "glnt_parking", name="tb_holiday")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Holiday(
@@ -20,19 +20,29 @@ data class Holiday(
     @Column(name = "sn", unique = true, nullable = false)
     var sn: Long?,
 
-    @Column(name = "holidate", nullable = false)
+    @Column(name = "name")
+    var name: String? = null,
+
+    @Column(name = "start_date", nullable = false)
     @DateTimeFormat(pattern="yyyy-MM-dd")
-    var holidate: LocalDate,
+    var startDate: LocalDate,
+
+    @Column(name = "end_date", nullable = false)
+    @DateTimeFormat(pattern="yyyy-MM-dd")
+    var endDate: LocalDate,
 
     @Column(name = "start_time", length=10)
     var startTime: String? = "0000",
 
     @Column(name = "end_time", length=10)
-    var endTime: String? = "2400",
+    var endTime: String? = "2359",
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
+    @Column(name = "type")
     var type: HolidayType? = HolidayType.HOLIDAY,
+
+    @Column(name = "is_working")
+    var isWorking: Boolean? = null,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
@@ -42,7 +52,8 @@ data class Holiday(
 
     override fun hashCode(): Int {
         var result = sn.hashCode()
-        result = 31 * result + holidate.hashCode()
+        result = 31 * result + startDate.hashCode()
+        result = 31 * result + endDate.hashCode()
         return result
     }
 }

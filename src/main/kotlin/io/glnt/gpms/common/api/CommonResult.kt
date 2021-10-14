@@ -94,6 +94,7 @@ class CommonResult {
                 ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
                 ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.OK)
                 ResultCode.VALIDATE_FAILED.getCode() -> ResponseEntity(result, HttpStatus.NOT_FOUND)
+                ResultCode.CONFLICT.getCode() -> ResponseEntity(result, HttpStatus.CONFLICT)
                 else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
             }
         }

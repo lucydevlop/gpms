@@ -4,6 +4,7 @@ import io.glnt.gpms.model.entity.Corp
 import io.glnt.gpms.model.enums.DelYn
 import java.io.Serializable
 import java.time.LocalDateTime
+import javax.persistence.Column
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 import javax.validation.constraints.NotNull

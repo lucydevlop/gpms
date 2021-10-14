@@ -37,7 +37,7 @@ class InoutPaymentService (
     fun save(inoutPaymentDTO: InoutPaymentDTO) : InoutPaymentDTO {
         inoutPaymentMapper.toEntity(inoutPaymentDTO)?.let { inoutPayment ->
             inoutPaymentDTO.sn?.let {
-                inoutPaymentRepository.save(inoutPayment)
+                inoutPaymentRepository.saveAndFlush(inoutPayment)
                 return inoutPaymentMapper.toDTO(inoutPayment)
             }?: kotlin.run {
                 // 중복 데이터 check 후 save
@@ -46,7 +46,7 @@ class InoutPaymentService (
                         return inoutPaymentMapper.toDTO(it)
                     }
                 } else {
-                    inoutPaymentRepository.save(inoutPayment)
+                    inoutPaymentRepository.saveAndFlush(inoutPayment)
                     return inoutPaymentMapper.toDTO(inoutPayment)
                 }
             }

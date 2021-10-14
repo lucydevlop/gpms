@@ -18,6 +18,7 @@ import io.glnt.gpms.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.rcs.model.*
+import io.glnt.gpms.common.api.ResetClient
 import io.glnt.gpms.service.RelayService
 import io.glnt.gpms.model.dto.FacilityDTO
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
@@ -46,7 +47,8 @@ class RcsService(
     private var discountService: DiscountService,
     private var corpService: CorpService,
     private var parkSiteInfoService: ParkSiteInfoService,
-    private var rcsClient: RcsClient
+    private var rcsClient: RcsClient,
+    private var resetClient: ResetClient
 ) {
     companion object : KLogging()
 
@@ -131,7 +133,7 @@ class RcsService(
 
     fun asyncFacilitiesHealth(request: List<FacilityDTO>) {
         try {
-            logger.info { "Async facilities health $request"  }
+            logger.debug { "Async facilities health $request"  }
 
             val parkSite = parkSiteInfoService.parkSite
 
@@ -178,7 +180,7 @@ class RcsService(
     fun facilityAction(facilityId: String, status: String): CommonResult {
         try {
             logger.warn { "RCS 설비 동작 요청 $facilityId status $status" }
-            var action = when(status) {
+            val action = when(status) {
                 "UP" -> "open"
                 "DOWN" -> "close"
                 "UPLOCK" -> "uplock"
@@ -190,18 +192,18 @@ class RcsService(
                 "RESET" -> {
                     parkinglotService.getFacilityByDtFacilityId(facilityId)?.let { facility ->
                         facility.resetPort?.let { it ->
-                            var port = it.toInt()-1
+                            val port = it.toInt()-1
                             if (port < 0) return CommonResult.error("Reset Action failed")
                             parkinglotService.getGate(facility.gateId)?.let { gate ->
                                 val url = gate.resetSvr+port
-                                restAPIManager.sendResetGetRequest(url).let { response ->
+                                resetClient.sendReset(url).let { response ->
                                     singleTimer()
-                                    logger.info { "reset response ${response!!.status} ${response.body.toString()}" }
+                                    logger.warn { "RESET $facilityId response ${response!!.status} ${response.body.toString()}" }
                                     if (response!!.status == HttpStatus.SC_OK) {
                                         Observable.timer(2, TimeUnit.SECONDS).subscribe {
-                                            logger.info { "reset one more ${url}" }
-                                            restAPIManager.sendResetGetRequest(url).let { reResponse ->
-                                                logger.info { "reset re response ${reResponse!!.status} ${response.body.toString()}" }
+                                            logger.info { "reset one more $url" }
+                                            resetClient.sendReset(url).let { reResponse ->
+                                                logger.warn { "RESET $facilityId response ${reResponse!!.status} ${reResponse.body.toString()}" }
                                             }
                                         }
 

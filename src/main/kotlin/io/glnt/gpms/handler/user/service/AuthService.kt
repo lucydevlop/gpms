@@ -295,6 +295,14 @@ class AuthService(
         }
     }
 
+    fun isStoreUser(servlet: HttpServletRequest): Boolean {
+        var idx = 0L
+        val token = jwtTokenProvider.resolveTokenOrNull(servlet)
+        idx = jwtTokenProvider.userIdFromJwt(token!!)
+        val user = searchUserByIdx(idx) ?: return false
+        return user.role == UserRole.STORE
+    }
+
     fun searchUsers(request: reqSearchItem) : CommonResult {
         try {
             return CommonResult.data(userRepository.findAll(findAllUserSpecification(request)))

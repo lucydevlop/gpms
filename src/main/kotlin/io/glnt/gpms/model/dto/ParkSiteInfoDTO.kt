@@ -75,8 +75,10 @@ data class ParkSiteInfoDTO (
     var visitorExternalKey: String? = null,
 
     @Enumerated(EnumType.STRING)
-    var operatingDays: DiscountRangeType? = null
+    var operatingDays: DiscountRangeType? = null,
 
+    @Enumerated(EnumType.STRING)
+    var visitorRegister: OnOff? = OnOff.ON
 ): Serializable {
     constructor(parkSiteInfo: ParkSiteInfo) :
         this(
@@ -87,6 +89,6 @@ data class ParkSiteInfoDTO (
             parkSiteInfo.facilitiesStatusNotiCycle, parkSiteInfo.flagMessage, parkSiteInfo.businame, parkSiteInfo.parkId,
             parkSiteInfo.space, parkSiteInfo.saleType, parkSiteInfo.tmapSend, parkSiteInfo.externalSvr, parkSiteInfo.rcsParkId,
             parkSiteInfo.ip, parkSiteInfo.vehicleDayOption, parkSiteInfo.visitorExternal, parkSiteInfo.visitorExternalKey,
-            parkSiteInfo.operatingDays
+            parkSiteInfo.operatingDays, parkSiteInfo.visitorRegister
         )
 }

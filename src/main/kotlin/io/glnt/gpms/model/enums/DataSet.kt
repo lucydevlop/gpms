@@ -32,6 +32,10 @@ enum class FacilityCategoryType {
     LPR, BREAKER, DISPLAY, PAYSTATION, VOIP
 }
 
+enum class DiscountApplyTargetType {
+    IN, NOW
+}
+
 enum class DisplayMessageClass(val code: String, val desc: String) {
     IN("IN", "입차"),
     OUT("OUT", "출차"),
@@ -114,7 +118,7 @@ enum class FareType(val code: String, val desc: String) {
 }
 
 enum class HolidayType(val code: String, val desc: String) {
-    HOLIDAY("HOLIDAY", "공휴일"),
+    HOLIDAY("HOLIDAY", "휴일"),
     SPECIALDAY("SPECIALDAY", "특근일"),
     ETC("ETC", "기타")
 }

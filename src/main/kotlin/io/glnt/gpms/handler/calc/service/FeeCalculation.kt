@@ -4,12 +4,10 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.calc.CalculationData
 import io.glnt.gpms.handler.calc.model.*
-import io.glnt.gpms.handler.dashboard.user.model.reqParkingDiscountAddTicket
 import io.glnt.gpms.handler.discount.service.DiscountService
-import io.glnt.gpms.handler.holiday.service.HolidayService
+import io.glnt.gpms.service.HolidayService
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.model.dto.request.ReqAddParkingDiscount
-import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.entity.FareInfo
 import io.glnt.gpms.model.enums.*
 import mu.KLogging
@@ -18,8 +16,6 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.LocalDateTime
-import java.time.temporal.TemporalAdjuster
-import java.util.concurrent.TimeUnit
 import kotlin.math.ceil
 
 
@@ -140,7 +136,7 @@ class FeeCalculation {
                     startTime = startTime, endTime = outTime
                 )
 
-                if (holidayService.isHolidayByLocalDateTime(dailySplit.startTime)) {
+                if (holidayService.isHolidayByDay(dailySplit.startTime.toLocalDate())) {
                     dailySplit.dateType = "Holiday"
                 } else {
 
@@ -511,7 +507,7 @@ class FeeCalculation {
                     startTime = startTime, endTime = outTime
                 )
 
-                if (holidayService.isHolidayByLocalDateTime(dailySplit.startTime)) {
+                if (holidayService.isHolidayByDay(dailySplit.startTime.toLocalDate())) {
                     dailySplit.dateType = "Holiday"
                 } else {
 
