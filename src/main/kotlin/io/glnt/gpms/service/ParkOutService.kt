@@ -31,6 +31,11 @@ class ParkOutService (
         return parkOutRepository.findByUuid(uuid)
     }
 
+    fun findByLastVehicleNo(vehicleNo: String, gateId: String): Optional<ParkOutDTO> {
+        logger.debug { "Reqeust to get Last ParkOut by vehicleNo $vehicleNo gateId $gateId" }
+        return parkOutRepository.findTopByVehicleNoAndGateIdAndInSnNotOrderByOutDateDesc(vehicleNo, gateId, 0).map(parkOutMapper::toDTO)
+    }
+
     fun save(parkOutDTO: ParkOutDTO): ParkOutDTO {
         var parkOut = parkOutMapper.toEntity(parkOutDTO)
         parkOut = parkOutRepository.saveAndFlush(parkOut!!)

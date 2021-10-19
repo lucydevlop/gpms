@@ -292,7 +292,8 @@ class RelayService(
                     failureRepository.save(it)
 //                    rcsService.asyncRestoreAlarm(it)
                     parkSiteInfoService.parkSite!!.externalSvr?.let { externalSvrType ->
-                        rcsClient.asyncRestoreAlarm(it, externalSvrType, parkSiteInfoService.parkSite!!.rcsParkId!!)
+                        if (externalSvrType != ExternalSvrType.NONE)
+                            rcsClient.asyncRestoreAlarm(it, externalSvrType, parkSiteInfoService.parkSite!!.rcsParkId!!)
                     }
 
                 }
@@ -310,7 +311,8 @@ class RelayService(
                     failureRepository.save(request)
 //                    rcsService.asyncFailureAlarm(request)
                     parkSiteInfoService.parkSite!!.externalSvr?.let { externalSvrType ->
-                        rcsClient.asyncFailureAlarm(request, externalSvrType, parkSiteInfoService.parkSite!!.rcsParkId?: 0)
+                        if (externalSvrType != ExternalSvrType.NONE)
+                            rcsClient.asyncFailureAlarm(request, externalSvrType, parkSiteInfoService.parkSite!!.rcsParkId?: 0)
                     }
                 }
             }

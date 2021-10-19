@@ -44,6 +44,7 @@ interface ParkOutRepository: JpaRepository<ParkOut, Long>, JpaSpecificationExecu
     fun findTopByInSnAndDelYnOrderByOutDateDesc(inSn: Long, delYn: DelYn): ParkOut?
     fun findTopByInSnAndDelYnOrderByOutDateDescSnDesc(inSn: Long, delYn: DelYn): Optional<ParkOut>
     fun findByOutDateBetweenAndDelYn(start: LocalDateTime, end: LocalDateTime, delYn: DelYn): List<ParkOut>?
+    fun findTopByVehicleNoAndGateIdAndInSnNotOrderByOutDateDesc(vehicleNo: String, gateId: String, inSn: Long): Optional<ParkOut>
 }
 
 @Repository
