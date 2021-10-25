@@ -44,7 +44,7 @@ class CalculationData(
                 CgBasic(sn = null, serviceTime = 0, regTime = 0, dayMaxAmt = 0, effectDate = DateUtil.stringToLocalDateTime(DateUtil.nowDateTime, "yyyy-MM-dd HH:mm:ss"), delYn = DelYn.N))
         }
 //        if (parkinglotService.isPaid()) {
-        parkingFareInfo = farePolicyRepository.findAll()
+        parkingFareInfo = farePolicyRepository.findAll().filter { farePolicy -> farePolicy.delYn == DelYn.N }
         cgBasicRepository.findByDelYn(DelYn.N)?.let {
             cgBasic = it
         }
@@ -79,7 +79,7 @@ class CalculationData(
 
         }
 
-        return data[0]
+        return data.sortedBy { it.orderNo }[0]
     }
 
     fun getBizHourInfoForPreDateTime(date: String, vehicleType: VehicleType, startTime: String): List<FarePolicy> {

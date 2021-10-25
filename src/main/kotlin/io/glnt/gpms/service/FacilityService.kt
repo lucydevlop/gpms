@@ -43,10 +43,6 @@ class FacilityService(
     /* static */
     lateinit var displayColors: List<DisplayColor>
 
-    lateinit var displayMessagesIn: List<DisplayMessage>
-    lateinit var displayMessagesOut: List<DisplayMessage>
-    lateinit var displayMessagesWait: List<DisplayMessage>
-
 //    @Value("\${gateway.url}")
 //    lateinit var url: String
 
@@ -87,55 +83,6 @@ class FacilityService(
     fun initalizeData() {
         gateService.findAll().let {
             gates = it
-        }
-
-        val defaultDisplayColor = ArrayList<DisplayColor>()
-        defaultDisplayColor.add(DisplayColor(colorCode = "C1", colorDesc = "초록색", sn = null))
-        defaultDisplayColor.add(DisplayColor(colorCode = "C3", colorDesc = "하늘색", sn = null))
-        defaultDisplayColor.add(DisplayColor(colorCode = "C4", colorDesc = "빨강색", sn = null))
-        defaultDisplayColor.add(DisplayColor(colorCode = "C5", colorDesc = "핑크색", sn = null))
-        defaultDisplayColor.forEach { displayColor ->
-            displayColorRepository.findByColorCode(displayColor.colorCode)?:run {
-                displayColorRepository.save(displayColor)
-            }
-        }
-
-        // 입차/출차 reset 메세지 구성
-        val defaultDisplayMessages = ArrayList<DisplayMessage>()
-        defaultDisplayMessages.add(
-            DisplayMessage(
-                messageClass = DisplayMessageClass.IN, messageType = DisplayMessageType.INIT, messageCode = "ALL", order = 1, lineNumber = 1, colorCode = "C1", messageDesc = "안녕하세요", sn = null)
-        )
-        defaultDisplayMessages.add(
-            DisplayMessage(
-                messageClass = DisplayMessageClass.IN, messageType = DisplayMessageType.INIT, messageCode = "ALL", order = 2, lineNumber = 2, colorCode = "C3", messageDesc = "환영합니다", sn = null)
-        )
-        defaultDisplayMessages.add(
-            DisplayMessage(
-                messageClass = DisplayMessageClass.OUT, messageType = DisplayMessageType.INIT, messageCode = "ALL", order = 1, lineNumber = 1, colorCode = "C1", messageDesc = "감사합니다", sn = null)
-        )
-        defaultDisplayMessages.add(
-            DisplayMessage(
-                messageClass = DisplayMessageClass.OUT, messageType = DisplayMessageType.INIT, messageCode = "ALL", order = 2, lineNumber = 2, colorCode = "C3", messageDesc = "안녕히가세요", sn = null)
-        )
-
-        defaultDisplayMessages.forEach { message ->
-            displayMessageRepository.findByMessageClassAndMessageTypeAndOrder(message.messageClass!!, message.messageType, message.order!!)?:run {
-                displayMessageRepository.save(message)
-            }
-        }
-
-        displayMessageRepository.findByMessageClass(DisplayMessageClass.IN)?.let { meessages ->
-            displayMessagesIn = meessages
-
-        }
-
-        displayMessageRepository.findByMessageClass(DisplayMessageClass.OUT)?.let { meessages ->
-            displayMessagesOut = meessages
-        }
-
-        displayMessageRepository.findByMessageClass(DisplayMessageClass.WAIT)?.let { meessages ->
-            displayMessagesWait = meessages
         }
 
         facilityRepository.findByDtFacilitiesId("LPR001101")?: run {
@@ -249,26 +196,6 @@ class FacilityService(
                     ip = "192.168.20.144", port = "0", resetPort = 0, gateType = GateTypeStatus.OUT, delYn = DelYn.N))
         }
 
-        displayInfoRepository.findBySn(1)?: run {
-            displayInfoRepository.saveAndFlush(DisplayInfo(sn = null, line1Status = DisplayStatus.FIX, line2Status = DisplayStatus.FIX))
-        }
-
-    }
-
-    // @PostConstruct
-    fun fetchDisplayColor() {
-        displayMessageRepository.findByMessageClass(DisplayMessageClass.IN)?.let { meessages ->
-            displayMessagesIn = meessages
-
-        }
-
-        displayMessageRepository.findByMessageClass(DisplayMessageClass.OUT)?.let { meessages ->
-            displayMessagesOut = meessages
-        }
-
-        displayMessageRepository.findByMessageClass(DisplayMessageClass.WAIT)?.let { meessages ->
-            displayMessagesWait = meessages
-        }
     }
 
     fun setDisplayColor(request: ArrayList<reqSetDisplayColor>): CommonResult = with(request) {

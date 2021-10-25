@@ -52,7 +52,8 @@ class InoutService(
     private var parkSiteInfoService: ParkSiteInfoService,
     private var gateService: GateService,
     private val inoutPaymentService: InoutPaymentService,
-    private val parkInMapper: ParkInMapper
+    private val parkInMapper: ParkInMapper,
+    private val displayService: DisplayService
 ) {
     companion object : KLogging()
 
@@ -348,21 +349,21 @@ class InoutService(
         lists.forEach { list ->
             val message = reqDisplayMessage(
                 order = list.order!!, line = list.lineNumber!!,
-                color = list.displayColor!!.colorCode,
-                text = if (list.messageDesc == "-") text!! else list.messageDesc
+                color = list.displayColor!!.colorCode!!,
+                text = if (list.messageDesc == "-") text!! else list.messageDesc?: ""
             )
             messages.add(message)
         }
         return messages
     }
 
-    fun filterDisplayMessage(messageClass: String, type: DisplayMessageType): List<DisplayMessage> {
+    fun filterDisplayMessage(messageClass: String, type: DisplayMessageType): List<DisplayMessageDTO> {
         return when (messageClass) {
-            "IN" -> facilityService.displayMessagesIn.filter { it.messageType == type }
+            "IN" -> displayService.displayMessagesIn.filter { it.messageType == type }
                 .sortedBy { it.order }
-            "WAIT" -> facilityService.displayMessagesWait.filter { it.messageType == type }
+            "WAIT" -> displayService.displayMessagesWait.filter { it.messageType == type }
                 .sortedBy { it.order }
-            else -> facilityService.displayMessagesOut.filter { it.messageType == type }
+            else -> displayService.displayMessagesOut.filter { it.messageType == type }
                 .sortedBy { it.order }
         }
     }

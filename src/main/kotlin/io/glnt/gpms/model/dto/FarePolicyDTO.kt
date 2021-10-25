@@ -39,6 +39,8 @@ data class FarePolicyDTO(
 
     var week: MutableSet<String>? = mutableSetOf(WeekType.ALL.toString()),
 
+    var orderNo: Int? = null,
+
     @get: NotNull
     @Enumerated(EnumType.STRING)
     var delYn: DelYn? = null,
@@ -50,7 +52,7 @@ data class FarePolicyDTO(
     constructor(farePolicy: FarePolicy) :
         this(
             farePolicy.sn, farePolicy.fareName, farePolicy.vehicleType, farePolicy.startTime, farePolicy.endTime,
-            farePolicy.basicFareSn, farePolicy.addFareSn, farePolicy.effectDate, farePolicy.expireDate, farePolicy.week, farePolicy.delYn
+            farePolicy.basicFareSn, farePolicy.addFareSn, farePolicy.effectDate, farePolicy.expireDate, farePolicy.week, farePolicy.orderNo, farePolicy.delYn
         )
 
     override fun equals(other: Any?): Boolean {

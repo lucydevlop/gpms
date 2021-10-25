@@ -64,6 +64,9 @@ data class FarePolicy(
     @Column(name = "week", columnDefinition = "json")
     var week: MutableSet<String>? = mutableSetOf(WeekType.ALL.toString()),
 
+    @Column(name = "order_no", nullable = true)
+    var orderNo: Int? = 0,
+
     @Column(name = "day_max_rate", nullable = true)
     var dayMaxRate: Int? = null,
 

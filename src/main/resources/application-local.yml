@@ -53,7 +53,7 @@ gateway:
   url: http://192.168.20.30:9999/v1
 
 glnt:
-  url: http://localhost:9105
+  url: http://localhost:9105/api
 
 adtcaps:
   url: http://192.168.20.9:9105
