@@ -75,6 +75,13 @@ data class DiscountClass(
     var expireDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59"),
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "rcs_use")
+    var rcsUse: DelYn? = DelYn.N,
+
+    @Column(name = "order_no")
+    var orderNo: Int? = 0,
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = true)
     var delYn: DelYn? = DelYn.N
 ): Auditable(), Serializable {

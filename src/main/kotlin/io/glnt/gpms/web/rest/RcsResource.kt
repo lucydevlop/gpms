@@ -61,6 +61,11 @@ class RcsResource(
             )))
     }
 
+    @RequestMapping(value=["/inout"], method = [RequestMethod.GET])
+    fun getInout(@RequestParam(name = "sn", required = false) sn: Long,): ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(rcsService.getInout(sn))
+    }
+
     @RequestMapping(value=["/inout"], method = [RequestMethod.POST])
     fun createInout(@RequestBody request: resParkInList) : ResponseEntity<CommonResult> {
         return CommonResult.returnResult(rcsService.createInout(request))

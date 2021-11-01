@@ -197,8 +197,10 @@ enum class VisitorExternalKeyType {
     APTNER
 }
 
-enum class OperatingDayType {
+enum class OperatingDayType {}
 
+enum class DiscountApplyCriteriaType {
+    FRONT, BACK
 }
 //enum class parkCarType {
 //    "일반차량", "정기권차량", "미인식차량"

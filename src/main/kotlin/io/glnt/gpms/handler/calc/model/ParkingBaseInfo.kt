@@ -65,6 +65,7 @@ data class DailySplit(
     var week: WeekType?,
     var dateType: String? = "Normal",
     var priceType: String? = "Normal",
+    var feeType: String? = "BASIC",
     var startTime: LocalDateTime,
     var endTime: LocalDateTime? = null,
     var payStartTime: LocalDateTime? = null,

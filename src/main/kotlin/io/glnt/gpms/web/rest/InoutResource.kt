@@ -11,15 +11,13 @@ import io.glnt.gpms.handler.calc.model.BasicPrice
 import io.glnt.gpms.handler.calc.service.FareRefService
 import io.glnt.gpms.handler.inout.model.reqAddParkIn
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.common.api.ExternalClient
 import io.glnt.gpms.model.criteria.InoutPaymentCriteria
 import io.glnt.gpms.model.dto.ParkOutDTO
 import io.glnt.gpms.model.dto.ParkinglotVehicleDTO
 import io.glnt.gpms.model.dto.RequestParkOutDTO
 import io.glnt.gpms.model.dto.request.resParkInList
-import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.GateTypeStatus
-import io.glnt.gpms.model.enums.ResultType
-import io.glnt.gpms.model.enums.VehicleType
+import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.mapper.GateMapper
 import io.glnt.gpms.model.mapper.ParkInMapper
 import io.glnt.gpms.service.*
@@ -48,9 +46,15 @@ class InoutResource (
     private val parkinglotVehicleService: ParkinglotVehicleService,
     private val inoutPaymentService: InoutPaymentService,
     private val fareRefService: FareRefService,
-    private var relayClient: RelayClient
+    private var relayClient: RelayClient,
+    private var externalClient: ExternalClient
 ){
     companion object : KLogging()
+
+    @RequestMapping(value=["/inout"], method = [RequestMethod.GET])
+    fun getInout(@RequestParam(name = "sn", required = false) sn: Long,): ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(CommonResult.data(inoutService.getInout(sn)))
+    }
 
     @RequestMapping(value = ["/inouts/calc"], method = [RequestMethod.POST])
     fun calc(@Valid @RequestBody resParkInList: resParkInList): ResponseEntity<CommonResult> {
@@ -146,6 +150,16 @@ class InoutResource (
             )
 
             val result = inoutService.parkIn(requestParkInDTO)
+
+            // 입차 통보 여부 확인
+            parkSiteInfoService.getEnterNoti()?.let { enterNotiDTO ->
+                enterNotiDTO.use?.let { use ->
+                    if (use == OnOff.ON) {
+                        externalClient.sendEnterNoti(requestParkInDTO, gate, enterNotiDTO.url?: "")
+                    }
+                }
+            }
+
             return when(result.code){
                 ResultCode.CREATED.getCode() -> ResponseEntity(result, HttpStatus.CREATED)
                 ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
@@ -212,7 +226,8 @@ class InoutResource (
                 // One way 등 후진등으로 인하여 재출차 요청 시
                 if (requestParkOutDTO.recognitionResult == "RECOGNITION") {
                     parkOutService.findByLastVehicleNo(requestParkOutDTO.vehicleNo ?: "", gate.gateId).orElse(null)?.let { parkOutDTO ->
-                        if (DateUtil.diffMins(parkOutDTO.outDate ?: LocalDateTime.now(), requestParkOutDTO.date?: LocalDateTime.now()) < 5) {
+                        if (DateUtil.diffMins(parkOutDTO.outDate ?: LocalDateTime.now(), requestParkOutDTO.date?: LocalDateTime.now()) < 3) {
+                            logger.warn { "출차 후 재출차 3분 미만 차단기 open 처리 ${requestParkOutDTO.vehicleNo} 기존 출차 시간 ${parkOutDTO.outDate} 현재 출차 시간 ${requestParkOutDTO.date}" }
                             relayClient.sendActionBreaker(gate.gateId, "open")
                             return ResponseEntity.ok(CommonResult.data())
                         }

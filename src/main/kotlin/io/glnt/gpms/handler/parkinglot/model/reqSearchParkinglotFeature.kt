@@ -1,5 +1,6 @@
 package io.glnt.gpms.handler.parkinglot.model
 
+import io.glnt.gpms.model.dto.EnterNotiDTO
 import io.glnt.gpms.model.entity.Gate
 import io.glnt.gpms.model.enums.*
 
@@ -42,7 +43,8 @@ data class reqCreateParkinglot(
     var space: Map<String, Any>? = null,
     var visitorExternal: VisitorExternalKeyType? = null,
     var visitorExternalKey: String? = null,
-    var rcsParkId: Long? = null
+    var rcsParkId: Long? = null,
+    var enterNoti: EnterNotiDTO? = null
 )
 
 data class reqUpdateGates(

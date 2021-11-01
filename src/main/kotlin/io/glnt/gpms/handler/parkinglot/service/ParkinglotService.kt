@@ -99,7 +99,7 @@ class ParkinglotService (
     }
 
     fun isPaid(): Boolean {
-        return parkSiteInfoRepository.findTopByOrderBySiteid()?.let {
+        return parkSiteInfoRepository.findTopByOrderBySiteId()?.let {
             it.saleType == SaleType.PAID
         }?: kotlin.run { false }
     }
@@ -147,7 +147,7 @@ class ParkinglotService (
     fun getParkinglot() : CommonResult {
         logger.info { "getParkinglot fetch " }
         try {
-            parkSiteInfoRepository.findTopByOrderBySiteid()?.let { it ->
+            parkSiteInfoRepository.findTopByOrderBySiteId()?.let { it ->
                 return CommonResult.data(it)
             } ?: run {
                 return CommonResult.notfound("parkinglot site info")
@@ -440,15 +440,15 @@ class ParkinglotService (
     fun updateParkinglot(request: reqCreateParkinglot): CommonResult = with(request) {
         logger.info { "updateParkinglot request $request" }
         try {
-            parkSiteInfoRepository.findTopByOrderBySiteid()?.let {
-                request.siteId = it.siteid
+            parkSiteInfoRepository.findTopByOrderBySiteId()?.let {
+                request.siteId = it.siteId
                 request.rcsParkId = request.rcsParkId?.let { it }?: kotlin.run { it.rcsParkId }
             }
 
             val data = parkSiteInfoRepository.save(
                 ParkSiteInfo(
-                    siteid = siteId,
-                    sitename = siteName,
+                    siteId = siteId,
+                    siteName = siteName,
                     limitqty = limitqty,
                     saupno = saupno,
                     tel = tel,
@@ -475,7 +475,8 @@ class ParkinglotService (
                     space = space,
                     visitorExternal = visitorExternal,
                     visitorExternalKey = visitorExternalKey,
-                    rcsParkId = rcsParkId
+                    rcsParkId = rcsParkId,
+                    enterNoti = enterNoti
                 )
             )
             initalizeData()

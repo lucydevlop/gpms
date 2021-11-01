@@ -2,6 +2,8 @@ package io.glnt.gpms.service
 
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.model.dto.DiscountApplyDTO
+import io.glnt.gpms.model.dto.EnterNotiDTO
 import io.glnt.gpms.model.dto.ParkSiteInfoDTO
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.mapper.ParkSiteInfoMapper
@@ -120,5 +122,11 @@ class ParkSiteInfoService (
         }?: kotlin.run {  false }
     }
 
+    fun getEnterNoti(): EnterNotiDTO? {
+        return this.parkSite?.enterNoti ?: kotlin.run { null }
+    }
 
+    fun getDiscountApply(): DiscountApplyDTO? {
+        return this.parkSite?.discApply ?: kotlin.run { null }
+    }
 }

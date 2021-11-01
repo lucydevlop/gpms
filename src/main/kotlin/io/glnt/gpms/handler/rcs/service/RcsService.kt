@@ -231,6 +231,15 @@ class RcsService(
         }
     }
 
+    fun getInout(sn: Long) : CommonResult {
+        try {
+            return CommonResult.data(inoutService.getInout(sn))
+        }catch (e: CustomException){
+            logger.error { "rcs getInout failed $e" }
+            return CommonResult.error("Admin getInout failed")
+        }
+    }
+
     @Throws(CustomException::class)
     fun createInout(request: resParkInList) : CommonResult {
         try {

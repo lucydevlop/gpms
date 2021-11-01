@@ -1,5 +1,6 @@
 package io.glnt.gpms.model.dto
 
+import io.glnt.gpms.model.dto.EnterNotiDTO
 import io.glnt.gpms.model.entity.ParkSiteInfo
 import io.glnt.gpms.model.enums.*
 import java.io.Serializable
@@ -78,17 +79,21 @@ data class ParkSiteInfoDTO (
     var operatingDays: DiscountRangeType? = null,
 
     @Enumerated(EnumType.STRING)
-    var visitorRegister: OnOff? = OnOff.ON
+    var visitorRegister: OnOff? = OnOff.ON,
+
+    var enterNoti: EnterNotiDTO? = null,
+
+    var discApply: DiscountApplyDTO? = null
 ): Serializable {
     constructor(parkSiteInfo: ParkSiteInfo) :
         this(
-            parkSiteInfo.siteid, parkSiteInfo.sitename, parkSiteInfo.limitqty, parkSiteInfo.saupno,
+            parkSiteInfo.siteId, parkSiteInfo.siteName, parkSiteInfo.limitqty, parkSiteInfo.saupno,
             parkSiteInfo.tel, parkSiteInfo.ceoname, parkSiteInfo.postcode, parkSiteInfo.city, parkSiteInfo.address,
             parkSiteInfo.firsttime, parkSiteInfo.firstfee, parkSiteInfo.returntime, parkSiteInfo.overtime,
             parkSiteInfo.overfee, parkSiteInfo.addtime, parkSiteInfo.dayfee, parkSiteInfo.parkingSpotStatusNotiCycle,
             parkSiteInfo.facilitiesStatusNotiCycle, parkSiteInfo.flagMessage, parkSiteInfo.businame, parkSiteInfo.parkId,
             parkSiteInfo.space, parkSiteInfo.saleType, parkSiteInfo.tmapSend, parkSiteInfo.externalSvr, parkSiteInfo.rcsParkId,
             parkSiteInfo.ip, parkSiteInfo.vehicleDayOption, parkSiteInfo.visitorExternal, parkSiteInfo.visitorExternalKey,
-            parkSiteInfo.operatingDays, parkSiteInfo.visitorRegister
+            parkSiteInfo.operatingDays, parkSiteInfo.visitorRegister, parkSiteInfo.enterNoti, parkSiteInfo.discApply
         )
 }

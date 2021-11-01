@@ -11,8 +11,8 @@ import java.util.*
 
 @Repository
 interface ParkSiteInfoRepository: JpaRepository<ParkSiteInfo, String> {
-    fun findTopByOrderBySiteid() : ParkSiteInfo?
-    fun findBySiteid(siteid: String) : ParkSiteInfo?
+    fun findTopByOrderBySiteId() : ParkSiteInfo?
+    fun findBySiteId(siteid: String) : ParkSiteInfo?
 }
 
 @Repository

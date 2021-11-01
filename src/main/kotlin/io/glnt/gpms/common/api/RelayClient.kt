@@ -68,7 +68,7 @@ class RelayClient (
     }
 
     fun sendPayStation(gateId: String, type: String, requestId: String, data: Any, dtFacilityId: String? = null) {
-        logger.trace { "정산기 메세지 $gateId $type $requestId $data " }
+        logger.warn { "정산기 메세지 $gateId $type $requestId $data " }
         if (dtFacilityId.isNullOrEmpty()) {
             getFacilityByGateId(gateId, FacilityCategoryType.PAYSTATION)?.let { facilityDTOs ->
                 facilityDTOs.forEach { facilityDTO ->

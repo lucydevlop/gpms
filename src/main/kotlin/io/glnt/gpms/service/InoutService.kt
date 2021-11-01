@@ -754,6 +754,42 @@ class InoutService(
     }
 
     @Transactional(readOnly = true)
+    fun getInout(sn: Long): resParkInList {
+        logger.debug { "getInout $sn" }
+        parkInQueryService.findByCriteria(ParkInCriteria(sn = sn))[0].let { parkInDTO ->
+            val result = resParkInList(
+                type = DisplayMessageClass.IN,
+                parkinSn = parkInDTO.sn!!, vehicleNo = parkInDTO.vehicleNo, parkcartype = parkInDTO.parkcartype!!,
+                inGateId = parkInDTO.gateId, inDate = parkInDTO.inDate!!,
+                ticketCorpName = parkInDTO.seasonTicketDTO?.corpName, memo = parkInDTO.memo,
+                inImgBase64Str = parkInDTO.image?.let { image -> image.substring(image.indexOf("/park")) },
+                parkoutSn = parkInDTO.outSn
+            )
+            result.paymentAmount = inoutPaymentRepository.findByInSnAndResultAndDelYn(parkInDTO.sn!!, ResultType.SUCCESS, DelYn.N)?.let { payment ->
+                payment.sumBy { it.amount?: 0 }
+            }?: kotlin.run { 0 }
+
+            result.aplyDiscountClasses = discountService.searchInoutDiscount(parkInDTO.sn!!) as ArrayList<InoutDiscount>?
+//                            if (it.outSn!! > 0L && it.outSn != null) {
+            parkOutRepository.findByInSnAndDelYn(parkInDTO.sn!!, DelYn.N).ifPresent { out ->
+                result.type = DisplayMessageClass.OUT
+                result.parkoutSn = out.sn
+                result.outDate = out.outDate
+                result.outGateId = out.gateId
+                result.parktime = out.parktime
+                result.parkfee = out.parkfee
+                result.payfee = out.payfee?: 0
+                result.discountfee = out.discountfee
+                result.dayDiscountfee = out.dayDiscountfee
+                result.outImgBase64Str = out.image?.let { if (out.image!!.contains("/park")) out.image!!.substring(out.image!!.indexOf("/park")) else null }?: kotlin.run { null }
+                result.nonPayment = result.payfee!! - result.paymentAmount!!
+            }
+            return result
+        }
+    }
+
+
+    @Transactional(readOnly = true)
     fun getAllParkLists(request: reqSearchParkin): List<resParkInList>? {
         logger.info { "getAllParkLists $request" }
         try {
@@ -782,8 +818,8 @@ class InoutService(
                             result.paymentAmount = inoutPaymentRepository.findByInSnAndResultAndDelYn(it.sn!!, ResultType.SUCCESS, DelYn.N)?.let { payment ->
                                 payment.sumBy { it.amount?: 0 }
                             }?: kotlin.run { 0 }
-
-                            result.aplyDiscountClasses = discountService.searchInoutDiscount(it.sn!!) as ArrayList<InoutDiscount>?
+//
+//                            result.aplyDiscountClasses = discountService.searchInoutDiscount(it.sn!!) as ArrayList<InoutDiscount>?
 //                            if (it.outSn!! > 0L && it.outSn != null) {
                             parkOutRepository.findByInSnAndDelYn(it.sn!!, DelYn.N).ifPresent { out ->
                                 result.type = DisplayMessageClass.OUT
@@ -818,6 +854,7 @@ class InoutService(
 
                     parkOutQueryService.findByCriteria(criteria).let { list ->
                         list.filter { it.inSn != null }.forEach {
+                            var paymentAmount = inoutPaymentRepository.findByInSnAndResultAndDelYn(it.parkInDTO?.sn!!, ResultType.SUCCESS, DelYn.N)?.let { payment -> payment.sumBy { it.amount?: 0 } }?: kotlin.run { 0 }
                             results.add(
                                 resParkInList(
                                     type = DisplayMessageClass.OUT,
@@ -832,7 +869,9 @@ class InoutService(
                                     outGateId = it.gateId,
                                     parktime = it.parktime,
                                     parkfee = it.parkfee, payfee = it.payfee, discountfee = it.discountfee,
-                                    aplyDiscountClasses = discountService.searchInoutDiscount(it.parkInDTO?.sn!!) as ArrayList<InoutDiscount>?
+                                    paymentAmount = paymentAmount,
+                                    nonPayment = it.payfee!! - paymentAmount
+//                                    aplyDiscountClasses = discountService.searchInoutDiscount(it.parkInDTO?.sn!!) as ArrayList<InoutDiscount>?
                                 )
                             )
                         }
