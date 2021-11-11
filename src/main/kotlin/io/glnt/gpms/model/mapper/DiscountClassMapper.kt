@@ -24,6 +24,8 @@ class DiscountClassMapper {
                     unitTime = dto.unitTime,
                     effectDate = dto.effectDate,
                     expireDate = dto.expireDate,
+                    rcsUse = dto.rcsUse,
+                    orderNo = dto.orderNo,
                     delYn = dto.delYn
                 )
             }

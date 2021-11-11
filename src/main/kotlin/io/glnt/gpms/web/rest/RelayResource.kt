@@ -41,7 +41,7 @@ class RelayResource (
     private val inoutService: InoutService,
     private val parkInService: ParkInService,
     private val parkOutService: ParkOutService,
-    private val parkSiteInfoService: ParkSiteInfoService,
+    private val fareRefService: FareRefService,
     private val relayService: RelayService,
     private val facilityService: FacilityService,
     private val relayClient: RelayClient,
@@ -101,8 +101,29 @@ class RelayResource (
                 // 결제만 처리
                 val inSn = contents.inSn ?: "-1"
                 parkInService.findOne(inSn.toLong())?.let { parkInDTO ->
-                    val price = if ( parkinglotService.isPaid()) {
-                        inoutService.calcParkFee("OUT", parkInDTO.inDate!!, LocalDateTime.now(), VehicleType.SMALL, parkInDTO.vehicleNo ?: "", parkInDTO.sn ?: -1)
+                    var price: BasicPrice? = null
+                    var prePrice: BasicPrice? = null
+                    if ( parkinglotService.isPaid()) {
+                        // 사전 정산 시 inout-payment 데이터 확인 후 legTime 이후 out_date 이면 시간만큼 요금 계산
+                        val prePayments = inoutPaymentService.findByInSn(parkInDTO.sn ?: -1)
+
+                        if (prePayments.isNullOrEmpty()) {
+                            price = inoutService.calcParkFee("OUT", parkInDTO.inDate!!, LocalDateTime.now(), VehicleType.SMALL, parkInDTO.vehicleNo ?: "", parkInDTO.sn ?: -1)
+                        } else {
+                            prePayments.sortedByDescending { it.approveDateTime }
+                            fareRefService.getFareBasic()?.let { cgBasic ->
+                                prePrice = BasicPrice(orgTotalPrice = prePayments[0].parkFee,
+                                    parkTime = prePayments[0].parkTime ?: 0,
+                                    totalPrice = prePayments[0].amount ?: 0,
+                                    discountPrice = prePayments[0].discount ?: 0,
+                                    dayilyMaxDiscount = prePayments[0].dayDiscount ?: 0)
+
+                                val diffMins = DateUtil.diffMins(DateUtil.stringToLocalDateTime(prePayments[0].approveDateTime!!), LocalDateTime.now() ?: LocalDateTime.now())
+                                if (diffMins > (cgBasic.regTime ?: 0)) {
+                                    price = inoutService.calcParkFee("OUT", DateUtil.stringToLocalDateTime(prePayments[0].approveDateTime!!), LocalDateTime.now(), VehicleType.SMALL, parkInDTO.vehicleNo ?: "", parkInDTO.sn ?: -1)
+                                }
+                            }
+                        }
                     } else null
 
                     // 정산 처리

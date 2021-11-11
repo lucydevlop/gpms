@@ -57,11 +57,35 @@ class DisplayService(
         )
         defaultDisplayMessages.add(
             DisplayMessageDTO(
+                messageClass = DisplayMessageClass.IN, messageType = DisplayMessageType.ERROR, messageCode = "ALL", order = 1, lineNumber = 1, colorCode = "C1", messageDesc = "시설물에러", sn = null, delYn = DelYn.N)
+        )
+        defaultDisplayMessages.add(
+            DisplayMessageDTO(
+                messageClass = DisplayMessageClass.IN, messageType = DisplayMessageType.ERROR, messageCode = "ALL", order = 2, lineNumber = 2, colorCode = "C3", messageDesc = "-", sn = null, delYn = DelYn.N)
+        )
+        defaultDisplayMessages.add(
+            DisplayMessageDTO(
                 messageClass = DisplayMessageClass.OUT, messageType = DisplayMessageType.INIT, messageCode = "ALL", order = 1, lineNumber = 1, colorCode = "C1", messageDesc = "감사합니다", sn = null, delYn = DelYn.N)
         )
         defaultDisplayMessages.add(
             DisplayMessageDTO(
                 messageClass = DisplayMessageClass.OUT, messageType = DisplayMessageType.INIT, messageCode = "ALL", order = 2, lineNumber = 2, colorCode = "C3", messageDesc = "안녕히가세요", sn = null, delYn = DelYn.N)
+        )
+        defaultDisplayMessages.add(
+            DisplayMessageDTO(
+                messageClass = DisplayMessageClass.OUT, messageType = DisplayMessageType.ERROR, messageCode = "ALL", order = 1, lineNumber = 1, colorCode = "C1", messageDesc = "시설물에러", sn = null, delYn = DelYn.N)
+        )
+        defaultDisplayMessages.add(
+            DisplayMessageDTO(
+                messageClass = DisplayMessageClass.OUT, messageType = DisplayMessageType.ERROR, messageCode = "ALL", order = 2, lineNumber = 2, colorCode = "C3", messageDesc = "-", sn = null, delYn = DelYn.N)
+        )
+        defaultDisplayMessages.add(
+            DisplayMessageDTO(
+                messageClass = DisplayMessageClass.WAIT, messageType = DisplayMessageType.ERROR, messageCode = "ALL", order = 1, lineNumber = 1, colorCode = "C1", messageDesc = "시설물에러", sn = null, delYn = DelYn.N)
+        )
+        defaultDisplayMessages.add(
+            DisplayMessageDTO(
+                messageClass = DisplayMessageClass.WAIT, messageType = DisplayMessageType.ERROR, messageCode = "ALL", order = 2, lineNumber = 2, colorCode = "C3", messageDesc = "-", sn = null, delYn = DelYn.N)
         )
 
         defaultDisplayMessages.forEach { message ->

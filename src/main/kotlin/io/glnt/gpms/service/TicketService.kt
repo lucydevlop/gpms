@@ -1,10 +1,12 @@
 package io.glnt.gpms.service
 
 import io.glnt.gpms.model.dto.ProductTicketDTO
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.mapper.ProductTicketMapper
 import io.glnt.gpms.model.repository.ProductTicketRepository
 import mu.KLogging
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 
 @Service
 class TicketService(
@@ -34,5 +36,11 @@ class TicketService(
         val ticket = productTicketMapper.toEntity(productTicketDTO)
         productTicketRepository.save(ticket!!)
         return productTicketMapper.toDTO(ticket)
+    }
+
+    fun getTicketByVehicleNoAndDate(vehicleNo: String, startDate: LocalDateTime, endDate: LocalDateTime): List<ProductTicketDTO>? {
+        return productTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startDate, endDate,DelYn.N)
+            ?.map(productTicketMapper::toDTO)
+            ?: kotlin.run { null }
     }
 }

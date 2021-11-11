@@ -271,6 +271,16 @@ class RcsService(
     }
 
     @Throws(CustomException::class)
+    fun forcedExit(sn: Long) : CommonResult {
+        try {
+            return inoutService.deleteInout(sn)
+        } catch(e: CustomException){
+            logger.error { "rcs forcedExit failed $e" }
+            return CommonResult.error("rcs updateInout failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
     fun getTickets(request: reqSearchProductTicket): CommonResult {
         try {
             return CommonResult.data(productService.getProducts(request))
@@ -303,7 +313,7 @@ class RcsService(
     @Throws(CustomException::class)
     fun getDiscountClasses(): CommonResult {
         try {
-            return CommonResult.data(discountService.getDiscountClass()!!.filter { it.delYn == DelYn.N })
+            return CommonResult.data(discountService.getDiscountClass()!!.filter { it.delYn == DelYn.N && it.rcsUse == true })
         }catch (e: CustomException) {
             logger.error { "rcs getTickets failed $e" }
             return CommonResult.error("rcs getTickets failed")

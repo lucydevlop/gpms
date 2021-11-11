@@ -28,7 +28,8 @@ class RcsResource(
     private var rcsService: RcsService,
     private val facilityService: FacilityService,
     private val ticketClassService: TicketClassService,
-    private val corpQueryService: CorpQueryService
+    private val corpQueryService: CorpQueryService,
+    private val inoutResource: InoutResource
 ) {
 
     @RequestMapping(value=["/check/alive"], method = [RequestMethod.GET])
@@ -50,7 +51,8 @@ class RcsResource(
     fun getInouts(@RequestParam(name = "startDate", required = false) startDate: String,
                   @RequestParam(name = "endDate", required = false) endDate: String,
                   @RequestParam(name = "searchDateLabel", required = false) searchDateLabel: DisplayMessageClass,
-                  @RequestParam(name = "vehicleNo", required = false) vehicleNo: String? = null
+                  @RequestParam(name = "vehicleNo", required = false) vehicleNo: String? = null,
+                  @RequestParam(name = "parkCarType", required = false) parkCarType: String? = null
     ) : ResponseEntity<CommonResult> {
         return CommonResult.returnResult(
             rcsService.getInouts(reqSearchParkin(searchDateLabel = searchDateLabel,
@@ -58,6 +60,7 @@ class RcsResource(
                 toDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                 searchLabel = vehicleNo?.let { "CARNUM" },
                 searchText = vehicleNo,
+                parkcartype = parkCarType
             )))
     }
 
@@ -81,6 +84,18 @@ class RcsResource(
     @RequestMapping(value=["/inout"], method = [RequestMethod.PATCH])
     fun updateInout(@RequestBody request: resParkInList) : ResponseEntity<CommonResult> {
         return CommonResult.returnResult(rcsService.updateInout(request))
+    }
+
+    // 입출차 정보 정산기 전송
+    @RequestMapping(value=["/transfer/inout"], method = [RequestMethod.POST])
+    fun transferInout(@RequestBody request: resParkInList) : ResponseEntity<CommonResult> {
+        return inoutResource.parkOutTransfer(request)
+    }
+
+    // 강제 출차
+    @RequestMapping(value=["/forced/exit/{sn}"], method = [RequestMethod.DELETE])
+    fun forcedExit(@PathVariable sn: Long): ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(rcsService.forcedExit(sn))
     }
 
     @RequestMapping(value=["/tickets"], method = [RequestMethod.GET])

@@ -84,7 +84,7 @@ class InoutResource (
             parkOutService.findOne(resParkInList.parkoutSn!!).ifPresent { parkOutDTO ->
                 gateDTO?.let { gate ->
                     inoutService.waitFacilityIF(
-                        "PAYMENT",
+                        "MANPAYMENT",
                         resParkInList.parkcartype,
                         resParkInList.vehicleNo!!,
                         gateMapper.toEntity(gate)!!,

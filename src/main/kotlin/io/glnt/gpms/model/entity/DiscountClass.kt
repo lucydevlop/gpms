@@ -74,9 +74,8 @@ data class DiscountClass(
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var expireDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59"),
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "rcs_use")
-    var rcsUse: DelYn? = DelYn.N,
+    var rcsUse: Boolean? = false,
 
     @Column(name = "order_no")
     var orderNo: Int? = 0,

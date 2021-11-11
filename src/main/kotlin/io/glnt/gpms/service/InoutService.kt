@@ -298,9 +298,9 @@ class InoutService(
                 }
 
                 //todo 아파트너 입차 정보 전송
-                visitorData?.let { visitorData ->
+                visitorData?.let { data ->
                     parkSiteInfoService.getVisitorExternalInfo()?.let {
-                        parkinglotService.sendInVisitorExternal(it, visitorData, parkingtype!!)
+                        parkinglotService.sendInVisitorExternal(it, data, parkingtype!!)
                     }
                 }
 
@@ -344,6 +344,7 @@ class InoutService(
             "CALL" -> filterDisplayMessage(type, DisplayMessageType.CALL)
             "FULL" -> filterDisplayMessage(type, DisplayMessageType.FULL)
             "INIT" -> filterDisplayMessage(type, DisplayMessageType.INIT)
+            "ERROR" -> filterDisplayMessage(type, DisplayMessageType.ERROR)
             else -> filterDisplayMessage(type, DisplayMessageType.FAILNUMBER)
         }
         lists.forEach { list ->
@@ -1005,7 +1006,7 @@ class InoutService(
                 else
                     makeParkPhrase("VIP", vehicleNo, vehicleNo, type)
             }
-            "MEMBER", "RESTRICTE", "FULL", "INIT", "CALL" -> makeParkPhrase(parkingtype, vehicleNo, vehicleNo, type)
+            "MEMBER", "RESTRICTE", "FULL", "INIT", "CALL", "ERROR" -> makeParkPhrase(parkingtype, vehicleNo, vehicleNo, type)
 //             -> makeParkPhrase("RESTRICTE", vehicleNo, vehicleNo, type)
 //             -> makeParkPhrase("FULL", vehicleNo, vehicleNo, type)
 //             -> makeParkPhrase("INIT", vehicleNo, vehicleNo, type)
@@ -1075,7 +1076,7 @@ class InoutService(
                 }
 
                 val parkCarType = confirmParkCarType(request.vehicleNo ?: "", request.inDate, "IN")
-                val recognitionResult = if (parkCarType["parkCarType"] == "UNRECOGNIZED") "NOTRECOGNITION" else "RECOGNITION"
+                //val recognitionResult = if (parkCarType["parkCarType"] == "UNRECOGNIZED") "NOTRECOGNITION" else "RECOGNITION"
 
                 // 입차 정보 DB insert
                 val new = ParkIn(
@@ -1540,6 +1541,10 @@ class InoutService(
                         relayClient.sendActionBreaker(gateId, "open")
                     }
                 }
+                else -> {
+                    displayMessage(parkCarType, vehicleNo, "IN", gateId)
+                    relayClient.sendActionBreaker(gateId, "open")
+                }
             }
         }
     }
@@ -1591,7 +1596,7 @@ class InoutService(
                                     outSn = parkOutDTO.sn )
             var paymentSn = 0L
 
-            if ( (type == "PAYMENT" && parkOutDTO.originPayFee?: 0 > 0) || (type == "PREPAYMENT")) {
+            if ( ((type == "PAYMENT" || type == "MANPAYMENT") && payFee > 0) || (type == "PREPAYMENT")) {
                 inoutPayment = inoutPaymentService.save(inoutPayment)
                 paymentSn = inoutPayment.sn ?: -1L
             }
@@ -1620,19 +1625,21 @@ class InoutService(
                         dtFacilityId = dtFacilityId
                     )
                 } else {
+                    logger.warn { "정산기 접속 오류 처리 $vehicleNo" }
                     // 정산기 접속 오류로 인한 출차 진행
                     inoutPayment.result = ResultType.ERROR
                     inoutPayment.failureMessage = "PAYSTATION tcp connection error"
                     inoutPayment = inoutPaymentService.save(inoutPayment)
 
-                    parkInService.findOne(parkOutDTO.inSn ?: -1)?.let {
-                        outFacilityIF(
-                            "ERROR", parkOutDTO.vehicleNo ?: "", gate, parkInMapper.toEntity(it), parkOutDTO.sn!!)
+                    if (payFee > 0) {
+                        logger.warn { "정산기 접속 오류 처리 $vehicleNo $payFee 강제 출차" }
+                        parkInService.findOne(parkOutDTO.inSn ?: -1)?.let {
+                            outFacilityIF(
+                                "ERROR", parkOutDTO.vehicleNo ?: "", gate, parkInMapper.toEntity(it), parkOutDTO.sn!!)
+                        }
                     }
-
                 }
             }
-
         }
     }
 

@@ -9,7 +9,9 @@ import io.glnt.gpms.service.HolidayService
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.model.dto.request.ReqAddParkingDiscount
 import io.glnt.gpms.model.entity.FareInfo
+import io.glnt.gpms.model.entity.InoutDiscount
 import io.glnt.gpms.model.enums.*
+import io.glnt.gpms.service.InoutDiscountService
 import io.glnt.gpms.service.ParkSiteInfoService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,7 +24,8 @@ import kotlin.math.ceil
 
 @Service
 class FeeCalculation(
-    private val parkSiteInfoService: ParkSiteInfoService
+    private val parkSiteInfoService: ParkSiteInfoService,
+    private val inoutDiscountService: InoutDiscountService
 ) {
     companion object : KLogging()
 
@@ -237,12 +240,16 @@ class FeeCalculation(
                                 }
                             }
                         }
-                        discount.calcYn = DelYn.Y
-                        discountService.saveInoutDiscount(discount)
+                        inoutDiscountService.completeCalc(discount)
+//                        discount.calcYn = DelYn.Y
+//                        discountService.saveInoutDiscount(discount)
                     }
                 }
             }
         }
+
+        //원단위 할인 금액 계산
+        val wonFixDiscountAmt: Int = calcDiscountWonByVariable(inSn ?: -1, "out")
 
         val dailyPrices = ArrayList<DailyPrice>()
         for (i in 0..DateUtil.diffDays(inTime, outTime)+1) {
@@ -272,6 +279,14 @@ class FeeCalculation(
             dailyPrice.originPrice = dailyPrice.originPrice!!.plus(originPrice)
             dailyPrice.price = dailyPrice.price!!.plus(totalPrice)
 
+            //원 변동 할인 적용
+            val applyDiscount = if ((dailyPrice.price ?: 0) > wonFixDiscountAmt) wonFixDiscountAmt else dailyPrice.price?: 0
+            if (applyDiscount > 0) {
+                wonFixDiscountAmt.minus(applyDiscount)
+                dailyPrice.discount = dailyPrice.discount!!.plus(applyDiscount)
+                dailyPrice.price = dailyPrice.price!!.minus(applyDiscount)
+            }
+
             if (calcData.cgBasic.dayMaxAmt != null && calcData.cgBasic.dayMaxAmt!! < dailyPrice.price!!) {
                 dailyPrice.dayMaxDiscount = dailyPrice.price!! - calcData.cgBasic.dayMaxAmt!!
                 dailyPrice.price = calcData.cgBasic.dayMaxAmt!!
@@ -287,34 +302,52 @@ class FeeCalculation(
             retPrice.dayilyMaxDiscount = retPrice.dayilyMaxDiscount!!.plus(it.dayMaxDiscount!!)
         }
 
-        val wonDiscountAmt = applyInoutDiscountWon(inSn ?: -1, retPrice.totalPrice ?: 0, "out")
-        retPrice.discountPrice = retPrice.discountPrice!!.plus(wonDiscountAmt)
-        retPrice.totalPrice = retPrice.totalPrice!!.minus(wonDiscountAmt)
+        val wonVariableDiscountAmt = applyInoutDiscountWon(inSn ?: -1, retPrice.totalPrice ?: 0, "out")
+
+        retPrice.discountPrice = retPrice.discountPrice!!.plus(wonVariableDiscountAmt)
+        retPrice.totalPrice = retPrice.totalPrice!!.minus(wonVariableDiscountAmt)
 
         logger.info { "-------------------getBasicPayment-------------------" }
         logger.info { retPrice }
         return retPrice
     }
 
-    fun applyInoutDiscountWon(inSn: Long, totalPrice: Int, type: String, discountClasses: ArrayList<ReqAddParkingDiscount>? = null): Int {
+    fun calcDiscountWonByVariable(inSn: Long, type: String, discountClasses: ArrayList<ReqAddParkingDiscount>? = null): Int {
         var discountAmt = 0
 
         // todo 할인 방식 수정
-       discountClasses?.let { discounts ->
+        discountClasses?.let { discounts ->
             discounts.forEach { discount ->
-                discountAmt = discountAmt.plus(calcDiscountWonByVariable(discount.discountClassSn, totalPrice, discountAmt))
+                val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
+                if (discountClass.discountApplyType == DiscountApplyType.WON) {
+                    if (discountClass.discountApplyRate == DiscountApplyRateType.VARIABLE) {
+                        discountAmt = discountAmt.plus(discountClass.unitTime)
+                    }
+                }
             }
         }
 
         discountService.searchInoutDiscount(inSn)?.let { discounts ->
             discounts.forEach { discount ->
-                discountAmt = discountAmt.plus(calcDiscountWonByVariable(discount.discountClassSn, totalPrice, discountAmt))
+                val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
+                if (discountClass.discountApplyType == DiscountApplyType.WON) {
+                    if (discountClass.discountApplyRate == DiscountApplyRateType.VARIABLE) {
+                        discountAmt = discountAmt.plus(discountClass.unitTime)
+                    }
+                }
                 if (type == "out") {
-                    discount.calcYn = DelYn.Y
-                    discountService.saveInoutDiscount(discount)
+                    inoutDiscountService.completeCalc(discount)
+//                    discount.calcYn = DelYn.Y
+//                    discountService.saveInoutDiscount(discount)
                 }
             }
         }
+
+        return discountAmt
+    }
+
+    fun applyInoutDiscountWon(inSn: Long, totalPrice: Int, type: String, discountClasses: ArrayList<ReqAddParkingDiscount>? = null): Int {
+        var discountAmt = 0
 
         discountClasses?.let { discounts ->
             discounts.forEach { discount ->
@@ -326,8 +359,9 @@ class FeeCalculation(
             discounts.forEach { discount ->
                 discountAmt = calcDiscountWonByFix(discount.discountClassSn, totalPrice, discountAmt)
                 if (type == "out") {
-                    discount.calcYn = DelYn.Y
-                    discountService.saveInoutDiscount(discount)
+                    inoutDiscountService.completeCalc(discount)
+//                    discount.calcYn = DelYn.Y
+//                    discountService.saveInoutDiscount(discount)
                 }
             }
         }
@@ -347,22 +381,6 @@ class FeeCalculation(
                     discount = totalPrice - discountAmt
             }
         }
-        return discount
-    }
-
-    fun calcDiscountWonByVariable(sn: Long, totalPrice: Int, discountAmt: Int): Int {
-        var discount = 0
-
-        val discountClass = discountService.getDiscountClassBySn(sn)
-        if (discountClass.discountApplyType == DiscountApplyType.WON) {
-            if (discountClass.discountApplyRate == DiscountApplyRateType.VARIABLE) {
-                if (totalPrice - discountAmt > discountClass.unitTime)
-                    discount = discountAmt.plus(discountClass.unitTime)
-                else
-                    discount = discountAmt.plus(totalPrice)
-            }
-        }
-
         return discount
     }
 
@@ -629,6 +647,9 @@ class FeeCalculation(
             }
         }
 
+        //원단위 할인 금액 계산
+        val wonFixDiscountAmt: Int = calcDiscountWonByVariable(inSn ?: -1, "calc", discountClasses)
+
         val dailyPrices = ArrayList<DailyPrice>()
         for (i in 0..DateUtil.diffDays(inTime, outTime)+1) {
             val dailyData = retPrice.dailySplits!!.filter {
@@ -656,6 +677,14 @@ class FeeCalculation(
             dailyPrice.discount = dailyPrice.discount!!.plus(originPrice-totalPrice)
             dailyPrice.originPrice = dailyPrice.originPrice!!.plus(originPrice)
             dailyPrice.price = dailyPrice.price!!.plus(totalPrice)
+
+            //원 변동 할인 적용
+            val applyDiscount = if ((dailyPrice.price ?: 0) > wonFixDiscountAmt) wonFixDiscountAmt else dailyPrice.price?: 0
+            if (applyDiscount > 0) {
+                wonFixDiscountAmt.minus(applyDiscount)
+                dailyPrice.discount = dailyPrice.discount!!.plus(applyDiscount)
+                dailyPrice.price = dailyPrice.price!!.minus(applyDiscount)
+            }
 
             if (calcData.cgBasic.dayMaxAmt != null && calcData.cgBasic.dayMaxAmt!! < dailyPrice.price!!) {
                 dailyPrice.dayMaxDiscount = dailyPrice.price!! - calcData.cgBasic.dayMaxAmt!!
