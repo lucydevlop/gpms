@@ -1601,7 +1601,7 @@ class InoutService(
                 paymentSn = inoutPayment.sn ?: -1L
             }
 
-            displayMessage(parkCarType, (payFee.toString() + "원") as String, "WAIT", gate.gateId)
+            displayMessage(parkCarType, payFee.toString() + "원" as String, "WAIT", gate.gateId)
 
             // 정산기
             // 정산기 보내기전 connetion check
@@ -1625,17 +1625,24 @@ class InoutService(
                         dtFacilityId = dtFacilityId
                     )
                 } else {
-                    logger.warn { "정산기 접속 오류 처리 $vehicleNo" }
+                    logger.warn { "${gate.gateId} 정산기 접속 상태 [$state[\"status\"]] 오류 처리 $vehicleNo " }
                     // 정산기 접속 오류로 인한 출차 진행
                     inoutPayment.result = ResultType.ERROR
                     inoutPayment.failureMessage = "PAYSTATION tcp connection error"
                     inoutPayment = inoutPaymentService.save(inoutPayment)
 
                     if (payFee > 0) {
-                        logger.warn { "정산기 접속 오류 처리 $vehicleNo $payFee 강제 출차" }
-                        parkInService.findOne(parkOutDTO.inSn ?: -1)?.let {
-                            outFacilityIF(
-                                "ERROR", parkOutDTO.vehicleNo ?: "", gate, parkInMapper.toEntity(it), parkOutDTO.sn!!)
+                        if (gate.gateType != GateTypeStatus.ETC) {
+                            logger.warn { "${gate.gateId} 정산기 접속 오류 처리 $vehicleNo $payFee 강제 출차" }
+                            parkInService.findOne(parkOutDTO.inSn ?: -1)?.let {
+                                outFacilityIF(
+                                    "ERROR",
+                                    parkOutDTO.vehicleNo ?: "",
+                                    gate,
+                                    parkInMapper.toEntity(it),
+                                    parkOutDTO.sn!!
+                                )
+                            }
                         }
                     }
                 }
