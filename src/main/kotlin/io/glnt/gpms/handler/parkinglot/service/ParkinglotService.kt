@@ -76,26 +76,6 @@ class ParkinglotService (
 //        parkSiteInfoRepository.findTopByOrderBySiteid()?.let {
 //            parkSite = it
 //        }
-        parkGateRepository.findByGateId("GATE001")?: run {
-            parkGateRepository.saveAndFlush(
-                Gate(sn = null, gateId = "GATE001", gateName = "입구게이트1", gateType = GateTypeStatus.IN, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
-                    seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateid = "FCL0000001", delYn = DelYn.N, resetSvr = "http://192.168.20.211/io.cgi?relay="))
-        }
-        parkGateRepository.findByGateId("GATE002")?: run {
-            parkGateRepository.saveAndFlush(
-                Gate(sn = null, gateId = "GATE002", gateName = "출구게이트1", gateType = GateTypeStatus.OUT, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
-                    seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateid = "FCL0000002", delYn = DelYn.N, resetSvr = "http://192.168.20.211/io.cgi?relay="))
-        }
-        parkGateRepository.findByGateId("GATE003")?: run {
-            parkGateRepository.saveAndFlush(
-                Gate(sn = null, gateId = "GATE003", gateName = "입구게이트2", gateType = GateTypeStatus.IN, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
-                    seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateid = "FCL0000001", delYn = DelYn.N, resetSvr = "http://192.168.20.212/io.cgi?relay="))
-        }
-        parkGateRepository.findByGateId("GATE004")?: run {
-            parkGateRepository.saveAndFlush(
-                Gate(sn = null, gateId = "GATE004", gateName = "출구게이트2", gateType = GateTypeStatus.OUT, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
-                    seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateid = "FCL0000002", delYn = DelYn.N, resetSvr = "http://192.168.20.212/io.cgi?relay="))
-        }
     }
 
     fun isPaid(): Boolean {

@@ -75,6 +75,7 @@ class SecurityConfiguration {
                 .antMatchers("/$API_VERSION/relay/**").permitAll()
                 .antMatchers("/$API_VERSION/calc/**").permitAll()
                 .antMatchers("/api/**").permitAll()
+                .antMatchers("/$API_VERSION/version").permitAll()
 //            .antMatchers("/$API_VERSION/$CORE_PATH/**").permitAll()
 //			.antMatchers("/$API_VERSION/$SHOP_PATH/**").permitAll()
                 .anyRequest().authenticated()

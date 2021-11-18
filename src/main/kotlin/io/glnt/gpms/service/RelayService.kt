@@ -7,7 +7,6 @@ import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.model.*
-import io.glnt.gpms.handler.inout.model.reqAddParkOut
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.rcs.model.ReqFacilityStatus
 import io.glnt.gpms.handler.relay.model.FacilitiesFailureAlarm
@@ -110,6 +109,27 @@ class RelayService(
             logger.error { "facilitiesHealthCheck failed ${e.message}" }
         }
 
+    }
+
+    fun paystationCheck(request: reqRelayHealthCheck) {
+        try {
+            request.facilitiesList.forEach { list ->
+                //2021-10-01 정산 실패 메세지 변경 삭제 처리
+                logger.warn { "정산기 ${list.dtFacilitiesId} ${list.failureAlarm} ${list.status}" }
+                parkinglotService.getFacilityByDtFacilityId(list.dtFacilitiesId)?.let { facility ->
+                    saveFailure(
+                        Failure(sn = null,
+                            issueDateTime = LocalDateTime.now(),
+                            facilitiesId = list.dtFacilitiesId,
+                            fName = facility.fname,
+                            failureCode = list.failureAlarm,
+                            failureType = list.status)
+                    )
+                }
+            }
+        } catch (e: CustomException){
+            logger.error { "paystationCheck failed $e" }
+        }
     }
 
     fun statusNoti(request: reqRelayHealthCheck) {

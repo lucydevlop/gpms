@@ -84,6 +84,13 @@ class RelayResource (
         relayService.facilitiesHealthCheck(request)
     }
 
+    // PAYMENT check
+    @RequestMapping(value=["/relay/paystation/check"], method=[RequestMethod.POST])
+    fun paystationCheck(@RequestBody request: reqRelayHealthCheck) {
+        logger.debug { "[Paystation Check] data $request" }
+        relayService.paystationCheck(request)
+    }
+
     // (사전) 정산기 번호 검색 요청
     @RequestMapping(value = ["/relay/paystation/search/vehicle/{dtFacilityId}"], method = [RequestMethod.POST])
     fun searchCarNumber(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String) {

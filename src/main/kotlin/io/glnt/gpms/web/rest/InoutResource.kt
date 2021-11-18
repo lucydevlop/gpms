@@ -12,6 +12,7 @@ import io.glnt.gpms.handler.calc.service.FareRefService
 import io.glnt.gpms.handler.inout.model.reqAddParkIn
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.common.api.ExternalClient
+import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.model.criteria.InoutPaymentCriteria
 import io.glnt.gpms.model.dto.ParkOutDTO
 import io.glnt.gpms.model.dto.ParkinglotVehicleDTO
@@ -47,7 +48,8 @@ class InoutResource (
     private val inoutPaymentService: InoutPaymentService,
     private val fareRefService: FareRefService,
     private var relayClient: RelayClient,
-    private var externalClient: ExternalClient
+    private var externalClient: ExternalClient,
+    private var rcsService: RcsService
 ){
     companion object : KLogging()
 
@@ -117,6 +119,11 @@ class InoutResource (
         return CommonResult.returnResult(
             CommonResult.data(result.filter { it -> it.result != ResultType.WAIT })
         )
+    }
+
+    @RequestMapping(value=["/inouts/forced/exit/{sn}"], method = [RequestMethod.DELETE])
+    fun forcedExit(@PathVariable sn: Long): ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(rcsService.forcedExit(sn))
     }
 
     @RequestMapping(value = ["/inout/parkin"], method = [RequestMethod.POST])
