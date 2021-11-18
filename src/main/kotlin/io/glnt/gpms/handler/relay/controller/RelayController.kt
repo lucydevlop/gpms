@@ -27,12 +27,6 @@ class RelayController (
     @Autowired
     private lateinit var relayService: RelayService
 
-    @RequestMapping(value=["/health_check"], method=[RequestMethod.POST])
-    fun healthCheck(@RequestBody request: reqRelayHealthCheck) {
-        logger.debug { "healthCheck category $request" }
-        relayService.facilitiesHealthCheck(request)
-    }
-
     @RequestMapping(value=["/failure_alarm"], method=[RequestMethod.POST])
     fun failureAlarm(@RequestBody request: reqRelayHealthCheck) {
         logger.debug { "healthCheck category $request" }
@@ -49,18 +43,6 @@ class RelayController (
     fun paymentHealthCheck() {
         logger.debug { "paymentHealthCheck " }
         relayService.paymentHealthCheck()
-    }
-
-    @RequestMapping(value=["/paystation/result/{dtFacilityId}"], method=[RequestMethod.POST])
-    fun resultPayment(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String) {
-        logger.info { "resultPayment $request " }
-        relayService.resultPayment(request, dtFacilityId)
-    }
-
-    @RequestMapping(value = ["/paystation/request/adjustment/{dtFacilityId}"], method = [RequestMethod.POST])
-    fun requestAdjustment(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String) {
-        logger.info { "requestAdjustment $request " }
-        relayService.requestAdjustment(request, dtFacilityId)
     }
 
     @RequestMapping(value=["/paystation/aply/discount/{dtFacilityId}"], method = [RequestMethod.POST])

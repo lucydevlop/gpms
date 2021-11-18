@@ -3,10 +3,12 @@ package io.glnt.gpms.model.entity
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.glnt.gpms.common.utils.JsonToMapConverter
 import io.glnt.gpms.model.entity.GateGroup
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.GateTypeStatus
 import io.glnt.gpms.model.enums.OpenActionType
+import org.hibernate.annotations.Type
 import org.hibernate.annotations.Where
 import java.io.Serializable
 import javax.persistence.*
@@ -67,11 +69,12 @@ data class Gate(
     var resetSvr: String? = "http://192.168.20.211/io.cgi?relay=",
 
     @Column(name = "gate_group_id")
-    var gateGroupId: String? = null
-//    ,
-//    @JsonIgnore
-//    @OneToMany(fetch = FetchType.LAZY, mappedBy = "gate_id")
-//    var facilities: List<Facility> = ArrayList()
+    var gateGroupId: String? = null,
+
+    @Type(type = "json")
+    @Column(name = "open_type", columnDefinition = "json")
+    @Convert(attributeName = "open_type", converter = JsonToMapConverter::class)
+    var openType: ArrayList<Map<String, Any>>? = null,
 
 ): Auditable(), Serializable {
 
@@ -79,9 +82,4 @@ data class Gate(
     @JoinColumn(name = "gate_group_id", referencedColumnName = "gate_group_id", insertable = false, updatable = false)
     @Where(clause = "del_yn = 'N'")
     var gateGroup: GateGroup? = null
-
-//    @OneToMany//(mappedBy = "serviceProduct", cascade = arrayOf(CascadeType.ALL), fetch = FetchType.EAGER)
-//    @JoinColumn(name = "gate_id")
-////    @Where(clause = "delete_yn = 'N'")
-//    var facilities: List<Facility> = emptyList()
 }

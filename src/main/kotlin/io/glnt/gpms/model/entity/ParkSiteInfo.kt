@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType
 import io.glnt.gpms.common.utils.JsonToMapConverter
+import io.glnt.gpms.model.dto.DiscountApplyDTO
+import io.glnt.gpms.model.dto.EnterNotiDTO
 import io.glnt.gpms.model.enums.*
 import org.hibernate.annotations.Type
 import org.hibernate.annotations.TypeDef
@@ -18,10 +20,10 @@ import javax.persistence.*
 data class ParkSiteInfo(
     @Id
     @Column(name = "siteid", unique = true, nullable = false)
-    var siteid: String,
+    var siteId: String,
 
     @Column(name = "sitename", nullable = false)
-    var sitename: String,
+    var siteName: String,
 
     @Column(name = "limitqty", nullable = true)
     var limitqty: Int? = 10,
@@ -118,7 +120,20 @@ data class ParkSiteInfo(
     var visitorExternalKey: String? = null,
 
     @Enumerated(EnumType.STRING)
-    var operatingDays: DiscountRangeType? = DiscountRangeType.ALL
+    var operatingDays: DiscountRangeType? = DiscountRangeType.ALL,
+
+    @Enumerated(EnumType.STRING)
+    var visitorRegister: OnOff? = OnOff.ON,
+
+    @Type(type = "json")
+    @Column(name = "enter_noti", columnDefinition = "json")
+    @Convert(attributeName = "enter_noti", converter = JsonToMapConverter::class)
+    var enterNoti: EnterNotiDTO? = null, //emptyMap(),
+
+    @Type(type = "json")
+    @Column(name = "disc_apply", columnDefinition = "json")
+    @Convert(attributeName = "disc_apply", converter = JsonToMapConverter::class)
+    var discApply: DiscountApplyDTO? = null //emptyMap(),
 ) : Auditable(), Serializable {
 
 }

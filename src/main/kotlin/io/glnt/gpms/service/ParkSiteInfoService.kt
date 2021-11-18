@@ -2,11 +2,10 @@ package io.glnt.gpms.service
 
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.model.dto.DiscountApplyDTO
+import io.glnt.gpms.model.dto.EnterNotiDTO
 import io.glnt.gpms.model.dto.ParkSiteInfoDTO
-import io.glnt.gpms.model.enums.DiscountRangeType
-import io.glnt.gpms.model.enums.ExternalSvrType
-import io.glnt.gpms.model.enums.VisitorExternalKeyType
-import io.glnt.gpms.model.enums.WeekType
+import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.mapper.ParkSiteInfoMapper
 import io.glnt.gpms.model.repository.ParkSiteInfoRepository
 import mu.KLogging
@@ -87,6 +86,10 @@ class ParkSiteInfoService (
         return parkSite?.let { it.visitorExternal == VisitorExternalKeyType.APTNER } ?: kotlin.run { false }
     }
 
+    fun isVisitorRegister(): Boolean {
+        return parkSite?.let { it.visitorRegister == OnOff.ON } ?: kotlin.run { false }
+    }
+
     fun getVisitorExternalInfo(): HashMap<String, String?>? {
         return parkSite?.visitorExternal?.let {
             hashMapOf<String, String?>(
@@ -119,5 +122,11 @@ class ParkSiteInfoService (
         }?: kotlin.run {  false }
     }
 
+    fun getEnterNoti(): EnterNotiDTO? {
+        return this.parkSite?.enterNoti ?: kotlin.run { null }
+    }
 
+    fun getDiscountApply(): DiscountApplyDTO? {
+        return this.parkSite?.discApply ?: kotlin.run { null }
+    }
 }

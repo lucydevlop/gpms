@@ -36,6 +36,7 @@ class FarePolicyMapper(
                 effectDate = dto.effectDate,
                 expireDate = dto.expireDate,
                 week = dto.week,
+                orderNo = dto.orderNo,
                 delYn = dto.delYn
             )
         }

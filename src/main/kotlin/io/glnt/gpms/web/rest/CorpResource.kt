@@ -7,13 +7,17 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.dashboard.user.model.ResDiscountTicetsApplyList
 import io.glnt.gpms.handler.discount.service.DiscountService
+import io.glnt.gpms.model.criteria.CorpCriteria
+import io.glnt.gpms.model.criteria.InoutDiscountCriteria
 import io.glnt.gpms.model.dto.*
 import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.DiscountApplyTargetType
+import io.glnt.gpms.model.enums.DiscountRangeType
 import io.glnt.gpms.service.*
 import mu.KLogging
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.concurrent.ConcurrentHashMap
+import java.time.LocalDateTime
 import javax.validation.Valid
 
 @RestController
@@ -28,7 +32,8 @@ class CorpResource (
     private val discountService: DiscountService,
     private val inoutDiscountService: InoutDiscountService,
     private val corpTicketClassService: CorpTicketClassService,
-    private val inoutDiscountQueryService: InoutDiscountQueryService
+    private val inoutDiscountQueryService: InoutDiscountQueryService,
+    private val parkInService: ParkInService
 ){
     companion object : KLogging()
 
@@ -72,7 +77,20 @@ class CorpResource (
             return CommonResult.returnResult(CommonResult.data(tickets))
         }
 
-        tickets.forEach{ ticket ->
+        // ticket 적용 기준 확인
+        val applyTickets = ArrayList<CorpTicketDTO>()
+        tickets.forEach { ticket ->
+            parkInService.findOne(inSn.toLong())?.let { parkIn ->
+                val date = if (ticket.corpTicketClass!!.applyTarget == DiscountApplyTargetType.NOW) DateUtil.nowDate else DateUtil.LocalDateTimeToDateString(parkIn.inDate ?: LocalDateTime.now())
+                if (ticket.corpTicketClass!!.applyType == DiscountRangeType.ALL) {
+                    applyTickets.add(ticket)
+                } else {
+                    if (DateUtil.getWeekRange(date) == ticket.corpTicketClass!!.applyType) applyTickets.add(ticket)
+                }
+            }
+        }
+
+        applyTickets.forEach{ ticket ->
             corpService.getCorpTicketHistByTicketSn(ticket.sn!!)?.let {
                 ticket.todayUse = discountService.getTodayUseDiscountTicket(sn, ticket.corpTicketClass!!.sn!!)
                 ticket.totalCnt = ticket.totalQuantity!! - ticket.useQuantity!!
@@ -145,7 +163,8 @@ class CorpResource (
                                     InoutDiscountCriteria(corpSn = sn.toLong(),
                                                           fromDate = DateUtil.stringToLocalDate(fromDate),
                                                           toDate = DateUtil.stringToLocalDate(toDate),
-                                                          ticketClassSn = ticketClassSn))
+                                                          ticketClassSn = ticketClassSn)
+        )
         inoutDiscounts.forEach {
             result.add(
                 ResDiscountTicetsApplyList(

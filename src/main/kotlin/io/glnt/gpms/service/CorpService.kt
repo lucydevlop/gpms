@@ -1,8 +1,8 @@
 package io.glnt.gpms.service
 
+import io.glnt.gpms.model.criteria.CorpCriteria
 import io.glnt.gpms.model.dto.*
 import io.glnt.gpms.model.entity.CorpTicketInfo
-import io.glnt.gpms.model.entity.SiteUser
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.UserRole
 import io.glnt.gpms.model.mapper.CorpMapper

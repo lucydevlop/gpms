@@ -26,7 +26,8 @@ class GateMapper {
                     relaySvrKey = dto.relaySvrKey,
                     relaySvr = dto.relaySvr,
                     resetSvr = dto.resetSvr,
-                    gateGroupId = dto.gateGroupId
+                    gateGroupId = dto.gateGroupId,
+                    openType = dto.openType
                 )
             }
         }

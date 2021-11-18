@@ -19,11 +19,17 @@ data class InoutPayment(
     @Column(name = "sn", unique = true, nullable = false)
     var sn: Long?,
 
+    @Column(name = "type")
+    var type: String? = null,
+
     @Column(name = "in_sn")
-    var inSn: Long,
+    var inSn: Long? = null,
 
     @Column(name = "out_sn")
     var outSn: Long? = null,
+
+    @Column(name = "vehicle_no")
+    var vehicleNo: String? = null,
 
     @Column(name = "approve_datetime")
     var approveDateTime: String? = null,
@@ -31,6 +37,18 @@ data class InoutPayment(
     @Enumerated(EnumType.STRING)
     @Column(name = "pay_type")
     var payType: PayType? = PayType.CARD,
+
+    @Column(name = "park_time")
+    var parkTime: Int? = 0,
+
+    @Column(name = "park_fee")
+    var parkFee: Int? = 0,
+
+    @Column(name = "discount")
+    var discount: Int? = 0,
+
+    @Column(name = "day_discount")
+    var dayDiscount: Int? = 0,
 
     @Column(name = "amount")
     var amount: Int? = 0,
@@ -46,7 +64,7 @@ data class InoutPayment(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "result")
-    var result: ResultType = ResultType.FAILURE,
+    var result: ResultType? = null,
 
     @Column(name = "failure_message")
     var failureMessage: String? = null,

@@ -26,5 +26,6 @@ data class FacilitiesFailureAlarm(
 data class paystationvehicleListSearch(
     var vehicleNumber: String,
     var inVehicleDateTime: String,
-    var inSn: String
+    var inSn: String,
+    var imageUrl: String
 )

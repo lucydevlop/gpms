@@ -6,6 +6,7 @@ import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.model.dto.FareInfoDTO
 import io.glnt.gpms.model.dto.FarePolicyDTO
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.service.FareService
 import mu.KLogging
 import org.springframework.http.ResponseEntity
@@ -21,6 +22,11 @@ class FareResource (
     private val fareService: FareService
 ){
     companion object : KLogging()
+
+    @RequestMapping(value = ["/fare/policies"], method = [RequestMethod.GET])
+    fun getFarePolicies(): ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(CommonResult.data(fareService.findFarePolicies().filter { farePolicyDTO -> farePolicyDTO.delYn == DelYn.N }))
+    }
 
     @RequestMapping(value = ["/fare/policy"], method = [RequestMethod.POST])
     fun createFarePolicy(@Valid @RequestBody farePolicyDTO: FarePolicyDTO) : ResponseEntity<CommonResult> {

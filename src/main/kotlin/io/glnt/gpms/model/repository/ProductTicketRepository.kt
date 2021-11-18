@@ -31,5 +31,6 @@ interface ProductTicketRepository: JpaRepository<ProductTicket, Long> {
 
 @Repository
 interface TicketClassRepository: JpaRepository<TicketClass, Long> {
+    fun findBySn(sn: Long): Optional<TicketClass>
     fun findByTicketNameAndDelYn(ticketname: String, delYn: DelYn): TicketClass?
 }

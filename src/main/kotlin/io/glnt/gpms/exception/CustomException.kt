@@ -16,3 +16,8 @@ class AlreadyExistsException(
     val msg: String,
     val status: HttpStatus
 ) : Exception()
+
+class RejectException(
+    val msg: String,
+    val code: ResultCode
+) : RuntimeException(msg)

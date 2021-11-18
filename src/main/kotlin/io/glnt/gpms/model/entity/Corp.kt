@@ -104,7 +104,6 @@ data class Corp(
     @Column(name = "balance_update", nullable = true)
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var balanceUpdate: LocalDateTime? = null
-
 ) : Auditable(), Serializable {
 
     override fun equals(other: Any?): Boolean {

@@ -33,7 +33,9 @@ class CorpTicketClassMapper(
                     saleType = dto.saleType,
                     price = dto.price,
                     extendYn = dto.extendYn,
-                    delYn = dto.delYn
+                    delYn = dto.delYn,
+                    applyTarget = dto.applyTarget,
+                    applyType = dto.applyType
                 )
             }
         }

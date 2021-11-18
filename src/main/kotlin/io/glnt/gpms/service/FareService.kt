@@ -3,12 +3,14 @@ package io.glnt.gpms.service
 import io.glnt.gpms.handler.calc.service.FareRefService
 import io.glnt.gpms.model.dto.FareInfoDTO
 import io.glnt.gpms.model.dto.FarePolicyDTO
+import io.glnt.gpms.model.dto.GateDTO
 import io.glnt.gpms.model.mapper.FareInfoMapper
 import io.glnt.gpms.model.mapper.FarePolicyMapper
 import io.glnt.gpms.model.repository.FareInfoRepository
 import io.glnt.gpms.model.repository.FarePolicyRepository
 import mu.KLogging
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class FareService(
@@ -19,6 +21,11 @@ class FareService(
     private val fareRefService: FareRefService
 ) {
     companion object : KLogging()
+
+    @Transactional(readOnly = true)
+    fun findFarePolicies(): List<FarePolicyDTO> {
+        return farePolicyRepository.findAll().map(farePolicyMapper::toDto)
+    }
 
     fun saveFarePolicy(farePolicyDTO: FarePolicyDTO) : FarePolicyDTO {
         var farePolicy = farePolicyMapper.toEntity(farePolicyDTO)

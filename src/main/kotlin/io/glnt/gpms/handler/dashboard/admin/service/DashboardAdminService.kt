@@ -17,6 +17,7 @@ import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.service.RelayService
 import io.glnt.gpms.handler.user.service.AuthService
 import io.glnt.gpms.handler.file.service.ExcelUploadService
+import io.glnt.gpms.common.api.ResetClient
 import io.glnt.gpms.model.dto.request.*
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
@@ -36,7 +37,8 @@ import java.util.concurrent.TimeUnit
 @Service
 class DashboardAdminService(
     private var restAPIManager: RestAPIManagerUtil,
-    private var corpService: CorpService
+    private var corpService: CorpService,
+    private var resetClient: ResetClient
 ) {
     companion object : KLogging()
 
@@ -280,17 +282,17 @@ class DashboardAdminService(
             parkinglotService.getGate(gateId)?.let { gate ->
                 facilityService.getOneFacilityByGateIdAndCategory(gateId, category)?.let { facility ->
                     facility.resetPort?.let { it ->
-                        var port = it.toInt()-1
+                        val port = it.toInt()-1
                         if (port < 0) return CommonResult.error("Admin gateResetAction failed")
                         val url = gate.resetSvr+port
-                        restAPIManager.sendResetGetRequest(url).let { response ->
+                        resetClient.sendReset(url).let { response ->
                             singleTimer()
-                            logger.info { "reset response ${response!!.status} ${response.body.toString()}" }
+                            logger.warn { "RESET ${facility.dtFacilitiesId} response ${response!!.status} ${response.body.toString()}" }
                             if (response!!.status == HttpStatus.SC_OK) {
                                 Observable.timer(2, TimeUnit.SECONDS).subscribe {
-                                    logger.info { "reset one more ${url}" }
-                                    restAPIManager.sendResetGetRequest(url).let { reResponse ->
-                                        logger.info { "reset re response ${reResponse!!.status} ${response.body.toString()}" }
+                                    logger.info { "reset one more $url" }
+                                    resetClient.sendReset(url).let { reResponse ->
+                                        logger.info { "RESET ${facility.dtFacilitiesId} response ${reResponse!!.status} ${reResponse.body.toString()}" }
                                     }
                                 }
 
