@@ -42,12 +42,14 @@ data class GateDTO(
 
     var gateGroupId: String? = null,
 
-    var gateGroup: GateGroupDTO? = null,
+    var openType: ArrayList<Map<String, Any>>? = null,
+
+    var gateGroup: GateGroupDTO? = null
 ) : Serializable {
     constructor(gate: Gate) :
         this(
             gate.sn, gate.gateName, gate.gateId, gate.gateType, gate.takeAction, gate.udpGateid,
-            gate.openAction, gate.relaySvrKey, gate.relaySvr, gate.delYn, gate.resetSvr, gate.gateGroupId
+            gate.openAction, gate.relaySvrKey, gate.relaySvr, gate.delYn, gate.resetSvr, gate.gateGroupId, gate.openType
         )
 
     override fun equals(other: Any?): Boolean {

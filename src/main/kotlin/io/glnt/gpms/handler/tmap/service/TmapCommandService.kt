@@ -66,7 +66,7 @@ class TmapCommandService(
 
         when(response.type) {
             "parkingsiteinfo" -> { commandParkingSiteInfo() }
-            "dspcolorinfo" -> { facilityService.fetchDisplayColor() }
+//            "dspcolorinfo" -> { facilityService.fetchDisplayColor() }
             "profileSetup" -> { commandProfileSetup(response) }
             "facilitiesRegistResponse" -> { }
             "facilitiesCommand" -> { commandFacilities(response) }

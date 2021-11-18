@@ -67,11 +67,12 @@ class GPMSApplication(
 
             log.warn(
                 "\n----------------------------------------------------------\n\t" +
-                        "Application '{}' is running! Access URLs:\n\t" +
+                        "Application '{} Version {}' is running! Access URLs:\n\t" +
                         "Local: \t\t{}://localhost:{}\n\t" +
                         "External: \t{}://{}:{}\n\t" +
                         "Profile(s): \t{}\n----------------------------------------------------------",
                 env.getProperty("spring.application.name"),
+                env.getProperty("spring.application.version"),
                 protocol,
                 env.getProperty("server.port"),
                 protocol,

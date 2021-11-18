@@ -6,6 +6,7 @@ import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.enums.*
 import java.io.Serializable
 import java.time.LocalDateTime
+import javax.persistence.Column
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 import javax.validation.constraints.NotNull
@@ -23,6 +24,9 @@ data class DiscountClassDTO(
     @get: NotNull
     @Enumerated(EnumType.STRING)
     var discountApplyType: DiscountApplyType? = DiscountApplyType.TIME,
+
+    @Enumerated(EnumType.STRING)
+    var discountApplyRate: DiscountApplyRateType? = DiscountApplyRateType.VARIABLE,
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
@@ -54,6 +58,10 @@ data class DiscountClassDTO(
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var expireDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59"),
 
+    var rcsUse: Boolean? = null,
+
+    var orderNo: Int? = null,
+
     @get: NotNull
     @Enumerated(EnumType.STRING)
     var delYn: DelYn? = null,
@@ -61,9 +69,9 @@ data class DiscountClassDTO(
     constructor(discountClass: DiscountClass) :
         this(
             discountClass.sn, discountClass.discountType, discountClass.discountNm, discountClass.discountApplyType,
-            discountClass.timeTarget, discountClass.dayRange, discountClass.timeRange, discountClass.unitTime,
-            discountClass.disUse, discountClass.disMaxNo, discountClass.disMaxDay, discountClass.disMaxMonth,
-            discountClass.disPrice, discountClass.effectDate, discountClass.expireDate, discountClass.delYn
+            discountClass.discountApplyRate, discountClass.timeTarget, discountClass.dayRange, discountClass.timeRange,
+            discountClass.unitTime, discountClass.disUse, discountClass.disMaxNo, discountClass.disMaxDay, discountClass.disMaxMonth,
+            discountClass.disPrice, discountClass.effectDate, discountClass.expireDate, discountClass.rcsUse, discountClass.orderNo, discountClass.delYn
         )
 
     override fun equals(other: Any?): Boolean {

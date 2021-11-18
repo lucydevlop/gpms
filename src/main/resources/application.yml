@@ -1,6 +1,9 @@
 spring:
   profiles:
     active: local
+  application:
+    name: GPMS
+    version: "v1.0.1"
   jackson:
     serialization:
       write_dates_as_timestamps: false

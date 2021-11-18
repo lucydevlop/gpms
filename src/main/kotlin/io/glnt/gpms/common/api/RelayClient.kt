@@ -67,18 +67,28 @@ class RelayClient (
         }
     }
 
-    fun sendPayStation(gateId: String, type: String, requestId: String, data: Any) {
-        logger.trace { "정산기 메세지 $gateId $type $requestId $data " }
-        getFacilityByGateId(gateId, FacilityCategoryType.PAYSTATION)?.let { facilityDTOs ->
-            facilityDTOs.forEach { facilityDTO ->
-                restAPIManager.sendPostRequest(
-                    getUrl(gateId)+"/parkinglot/paystation",
-                    reqPaystation(
-                        dtFacilityId = facilityDTO.dtFacilitiesId ?: "",
-                        data = setPaystationRequest(type, requestId, data))
-                )
+    fun sendPayStation(gateId: String, type: String, requestId: String, data: Any, dtFacilityId: String? = null) {
+        logger.warn { "정산기 메세지 $gateId $type $requestId $data " }
+        if (dtFacilityId.isNullOrEmpty()) {
+            getFacilityByGateId(gateId, FacilityCategoryType.PAYSTATION)?.let { facilityDTOs ->
+                facilityDTOs.forEach { facilityDTO ->
+                    restAPIManager.sendPostRequest(
+                        getUrl(gateId)+"/parkinglot/paystation",
+                        reqPaystation(
+                            dtFacilityId = facilityDTO.dtFacilitiesId ?: "",
+                            data = setPaystationRequest(type, requestId, data))
+                    )
+                }
             }
+        } else {
+            restAPIManager.sendPostRequest(
+                getUrl(gateId)+"/parkinglot/paystation",
+                reqPaystation(
+                    dtFacilityId = dtFacilityId,
+                    data = setPaystationRequest(type, requestId, data))
+            )
         }
+
     }
 
     private fun getGate(gateId: String) : GateDTO? {

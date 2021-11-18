@@ -8,20 +8,30 @@ import io.glnt.gpms.handler.user.model.reqLogin
 import io.glnt.gpms.handler.user.model.reqRegister
 import io.glnt.gpms.handler.user.model.reqUserRegister
 import io.glnt.gpms.handler.user.service.AuthService
+import io.glnt.gpms.model.dto.ChangePasswordDTO
+import io.glnt.gpms.model.dto.SiteUserDTO
+import io.glnt.gpms.service.SiteUserService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDateTime
 import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping(path=["/${ApiConfig.API_VERSION}/auth"])
 @CrossOrigin(origins = arrayOf("*"), allowedHeaders = arrayOf("*"))
-class AuthController {
+class AuthController(
+    private val siteUserService: SiteUserService
+) {
 
     @Autowired
     private lateinit var authService: AuthService
+
+    @Autowired
+    private lateinit var passwordEncoder: PasswordEncoder
 
     @RequestMapping(value = ["/admin/login"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
@@ -109,6 +119,35 @@ class AuthController {
         }
     }
 
+    @RequestMapping(value = ["/change/password"], method = [RequestMethod.POST])
+    @Throws(CustomException::class)
+    fun changePassword(@RequestBody request: ChangePasswordDTO): ResponseEntity<CommonResult> {
+        logger.debug { "change password ${request.idx} " }
+        if (request.idx == null) {
+            throw CustomException(
+                "change password not found idx",
+                ResultCode.FAILED
+            )
+        }
+
+        siteUserService.findByIdx(request.idx?: -1).orElse(null)?.let { user ->
+            if (!isPasswordMatches(user, request.password?: "")) {
+                throw CustomException(
+                    "password is not match",
+                    ResultCode.FAILED
+                )
+            }
+            user.passwordDate = LocalDateTime.now()
+            user.password = passwordEncoder.encode(request.newPassword)
+            return CommonResult.returnResult(CommonResult.data(siteUserService.save(user)))
+        }?: run {
+            throw CustomException(
+                "change password user not found idx ${request.idx}",
+                ResultCode.FAILED
+            )
+        }
+    }
+
 //    @RequestMapping(value = ["/user/id"], method = [RequestMethod.POST])
 //    @Throws(CustomException::class)
 //    fun generateUserId() : ResponseEntity<CommonResult> {
@@ -123,6 +162,10 @@ class AuthController {
 //
 //        }
 //    }
+
+    private fun isPasswordMatches(siteUser: SiteUserDTO, currentPassword: String): Boolean {
+        return passwordEncoder.matches(currentPassword, siteUser.password)
+    }
 
     companion object : KLogging()
 }

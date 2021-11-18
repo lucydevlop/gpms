@@ -11,11 +11,6 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
 @Repository
-interface HolidayRepository: JpaRepository<Holiday, Long> {
-    fun findByHolidateAndDelYn(date: LocalDate, delYn: DelYn): Holiday?
-}
-
-@Repository
 interface FarePolicyRepository: JpaRepository<FarePolicy, Long> {
     fun findByFareNameAndVehicleTypeAndDelYn(fareName: String, vehicleType: VehicleType, delYn: DelYn): List<FarePolicy>?
     fun findByDelYn(delYn: DelYn): List<FarePolicy>?

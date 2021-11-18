@@ -20,9 +20,12 @@ class DiscountClassMapper {
                     discountType = dto.discountType,
                     discountNm = dto.discountNm!!,
                     discountApplyType = dto.discountApplyType,
+                    discountApplyRate = dto.discountApplyRate,
                     unitTime = dto.unitTime,
                     effectDate = dto.effectDate,
                     expireDate = dto.expireDate,
+                    rcsUse = dto.rcsUse,
+                    orderNo = dto.orderNo,
                     delYn = dto.delYn
                 )
             }

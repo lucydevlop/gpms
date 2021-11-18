@@ -1,4 +1,4 @@
-package io.glnt.gpms.model.dto
+package io.glnt.gpms.model.criteria
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.enums.DelYn

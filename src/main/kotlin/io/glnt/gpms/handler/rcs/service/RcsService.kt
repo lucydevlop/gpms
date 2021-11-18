@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.JsonNode
 import io.glnt.gpms.common.api.CommonResult
+import io.glnt.gpms.common.api.RcsClient
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
@@ -17,6 +18,7 @@ import io.glnt.gpms.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.rcs.model.*
+import io.glnt.gpms.common.api.ResetClient
 import io.glnt.gpms.service.RelayService
 import io.glnt.gpms.model.dto.FacilityDTO
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
@@ -44,7 +46,9 @@ class RcsService(
     private var productService: ProductService,
     private var discountService: DiscountService,
     private var corpService: CorpService,
-    private var parkSiteInfoService: ParkSiteInfoService
+    private var parkSiteInfoService: ParkSiteInfoService,
+    private var rcsClient: RcsClient,
+    private var resetClient: ResetClient
 ) {
     companion object : KLogging()
 
@@ -129,7 +133,7 @@ class RcsService(
 
     fun asyncFacilitiesHealth(request: List<FacilityDTO>) {
         try {
-            logger.info { "Async facilities health $request"  }
+            logger.debug { "Async facilities health $request"  }
 
             val parkSite = parkSiteInfoService.parkSite
 
@@ -141,18 +145,7 @@ class RcsService(
                     healthDateTime = it.healthDate?.let { DateUtil.formatDateTime(it) }
                 ))
             }
-
-            when (parkSite?.externalSvr) {
-                ExternalSvrType.GLNT -> {
-                    restAPIManager.sendPatchRequest(
-                        glntUrl+"/parkinglots/"+parkSite.rcsParkId!!+"/facilities",
-                        result
-                    )
-                }
-                else -> {
-                    logger.error { "RCS 연계 코드 오류" }
-                }
-            }
+            rcsClient.asyncFacilitiesHealth(result, parkSite?.externalSvr?: ExternalSvrType.NONE, parkSite?.rcsParkId?: -1)
         }catch (e: RuntimeException) {
             logger.error { "RCS Async facilities health $request $e" }
         }
@@ -187,7 +180,7 @@ class RcsService(
     fun facilityAction(facilityId: String, status: String): CommonResult {
         try {
             logger.warn { "RCS 설비 동작 요청 $facilityId status $status" }
-            var action = when(status) {
+            val action = when(status) {
                 "UP" -> "open"
                 "DOWN" -> "close"
                 "UPLOCK" -> "uplock"
@@ -199,18 +192,18 @@ class RcsService(
                 "RESET" -> {
                     parkinglotService.getFacilityByDtFacilityId(facilityId)?.let { facility ->
                         facility.resetPort?.let { it ->
-                            var port = it.toInt()-1
+                            val port = it.toInt()-1
                             if (port < 0) return CommonResult.error("Reset Action failed")
                             parkinglotService.getGate(facility.gateId)?.let { gate ->
                                 val url = gate.resetSvr+port
-                                restAPIManager.sendResetGetRequest(url).let { response ->
+                                resetClient.sendReset(url).let { response ->
                                     singleTimer()
-                                    logger.info { "reset response ${response!!.status} ${response.body.toString()}" }
+                                    logger.warn { "RESET $facilityId response ${response!!.status} ${response.body.toString()}" }
                                     if (response!!.status == HttpStatus.SC_OK) {
                                         Observable.timer(2, TimeUnit.SECONDS).subscribe {
-                                            logger.info { "reset one more ${url}" }
-                                            restAPIManager.sendResetGetRequest(url).let { reResponse ->
-                                                logger.info { "reset re response ${reResponse!!.status} ${response.body.toString()}" }
+                                            logger.info { "reset one more $url" }
+                                            resetClient.sendReset(url).let { reResponse ->
+                                                logger.warn { "RESET $facilityId response ${reResponse!!.status} ${reResponse.body.toString()}" }
                                             }
                                         }
 
@@ -235,6 +228,15 @@ class RcsService(
         }catch (e: CustomException){
             logger.error { "rcs getInouts failed $e" }
             return CommonResult.error("Admin getInouts failed")
+        }
+    }
+
+    fun getInout(sn: Long) : CommonResult {
+        try {
+            return CommonResult.data(inoutService.getInout(sn))
+        }catch (e: CustomException){
+            logger.error { "rcs getInout failed $e" }
+            return CommonResult.error("Admin getInout failed")
         }
     }
 
@@ -264,6 +266,16 @@ class RcsService(
             return CommonResult.data(inoutService.updateInout(request))
         }catch (e: CustomException){
             logger.error { "rcs updateInout failed $e" }
+            return CommonResult.error("rcs updateInout failed ${e.message}")
+        }
+    }
+
+    @Throws(CustomException::class)
+    fun forcedExit(sn: Long) : CommonResult {
+        try {
+            return inoutService.deleteInout(sn)
+        } catch(e: CustomException){
+            logger.error { "rcs forcedExit failed $e" }
             return CommonResult.error("rcs updateInout failed ${e.message}")
         }
     }
@@ -301,7 +313,7 @@ class RcsService(
     @Throws(CustomException::class)
     fun getDiscountClasses(): CommonResult {
         try {
-            return CommonResult.data(discountService.getDiscountClass()!!.filter { it.delYn == DelYn.N })
+            return CommonResult.data(discountService.getDiscountClass()!!.filter { it.delYn == DelYn.N && it.rcsUse == true })
         }catch (e: CustomException) {
             logger.error { "rcs getTickets failed $e" }
             return CommonResult.error("rcs getTickets failed")
@@ -322,9 +334,9 @@ class RcsService(
     fun asyncCallVoip(voipId: String): CommonResult {
         try {
             val parkSite = parkSiteInfoService.parkSite
-            restAPIManager.sendGetRequest(
-                glntUrl + "/parkinglots/" + parkSite?.rcsParkId!! + "/call/" + voipId
-            )
+            val url = glntUrl + "/parkinglots/" + parkSite?.rcsParkId!! + "/call/" + voipId
+            logger.warn { "callVoip $url" }
+            restAPIManager.sendGetRequest(url)
             return CommonResult.data()
         }catch (e: CustomException) {
             logger.error { "rcs asyncCallVoip failed $voipId $e" }

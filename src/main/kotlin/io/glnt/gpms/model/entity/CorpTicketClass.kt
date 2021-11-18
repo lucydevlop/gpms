@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.common.utils.DateUtil
-import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.OnOff
-import io.glnt.gpms.model.enums.SaleType
-import io.glnt.gpms.model.enums.Yn
+import io.glnt.gpms.model.enums.*
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.springframework.format.annotation.DateTimeFormat
@@ -64,8 +61,15 @@ data class CorpTicketClass (
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn")
-    var delYn: DelYn? = null
-): Auditable(), Serializable {
+    var delYn: DelYn? = null,
+
+    @Enumerated(EnumType.STRING)
+    var applyTarget: DiscountApplyTargetType? = null,
+
+    @Enumerated(EnumType.STRING)
+    var applyType: DiscountRangeType? = null,
+
+    ): Auditable(), Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

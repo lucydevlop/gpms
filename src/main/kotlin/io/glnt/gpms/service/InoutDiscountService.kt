@@ -3,6 +3,7 @@ package io.glnt.gpms.service
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.dto.CorpTicketClassDTO
 import io.glnt.gpms.model.dto.DiscountClassDTO
+import io.glnt.gpms.model.entity.InoutDiscount
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.repository.InoutDiscountRepository
 import mu.KLogging
@@ -35,5 +36,10 @@ class InoutDiscountService(
         }
 
         return result.minOrNull()?.toInt()
+    }
+
+    fun completeCalc(inoutDiscount: InoutDiscount): InoutDiscount {
+        inoutDiscount.calcYn = DelYn.Y
+        return inoutDiscountRepository.saveAndFlush(inoutDiscount)
     }
 }

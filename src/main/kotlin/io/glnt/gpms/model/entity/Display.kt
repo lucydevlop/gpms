@@ -2,6 +2,7 @@ package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayMessageType
 import io.glnt.gpms.model.enums.DisplayStatus
@@ -61,7 +62,12 @@ data class DisplayMessage(
     var colorCode: String,
 
     @Column(name = "message_desc")
-    var messageDesc: String
+    var messageDesc: String,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "del_yn", nullable = false)
+    var delYn: DelYn? = DelYn.N
+
 
 ): Auditable(), Serializable {
 

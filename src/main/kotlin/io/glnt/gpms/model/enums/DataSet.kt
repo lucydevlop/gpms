@@ -13,7 +13,7 @@ enum class Yn {
 }
 
 enum class GateTypeStatus {
-    IN, OUT, IN_OUT
+    IN, OUT, IN_OUT, ETC
 }
 
 enum class LprTypeStatus {
@@ -25,11 +25,15 @@ enum class OnOff {
 }
 
 enum class ResultType {
-    SUCCESS, FAILURE
+    SUCCESS, FAILURE, WAIT, ERROR
 }
 
 enum class FacilityCategoryType {
     LPR, BREAKER, DISPLAY, PAYSTATION, VOIP
+}
+
+enum class DiscountApplyTargetType {
+    IN, NOW
 }
 
 enum class DisplayMessageClass(val code: String, val desc: String) {
@@ -47,7 +51,8 @@ enum class DisplayMessageType(val code: String, val desc: String) {
     FAIL("FAIL", "실패"),
     FAILNUMBER("FAILNUMBER", "미인식차량"),
     RESTRICTE("RESTRICTE", "입차제한차량"),
-    FULL("FULL", "만차제한")
+    FULL("FULL", "만차제한"),
+    ERROR("ERROR", "시설물에러")
 }
 
 enum class DisplayMessageCode(val code: String, val desc: String) {
@@ -114,7 +119,7 @@ enum class FareType(val code: String, val desc: String) {
 }
 
 enum class HolidayType(val code: String, val desc: String) {
-    HOLIDAY("HOLIDAY", "공휴일"),
+    HOLIDAY("HOLIDAY", "휴일"),
     SPECIALDAY("SPECIALDAY", "특근일"),
     ETC("ETC", "기타")
 }
@@ -127,13 +132,18 @@ enum class TimeTarget(val code: String, val desc: String) {
 enum class OpenActionType(val code: String, val desc: String) {
     NONE("NONE", "제한없음"),
     RECOGNITION("RECOGNITION", "인식"),
-    RESTRICT("RESTRICT", "제한")
+    RESTRICT("RESTRICT", "제한"),
+    MULTI("MULTI", "복합")
 }
 
 enum class DiscountApplyType(val code: String, val desc: String) {
     TIME("TIME", "시간"),
     WON("WON", "금액"),
     PERCENT("PERCENT", "%")
+}
+
+enum class DiscountApplyRateType {
+    FIX, VARIABLE
 }
 
 enum class DiscountType {
@@ -188,8 +198,10 @@ enum class VisitorExternalKeyType {
     APTNER
 }
 
-enum class OperatingDayType {
+enum class OperatingDayType {}
 
+enum class DiscountApplyCriteriaType {
+    FRONT, BACK
 }
 //enum class parkCarType {
 //    "일반차량", "정기권차량", "미인식차량"
