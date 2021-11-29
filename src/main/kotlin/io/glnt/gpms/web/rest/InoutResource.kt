@@ -260,7 +260,7 @@ class InoutResource (
             //유료 주차장인 경우 요금 계산
             if (parkIn!= null && parkinglotService.isPaid() && requestParkOutDTO.parkCarType != "UNRECOGNIZED") {
                 // 사전 정산 시 inout-payment 데이터 확인 후 legTime 이후 out_date 이면 시간만큼 요금 계산
-                val prePayments = inoutPaymentService.findByInSn(parkIn.sn ?: -1)
+                val prePayments = inoutPaymentService.findByInSnAndResult(parkIn.sn ?: -1, ResultType.SUCCESS)
 
                 if (prePayments.isNullOrEmpty()) {
                     price = inoutService.calcParkFee("OUT", parkIn.inDate!!, requestParkOutDTO.date!!, VehicleType.SMALL, requestParkOutDTO.vehicleNo ?: "", parkIn.sn ?: -1)

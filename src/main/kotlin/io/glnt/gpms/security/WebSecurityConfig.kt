@@ -91,8 +91,8 @@ class SecurityConfiguration {
         @Throws(Exception::class)
         override fun configure(http: HttpSecurity) {
             http
-                .antMatcher("/$API_VERSION/external/**")
-                .antMatcher("/$API_VERSION/rcs/**")
+                .antMatcher("/$API_VERSION/**")
+                //.antMatcher("/$API_VERSION/rcs/**")
                 .exceptionHandling()
                 .authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 .and()

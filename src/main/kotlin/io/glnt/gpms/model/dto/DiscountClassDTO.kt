@@ -56,7 +56,7 @@ data class DiscountClassDTO(
     var effectDate: LocalDateTime? = DateUtil.stringToLocalDateTime(DateUtil.nowDateTime, "yyyy-MM-dd HH:mm:ss"),
 
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    var expireDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59"),
+    var expireDate: LocalDateTime? = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59", "yyyy-MM-dd HH:mm:ss"),
 
     var rcsUse: Boolean? = null,
 

@@ -803,8 +803,8 @@ class InoutService(
                         fromDate = request.fromDate,
                         toDate = request.toDate,
                         gateId = request.gateId,
-                        parkcartype = request.parkcartype
-
+                        parkcartype = request.parkcartype,
+                        outSn = request.outSn
                     )
                     parkInQueryService.findByCriteria(criteria).let { list ->
                         list.forEach { it ->
@@ -1554,7 +1554,7 @@ class InoutService(
 
         // parkIn update
         parkIn?.let { it ->
-            inoutPaymentService.findByInSn(it.sn ?: -1)?.let { payments ->
+            inoutPaymentService.findByInSnAndResult(it.sn ?: -1, ResultType.SUCCESS)?.let { payments ->
                 payments.forEach { payment ->
                     updateInoutPaymentExitComplete(payment, parkOutSn)
                 }
@@ -1575,6 +1575,9 @@ class InoutService(
     fun waitFacilityIF(type: String, parkCarType: String, vehicleNo: String, gate: Gate, parkOutDTO: ParkOutDTO, inDate: LocalDateTime, dtFacilityId: String? = null) {
         // 결제금액 전광판
         val payFee = if (type == "PAYMENT") parkOutDTO.originPayFee?: 0 else parkOutDTO.payfee?: 0
+        val discount = if (type == "PAYMENT") parkOutDTO.originDiscountFee?: 0 else parkOutDTO.discountfee?: 0
+        val dayDiscount = if (type == "PAYMENT") parkOutDTO.originDayDiscountFee?: 0 else parkOutDTO.dayDiscountfee?: 0
+        val totalDiscount = discount.plus(dayDiscount)
 
         // 결제 금액 DB 먼저 적제
         parkOutDTO.inSn?.let {
@@ -1582,15 +1585,24 @@ class InoutService(
             discountService.applyInoutDiscount(it)
             // 결제 금액 저장
             // 사전 정산시 결제금액이 0원이어도 저장, 정상 출차 시에는 skip
+            // 기존 정산 데이터가 있을 때 update 진행
+            val inSn = inoutPaymentService.findByInSnAndResult(it, ResultType.WAIT)?.let { list ->
+                if (list.isEmpty())
+                    null
+                else {
+                    list.sortedByDescending { it.createDate }[0].sn
+                }
+            }?: kotlin.run { null }
+
             var inoutPayment = InoutPaymentDTO(
-                                    sn = null,
+                                    sn = inSn,
                                     inSn = it,
                                     vehicleNo = vehicleNo,
                                     type = type,
                                     parkTime = if (type == "PAYMENT") parkOutDTO.originParkTime else parkOutDTO.parktime,
                                     parkFee = if (type == "PAYMENT") parkOutDTO.originParkFee else parkOutDTO.parkfee,
-                                    discount = if (type == "PAYMENT") parkOutDTO.originDiscountFee else parkOutDTO.discountfee,
-                                    dayDiscount = if (type == "PAYMENT") parkOutDTO.originDayDiscountFee else parkOutDTO.dayDiscountfee,
+                                    discount = discount,
+                                    dayDiscount = dayDiscount,
                                     amount = payFee,
                                     approveDateTime = DateUtil.stringToNowDateTime(),
                                     outSn = parkOutDTO.sn )
@@ -1619,7 +1631,7 @@ class InoutService(
                             recognitionResult = "RECOGNITION",
                             paymentAmount = (inoutPayment.parkFee?: 0).toString(),
                             parktime = parkOutDTO.parktime.toString(),
-                            parkTicketMoney = inoutPayment.discount?.plus(inoutPayment.dayDiscount?: 0).toString(),  // 할인요금
+                            parkTicketMoney = totalDiscount.toString(),  // 할인요금
                             vehicleIntime = DateUtil.formatDateTime(inDate, "yyyy-MM-dd HH:mm")
                         ),
                         dtFacilityId = dtFacilityId

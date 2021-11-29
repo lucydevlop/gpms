@@ -652,7 +652,19 @@ class FeeCalculation(
 
         //할인권 제외
         if (inSn != null) {
-            discountClasses?.let { discounts ->
+            //이전 등록 할인권과 merge
+            var discountItmes = ArrayList<ReqAddParkingDiscount>()
+            discountService.searchInoutDiscount(inSn)?.let { discounts ->
+                discounts.forEach { discount ->
+                    discountItmes.add(ReqAddParkingDiscount(inSn = discount.inSn, discountClassSn = discount.discountClassSn, cnt = discount.quantity?: 0))
+                }
+            }
+
+            discountClasses?.forEach { discount ->
+                discountItmes.add(ReqAddParkingDiscount(inSn = discount.inSn, discountClassSn = discount.discountClassSn, cnt = discount.cnt?: 0))
+            }
+
+            discountItmes.let { discounts ->
                 discounts.forEach { discount ->
                     val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
                     var discountTime = discountClass.unitTime * discount.cnt
@@ -682,8 +694,8 @@ class FeeCalculation(
                             }
                         }
                     }
-//                    discount.calcYn = DelYn.Y
-//                    discountService.saveInoutDiscount(discount)
+        //                    discount.calcYn = DelYn.Y
+        //                    discountService.saveInoutDiscount(discount)
                 }
             }
         }

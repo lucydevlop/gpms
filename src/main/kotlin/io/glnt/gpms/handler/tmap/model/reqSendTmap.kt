@@ -85,9 +85,10 @@ data class reqAdjustmentRequest(
 )
 
 data class reqDiscountTicket(
-    var parkTicketNumber: String,
+    var parkTicketNumber: String? = null,
     var paymentMachineType: String,
-    var vehicleNumber: String
+    var vehicleNumber: String,
+    var barcode: String? = null
 )
 
 data class reqSendResultResponse(
