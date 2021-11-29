@@ -29,9 +29,9 @@ class InoutPaymentService (
     }
 
     @Transactional(readOnly = true)
-    fun findByInSn(sn: Long): List<InoutPaymentDTO>? {
+    fun findByInSnAndResult(sn: Long, result: ResultType): List<InoutPaymentDTO>? {
         logger.debug { "Request to get InoutPayment $sn" }
-        return inoutPaymentRepository.findByInSnAndResultAndDelYn(sn, ResultType.SUCCESS, DelYn.N)?.map(inoutPaymentMapper::toDTO)
+        return inoutPaymentRepository.findByInSnAndResultAndDelYn(sn, result, DelYn.N)?.map(inoutPaymentMapper::toDTO)
     }
 
     fun save(inoutPaymentDTO: InoutPaymentDTO) : InoutPaymentDTO {

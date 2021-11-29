@@ -78,7 +78,8 @@ data class reqSearchParkin(
 //    var pageSize: Long? = 10,
 //    var page: Int? = 1,
     var gateId: String? = null,
-    var parkcartype: String? = null
+    var parkcartype: String? = null,
+    var outSn: Long? = null
 )
 
 data class reqUpdatePayment(

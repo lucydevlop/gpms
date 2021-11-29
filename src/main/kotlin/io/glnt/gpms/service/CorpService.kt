@@ -73,15 +73,16 @@ class CorpService(
             corp.corpId = siteId+"_"+ format("%05d", corp.sn!!)
             corpRepository.save(corp)
         }
-        if (corpDTO.password != null && corpDTO.password != "" && corpDTO.password != " ") {
-            val storeList = userRepository.findUsersByRole(UserRole.STORE);
-            val siteUser = storeList!!.filter {
-                it.id.equals(corpDTO.corpId)
-            }[0]
-            siteUser.password = passwordEncoder.encode(corpDTO.password!!)
+
+        // 사용자 정보도 update 해줌
+        userRepository.findUsersById(corpDTO.corpId?: "")?.let { siteUser ->
+            siteUser.delYn = corpDTO.delYn
+
+            if (corpDTO.password != null && corpDTO.password != "" && corpDTO.password != " ") {
+                siteUser.password = passwordEncoder.encode(corpDTO.password!!)
+            }
             userRepository.save(siteUser)
         }
-
 
         return corpMapper.toDTO(corp)
     }

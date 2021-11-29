@@ -5,6 +5,7 @@ import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.PayType
 import io.glnt.gpms.model.enums.ResultType
 import java.io.Serializable
+import java.time.LocalDateTime
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 import javax.validation.constraints.NotNull
@@ -51,6 +52,8 @@ data class InoutPaymentDTO(
 
     var outSn: Long? = null,
 
+    var createDate: LocalDateTime? = null,
+
     var parkInDTO: ParkInDTO? = null
 ): Serializable {
     constructor(inoutPayment: InoutPayment):
@@ -72,6 +75,7 @@ data class InoutPaymentDTO(
             result = inoutPayment.result,
             failureMessage = inoutPayment.failureMessage,
             delYn = inoutPayment.delYn,
-            outSn = inoutPayment.outSn
+            outSn = inoutPayment.outSn,
+            createDate = inoutPayment.createDate
         )
 }

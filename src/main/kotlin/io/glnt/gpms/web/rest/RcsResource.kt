@@ -2,18 +2,19 @@ package io.glnt.gpms.web.rest
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.configs.ApiConfig.API_VERSION
-import io.glnt.gpms.service.FacilityService
+import io.glnt.gpms.handler.calc.service.FareRefService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.model.criteria.CorpCriteria
+import io.glnt.gpms.model.dto.rcs.RcsProductsDTO
+import io.glnt.gpms.model.dto.rcs.RcsRateInfoDTO
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.enums.DateType
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DisplayMessageClass
-import io.glnt.gpms.service.CorpQueryService
-import io.glnt.gpms.service.TicketClassService
+import io.glnt.gpms.service.*
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
@@ -29,7 +30,9 @@ class RcsResource(
     private val facilityService: FacilityService,
     private val ticketClassService: TicketClassService,
     private val corpQueryService: CorpQueryService,
-    private val inoutResource: InoutResource
+    private val inoutResource: InoutResource,
+    private val corpTicketClassService: CorpTicketClassService,
+    private val fareService: FareService
 ) {
 
     @RequestMapping(value=["/check/alive"], method = [RequestMethod.GET])
@@ -52,7 +55,8 @@ class RcsResource(
                   @RequestParam(name = "endDate", required = false) endDate: String,
                   @RequestParam(name = "searchDateLabel", required = false) searchDateLabel: DisplayMessageClass,
                   @RequestParam(name = "vehicleNo", required = false) vehicleNo: String? = null,
-                  @RequestParam(name = "parkCarType", required = false) parkCarType: String? = null
+                  @RequestParam(name = "parkCarType", required = false) parkCarType: String? = null,
+                  @RequestParam(name = "outSn", required = false) outSn: Long? = null
     ) : ResponseEntity<CommonResult> {
         return CommonResult.returnResult(
             rcsService.getInouts(reqSearchParkin(searchDateLabel = searchDateLabel,
@@ -60,7 +64,8 @@ class RcsResource(
                 toDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                 searchLabel = vehicleNo?.let { "CARNUM" },
                 searchText = vehicleNo,
-                parkcartype = parkCarType
+                parkcartype = parkCarType,
+                outSn = outSn
             )))
     }
 
@@ -141,5 +146,18 @@ class RcsResource(
         return CommonResult.returnResult(CommonResult.data(corpQueryService.findByCriteria(criteria)))
     }
 
+    @RequestMapping(value=["/products"], method = [RequestMethod.GET])
+    fun getProducts(): ResponseEntity<CommonResult> {
+        val ticketClasses = ticketClassService.findAll()
+        val corpTicketClasses = corpTicketClassService.findAll()
+        return CommonResult.returnResult(CommonResult.data(RcsProductsDTO(ticketClasses = ticketClasses, corpTicketClasses = corpTicketClasses)))
+    }
+
+    @RequestMapping(value=["/fee"], method = [RequestMethod.GET])
+    fun getFeeInfo(): ResponseEntity<CommonResult> {
+        val fareBasic = fareService.findFareBasic()
+        val farePolicies = fareService.findFarePolicies()
+        return CommonResult.returnResult(CommonResult.data(RcsRateInfoDTO(fareBasic = fareBasic, farePolicies = farePolicies)))
+    }
 
 }
