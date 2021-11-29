@@ -67,7 +67,10 @@ class CorpResource (
     @RequestMapping(value = ["/corps/{sn}/{inSn}/able/ticket"], method = [RequestMethod.GET])
     fun getCorpAbleTickets(@PathVariable sn: Long, @PathVariable inSn: String): ResponseEntity<CommonResult> {
         logger.debug { "store fetch able ticket" }
-        val tickets = corpService.getCorpTicketsByCorpSn(sn).filter { t -> t.delYn == DelYn.N }
+        val tickets = corpService.getCorpTicketsByCorpSn(sn)
+            .filter { t ->
+                t.delYn == DelYn.N && t.corpTicketClass?.discountClass?.delYn == DelYn.N
+            }
         if (inSn == "ALL") {
             tickets.forEach{ ticket ->
                 ticket.todayUse = discountService.getTodayUseDiscountTicket(sn, ticket.corpTicketClass!!.sn!!)

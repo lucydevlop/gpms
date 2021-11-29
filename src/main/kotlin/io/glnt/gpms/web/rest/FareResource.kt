@@ -72,7 +72,4 @@ class FareResource (
         return CommonResult.returnResult(CommonResult.data(fareService.saveFareInfo(fareInfoDTO)))
     }
 
-
-
-
 }

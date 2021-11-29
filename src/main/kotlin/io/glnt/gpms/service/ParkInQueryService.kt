@@ -76,7 +76,7 @@ class ParkInQueryService(
 
                 if (criteria.outSn != null) {
                     clues.add(
-                        criteriaBuilder.equal((root.get<String>("outSn")), criteria.outSn)
+                        criteriaBuilder.notEqual((root.get<String>("outSn")), criteria.outSn)
                     )
                 }
 

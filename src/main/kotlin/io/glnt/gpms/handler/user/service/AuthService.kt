@@ -114,7 +114,7 @@ class AuthService(
 
             SecurityContextHolder.getContext().authentication = authentication
 
-            val admin = searchUserId(id) ?: return CommonResult.notfound("User not found")
+            val admin = userRepository.findUsersByIdAndDelYn(id, DelYn.N) ?: return CommonResult.notfound("User not found")
 
             if (!isAdmin(admin.role!!)) {
                 return CommonResult.unauthorized()
@@ -174,7 +174,7 @@ class AuthService(
 
             SecurityContextHolder.getContext().authentication = authentication
 
-            val user = searchUserId(id) ?: return CommonResult.notfound("User not found")
+            val user = userRepository.findUsersByIdAndDelYn(id, DelYn.N) ?: return CommonResult.notfound("User not found")
 
             if (isAdmin(user.role!!) || (user.corpSn == null || user.corpSn!! < 1)) {
                 return CommonResult.unauthorized()

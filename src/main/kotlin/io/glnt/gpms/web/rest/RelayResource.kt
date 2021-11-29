@@ -19,6 +19,7 @@ import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
 import io.glnt.gpms.handler.tmap.model.reqAdjustmentRequest
 import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
 import io.glnt.gpms.model.dto.*
+import io.glnt.gpms.model.entity.Failure
 import io.glnt.gpms.model.entity.InoutPayment
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.mapper.ParkInMapper
@@ -112,7 +113,7 @@ class RelayResource (
                     var prePrice: BasicPrice? = null
                     if ( parkinglotService.isPaid()) {
                         // 사전 정산 시 inout-payment 데이터 확인 후 legTime 이후 out_date 이면 시간만큼 요금 계산
-                        val prePayments = inoutPaymentService.findByInSn(parkInDTO.sn ?: -1)
+                        val prePayments = inoutPaymentService.findByInSnAndResult(parkInDTO.sn ?: -1, ResultType.SUCCESS)
 
                         if (prePayments.isNullOrEmpty()) {
                             price = inoutService.calcParkFee("OUT", parkInDTO.inDate!!, LocalDateTime.now(), VehicleType.SMALL, parkInDTO.vehicleNo ?: "", parkInDTO.sn ?: -1)
@@ -167,6 +168,20 @@ class RelayResource (
         val sn = (request.requestId ?: "-1").toLong() // inoutPayment sn
 
         parkinglotService.getGateInfoByDtFacilityId(dtFacilityId )?.let { gate ->
+            // 결제 완료 정보가 ERROR 인 경우 장애 등록 처리
+            if (contents.result == ResultType.ERROR) {
+                parkinglotService.getFacilityByDtFacilityId(dtFacilityId)?.let { facility ->
+                    relayService.saveFailure(
+                        Failure(sn = null,
+                            issueDateTime = LocalDateTime.now(),
+                            facilitiesId = facility.dtFacilitiesId,
+                            fName = facility.fname,
+                            failureCode = "paymentFailure",
+                            failureType = "ERROR")
+                    )
+                }
+            }
+
             if (gate.gateType == GateTypeStatus.ETC) {
                 logger.warn { "사전 정산 완료 $dtFacilityId ${contents.vehicleNumber} " }
                 inoutService.savePayment(contents, sn)

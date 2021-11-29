@@ -1,11 +1,16 @@
 package io.glnt.gpms.service
 
 import io.glnt.gpms.handler.calc.service.FareRefService
+import io.glnt.gpms.model.dto.CgBasicDTO
 import io.glnt.gpms.model.dto.FareInfoDTO
 import io.glnt.gpms.model.dto.FarePolicyDTO
 import io.glnt.gpms.model.dto.GateDTO
+import io.glnt.gpms.model.entity.CgBasic
+import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.mapper.CgBasicMapper
 import io.glnt.gpms.model.mapper.FareInfoMapper
 import io.glnt.gpms.model.mapper.FarePolicyMapper
+import io.glnt.gpms.model.repository.CgBasicRepository
 import io.glnt.gpms.model.repository.FareInfoRepository
 import io.glnt.gpms.model.repository.FarePolicyRepository
 import mu.KLogging
@@ -18,7 +23,9 @@ class FareService(
     private val fareInfoMapper: FareInfoMapper,
     private val farePolicyRepository: FarePolicyRepository,
     private val fareInfoRepository: FareInfoRepository,
-    private val fareRefService: FareRefService
+    private val fareRefService: FareRefService,
+    private val fareBasicRepository: CgBasicRepository,
+    private val cgBasicMapper: CgBasicMapper
 ) {
     companion object : KLogging()
 
@@ -39,5 +46,10 @@ class FareService(
         fareInfo = fareInfoRepository.save(fareInfo!!)
         fareRefService.init()
         return fareInfoMapper.toDTO(fareInfo)
+    }
+
+    @Transactional(readOnly = true)
+    fun findFareBasic(): CgBasicDTO? {
+        return fareBasicRepository.findByDelYn(DelYn.N)?.let { cgBasicMapper.toDTO(it) }
     }
 }

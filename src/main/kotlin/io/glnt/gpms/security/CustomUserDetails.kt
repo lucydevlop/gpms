@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -21,6 +22,9 @@ class CustomUserDetails : UserDetailsService {
 
     @Autowired
     private lateinit var userRepository: UserRepository
+
+    @Autowired
+    private lateinit var passwordEncoder: PasswordEncoder
 
     @Throws(UsernameNotFoundException::class)
     override fun loadUserByUsername(username: String): UserDetails {
@@ -47,6 +51,7 @@ class CustomUserDetails : UserDetailsService {
         val decodeStr = Base64Util.decodeAsString(key)
         val str = decodeStr.split(":").toTypedArray()
         if (str.size == 0) throw UsernameNotFoundException("User not found")
+
         if ((str[0] == "api-user" || str[0] == "rcs-user") && (str[1] == ("apiuser11!!"))) {
             return UserPrincipal(
                 SiteUser(
@@ -59,8 +64,21 @@ class CustomUserDetails : UserDetailsService {
                 )
             )
         }
+        userRepository.findUsersById(str[0])?.let { siteUser ->
+            if (passwordEncoder.matches(str[0], siteUser.password)) {
+                return UserPrincipal(
+                    SiteUser(
+                        idx = 0,
+                        id = str[0],
+                        password = str[1],
+                        userName = str[0],
+                        role = UserRole.API,
+                        userPhone = "00000000"
+                    )
+                )
+            }
+        }
         logger.info{ "loadApiUser find not : " + key }
         throw UsernameNotFoundException("User not found")
     }
-
 }
