@@ -44,7 +44,7 @@ data class ParkInDTO(
     @Enumerated(EnumType.STRING)
     var delYn: DelYn? = null,
 
-    var seasonTicketDTO: ProductTicketDTO? = null,
+    var seasonTicketDTO: SeasonTicketDTO? = null,
 
     var gate: GateDTO? = null
 

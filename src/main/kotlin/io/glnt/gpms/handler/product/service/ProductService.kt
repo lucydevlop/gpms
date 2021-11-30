@@ -3,17 +3,16 @@ package io.glnt.gpms.handler.product.service
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.product.model.reqSearchProduct
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
-import io.glnt.gpms.model.entity.ProductTicket
+import io.glnt.gpms.model.entity.SeasonTicket
 import io.glnt.gpms.model.entity.TicketClass
 import io.glnt.gpms.model.enums.DateType
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountRangeType
 import io.glnt.gpms.model.enums.TicketAplyType
 import io.glnt.gpms.model.repository.CorpRepository
-import io.glnt.gpms.model.repository.ProductTicketRepository
+import io.glnt.gpms.model.repository.SeasonTicketRepository
 import io.glnt.gpms.model.repository.TicketClassRepository
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,7 +28,7 @@ class ProductService {
     companion object : KLogging()
 
     @Autowired
-    private lateinit var productTicketRepository: ProductTicketRepository
+    private lateinit var seasonTicketRepository: SeasonTicketRepository
 
     @Autowired
     private lateinit var ticketClassRepository: TicketClassRepository
@@ -37,12 +36,12 @@ class ProductService {
     @Autowired
     private lateinit var corpRepository: CorpRepository
 
-    fun getValidProductByVehicleNo(vehicleNo: String): ProductTicket? {
+    fun getValidProductByVehicleNo(vehicleNo: String): SeasonTicket? {
         return getValidProductByVehicleNo(vehicleNo, LocalDateTime.now(), LocalDateTime.now())
     }
 
-    fun getValidProductByVehicleNo(vehicleNo: String, startTime: LocalDateTime, endTime: LocalDateTime): ProductTicket? {
-        var tickets = productTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startTime, endTime, DelYn.N)
+    fun getValidProductByVehicleNo(vehicleNo: String, startTime: LocalDateTime, endTime: LocalDateTime): SeasonTicket? {
+        var tickets = seasonTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startTime, endTime, DelYn.N)
 
         if (tickets.isNullOrEmpty()) return null
 
@@ -149,7 +148,7 @@ class ProductService {
             }
         }
         try {
-            val new = ProductTicket(
+            val new = SeasonTicket(
                 sn = request.sn?.let { if (it > 0) it else null },
                 vehicleNo = request.vehicleNo,
                 delYn = DelYn.N,
@@ -170,7 +169,7 @@ class ProductService {
             )
             new.sn?.let { sn ->
                 // exists season ticket update
-                productTicketRepository.findBySn(sn)?.let { exists ->
+                seasonTicketRepository.findBySn(sn)?.let { exists ->
                     new.apply {
                         this.sn = exists.sn!!
                         this.userId = userId ?: kotlin.run { exists.userId }
@@ -183,19 +182,19 @@ class ProductService {
                 }
             }?: run {
                 //차량, 동일 일자 등록 시 update
-                productTicketRepository.findByVehicleNoAndEffectDateAndExpireDateAndTicketTypeAndDelYn(request.vehicleNo, request.effectDate, request.expireDate, request.ticketType!!, DelYn.N)?.let { ticket ->
+                seasonTicketRepository.findByVehicleNoAndEffectDateAndExpireDateAndTicketTypeAndDelYn(request.vehicleNo, request.effectDate, request.expireDate, request.ticketType!!, DelYn.N)?.let { ticket ->
                     new.sn = ticket.sn
                     saveProductTicket(new)
                     return CommonResult.data(new)
                 }
 
                 // 정기권 이력 안에 포함 시 skip
-                if (productTicketRepository.countByVehicleNoAndTicketTypeAndDelYnAndEffectDateLessThanEqualAndExpireDateGreaterThanEqual(request.vehicleNo, request.ticketType!!, DelYn.N, request.effectDate, request.expireDate) > 0) {
+                if (seasonTicketRepository.countByVehicleNoAndTicketTypeAndDelYnAndEffectDateLessThanEqualAndExpireDateGreaterThanEqual(request.vehicleNo, request.ticketType!!, DelYn.N, request.effectDate, request.expireDate) > 0) {
                     logger.warn { "product ticket exists $request" }
                     return CommonResult.data("product ticket exists")
                 }
                 // 차량, ticket list all fetch
-                productTicketRepository.findByRangedValidTickets(request.vehicleNo, request.ticketType!!.code, request.effectDate, request.expireDate)?.let { tickets ->
+                seasonTicketRepository.findByRangedValidTickets(request.vehicleNo, request.ticketType!!.code, request.effectDate, request.expireDate)?.let { tickets ->
 //                productTicketRepository.findByVehicleNoAndTicketTypeAndDelYnAndEffectDateGreaterThanAndExpireDateLessThanEqual(
 //                    request.vehicleNo, request.ticketType!!, DelYn.N, request.effectDate, request.expireDate
 //                )?.let { tickets ->
@@ -406,20 +405,20 @@ class ProductService {
     }
 
     @Transactional
-    fun saveProductTicket(data: ProductTicket) : ProductTicket {
-        return productTicketRepository.saveAndFlush(data)
+    fun saveProductTicket(data: SeasonTicket) : SeasonTicket {
+        return seasonTicketRepository.saveAndFlush(data)
     }
 
-    fun getProducts(request: reqSearchProductTicket): List<ProductTicket>? {
-        return productTicketRepository.findAll(findAllProductSpecification(request))
+    fun getProducts(request: reqSearchProductTicket): List<SeasonTicket>? {
+        return seasonTicketRepository.findAll(findAllProductSpecification(request))
     }
 
     fun deleteTicket(request: Long) : CommonResult {
         logger.info { "delete ticket : $request" }
         try {
-            productTicketRepository.findBySn(request)?.let { ticket ->
+            seasonTicketRepository.findBySn(request)?.let { ticket ->
                 ticket.delYn = DelYn.Y
-                return CommonResult.data(productTicketRepository.save(ticket))
+                return CommonResult.data(seasonTicketRepository.save(ticket))
             }
         }catch (e: CustomException) {
             logger.error { "deleteTicket error ${e.message}" }
@@ -427,8 +426,8 @@ class ProductService {
         return CommonResult.error("deleteTicket failed")
     }
 
-    private fun findAllProductSpecification(request: reqSearchProductTicket): Specification<ProductTicket> {
-        val spec = Specification<ProductTicket> { root, query, criteriaBuilder ->
+    private fun findAllProductSpecification(request: reqSearchProductTicket): Specification<SeasonTicket> {
+        val spec = Specification<SeasonTicket> { root, query, criteriaBuilder ->
             val clues = mutableListOf<Predicate>()
 
             if(request.searchLabel == "CARNUM" && request.searchText != null) {

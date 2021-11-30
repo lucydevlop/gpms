@@ -5,7 +5,6 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.product.service.ProductService
-import io.glnt.gpms.model.entity.ProductTicket
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus

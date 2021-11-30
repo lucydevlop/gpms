@@ -2,20 +2,20 @@ package io.glnt.gpms.model.mapper
 
 import io.glnt.gpms.model.dto.GateDTO
 import io.glnt.gpms.model.dto.ParkInDTO
-import io.glnt.gpms.model.dto.ProductTicketDTO
+import io.glnt.gpms.model.dto.SeasonTicketDTO
 import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.repository.GateRepository
-import io.glnt.gpms.model.repository.ProductTicketRepository
+import io.glnt.gpms.model.repository.SeasonTicketRepository
 import org.springframework.stereotype.Service
 
 @Service
 class ParkInMapper(
-    private val seasonTicketRepository: ProductTicketRepository,
+    private val seasonTicketRepository: SeasonTicketRepository,
     private val gateRepository: GateRepository
 ) {
     fun toDTO(entity: ParkIn) : ParkInDTO{
         ParkInDTO(entity).apply {
-            this.seasonTicketDTO = seasonTicketRepository.findBySn(this.ticketSn ?: 0)?.let { ProductTicketDTO(it) }
+            this.seasonTicketDTO = seasonTicketRepository.findBySn(this.ticketSn ?: 0)?.let { SeasonTicketDTO(it) }
             gateRepository.findByGateId(this.gateId!!).ifPresent {
                 this.gate = GateDTO(it)
             }

@@ -30,6 +30,7 @@ interface ParkInRepository: JpaRepository<ParkIn, Long>, JpaSpecificationExecuto
     fun findByUuidAndOutSnAndDelYn(uuid: String, outSn: Long, delYn: DelYn): List<ParkIn>?
     fun findByOutSnAndDelYn(outSn: Long, delYn: DelYn): List<ParkIn>?
     fun findByInDateBetweenAndDelYnAndOutSnGreaterThan(start: LocalDateTime, end: LocalDateTime, delYn: DelYn, outSn: Long): List<ParkIn>?
+    fun findTopByVehicleNoAndOutSnGreaterThanAndDelYnOrderByInDateDesc(vehicleNo: String, outSn: Long, delYn: DelYn): ParkIn?
 }
 
 @Repository

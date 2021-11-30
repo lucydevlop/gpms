@@ -24,7 +24,6 @@ import io.glnt.gpms.model.dto.FacilityDTO
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.dto.request.resParkInList
-import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.ExternalSvrType
 import io.glnt.gpms.service.CorpService

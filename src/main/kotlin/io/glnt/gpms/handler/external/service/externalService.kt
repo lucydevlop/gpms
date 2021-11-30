@@ -4,15 +4,11 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.exception.CustomException
 //import io.glnt.gpms.handler.corp.service.CorpService
-import io.glnt.gpms.handler.dashboard.admin.model.reqSearchCorp
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
-import io.glnt.gpms.model.entity.Corp
-import io.glnt.gpms.model.entity.ProductTicket
 import io.glnt.gpms.service.CorpService
 import mu.KLogging
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 

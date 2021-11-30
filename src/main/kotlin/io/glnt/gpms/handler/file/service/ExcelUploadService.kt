@@ -6,10 +6,8 @@ import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
 //import io.glnt.gpms.handler.corp.service.CorpService
-import io.glnt.gpms.handler.dashboard.admin.model.reqSearchCorp
 import io.glnt.gpms.handler.product.service.ProductService
-import io.glnt.gpms.model.entity.Corp
-import io.glnt.gpms.model.entity.ProductTicket
+import io.glnt.gpms.model.entity.SeasonTicket
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.TicketType
 import io.glnt.gpms.model.enums.VehicleType
@@ -85,7 +83,7 @@ class ExcelUploadService {
             } else null
 
             if (DataCheckUtil.isValidCarNumber(list[0])) {
-                val newData = ProductTicket(
+                val newData = SeasonTicket(
                     sn = null,
                     vehicleNo = list[0],
                     ticketType = TicketType.from(list[1]),
@@ -105,7 +103,7 @@ class ExcelUploadService {
         }
     }
 
-    fun downloadTemplateOfProductTicket(data: List<ProductTicket>) : File {
+    fun downloadTemplateOfProductTicket(data: List<SeasonTicket>) : File {
         val fileFullPath: String = "$filePath/product"
         File(fileFullPath).apply {
             if (!exists()) {

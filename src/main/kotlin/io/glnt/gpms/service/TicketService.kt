@@ -1,24 +1,24 @@
 package io.glnt.gpms.service
 
-import io.glnt.gpms.model.dto.ProductTicketDTO
+import io.glnt.gpms.model.dto.SeasonTicketDTO
 import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.mapper.ProductTicketMapper
-import io.glnt.gpms.model.repository.ProductTicketRepository
+import io.glnt.gpms.model.mapper.SeasonTicketMapper
+import io.glnt.gpms.model.repository.SeasonTicketRepository
 import mu.KLogging
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
 @Service
 class TicketService(
-    private val productTicketMapper: ProductTicketMapper,
-    private val productTicketRepository: ProductTicketRepository,
+    private val seasonTicketMapper: SeasonTicketMapper,
+    private val seasonTicketRepository: SeasonTicketRepository,
     private val corpService: CorpService
 ) {
     companion object : KLogging()
 
-    fun saveTickets(ticketDTOs: ArrayList<ProductTicketDTO>): List<ProductTicketDTO> {
+    fun saveTickets(ticketDTOs: ArrayList<SeasonTicketDTO>): List<SeasonTicketDTO> {
         logger.debug { "Request to save Tickets : $ticketDTOs" }
-        val list = ArrayList<ProductTicketDTO>()
+        val list = ArrayList<SeasonTicketDTO>()
         ticketDTOs.forEach { productTicketDTO ->
             productTicketDTO.corpName?.let {corpName ->
                 corpService.getStoreByCorpName(corpName).ifPresent { corp ->
@@ -31,16 +31,16 @@ class TicketService(
         return list
     }
 
-    fun save(productTicketDTO: ProductTicketDTO): ProductTicketDTO {
-        logger.debug { "Request to save Ticket : $productTicketDTO" }
-        val ticket = productTicketMapper.toEntity(productTicketDTO)
-        productTicketRepository.save(ticket!!)
-        return productTicketMapper.toDTO(ticket)
+    fun save(seasonTicketDTO: SeasonTicketDTO): SeasonTicketDTO {
+        logger.debug { "Request to save Ticket : $seasonTicketDTO" }
+        val ticket = seasonTicketMapper.toEntity(seasonTicketDTO)
+        seasonTicketRepository.save(ticket!!)
+        return seasonTicketMapper.toDTO(ticket)
     }
 
-    fun getTicketByVehicleNoAndDate(vehicleNo: String, startDate: LocalDateTime, endDate: LocalDateTime): List<ProductTicketDTO>? {
-        return productTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startDate, endDate,DelYn.N)
-            ?.map(productTicketMapper::toDTO)
+    fun getTicketByVehicleNoAndDate(vehicleNo: String, startDate: LocalDateTime, endDate: LocalDateTime): List<SeasonTicketDTO>? {
+        return seasonTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startDate, endDate,DelYn.N)
+            ?.map(seasonTicketMapper::toDTO)
             ?: kotlin.run { null }
     }
 }
