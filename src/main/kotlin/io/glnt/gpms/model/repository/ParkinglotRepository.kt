@@ -46,11 +46,9 @@ interface ParkGateRepository: JpaRepository<Gate, Long> {
 
 }
 
-@Repository
-interface FailureRepository: JpaRepository<Failure, Long> {
-    fun findTopByFacilitiesIdAndFailureCodeOrderByIssueDateTimeDesc(facilityId: String, failureCode: String): Failure?
-    fun findTopByFacilitiesIdAndFailureCodeAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(facilityId: String, failureCode: String): Failure?
-    fun findTopByFacilitiesIdAndExpireDateTimeIsNullOrderByIssueDateTimeDesc(facilityId: String): Failure?
-    fun countByFacilitiesIdAndExpireDateTimeIsNull(facilityId: String): Long
-    fun findByFacilitiesIdAndExpireDateTimeIsNull(facilityId: String): Optional<Failure>
-}
+//@Repository
+//interface FailureRepository: JpaRepository<Failure, Long> {
+//    fun findTopByFacilitiesIdAndFailureCodeOrderByIssueDateTimeDesc(facilityId: String, failureCode: String): Failure?
+//    fun countByFacilitiesIdAndExpireDateTimeIsNull(facilityId: String): Long
+//    fun findByFacilitiesIdAndExpireDateTimeIsNull(facilityId: String): Optional<Failure>
+//}

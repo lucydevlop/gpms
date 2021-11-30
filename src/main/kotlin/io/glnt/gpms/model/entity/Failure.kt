@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.Yn
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
 import java.time.LocalDate
@@ -41,7 +42,11 @@ data class Failure(
     var failureType: String? = null,
 
     @Column(name = "failureFlag", nullable = true)
-    var failureFlag: Int? = 0
+    var failureFlag: Int? = 0,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sync_yn", nullable = true)
+    var syncYn: Yn? = Yn.N
 ): Auditable(), Serializable {
 
 }
