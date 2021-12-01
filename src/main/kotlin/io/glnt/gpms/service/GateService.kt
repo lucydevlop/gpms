@@ -2,6 +2,7 @@ package io.glnt.gpms.service
 
 import io.glnt.gpms.model.mapper.GateMapper
 import io.glnt.gpms.model.dto.GateDTO
+import io.glnt.gpms.model.dto.GateGroupDTO
 import io.glnt.gpms.model.entity.GateGroup
 import io.glnt.gpms.model.repository.GateGroupRepository
 import io.glnt.gpms.model.repository.GateRepository
@@ -92,5 +93,13 @@ class GateService(
     fun findActiveGate(): List<GateDTO> {
         logger.debug { "Request to get Active Gate " }
         return gateRepository.findByDelYn(DelYn.N).map(gateMapper::toDto)
+    }
+
+    fun findGateGroupByGateGroupId(groupId: String): GateGroupDTO? {
+        return gateGroupRepository.findByGateGroupId(groupId)?.let { GateGroupDTO(it) }
+    }
+
+    fun findGateByGateGroupId(groupId: String): List<GateDTO>{
+        return gateRepository.findByGateGroupId(groupId).map(gateMapper::toDto)
     }
 }

@@ -130,36 +130,18 @@ class InoutService(
                     }
                 }
 
-                val facility = parkinglotService.getFacilityByDtFacilityId(dtFacilitiesId)
+//                val facility = parkinglotService.getFacilityByDtFacilityId(dtFacilitiesId)
                 // 만차 제어 설정 시 count 확인 후 skip
-                if (parkSiteInfoService.parkSite!!.space != null) {
-                    parkSiteInfoService.parkSite!!.space?.let { spaces ->
-                        logger.info("parkinglot space $spaces")
 
-                        val inGates = ArrayList<String>()
-
-                        gateRepository.findByGateGroupId(spaces["gateGroupId"].toString()).let { items ->
-                            for (item in items) {
-                                inGates.add(item.gateId)
-                            }
-                            if (parkInRepository.countByGateIdInAndOutSn(inGates, 0) >= spaces["space"].toString().toInt()) {
-//                                displayMessage("FULL", vehicleNo, "IN", gate.gateId)
-                                logger.warn{" 차량번호: ${request.vehicleNo} ${spaces["space"].toString().toInt()} 만차 skip "}
-                                inFacilityIF("FULL", vehicleNo, gate.gateId, gate.openAction?: OpenActionType.NONE)
-                                return CommonResult.data("Full limit $vehicleNo $parkingtype")
-                            }
-                        }
-                    }
-                }
 
                 // 방문차량 입차통보 데이터
                 var visitorData:reqVisitorExternal? = null
 
 
                 //차량번호 패턴 체크
-                if (DataCheckUtil.isValidCarNumber(vehicleNo)) {
-                    parkingtype = "NORMAL"
-                    // 정기권 차량 여부 확인
+//                if (DataCheckUtil.isValidCarNumber(vehicleNo)) {
+//                    parkingtype = "NORMAL"
+//                    // 정기권 차량 여부 확인
                     productService.getValidProductByVehicleNo(vehicleNo, date, date)?.let {
                         parkingtype = it.ticketType!!.code
                         validDate = it.validDate
@@ -211,7 +193,7 @@ class InoutService(
                         }
                     }
 
-                    recognitionResult = "RECOGNITION"
+//                    recognitionResult = "RECOGNITION"
 
                     // 기 입차 여부 확인 및 update
                     val parkins = searchParkInByVehicleNo(vehicleNo, gate.gateId)
@@ -221,23 +203,10 @@ class InoutService(
                             parkInService.save(it)
                         }
                     }
-                } else {
-                    parkingtype = "UNRECOGNIZED"
-                    recognitionResult = "NOTRECOGNITION"
-                }
-
-                //차량 요일제 적용
-                parkSiteInfoService.parkSite!!.vehicleDayOption?.let {
-                    if (recognitionResult == "RECOGNITION" && it != VehicleDayType.OFF) {
-                        if (DataCheckUtil.isRotation(it, vehicleNo)) {
-                        } else {
-                            logger.warn {" # 입차 차단 요일제적용 차량번호 $vehicleNo "}
-                            inFacilityIF("RESTRICTE", vehicleNo, gate.gateId, gate.openAction?: OpenActionType.NONE)
-                            return CommonResult.data("Restricte vehicle $vehicleNo $parkingtype")
-                        }
-                    }
-                }
-
+//                } else {
+//                    parkingtype = "UNRECOGNIZED"
+//                    recognitionResult = "NOTRECOGNITION"
+//                }
 
                 // 입차 정보 DB insert
                 val newData = ParkIn(
@@ -270,52 +239,60 @@ class InoutService(
                 // 2. 전광판
                 // 전광판 메세지 구성은 아래와 같이 진행한다.
                 // 'pcc' 인 경우 MEMBER -> MEMBER 로 아닌 경우 MEMBER -> NONMEMBER 로 정의
-                if (gate.takeAction != "PCC"){
-                    var openType = gate.openAction
 
-                    // 오픈 설정 Multi 에 대해서 처리
-                    if (gate.openAction == OpenActionType.MULTI) {
-                        gate.openType?.let { types ->
-                            types.forEach { type ->
-                                logger.info { "multi type ${type["openAction"].toString()} ${type["startTime"].toString()} ${type["endTime"].toString()}" }
-                                if (type["startTime"].toString() <= hhmm && type["endTime"].toString() > hhmm) {
-                                    if (type["openAction"].toString() == "RESTRICT") openType = OpenActionType.RESTRICT
-                                    if (type["openAction"].toString() == "NONE") openType = OpenActionType.NONE
-                                    if (type["openAction"].toString() == "RECOGNITION") openType = OpenActionType.RECOGNITION
+                //긴급차량인 경우 무조건 gate open
+                if (request.isEmergency!!) {
+                    inFacilityIF(parkingtype!!, vehicleNo, gate.gateId, OpenActionType.NONE)
+                } else {
+                    if (gate.takeAction != "PCC"){
+                        var openType = gate.openAction
+
+                        // 오픈 설정 Multi 에 대해서 처리
+                        if (gate.openAction == OpenActionType.MULTI) {
+                            gate.openType?.let { types ->
+                                types.forEach { type ->
+                                    logger.info { "multi type ${type["openAction"].toString()} ${type["startTime"].toString()} ${type["endTime"].toString()}" }
+                                    if (type["startTime"].toString() <= hhmm && type["endTime"].toString() > hhmm) {
+                                        if (type["openAction"].toString() == "RESTRICT") openType = OpenActionType.RESTRICT
+                                        if (type["openAction"].toString() == "NONE") openType = OpenActionType.NONE
+                                        if (type["openAction"].toString() == "RECOGNITION") openType = OpenActionType.RECOGNITION
+                                    }
                                 }
                             }
                         }
-                    }
-                    // UUID 없을 경우(후방 카메라 입차) deviceIF OFF
-                    if (!uuid!!.isEmpty())
-                        inFacilityIF(parkingtype!!, vehicleNo, gate.gateId, openType?: OpenActionType.NONE)
-                    else {
-                        // 후방 입차이나 게이트 옵션으로 인해서 앞입차 시 게이트가 안열린 경우
-                        if (assistant == true) {
+                        // UUID 없을 경우(후방 카메라 입차) deviceIF OFF
+                        if (!uuid!!.isEmpty())
                             inFacilityIF(parkingtype!!, vehicleNo, gate.gateId, openType?: OpenActionType.NONE)
+                        else {
+                            // 후방 입차이나 게이트 옵션으로 인해서 앞입차 시 게이트가 안열린 경우
+                            if (assistant == true) {
+                                inFacilityIF(parkingtype!!, vehicleNo, gate.gateId, openType?: OpenActionType.NONE)
+                            }
                         }
                     }
-                }
 
-                //todo 아파트너 입차 정보 전송
-                visitorData?.let { data ->
-                    parkSiteInfoService.getVisitorExternalInfo()?.let {
-                        parkinglotService.sendInVisitorExternal(it, data, parkingtype!!)
+                    //todo 아파트너 입차 정보 전송
+                    visitorData?.let { data ->
+                        parkSiteInfoService.getVisitorExternalInfo()?.let {
+                            parkinglotService.sendInVisitorExternal(it, data, parkingtype!!)
+                        }
                     }
+
+//                    if (parkSiteInfoService.isTmapSend()) {
+//                        //todo tmap 전송
+//                        val data = reqTmapInVehicle(
+//                            gateId = gate.udpGateid!!,
+//                            inVehicleType = facility!!.lprType.toString().toLowerCase(),
+//                            vehicleNumber = vehicleNo,
+//                            recognitionType = facility.category!!,
+//                            recognitionResult = recognitionResult!!,
+//                            fileUploadId = fileUploadId!!
+//                        )
+//                        tmapSendService.sendInVehicle(data, requestId!!, fileName)
+//                    }
                 }
 
-                if (parkSiteInfoService.isTmapSend()) {
-                    //todo tmap 전송
-                    val data = reqTmapInVehicle(
-                        gateId = gate.udpGateid!!,
-                        inVehicleType = facility!!.lprType.toString().toLowerCase(),
-                        vehicleNumber = vehicleNo,
-                        recognitionType = facility.category!!,
-                        recognitionResult = recognitionResult!!,
-                        fileUploadId = fileUploadId!!
-                    )
-                    tmapSendService.sendInVehicle(data, requestId!!, fileName)
-                }
+
                 logger.warn {" ##### 입차 요청 END #####"}
                 return CommonResult.data(newData)
             }
@@ -1509,6 +1486,16 @@ class InoutService(
             return null
         }
     }
+
+    // gate별 입차 차량 count
+    fun countParkInByGatesAndVehicleStatus(gates: List<String>, status: String): Int {
+        return when(status) {
+            "IN" -> parkInRepository.countByGateIdInAndOutSn(gates, 0)
+            "OUT" -> parkInRepository.countByGateIdInAndOutSnGreaterThan(gates, 0)
+            else -> parkInRepository.countByGateIdInAndOutSnGreaterThan(gates, -1)
+        }
+    }
+
 
     fun inFacilityIF(parkCarType: String, vehicleNo: String, gateId: String, openAction: OpenActionType) {
         logger.warn { "parkIn car_number: $vehicleNo 입차 gate ${gateId} ${parkCarType} ${openAction}" }

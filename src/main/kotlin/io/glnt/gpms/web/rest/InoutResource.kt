@@ -130,13 +130,61 @@ class InoutResource (
     fun parkIn(@Valid @RequestBody requestParkInDTO: reqAddParkIn) : ResponseEntity<CommonResult> {
         logger.warn {" ##### 입차 요청 START #####"}
         logger.warn {" 차량번호 ${requestParkInDTO.vehicleNo} LPR시설정보 ${requestParkInDTO.dtFacilitiesId} 입차시간 ${requestParkInDTO.date} UUID ${requestParkInDTO.uuid} OCR결과 ${requestParkInDTO.resultcode}"  }
-        // 주차장 운영일 확인 후 입차 진행
-        if (!parkSiteInfoService.checkOperationDay(requestParkInDTO.date)) {
-            logger.warn {" ##### 주차장 운영일이 아님 입차 처리 skip #####"}
-            return ResponseEntity.ok(CommonResult.data())
+        // 긴급 차량 확인
+        requestParkInDTO.isEmergency = DataCheckUtil.isEmergency(requestParkInDTO.vehicleNo)
+        // 차량번호 패턴 체크
+        if (DataCheckUtil.isValidCarNumber(requestParkInDTO.vehicleNo)) {
+            requestParkInDTO.parkingtype = "NORMAL"
+            requestParkInDTO.recognitionResult = "RECOGNITION"
+        } else {
+            requestParkInDTO.parkingtype = "UNRECOGNIZED"
+            requestParkInDTO.recognitionResult = "NOTRECOGNITION"
         }
 
         parkinglotService.getGateInfoByDtFacilityId(requestParkInDTO.dtFacilitiesId ?: "")?.let { gate ->
+            if (!requestParkInDTO.isEmergency!!) {
+                // 입차 skip
+                // 1. 주차장 운영일 확인
+                if (!parkSiteInfoService.checkOperationDay(requestParkInDTO.date)) {
+                    logger.warn {" ##### 주차장 운영일이 아님 입차 처리 skip #####"}
+                    inoutService.inFacilityIF("RESTRICTE", requestParkInDTO.vehicleNo, gate.gateId, gate.openAction?: OpenActionType.NONE)
+                    return ResponseEntity.ok(CommonResult.data())
+                }
+                // 2. 차량 요일제 확인
+                parkSiteInfoService.parkSite!!.vehicleDayOption?.let {
+                    if (requestParkInDTO.recognitionResult == "RECOGNITION" && it != VehicleDayType.OFF) {
+                        if (DataCheckUtil.isRotation(it, requestParkInDTO.vehicleNo)) {
+                        } else {
+                            logger.warn {" ##### 입차 차단 요일제적용 차량번호 ${requestParkInDTO.vehicleNo} #####"}
+                            inoutService.inFacilityIF("RESTRICTE", requestParkInDTO.vehicleNo, gate.gateId, gate.openAction?: OpenActionType.NONE)
+                            return ResponseEntity.ok(CommonResult.data("Restricte vehicle $requestParkInDTO.vehicleNo $requestParkInDTO.parkingtype"))
+                        }
+                    }
+                }
+                // 3. 만차 제어
+                if (parkSiteInfoService.parkSite!!.space != null) {
+                    parkSiteInfoService.parkSite!!.space?.let { spaces ->
+                        logger.info("parkinglot space $spaces")
+                        gate.gateGroupId?.let { groupId ->
+                            if (groupId.equals(spaces["gateGroupId"].toString())) {
+                                gateService.findGateByGateGroupId(groupId).let { items ->
+                                    val inGates = ArrayList<String>()
+                                    for (item in items) {
+                                        inGates.add(item.gateId?: "")
+                                    }
+                                    if (inoutService.countParkInByGatesAndVehicleStatus(inGates, "IN") >= spaces["space"].toString().toInt()) {
+                                        logger.warn{"##### 입차 차단 만차적용 차량번호: ${requestParkInDTO.vehicleNo} ${spaces["space"].toString().toInt()} #####"}
+                                        inoutService.inFacilityIF("FULL", requestParkInDTO.vehicleNo, gate.gateId, gate.openAction?: OpenActionType.NONE)
+                                        return ResponseEntity.ok(CommonResult.data("Full limit $requestParkInDTO.vehicleNo $requestParkInDTO.parkingtype"))
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+
             // 이미지 사진 저장
             requestParkInDTO.base64Str?.let {
                 requestParkInDTO.fileFullPath = inoutService.saveImage(it, requestParkInDTO.vehicleNo?: "", gate.udpGateid?: "")

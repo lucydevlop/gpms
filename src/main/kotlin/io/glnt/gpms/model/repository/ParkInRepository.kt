@@ -22,8 +22,8 @@ interface ParkInRepository: JpaRepository<ParkIn, Long>, JpaSpecificationExecuto
     fun findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo: String, outSn: Long, delYn: DelYn, inDate: LocalDateTime ) : ParkIn?
     fun findBySn(sn: Long): ParkIn?
     fun findByUuid(uuid: String): ParkIn?
-    fun countByGateIdAndOutSn(gateId: String, outSn: Long): Int
     fun countByGateIdInAndOutSn(gates: List<String>, outSn: Long): Int
+    fun countByGateIdInAndOutSnGreaterThan(gates: List<String>, outSn: Long): Int
     fun findTopByGateIdAndDelYnAndInDateGreaterThanEqualOrderByInDateDesc(gateId: String, delYn: DelYn, inDate: LocalDateTime ) : ParkIn?
     fun findTopByGateIdAndDelYnOrderByInDateDesc(gateId: String, delYn: DelYn) : ParkIn?
     fun findTopByOutSnAndDelYnOrderByInDateDesc(outSn: Long, delYn: DelYn) : ParkIn?

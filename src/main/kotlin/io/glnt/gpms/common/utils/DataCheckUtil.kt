@@ -92,4 +92,11 @@ object DataCheckUtil {
     fun checkEven(num: Int): Boolean {
         return (num % 2 == 0)
     }
+
+    fun isEmergency(vehicleNo: String): Boolean {
+        if (isValidCarNumber(vehicleNo)) {
+            if (vehicleNo.substring(0, 3) == "999" || vehicleNo.substring(0, 3) == "998") return true
+        }
+        return false
+    }
 }

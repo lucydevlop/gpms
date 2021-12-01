@@ -36,7 +36,8 @@ data class reqAddParkIn(
     var fileUploadId: String? = null,
     var fileFullPath: String? = null,
     var recognitionResult: String? = null,
-    var assistant: Boolean? = false
+    var assistant: Boolean? = false,
+    var isEmergency: Boolean? = null
 )
 
 data class reqAddParkOut(
