@@ -94,7 +94,7 @@ class DashboardUserService(
     }
 
     private fun getParkInByVehicleNo(vehicleNo: String) : ArrayList<resVehicleSearch> {
-        val parkIns = parkInQueryService.findByCriteria(ParkInCriteria(vehicleNo = vehicleNo, outSn = 0L))
+        val parkIns = parkInQueryService.findByCriteria(ParkInCriteria(vehicleNo = vehicleNo))
         val data = ArrayList<resVehicleSearch>()
         if (!parkIns.isNullOrEmpty()) {
             parkIns.filter { it.outSn == 0L }.forEach { it ->
