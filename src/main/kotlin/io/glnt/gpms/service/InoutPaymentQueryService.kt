@@ -43,6 +43,11 @@ class InoutPaymentQueryService (
                         )
                     )
                 }
+                if (criteria.vehicleNo != null && criteria.vehicleNo!!.isNotEmpty()) {
+                    clues.add(
+                        criteriaBuilder.like((root.get<String>("vehicleNo")), "%" + criteria.vehicleNo + "%")
+                    )
+                }
             }
             query.orderBy(criteriaBuilder.desc(root.get<LocalDateTime>("createDate")))
             criteriaBuilder.and(*clues.toTypedArray())

@@ -9,12 +9,15 @@ data class InoutPaymentCriteria(
     var fromDate: LocalDate? = null,
 
     @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd")
-    var toDate: LocalDate? = null
+    var toDate: LocalDate? = null,
+
+    var vehicleNo: String? = null
 ): Serializable {
     constructor(other: InoutPaymentCriteria) :
         this(
             other.fromDate,
-            other.toDate
+            other.toDate,
+            other.vehicleNo
         )
 
     companion object {

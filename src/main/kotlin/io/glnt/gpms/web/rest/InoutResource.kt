@@ -112,12 +112,15 @@ class InoutResource (
 
     @RequestMapping(value = ["/inouts/payments"], method = [RequestMethod.GET])
     fun getInoutPayments(@RequestParam(name = "fromDate", required = false) fromDate: String,
-                         @RequestParam(name = "toDate", required = false) toDate: String): ResponseEntity<CommonResult> {
+                         @RequestParam(name = "toDate", required = false) toDate: String,
+                         @RequestParam(name = "vehicleNo", required = false) vehicleNo: String): ResponseEntity<CommonResult> {
         val result = inoutPaymentQueryService.findByCriteria(InoutPaymentCriteria(
                                                                 fromDate = DateUtil.stringToLocalDate(fromDate),
-                                                                toDate = DateUtil.stringToLocalDate(toDate)))
+                                                                toDate = DateUtil.stringToLocalDate(toDate),
+                                                                vehicleNo = vehicleNo))
         return CommonResult.returnResult(
-            CommonResult.data(result.filter { it -> it.result != ResultType.WAIT })
+//            CommonResult.data(result.filter { it -> it.result != ResultType.WAIT })
+            CommonResult.data(result.filter { it -> (it.amount?: 0) > 0 })
         )
     }
 
