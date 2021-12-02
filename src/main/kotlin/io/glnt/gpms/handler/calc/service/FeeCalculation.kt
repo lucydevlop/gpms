@@ -328,7 +328,7 @@ class FeeCalculation(
                 val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
                 if (discountClass.discountApplyType == DiscountApplyType.WON) {
                     if (discountClass.discountApplyRate == DiscountApplyRateType.VARIABLE) {
-                        discountAmt = discountAmt.plus(discountClass.unitTime)*discount.cnt
+                        discountAmt = discountAmt.plus(discountClass.unitTime*discount.cnt)
                     }
                 }
             }
@@ -339,7 +339,7 @@ class FeeCalculation(
                 val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
                 if (discountClass.discountApplyType == DiscountApplyType.WON) {
                     if (discountClass.discountApplyRate == DiscountApplyRateType.VARIABLE) {
-                        discountAmt = discountAmt.plus(discountClass.unitTime)*discount.quantity!!
+                        discountAmt = discountAmt.plus(discountClass.unitTime*discount.quantity!!)
                     }
                 }
                 if (type == "out") {
