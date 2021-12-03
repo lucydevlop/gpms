@@ -5,9 +5,12 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.exception.CustomException
 //import io.glnt.gpms.handler.corp.service.CorpService
 import io.glnt.gpms.handler.product.service.ProductService
+import io.glnt.gpms.model.dto.CorpDTO
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.service.CorpService
+import io.glnt.gpms.service.ParkSiteInfoService
 import mu.KLogging
 import org.springframework.stereotype.Service
 
@@ -15,7 +18,8 @@ import org.springframework.stereotype.Service
 @Service
 class externalService(
     private var productService: ProductService,
-    private var corpService: CorpService
+    private var corpService: CorpService,
+    private var parkSiteInfoService: ParkSiteInfoService
 ) {
     companion object : KLogging()
 
@@ -49,14 +53,19 @@ class externalService(
     @Throws(CustomException::class)
     fun createTickets(request: ArrayList<reqCreateProductTicket>) : CommonResult {
         try {
-            request.forEach { it ->
-                it.corpName?.let { text ->
-                    corpService.getStoreByCorpName(text).ifPresent { corp ->
-                        it.corpSn = corp.sn
-                    }
-                } ?: run { null }
-
-                val data = productService.createProduct(it)
+            request.forEach { ticket ->
+                ticket.corpName?.let { text ->
+                    corpService.getStoreByCorpName(text).ifPresentOrElse(
+                        { ticket.corpSn = it.sn},
+                        {
+                            var corp = CorpDTO(corpName = ticket.corpName, ceoName = ticket.ceoName, delYn = DelYn.N, tel = (ticket.corpTel?: "").replace("-", "") )
+                            corpService.save(corp, "create", parkSiteInfoService.getSiteId()).let { corpDTO ->
+                                ticket.corpSn = corpDTO.sn
+                            }
+                        }
+                    )
+                }
+                val data = productService.createProduct(ticket)
 
                 when (data.code) {
                     ResultCode.SUCCESS.getCode() -> {

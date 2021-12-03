@@ -14,7 +14,7 @@ import java.util.*
 
 @Repository
 interface SeasonTicketRepository: JpaRepository<SeasonTicket, Long>, JpaSpecificationExecutor<SeasonTicket> {
-    fun findByVehicleNoAndValidDateGreaterThanEqualAndRegDateLessThanEqualAndDelYn(vehiclNo: String, date1: LocalDateTime, date2: LocalDateTime, delYn: DelYn): SeasonTicket?
+    //fun findByVehicleNoAndValidDateGreaterThanEqualAndRegDateLessThanEqualAndDelYn(vehiclNo: String, date1: LocalDateTime, date2: LocalDateTime, delYn: DelYn): SeasonTicket?
     fun findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehiclNo: String, date1: LocalDateTime, date2: LocalDateTime, delYn: DelYn): List<SeasonTicket>?
     fun findByVehicleNoAndValidDateGreaterThanEqualAndDelYn(vehiclNo: String, date1: LocalDateTime, delYn: DelYn): SeasonTicket?
 //    fun findAll(specification: Specification<SeasonTicket>): List<SeasonTicket>?

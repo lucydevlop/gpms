@@ -92,9 +92,9 @@ data class SeasonTicket(
     @Column(name = "chargertel", nullable = true)
     var chargertel: String? = null,
 
-    @Column(name = "reg_date", nullable = true)
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    var regDate: LocalDateTime? = null,
+//    @Column(name = "reg_date", nullable = true)
+//    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+//    var regDate: LocalDateTime? = null,
 
     @Column(name = "effect_date", nullable = true)
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")

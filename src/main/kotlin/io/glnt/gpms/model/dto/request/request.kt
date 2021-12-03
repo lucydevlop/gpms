@@ -17,13 +17,16 @@ data class reqCreateProductTicket(
     var ticketType: TicketType? = null,
     var vehicleType: VehicleType? = null,
     var corpSn: Long? = null,
-    var corpName: String? = null,
     var etc: String? = null,
     var name: String? = null,
     var etc1: String? = null,
     var tel: String? = null,
     var vehiclekind: String? = null,
-    var ticketSn: Long? = null
+    var ticketSn: Long? = null,
+    // 업체정보
+    var corpName: String? = null,
+    var corpTel: String? = null,
+    var ceoName: String? = null
 )
 
 data class reqSearchProductTicket(

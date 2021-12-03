@@ -70,27 +70,7 @@ class CalcService(
                                 else DateUtil.getAddMinutes(inTime, time.toLong())
                 retPrice.basic = basic
                 retPrice.basicFare = basicFare
-
-//                seasonTickets?.forEach {  seasonTicket ->
-//                    if (seasonTicket.startTime <= basic.startTime ||
-//
-//                }?: run {
-//                    val dailySplit = DailySplit(
-//                        startTime = basic.startTime!!, endTime = basic.endTime!!,
-//                        payStartTime = basic.startTime!!, payEndTime = basic.endTime!!,
-//                        fareInfo = basicFare, date = DateUtil.LocalDateTimeToDateString(basic.startTime!!),
-//                        week = DateUtil.getWeek(DateUtil.formatDateTime(basic.startTime!!, "yyyy-MM-dd")),
-//                        //priceType = if (seasonTicket != null) "SeasonTicket" else "Normal",
-//                        feeType = "BASIC"
-//                    )
-//                }
-
-
-
             }
-
-
-
         }
 
 
