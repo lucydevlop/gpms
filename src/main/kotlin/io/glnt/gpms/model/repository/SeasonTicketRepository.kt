@@ -26,6 +26,8 @@ interface SeasonTicketRepository: JpaRepository<SeasonTicket, Long>, JpaSpecific
 //fun findByRangedValidTickets(vehicleNo: String, ticketType: TicketType, effectDate: LocalDateTime, expireDate: LocalDateTime) : List<ProductTicket>?
     @Query(value = "SELECT h.* from tb_seasonticket h where h.vehicleNo =:vehicleNo And h.ticket_type =:ticketType And h.del_yn = 'N' And (h.effect_date between :effectDate and :expireDate ) order by h.effect_date asc ", nativeQuery = true)
     fun findByRangedValidTickets(vehicleNo: String, ticketType: String, effectDate: LocalDateTime, expireDate: LocalDateTime) : List<SeasonTicket>?
+    fun findTopByVehicleNoAndDelYnOrderByExpireDateDesc(vehiclNo: String, delYn: DelYn): SeasonTicket?
+    fun findTopByVehicleNoAndDelYnAndTicketTypeOrderByExpireDateDesc(vehiclNo: String, delYn: DelYn, ticketType: TicketType): SeasonTicket?
 
 }
 

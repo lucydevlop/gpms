@@ -55,15 +55,24 @@ class externalService(
         try {
             request.forEach { ticket ->
                 ticket.corpName?.let { text ->
-                    corpService.getStoreByCorpName(text).ifPresentOrElse(
-                        { ticket.corpSn = it.sn},
-                        {
-                            var corp = CorpDTO(corpName = ticket.corpName, ceoName = ticket.ceoName, delYn = DelYn.N, tel = (ticket.corpTel?: "").replace("-", "") )
-                            corpService.save(corp, "create", parkSiteInfoService.getSiteId()).let { corpDTO ->
-                                ticket.corpSn = corpDTO.sn
-                            }
+                    val exist = corpService.getStoreByCorpName(text)
+                    exist?.let {
+                        ticket.corpSn = it.sn
+                    }?: kotlin.run {
+                        val corp = CorpDTO(corpName = ticket.corpName, ceoName = ticket.ceoName, delYn = DelYn.N, tel = (ticket.corpTel?: "").replace("-", "") )
+                        corpService.save(corp, "create", parkSiteInfoService.getSiteId()).let { corpDTO ->
+                            ticket.corpSn = corpDTO.sn
                         }
-                    )
+                    }
+//                    if (exist == null) {
+//                        val corp = CorpDTO(corpName = ticket.corpName, ceoName = ticket.ceoName, delYn = DelYn.N, tel = (ticket.corpTel?: "").replace("-", "") )
+//                        corpService.save(corp, "create", parkSiteInfoService.getSiteId()).let { corpDTO ->
+//                            ticket.corpSn = corpDTO.sn
+//                        }
+//                    } else {
+//
+//
+//                    }
                 }
                 val data = productService.createProduct(ticket)
 

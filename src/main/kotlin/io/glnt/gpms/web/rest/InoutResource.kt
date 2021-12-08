@@ -49,7 +49,8 @@ class InoutResource (
     private val fareRefService: FareRefService,
     private var relayClient: RelayClient,
     private var externalClient: ExternalClient,
-    private var rcsService: RcsService
+    private var rcsService: RcsService,
+    private var seasonTicketService: TicketService
 ){
     companion object : KLogging()
 
@@ -359,21 +360,47 @@ class InoutResource (
             // parkOut 데이터 생성
             parkOutDTO = parkOutService.save(parkOutDTO)
 
-            // 번호 검색 요청 조건
-            // 1. 유료 주차장인 경우 차량번호로 입차 데이터 미확인, 미인식 인 경우
-            if (parkinglotService.isPaid() && (parkIn == null || requestParkOutDTO.parkCarType!!.contains("RECOGNIZED"))) {
-                inoutService.searchNumberFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, requestParkOutDTO.recognitionResult!!, parkOutDTO.sn!!.toString())
+            // 무료 주차장인 경우
+            if (!parkinglotService.isPaid()) {
+                // 출차 처리
+                inoutService.outFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkIn, parkOutDTO.sn!!)
             } else {
-                if (parkinglotService.isPaid() && parkIn != null) {
-                    // 정산 대기 처리
-                    inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!)
-                }
-                // total 0원, 무료 주차장 출차 처리
-                if ( (!parkinglotService.isPaid()) || ( parkinglotService.isPaid() && price?.totalPrice?: 0 <= 0)) {
-                    // 출차 처리
-                    inoutService.outFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkIn, parkOutDTO.sn!!)
+                // 유료 주차장인 경우
+                if (parkIn == null || requestParkOutDTO.parkCarType!!.contains("RECOGNIZED")) {
+                    // 차량번호로 입차 데이터 미확인, 미인식 인 경우 -> 차량번호 검색
+                    inoutService.searchNumberFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, requestParkOutDTO.recognitionResult!!, parkOutDTO.sn!!.toString())
+                } else {
+                    // 현재 입차 시간 기준으로 정기권 차량 이력 확인
+                    seasonTicketService.getLastTicketByVehicleNoAndTicketType(requestParkOutDTO.vehicleNo!!, TicketType.SEASONTICKET)?.let { seasonTicketDTO ->
+                        val days = DateUtil.diffDays(requestParkOutDTO.date?: LocalDateTime.now(), seasonTicketDTO.expireDate?: LocalDateTime.now())
+                        if ( -3 <= days || days <= 7 ) {
+                            // 정기권 정보
+                            logger.debug { "extended payment ${seasonTicketDTO.sn} ${seasonTicketDTO.vehicleNo} ${seasonTicketDTO.expireDate}" }
+                            inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!)
+                        }
+                    }?: run {
+                       inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!)
+                    }
+
+                    if ((price?.totalPrice?: 0) <= 0) {
+                        inoutService.outFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkIn, parkOutDTO.sn!!)
+                    }
                 }
             }
+//            // 1. 유료 주차장인 경우 차량번호로 입차 데이터 미확인, 미인식 인 경우
+//            if (parkinglotService.isPaid() && (parkIn == null || requestParkOutDTO.parkCarType!!.contains("RECOGNIZED"))) {
+//
+//            } else {
+//                if (parkinglotService.isPaid() && parkIn != null) {
+//                    // 정산 대기 처리
+//                    inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!)
+//                }
+//                // total 0원, 무료 주차장 출차 처리
+//                if ( (!parkinglotService.isPaid()) || ( parkinglotService.isPaid() && price?.totalPrice?: 0 <= 0)) {
+//                    // 출차 처리
+//                    inoutService.outFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkIn, parkOutDTO.sn!!)
+//                }
+//            }
             return ResponseEntity.ok(CommonResult.data())
 
         }?: kotlin.run {

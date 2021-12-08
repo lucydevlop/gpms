@@ -48,9 +48,9 @@ class CorpService(
         return corpQueryService.findByCriteria(criteria).stream().findFirst()
     }
 
-    fun getStoreByCorpName(name: String): Optional<CorpDTO> {
-        val criteria = CorpCriteria(corpId = name)
-        return corpQueryService.findByCriteria(criteria).stream().findFirst()
+    fun getStoreByCorpName(name: String): CorpDTO? {
+        val criteria = CorpCriteria(corpName = name)
+        return corpQueryService.findByCriteria(criteria).firstOrNull()
     }
 
     fun getAllCorpTickets(): MutableList<CorpTicketDTO> {

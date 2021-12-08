@@ -2,6 +2,7 @@ package io.glnt.gpms.service
 
 import io.glnt.gpms.model.dto.SeasonTicketDTO
 import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.TicketType
 import io.glnt.gpms.model.mapper.SeasonTicketMapper
 import io.glnt.gpms.model.repository.SeasonTicketRepository
 import mu.KLogging
@@ -21,7 +22,7 @@ class TicketService(
         val list = ArrayList<SeasonTicketDTO>()
         ticketDTOs.forEach { productTicketDTO ->
             productTicketDTO.corpName?.let {corpName ->
-                corpService.getStoreByCorpName(corpName).ifPresent { corp ->
+                corpService.getStoreByCorpName(corpName)?.let { corp ->
                     productTicketDTO.corpSn = corp.sn
                 }
             }
@@ -42,5 +43,10 @@ class TicketService(
         return seasonTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startDate, endDate,DelYn.N)
             ?.map(seasonTicketMapper::toDTO)
             ?: kotlin.run { null }
+    }
+
+    fun getLastTicketByVehicleNoAndTicketType(vehicleNo: String, ticketType: TicketType) : SeasonTicketDTO? {
+        return if (ticketType == TicketType.ALL) seasonTicketRepository.findTopByVehicleNoAndDelYnOrderByExpireDateDesc(vehicleNo, DelYn.N)?.let { seasonTicket -> seasonTicketMapper.toDTO(seasonTicket) }
+        else seasonTicketRepository.findTopByVehicleNoAndDelYnAndTicketTypeOrderByExpireDateDesc(vehicleNo, DelYn.N, ticketType)?.let { seasonTicket -> seasonTicketMapper.toDTO(seasonTicket) }
     }
 }
