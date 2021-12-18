@@ -1,10 +1,9 @@
 package io.glnt.gpms.model.mapper
 
-import io.glnt.gpms.model.dto.CorpTicketDTO
-import io.glnt.gpms.model.dto.CorpTicketHistoryDTO
+import io.glnt.gpms.model.dto.entity.CorpTicketDTO
+import io.glnt.gpms.model.dto.entity.CorpTicketHistoryDTO
 import io.glnt.gpms.model.entity.CorpTicketHistory
 import io.glnt.gpms.model.repository.CorpTicketRepository
-import io.glnt.gpms.model.repository.TicketClassRepository
 import org.springframework.stereotype.Service
 
 @Service

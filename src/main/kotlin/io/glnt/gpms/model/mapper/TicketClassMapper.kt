@@ -1,6 +1,6 @@
 package io.glnt.gpms.model.mapper
 
-import io.glnt.gpms.model.dto.TicketClassDTO
+import io.glnt.gpms.model.dto.entity.TicketClassDTO
 import io.glnt.gpms.model.entity.TicketClass
 import org.springframework.stereotype.Service
 
@@ -27,6 +27,8 @@ class TicketClassMapper() {
                     price = dto.price,
                     vehicleType = dto.vehicleType,
                     available = dto.available,
+                    period = dto.period,
+                    extendYn = dto.extendYn,
                     delYn = dto.delYn
                 )
 

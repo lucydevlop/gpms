@@ -4,9 +4,7 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.dashboard.user.model.ResDiscountTicetsApplyList
-import io.glnt.gpms.handler.dashboard.user.model.reqParkingDiscountApplyTicketSearch
-import io.glnt.gpms.model.dto.CorpTicketClassDTO
+import io.glnt.gpms.model.dto.entity.CorpTicketClassDTO
 import io.glnt.gpms.service.CorpTicketClassService
 import mu.KLogging
 import org.springframework.http.ResponseEntity

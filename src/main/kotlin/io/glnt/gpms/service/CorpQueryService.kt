@@ -2,7 +2,7 @@ package io.glnt.gpms.service
 
 import io.github.jhipster.service.QueryService
 import io.glnt.gpms.model.criteria.CorpCriteria
-import io.glnt.gpms.model.dto.CorpDTO
+import io.glnt.gpms.model.dto.entity.CorpDTO
 import io.glnt.gpms.model.entity.Corp
 import io.glnt.gpms.model.mapper.CorpMapper
 import io.glnt.gpms.model.repository.CorpRepository

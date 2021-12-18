@@ -1,7 +1,7 @@
 package io.glnt.gpms.model.mapper
 
-import io.glnt.gpms.model.dto.InoutPaymentDTO
-import io.glnt.gpms.model.dto.ParkInDTO
+import io.glnt.gpms.model.dto.entity.InoutPaymentDTO
+import io.glnt.gpms.model.dto.entity.ParkInDTO
 import io.glnt.gpms.model.entity.InoutPayment
 import io.glnt.gpms.model.enums.ResultType
 import io.glnt.gpms.model.repository.InoutPaymentRepository

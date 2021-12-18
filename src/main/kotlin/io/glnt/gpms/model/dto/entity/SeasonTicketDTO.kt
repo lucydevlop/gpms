@@ -1,12 +1,11 @@
-package io.glnt.gpms.model.dto
+package io.glnt.gpms.model.dto.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.entity.SeasonTicket
-import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.TicketType
-import io.glnt.gpms.model.enums.VehicleType
+import io.glnt.gpms.model.enums.*
 import java.io.Serializable
 import java.time.LocalDateTime
+import javax.persistence.Column
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 import javax.validation.constraints.NotNull
@@ -48,6 +47,14 @@ data class SeasonTicketDTO (
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var expireDate: LocalDateTime? = null,
 
+    @Enumerated(EnumType.STRING)
+    var extendYn: Yn? = null,
+
+    @Enumerated(EnumType.STRING)
+    var payMethod: PayType? = null,
+
+    var nextSn: Long? = null,
+
     @get: NotNull
     @Enumerated(EnumType.STRING)
     var delYn: DelYn? = null,
@@ -65,7 +72,7 @@ data class SeasonTicketDTO (
         this(
             seasonTicket.sn, seasonTicket.corpSn, seasonTicket.ticketSn, seasonTicket.corpName, seasonTicket.ticketType,
             seasonTicket.vehicleNo, seasonTicket.color, seasonTicket.vehiclekind, seasonTicket.vehicleType, seasonTicket.name,
-            seasonTicket.tel, seasonTicket.etc, seasonTicket.etc1, seasonTicket.effectDate, seasonTicket.expireDate, seasonTicket.delYn
+            seasonTicket.tel, seasonTicket.etc, seasonTicket.etc1, seasonTicket.effectDate, seasonTicket.expireDate, seasonTicket.extendYn, seasonTicket.payMethod, seasonTicket.nextSn, seasonTicket.delYn
         )
 
     override fun equals(other: Any?): Boolean {

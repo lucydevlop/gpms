@@ -1,6 +1,6 @@
 package io.glnt.gpms.service
 
-import io.glnt.gpms.model.dto.ParkOutDTO
+import io.glnt.gpms.model.dto.entity.ParkOutDTO
 import io.glnt.gpms.model.entity.ParkOut
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.mapper.ParkOutMapper

@@ -91,6 +91,14 @@ object DateUtil {
         return date.plusDays(amount)
     }
 
+    fun getMinusDays(date: LocalDateTime, amount: Long): LocalDateTime {
+        return date.minusDays(amount)
+    }
+
+    fun getAddMonths(date: LocalDateTime, amount: Long): LocalDateTime {
+        return date.plusMonths(amount)
+    }
+
     fun getAddMinutes(date: LocalDateTime, amount: Long): LocalDateTime {
         return date.plusMinutes(amount)
     }

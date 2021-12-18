@@ -1,4 +1,4 @@
-package io.glnt.gpms.model.dto
+package io.glnt.gpms.model.dto.entity
 
 import io.glnt.gpms.model.entity.Corp
 import io.glnt.gpms.model.enums.DelYn

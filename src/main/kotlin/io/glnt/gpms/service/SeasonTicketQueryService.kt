@@ -2,7 +2,7 @@ package io.glnt.gpms.service
 
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.criteria.SeasonTicketCriteria
-import io.glnt.gpms.model.dto.SeasonTicketDTO
+import io.glnt.gpms.model.dto.entity.SeasonTicketDTO
 import io.glnt.gpms.model.entity.SeasonTicket
 import io.glnt.gpms.model.enums.DateType
 import io.glnt.gpms.model.enums.DelYn

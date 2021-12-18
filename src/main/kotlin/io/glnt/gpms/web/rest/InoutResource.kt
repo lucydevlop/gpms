@@ -12,11 +12,13 @@ import io.glnt.gpms.handler.calc.service.FareRefService
 import io.glnt.gpms.handler.inout.model.reqAddParkIn
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.common.api.ExternalClient
+import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.model.criteria.InoutPaymentCriteria
-import io.glnt.gpms.model.dto.ParkOutDTO
-import io.glnt.gpms.model.dto.ParkinglotVehicleDTO
+import io.glnt.gpms.model.dto.entity.ParkOutDTO
+import io.glnt.gpms.model.dto.entity.ParkinglotVehicleDTO
 import io.glnt.gpms.model.dto.RequestParkOutDTO
+import io.glnt.gpms.model.dto.TicketInfoDTO
 import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.mapper.GateMapper
@@ -26,7 +28,9 @@ import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.validation.Valid
 
 @RestController
@@ -49,9 +53,31 @@ class InoutResource (
     private val fareRefService: FareRefService,
     private var relayClient: RelayClient,
     private var externalClient: ExternalClient,
-    private var rcsService: RcsService
+    private var rcsService: RcsService,
+    private var seasonTicketService: TicketService
 ){
     companion object : KLogging()
+
+    @RequestMapping(value=["/inouts"], method = [RequestMethod.GET])
+    fun getInouts(@RequestParam(name = "startDate", required = false) startDate: String,
+                  @RequestParam(name = "endDate", required = false) endDate: String,
+                  @RequestParam(name = "searchDateLabel", required = false) searchDateLabel: DisplayMessageClass,
+                  @RequestParam(name = "vehicleNo", required = false) vehicleNo: String? = null,
+                  @RequestParam(name = "parkCarType", required = false) parkCarType: String? = null,
+                  @RequestParam(name = "outSn", required = false) outSn: Long? = null
+    ) : ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(CommonResult.data(
+            inoutService.getAllParkLists(
+                reqSearchParkin(searchDateLabel = searchDateLabel,
+                fromDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                toDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                searchLabel = vehicleNo?.let { "CARNUM" },
+                searchText = vehicleNo,
+                parkcartype = parkCarType,
+                outSn = outSn
+            ))
+            ))
+    }
 
     @RequestMapping(value=["/inout"], method = [RequestMethod.GET])
     fun getInout(@RequestParam(name = "sn", required = false) sn: Long,): ResponseEntity<CommonResult> {
@@ -359,21 +385,56 @@ class InoutResource (
             // parkOut 데이터 생성
             parkOutDTO = parkOutService.save(parkOutDTO)
 
-            // 번호 검색 요청 조건
-            // 1. 유료 주차장인 경우 차량번호로 입차 데이터 미확인, 미인식 인 경우
-            if (parkinglotService.isPaid() && (parkIn == null || requestParkOutDTO.parkCarType!!.contains("RECOGNIZED"))) {
-                inoutService.searchNumberFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, requestParkOutDTO.recognitionResult!!, parkOutDTO.sn!!.toString())
+            // 무료 주차장인 경우
+            if (!parkinglotService.isPaid()) {
+                // 출차 처리
+                inoutService.outFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkIn, parkOutDTO.sn!!)
             } else {
-                if (parkinglotService.isPaid() && parkIn != null) {
-                    // 정산 대기 처리
-                    inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!)
-                }
-                // total 0원, 무료 주차장 출차 처리
-                if ( (!parkinglotService.isPaid()) || ( parkinglotService.isPaid() && price?.totalPrice?: 0 <= 0)) {
-                    // 출차 처리
-                    inoutService.outFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkIn, parkOutDTO.sn!!)
+                // 유료 주차장인 경우
+                if (parkIn == null || requestParkOutDTO.parkCarType!!.contains("RECOGNIZED")) {
+                    // 차량번호로 입차 데이터 미확인, 미인식 인 경우 -> 차량번호 검색
+                    inoutService.searchNumberFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, requestParkOutDTO.recognitionResult!!, parkOutDTO.sn!!.toString())
+                } else {
+                    // 현재 입차 시간 기준으로 정기권 차량 이력 확인
+                    seasonTicketService.getLastTicketByVehicleNoAndTicketType(requestParkOutDTO.vehicleNo!!, TicketType.SEASONTICKET)?.let { seasonTicketDTO ->
+                        val days = DateUtil.diffDays(requestParkOutDTO.date?: LocalDateTime.now(), seasonTicketDTO.expireDate?: LocalDateTime.now())
+                        if ( -3 <= days || days <= 7 ) {
+                            // 정기권 정보
+                            logger.debug { "extended payment ${seasonTicketDTO.sn} ${seasonTicketDTO.vehicleNo} ${seasonTicketDTO.expireDate}" }
+                            var ticketInfo = TicketInfoDTO(
+                                sn = seasonTicketDTO.sn.toString(),
+                                effectDate = DateUtil.LocalDateTimeToDateString(DateUtil.beginTimeToLocalDateTime(DateUtil.LocalDateTimeToDateString(DateUtil.getAddDays(seasonTicketDTO.expireDate?: LocalDateTime.now(), 1)))),
+                                expireDate = DateUtil.LocalDateTimeToDateString(DateUtil.getAddMonths(seasonTicketDTO.expireDate?: LocalDateTime.now(), 1)),
+                                name = seasonTicketDTO.ticket?.ticketName ?: kotlin.run { "정기권" },
+                                price = seasonTicketDTO.ticket?.price.toString() ?: kotlin.run { "0" }
+                            )
+                            inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!, null, ticketInfo)
+                        } else {
+                            inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!)
+                        }
+                    }?: run {
+                       inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!)
+                    }
+
+                    if ((price?.totalPrice?: 0) <= 0) {
+                        inoutService.outFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkIn, parkOutDTO.sn!!)
+                    }
                 }
             }
+//            // 1. 유료 주차장인 경우 차량번호로 입차 데이터 미확인, 미인식 인 경우
+//            if (parkinglotService.isPaid() && (parkIn == null || requestParkOutDTO.parkCarType!!.contains("RECOGNIZED"))) {
+//
+//            } else {
+//                if (parkinglotService.isPaid() && parkIn != null) {
+//                    // 정산 대기 처리
+//                    inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!)
+//                }
+//                // total 0원, 무료 주차장 출차 처리
+//                if ( (!parkinglotService.isPaid()) || ( parkinglotService.isPaid() && price?.totalPrice?: 0 <= 0)) {
+//                    // 출차 처리
+//                    inoutService.outFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkIn, parkOutDTO.sn!!)
+//                }
+//            }
             return ResponseEntity.ok(CommonResult.data())
 
         }?: kotlin.run {

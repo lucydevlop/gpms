@@ -2,35 +2,29 @@ package io.glnt.gpms.web.rest
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.RelayClient
-import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
-import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.JSONUtil
-import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.calc.model.BasicPrice
 import io.glnt.gpms.handler.calc.service.FareRefService
-import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.model.reqPaymentResponse
 import io.glnt.gpms.handler.facility.model.reqPaymentResult
-import io.glnt.gpms.handler.inout.model.reqAddParkIn
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.relay.model.reqRelayHealthCheck
 import io.glnt.gpms.handler.tmap.model.reqAdjustmentRequest
 import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
+import io.glnt.gpms.model.criteria.SeasonTicketCriteria
+import io.glnt.gpms.model.dto.entity.ParkOutDTO
 import io.glnt.gpms.model.dto.*
+import io.glnt.gpms.model.dto.entity.SeasonTicketDTO
 import io.glnt.gpms.model.entity.Failure
-import io.glnt.gpms.model.entity.InoutPayment
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.mapper.ParkInMapper
 import io.glnt.gpms.service.*
 import mu.KLogging
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDateTime
-import java.util.*
-import javax.validation.Valid
 
 @RestController
 @RequestMapping(
@@ -48,7 +42,9 @@ class RelayResource (
     private val relayClient: RelayClient,
     private val parkInMapper: ParkInMapper,
     private val inoutPaymentService: InoutPaymentService,
-    private val inoutResource: InoutResource
+    private val inoutResource: InoutResource,
+    private val seasonTicketQueryService: SeasonTicketQueryService,
+    private val seasonTicketService: TicketService
 ){
     companion object : KLogging()
 
@@ -159,7 +155,7 @@ class RelayResource (
         }
     }
 
-    // 결제 완료 후 정보 전달
+    // 입차 결제 완료 후 정보 전달
     @RequestMapping(value=["/relay/paystation/result/{dtFacilityId}"], method=[RequestMethod.POST])
     fun resultPayment(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String): ResponseEntity<CommonResult> {
         logger.info { "정산 완료 $dtFacilityId $request " }
@@ -213,6 +209,83 @@ class RelayResource (
                 data = reqPaymentResponse(
                     chargingId = contents.transactionId,
                     vehicleNumber = contents.vehicleNumber
+                ),
+                dtFacilityId
+            )
+        }
+        return ResponseEntity.ok(CommonResult.data())
+    }
+
+    // 정기권 결제 완료 후 정보 전달
+    @RequestMapping(value=["/relay/paystation/ticket/payment/{dtFacilityId}"], method=[RequestMethod.POST])
+    fun resultTicketPayment(@RequestBody request: reqApiTmapCommon, @PathVariable dtFacilityId: String): ResponseEntity<CommonResult> {
+        logger.info { "정기권 결제 완료 $dtFacilityId $request " }
+
+        val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), TicketPaymentResultDTO::class.java)
+
+        parkinglotService.getGateInfoByDtFacilityId(dtFacilityId )?.let { gate ->
+            // 결제 완료 정보가 ERROR 인 경우 장애 등록 처리
+            if (contents.result == ResultType.ERROR) {
+                parkinglotService.getFacilityByDtFacilityId(dtFacilityId)?.let { facility ->
+                    relayService.saveFailure(
+                        Failure(sn = null,
+                            issueDateTime = LocalDateTime.now(),
+                            facilitiesId = facility.dtFacilitiesId,
+                            fName = facility.fname,
+                            failureCode = "paymentFailure",
+                            failureType = "ERROR")
+                    )
+                }
+            } else if (contents.result == ResultType.SUCCESS){
+                // 결제 완료 정보가 SUCCESS 인 경우 정기권 신규 생성
+                // 이전 정기권 정보 fetch
+                seasonTicketQueryService.findByCriteria(SeasonTicketCriteria(sn = contents.sn?.toLong() ?: kotlin.run { 0 })).let { tickets ->
+                    tickets.forEach { ticket ->
+                        val new = ticket.apply {
+                            sn = null
+                            effectDate = DateUtil.beginTimeToLocalDateTime(DateUtil.LocalDateTimeToDateString(DateUtil.getAddDays(ticket.expireDate?: LocalDateTime.now(), 1)))
+                            expireDate = DateUtil.getAddMonths(ticket.expireDate?: LocalDateTime.now(), 1)
+                        }
+                        seasonTicketService.save(new)
+
+//                        // 정기권 결제 정보 save
+//                        if (gate.gateType == GateTypeStatus.ETC) {
+//                            logger.warn { "사전 $dtFacilityId 정기권  결제 완료  ${contents.vehicleNumber} " }
+//                            inoutService.savePayment(contents, sn)
+//                        } else {
+//                            logger.warn { "출차 $dtFacilityId 정기권 결제 완료  ${contents.vehicleNumber} " }
+//                            // 정상 출차 시
+//                            inoutPaymentService.findOne(sn).ifPresent { inoutPayment ->
+//                                val parkOut = parkOutService.findByInSn(inoutPayment.inSn ?: -1).orElse(null)
+//                                parkOut?.let { parkOutDTO ->
+//                                    inoutService.savePayment(contents, sn, parkOut.sn)
+//                                    parkInService.findOne(parkOutDTO.inSn ?: -1)?.let {
+//
+//                                        val parkCarType = when(contents.result?: ResultType.SUCCESS) {
+//                                            ResultType.ERROR -> "ERROR"
+//                                            ResultType.FAILURE -> "FAILURE"
+//                                            else -> parkOut.parkcartype ?: ""
+//                                        }
+//
+//                                        inoutService.outFacilityIF(
+//                                            parkCarType, parkOut.vehicleNo ?: "", gate, parkInMapper.toEntity(it), parkOut.sn!!)
+//                                    }
+//                                }
+//                            }
+//                        }
+
+                        // 입출차 결제 정보 cancel 로 변경
+                    }
+                }
+            }
+
+            relayClient.sendPayStation(
+                gateId = gate.gateId,
+                type = "paymentResponse",
+                requestId = request.requestId!!,
+                data = reqPaymentResponse(
+                    chargingId = contents.transactionId,
+                    vehicleNumber = ""//contents.vehicleNumber
                 ),
                 dtFacilityId
             )

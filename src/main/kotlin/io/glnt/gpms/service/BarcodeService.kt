@@ -1,6 +1,6 @@
 package io.glnt.gpms.service
 
-import io.glnt.gpms.model.dto.BarcodeDTO
+import io.glnt.gpms.model.dto.entity.BarcodeDTO
 import io.glnt.gpms.model.repository.BarcodeRepository
 import io.glnt.gpms.model.mapper.BarcodeMapper
 import mu.KLogging

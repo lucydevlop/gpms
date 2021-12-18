@@ -20,7 +20,7 @@ import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.rcs.model.*
 import io.glnt.gpms.common.api.ResetClient
 import io.glnt.gpms.service.RelayService
-import io.glnt.gpms.model.dto.FacilityDTO
+import io.glnt.gpms.model.dto.entity.FacilityDTO
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.dto.request.resParkInList

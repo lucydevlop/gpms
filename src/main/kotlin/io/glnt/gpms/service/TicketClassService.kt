@@ -1,7 +1,8 @@
 package io.glnt.gpms.service
 
-import io.glnt.gpms.model.dto.DiscountClassDTO
-import io.glnt.gpms.model.dto.TicketClassDTO
+import io.glnt.gpms.model.dto.entity.TicketClassDTO
+import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.Yn
 import io.glnt.gpms.model.mapper.TicketClassMapper
 import io.glnt.gpms.model.repository.TicketClassRepository
 import mu.KLogging
@@ -26,6 +27,10 @@ class TicketClassService(
         ticketClassRepository.save(ticketClass!!)
 
         return ticketClassMapper.toDto(ticketClass)
+    }
+
+    fun findByExtendYn(extendYn: Yn?) : List<TicketClassDTO>? {
+        return ticketClassRepository.findByDelYnAndExtendYn(DelYn.N, extendYn)?.map(ticketClassMapper::toDto)
     }
 
 

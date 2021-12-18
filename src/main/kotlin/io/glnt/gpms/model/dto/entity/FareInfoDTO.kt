@@ -1,8 +1,7 @@
-package io.glnt.gpms.model.dto
+package io.glnt.gpms.model.dto.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.entity.FareInfo
-import io.glnt.gpms.model.entity.FarePolicy
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.FareType
 import java.io.Serializable

@@ -1,6 +1,6 @@
 package io.glnt.gpms.service
 
-import io.glnt.gpms.model.dto.SiteUserDTO
+import io.glnt.gpms.model.dto.entity.SiteUserDTO
 import io.glnt.gpms.model.mapper.SiteUserMapper
 import io.glnt.gpms.model.repository.UserRepository
 import mu.KLogging

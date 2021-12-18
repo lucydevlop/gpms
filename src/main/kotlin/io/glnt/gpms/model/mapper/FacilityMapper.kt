@@ -1,8 +1,7 @@
 package io.glnt.gpms.model.mapper
 
-import io.glnt.gpms.model.dto.FacilityDTO
-import io.glnt.gpms.model.dto.GateDTO
-import io.glnt.gpms.model.dto.ParkAlarmSettingDTO
+import io.glnt.gpms.model.dto.entity.FacilityDTO
+import io.glnt.gpms.model.dto.entity.ParkAlarmSettingDTO
 import io.glnt.gpms.model.entity.Facility
 import io.glnt.gpms.model.enums.FacilityCategoryType
 import io.glnt.gpms.model.repository.GateRepository

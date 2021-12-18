@@ -1,10 +1,12 @@
 package io.glnt.gpms.service
 
+import io.glnt.gpms.model.dto.entity.CorpDTO
+import io.glnt.gpms.model.dto.entity.CorpTicketDTO
+import io.glnt.gpms.model.dto.entity.CorpTicketHistoryDTO
 import io.glnt.gpms.model.criteria.CorpCriteria
 import io.glnt.gpms.model.dto.*
 import io.glnt.gpms.model.entity.CorpTicketInfo
 import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.UserRole
 import io.glnt.gpms.model.mapper.CorpMapper
 import io.glnt.gpms.model.mapper.CorpTicketHistoryMapper
 import io.glnt.gpms.model.mapper.CorpTicketMapper
@@ -48,9 +50,9 @@ class CorpService(
         return corpQueryService.findByCriteria(criteria).stream().findFirst()
     }
 
-    fun getStoreByCorpName(name: String): Optional<CorpDTO> {
-        val criteria = CorpCriteria(corpId = name)
-        return corpQueryService.findByCriteria(criteria).stream().findFirst()
+    fun getStoreByCorpName(name: String): CorpDTO? {
+        val criteria = CorpCriteria(corpName = name)
+        return corpQueryService.findByCriteria(criteria).firstOrNull()
     }
 
     fun getAllCorpTickets(): MutableList<CorpTicketDTO> {

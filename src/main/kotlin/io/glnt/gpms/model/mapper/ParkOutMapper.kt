@@ -1,13 +1,11 @@
 package io.glnt.gpms.model.mapper
 
-import io.glnt.gpms.handler.tmap.model.parkinglotMap
-import io.glnt.gpms.model.dto.GateDTO
-import io.glnt.gpms.model.dto.ParkInDTO
-import io.glnt.gpms.model.dto.ParkOutDTO
+import io.glnt.gpms.model.dto.entity.GateDTO
+import io.glnt.gpms.model.dto.entity.ParkInDTO
+import io.glnt.gpms.model.dto.entity.ParkOutDTO
 import io.glnt.gpms.model.entity.ParkOut
 import io.glnt.gpms.model.repository.GateRepository
 import io.glnt.gpms.model.repository.ParkInRepository
-import io.glnt.gpms.service.ParkInQueryService
 import org.springframework.stereotype.Service
 
 @Service

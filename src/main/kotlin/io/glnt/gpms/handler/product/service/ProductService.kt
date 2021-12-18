@@ -47,6 +47,7 @@ class ProductService {
 
         tickets.forEach { productTicket ->
             productTicket.ticket?.let { ticketClass ->
+                if (((ticketClass.price?: 0) > 0) && productTicket.payMethod == null) return null
                 when (ticketClass.rangeType) {
                     DiscountRangeType.ALL -> {
                         if (ticketClass.aplyType == TicketAplyType.FULL) return productTicket

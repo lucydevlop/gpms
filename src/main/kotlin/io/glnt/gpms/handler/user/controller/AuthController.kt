@@ -9,7 +9,7 @@ import io.glnt.gpms.handler.user.model.reqRegister
 import io.glnt.gpms.handler.user.model.reqUserRegister
 import io.glnt.gpms.handler.user.service.AuthService
 import io.glnt.gpms.model.dto.ChangePasswordDTO
-import io.glnt.gpms.model.dto.SiteUserDTO
+import io.glnt.gpms.model.dto.entity.SiteUserDTO
 import io.glnt.gpms.service.SiteUserService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired

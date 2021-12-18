@@ -1,10 +1,8 @@
 package io.glnt.gpms.service
 
-import io.glnt.gpms.model.dto.DisplayMessageDTO
-import io.glnt.gpms.model.dto.GateDTO
+import io.glnt.gpms.model.dto.entity.DisplayMessageDTO
 import io.glnt.gpms.model.entity.DisplayColor
 import io.glnt.gpms.model.entity.DisplayInfo
-import io.glnt.gpms.model.entity.DisplayMessage
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayMessageType

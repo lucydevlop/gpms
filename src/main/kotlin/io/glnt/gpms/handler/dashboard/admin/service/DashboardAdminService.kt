@@ -452,7 +452,7 @@ class DashboardAdminService(
         try{
             request.forEach{ it ->
                 it.corpName?.let { corpName ->
-                    corpService.getStoreByCorpName(corpName).ifPresent { corp ->
+                    corpService.getStoreByCorpName(corpName)?.let { corp ->
                         it.corpSn = corp.sn
                     }
                 }

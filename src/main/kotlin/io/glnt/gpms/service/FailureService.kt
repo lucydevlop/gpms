@@ -1,7 +1,7 @@
 package io.glnt.gpms.service
 
 import io.glnt.gpms.model.criteria.FailureCriteria
-import io.glnt.gpms.model.dto.FailureDTO
+import io.glnt.gpms.model.dto.entity.FailureDTO
 import io.glnt.gpms.model.mapper.FailureMapper
 import io.glnt.gpms.model.repository.FailureRepository
 import mu.KLogging
@@ -21,9 +21,7 @@ class FailureService (
         return failureRepository.findAll().map(failureMapper::toDTO)
     }
 
-    fun findByCriteria(criteria: FailureCriteria): List<FailureDTO> {
+    fun findByCriteria(criteria: FailureCriteria): List<FailureDTO> {4
         return failureQueryService.findByCriteria(criteria)
     }
-
-
 }

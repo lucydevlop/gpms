@@ -1,11 +1,9 @@
 package io.glnt.gpms.model.mapper
 
-import io.glnt.gpms.model.dto.BarcodeClassDTO
-import io.glnt.gpms.model.dto.DiscountClassDTO
+import io.glnt.gpms.model.dto.entity.BarcodeClassDTO
+import io.glnt.gpms.model.dto.entity.DiscountClassDTO
 import io.glnt.gpms.model.entity.BarcodeClass
 import io.glnt.gpms.model.repository.DiscountClassRepository
-import org.mapstruct.Mapper
-import org.mapstruct.ReportingPolicy
 import org.springframework.stereotype.Service
 
 @Service

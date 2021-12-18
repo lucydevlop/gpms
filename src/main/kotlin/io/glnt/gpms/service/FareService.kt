@@ -1,11 +1,9 @@
 package io.glnt.gpms.service
 
 import io.glnt.gpms.handler.calc.service.FareRefService
-import io.glnt.gpms.model.dto.CgBasicDTO
-import io.glnt.gpms.model.dto.FareInfoDTO
-import io.glnt.gpms.model.dto.FarePolicyDTO
-import io.glnt.gpms.model.dto.GateDTO
-import io.glnt.gpms.model.entity.CgBasic
+import io.glnt.gpms.model.dto.entity.CgBasicDTO
+import io.glnt.gpms.model.dto.entity.FareInfoDTO
+import io.glnt.gpms.model.dto.entity.FarePolicyDTO
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.mapper.CgBasicMapper
 import io.glnt.gpms.model.mapper.FareInfoMapper

@@ -6,8 +6,8 @@ import io.glnt.gpms.handler.facility.model.reqDisplayMessage
 import io.glnt.gpms.handler.facility.model.reqPaystation
 import io.glnt.gpms.handler.facility.model.reqSendDisplay
 import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
-import io.glnt.gpms.model.dto.FacilityDTO
-import io.glnt.gpms.model.dto.GateDTO
+import io.glnt.gpms.model.dto.entity.FacilityDTO
+import io.glnt.gpms.model.dto.entity.GateDTO
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.FacilityCategoryType
 import io.glnt.gpms.model.enums.GateTypeStatus

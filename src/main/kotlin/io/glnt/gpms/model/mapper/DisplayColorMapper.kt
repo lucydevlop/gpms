@@ -1,6 +1,6 @@
 package io.glnt.gpms.model.mapper
 
-import io.glnt.gpms.model.dto.DisplayColorDTO
+import io.glnt.gpms.model.dto.entity.DisplayColorDTO
 import io.glnt.gpms.model.entity.DisplayColor
 import org.springframework.stereotype.Service
 

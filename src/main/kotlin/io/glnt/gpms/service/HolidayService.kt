@@ -1,6 +1,6 @@
 package io.glnt.gpms.service
 
-import io.glnt.gpms.model.dto.HolidayDTO
+import io.glnt.gpms.model.dto.entity.HolidayDTO
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.mapper.HolidayMapper
 import io.glnt.gpms.model.repository.HolidayRepository

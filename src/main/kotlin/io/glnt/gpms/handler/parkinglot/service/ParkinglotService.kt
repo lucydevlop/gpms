@@ -4,7 +4,6 @@ import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.JsonNode
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
-import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
@@ -15,7 +14,7 @@ import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqVisitorExternal
 import io.glnt.gpms.handler.parkinglot.model.reqCreateParkinglot
 import io.glnt.gpms.handler.parkinglot.model.reqUpdateGates
-import io.glnt.gpms.model.dto.FacilityDTO
+import io.glnt.gpms.model.dto.entity.FacilityDTO
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.mapper.FacilityMapper
@@ -23,7 +22,6 @@ import io.glnt.gpms.model.repository.*
 import io.glnt.gpms.service.ParkSiteInfoService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
 import java.lang.RuntimeException

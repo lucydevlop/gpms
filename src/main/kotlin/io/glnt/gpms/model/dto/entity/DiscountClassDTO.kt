@@ -1,4 +1,4 @@
-package io.glnt.gpms.model.dto
+package io.glnt.gpms.model.dto.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.common.utils.DateUtil
@@ -6,7 +6,6 @@ import io.glnt.gpms.model.entity.DiscountClass
 import io.glnt.gpms.model.enums.*
 import java.io.Serializable
 import java.time.LocalDateTime
-import javax.persistence.Column
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 import javax.validation.constraints.NotNull

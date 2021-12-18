@@ -18,6 +18,10 @@ import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
+import io.glnt.gpms.model.dto.entity.DisplayMessageDTO
+import io.glnt.gpms.model.dto.entity.InoutPaymentDTO
+import io.glnt.gpms.model.dto.entity.ParkInDTO
+import io.glnt.gpms.model.dto.entity.ParkOutDTO
 import io.glnt.gpms.model.criteria.ParkInCriteria
 import io.glnt.gpms.model.criteria.ParkOutCriteria
 import io.glnt.gpms.model.dto.*
@@ -137,11 +141,8 @@ class InoutService(
                 // 방문차량 입차통보 데이터
                 var visitorData:reqVisitorExternal? = null
 
-
-                //차량번호 패턴 체크
-//                if (DataCheckUtil.isValidCarNumber(vehicleNo)) {
-//                    parkingtype = "NORMAL"
-//                    // 정기권 차량 여부 확인
+                // 차량번호 정상인식에 한하여 아래의 모듈 처리
+                if (request.recognitionResult.equals("RECOGNITION")) {
                     productService.getValidProductByVehicleNo(vehicleNo, date, date)?.let {
                         parkingtype = it.ticketType!!.code
                         validDate = it.validDate
@@ -193,8 +194,6 @@ class InoutService(
                         }
                     }
 
-//                    recognitionResult = "RECOGNITION"
-
                     // 기 입차 여부 확인 및 update
                     val parkins = searchParkInByVehicleNo(vehicleNo, gate.gateId)
                     if (!parkins.isNullOrEmpty()) {
@@ -203,10 +202,7 @@ class InoutService(
                             parkInService.save(it)
                         }
                     }
-//                } else {
-//                    parkingtype = "UNRECOGNIZED"
-//                    recognitionResult = "NOTRECOGNITION"
-//                }
+                }
 
                 // 입차 정보 DB insert
                 val newData = ParkIn(
@@ -1559,7 +1555,7 @@ class InoutService(
         }
     }
 
-    fun waitFacilityIF(type: String, parkCarType: String, vehicleNo: String, gate: Gate, parkOutDTO: ParkOutDTO, inDate: LocalDateTime, dtFacilityId: String? = null) {
+    fun waitFacilityIF(type: String, parkCarType: String, vehicleNo: String, gate: Gate, parkOutDTO: ParkOutDTO, inDate: LocalDateTime, dtFacilityId: String? = null, ticketInfo: TicketInfoDTO? = null) {
         // 결제금액 전광판
         val payFee = if (type == "PAYMENT") parkOutDTO.originPayFee?: 0 else parkOutDTO.payfee?: 0
         val discount = if (type == "PAYMENT") parkOutDTO.originDiscountFee?: 0 else parkOutDTO.discountfee?: 0
@@ -1619,7 +1615,8 @@ class InoutService(
                             paymentAmount = (inoutPayment.parkFee?: 0).toString(),
                             parktime = parkOutDTO.parktime.toString(),
                             parkTicketMoney = totalDiscount.toString(),  // 할인요금
-                            vehicleIntime = DateUtil.formatDateTime(inDate, "yyyy-MM-dd HH:mm")
+                            vehicleIntime = DateUtil.formatDateTime(inDate, "yyyy-MM-dd HH:mm"),
+                            extendTicket = ticketInfo
                         ),
                         dtFacilityId = dtFacilityId
                     )

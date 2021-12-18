@@ -5,7 +5,7 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.exception.CustomException
 //import io.glnt.gpms.handler.corp.service.CorpService
 import io.glnt.gpms.handler.product.service.ProductService
-import io.glnt.gpms.model.dto.CorpDTO
+import io.glnt.gpms.model.dto.entity.CorpDTO
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.enums.DelYn
@@ -55,15 +55,24 @@ class externalService(
         try {
             request.forEach { ticket ->
                 ticket.corpName?.let { text ->
-                    corpService.getStoreByCorpName(text).ifPresentOrElse(
-                        { ticket.corpSn = it.sn},
-                        {
-                            var corp = CorpDTO(corpName = ticket.corpName, ceoName = ticket.ceoName, delYn = DelYn.N, tel = (ticket.corpTel?: "").replace("-", "") )
-                            corpService.save(corp, "create", parkSiteInfoService.getSiteId()).let { corpDTO ->
-                                ticket.corpSn = corpDTO.sn
-                            }
+                    val exist = corpService.getStoreByCorpName(text)
+                    exist?.let {
+                        ticket.corpSn = it.sn
+                    }?: kotlin.run {
+                        val corp = CorpDTO(corpName = ticket.corpName, ceoName = ticket.ceoName, delYn = DelYn.N, tel = (ticket.corpTel?: "").replace("-", "") )
+                        corpService.save(corp, "create", parkSiteInfoService.getSiteId()).let { corpDTO ->
+                            ticket.corpSn = corpDTO.sn
                         }
-                    )
+                    }
+//                    if (exist == null) {
+//                        val corp = CorpDTO(corpName = ticket.corpName, ceoName = ticket.ceoName, delYn = DelYn.N, tel = (ticket.corpTel?: "").replace("-", "") )
+//                        corpService.save(corp, "create", parkSiteInfoService.getSiteId()).let { corpDTO ->
+//                            ticket.corpSn = corpDTO.sn
+//                        }
+//                    } else {
+//
+//
+//                    }
                 }
                 val data = productService.createProduct(ticket)
 

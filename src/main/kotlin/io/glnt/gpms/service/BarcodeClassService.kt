@@ -1,15 +1,13 @@
 package io.glnt.gpms.service
 
 import io.glnt.gpms.model.mapper.BarcodeClassMapper
-import io.glnt.gpms.model.dto.BarcodeClassDTO
-import io.glnt.gpms.model.entity.Barcode
+import io.glnt.gpms.model.dto.entity.BarcodeClassDTO
 import io.glnt.gpms.model.entity.BarcodeClass
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.repository.BarcodeClassRepository
 import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
 import javax.persistence.EntityNotFoundException
 
 @Service

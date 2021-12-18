@@ -1,5 +1,7 @@
-package io.glnt.gpms.model.dto
+package io.glnt.gpms.model.dto.entity
 
+import io.glnt.gpms.model.dto.entity.CorpDTO
+import io.glnt.gpms.model.dto.entity.CorpTicketClassDTO
 import io.glnt.gpms.model.entity.CorpTicketInfo
 import io.glnt.gpms.model.enums.DelYn
 import java.io.Serializable
@@ -35,7 +37,7 @@ data class CorpTicketDTO(
     var totalCnt: Int? = 0,
 
 
-) : Serializable {
+    ) : Serializable {
 
     constructor(corpTicket: CorpTicketInfo) :
         this(

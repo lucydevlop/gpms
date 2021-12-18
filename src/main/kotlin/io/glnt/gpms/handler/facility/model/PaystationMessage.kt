@@ -1,6 +1,7 @@
 package io.glnt.gpms.handler.facility.model
 
 import io.glnt.gpms.handler.relay.model.paystationvehicleListSearch
+import io.glnt.gpms.model.dto.TicketInfoDTO
 import io.glnt.gpms.model.enums.ResultType
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
@@ -33,7 +34,8 @@ data class reqPayStationData(
     var approveDatetime: String? = null,
     var cardCorp: String? = null,
     var chargingId: String? = null,
-    var parkTicketMoney: String? = null
+    var parkTicketMoney: String? = null,
+    var extendTicket: TicketInfoDTO? = null
 )
 
 data class reqPayData(

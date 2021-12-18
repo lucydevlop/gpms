@@ -1,8 +1,8 @@
 package io.glnt.gpms.model.mapper
 
-import io.glnt.gpms.model.dto.CorpDTO
-import io.glnt.gpms.model.dto.SeasonTicketDTO
-import io.glnt.gpms.model.dto.TicketClassDTO
+import io.glnt.gpms.model.dto.entity.CorpDTO
+import io.glnt.gpms.model.dto.entity.SeasonTicketDTO
+import io.glnt.gpms.model.dto.entity.TicketClassDTO
 import io.glnt.gpms.model.entity.SeasonTicket
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.repository.CorpRepository
@@ -50,7 +50,10 @@ class SeasonTicketMapper(
                     etc1 = dto.etc1,
                     effectDate = dto.effectDate,
                     expireDate = dto.expireDate,
-                    delYn = dto.delYn
+                    delYn = dto.delYn,
+                    extendYn = dto.extendYn,
+                    payMethod = dto.payMethod,
+                    nextSn = dto.nextSn
                 )
             }
         }

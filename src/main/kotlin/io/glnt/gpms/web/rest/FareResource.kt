@@ -4,8 +4,9 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.model.dto.FareInfoDTO
-import io.glnt.gpms.model.dto.FarePolicyDTO
+import io.glnt.gpms.model.dto.entity.FareInfoDTO
+import io.glnt.gpms.model.dto.entity.FarePolicyDTO
+import io.glnt.gpms.model.dto.rcs.RcsRateInfoDTO
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.service.FareService
 import mu.KLogging
@@ -72,4 +73,10 @@ class FareResource (
         return CommonResult.returnResult(CommonResult.data(fareService.saveFareInfo(fareInfoDTO)))
     }
 
+    @RequestMapping(value = ["/fares"], method = [RequestMethod.GET])
+    fun getFares(): ResponseEntity<CommonResult> {
+        val fareBasic = fareService.findFareBasic()
+        val farePolicies = fareService.findFarePolicies()
+        return CommonResult.returnResult(CommonResult.data(RcsRateInfoDTO(fareBasic = fareBasic, farePolicies = farePolicies)))
+    }
 }

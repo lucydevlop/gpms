@@ -1,5 +1,6 @@
-package io.glnt.gpms.model.dto
+package io.glnt.gpms.model.dto.entity
 
+import io.glnt.gpms.model.dto.entity.ParkInDTO
 import io.glnt.gpms.model.entity.InoutPayment
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.PayType

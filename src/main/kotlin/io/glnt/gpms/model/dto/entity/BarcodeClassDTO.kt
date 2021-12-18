@@ -1,7 +1,6 @@
-package io.glnt.gpms.model.dto
+package io.glnt.gpms.model.dto.entity
 
-import io.glnt.gpms.model.dto.DiscountClassDTO
-import io.glnt.gpms.model.entity.Barcode
+import io.glnt.gpms.model.dto.entity.DiscountClassDTO
 import io.glnt.gpms.model.entity.BarcodeClass
 import io.glnt.gpms.model.enums.DelYn
 import java.io.Serializable
@@ -24,7 +23,7 @@ data class BarcodeClassDTO (
 
     var discountClassSn: Long,
 
-): Serializable {
+    ): Serializable {
 
     constructor(barcodeClass: BarcodeClass) :
         this(

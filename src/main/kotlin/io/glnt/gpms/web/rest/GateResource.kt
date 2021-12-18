@@ -4,8 +4,7 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.model.dto.GateDTO
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.dto.entity.GateDTO
 import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.service.GateService
 import mu.KLogging
