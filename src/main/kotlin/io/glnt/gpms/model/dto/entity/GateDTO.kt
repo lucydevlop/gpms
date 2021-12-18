@@ -1,7 +1,6 @@
-package io.glnt.gpms.model.dto
+package io.glnt.gpms.model.dto.entity
 
 import io.glnt.gpms.model.entity.Gate
-import io.glnt.gpms.model.entity.GateGroup
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.GateTypeStatus
 import io.glnt.gpms.model.enums.OpenActionType

@@ -10,11 +10,10 @@ import io.glnt.gpms.handler.dashboard.admin.model.ReqCreateMessage
 import io.glnt.gpms.handler.facility.model.*
 import io.glnt.gpms.handler.inout.model.reqUpdatePayment
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
-import io.glnt.gpms.service.RelayService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
-import io.glnt.gpms.model.dto.FacilityDTO
-import io.glnt.gpms.model.dto.GateDTO
+import io.glnt.gpms.model.dto.entity.FacilityDTO
+import io.glnt.gpms.model.dto.entity.GateDTO
 import io.glnt.gpms.model.dto.request.reqDisplayInfo
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
@@ -677,10 +676,10 @@ class FacilityService(
         }
     }
 
-    fun activeGateFacilities(): List<FacilityDTO>? {
+    fun activeGateFacilities(): List<FacilityDTO> {
         var result = ArrayList<FacilityDTO>()
         gateService.findActiveGate().let { gates ->
-            for (gate in gates) {
+            for (gate in gates.filter { g -> g.delYn == DelYn.N }) {
                 facilityRepository.findByGateIdAndDelYn(gate.gateId!!, DelYn.N)?.let { facilities ->
                     for (facility in facilities) {
                         result.add(facilityMapper.toDTO(facility)
@@ -692,7 +691,7 @@ class FacilityService(
         return result
     }
 
-    fun allFacilities(): List<FacilityDTO>? {
+    fun allFacilities(): List<FacilityDTO> {
         var result = ArrayList<FacilityDTO>()
         gateService.findAll().let { gates ->
             for (gate in gates) {

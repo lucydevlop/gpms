@@ -1,6 +1,6 @@
 package io.glnt.gpms.model.mapper
 
-import io.glnt.gpms.model.dto.HolidayDTO
+import io.glnt.gpms.model.dto.entity.HolidayDTO
 import io.glnt.gpms.model.entity.Holiday
 import org.springframework.stereotype.Service
 

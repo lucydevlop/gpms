@@ -1,6 +1,6 @@
 package io.glnt.gpms.model.dto
 
-import io.glnt.gpms.model.dto.CorpDTO
+import io.glnt.gpms.model.dto.entity.CorpDTO
 
 data class CorpTicketSummaryDTO(
     var corp: CorpDTO,

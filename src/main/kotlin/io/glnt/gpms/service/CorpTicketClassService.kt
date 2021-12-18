@@ -1,16 +1,7 @@
 package io.glnt.gpms.service
 
-import io.glnt.gpms.common.api.CommonResult
-import io.glnt.gpms.common.api.ResultCode
-import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.dashboard.common.model.reqParkingDiscountSearchTicket
-import io.glnt.gpms.handler.dashboard.user.model.ResDiscountTicetsApplyList
-import io.glnt.gpms.handler.dashboard.user.model.reqParkingDiscountApplyTicketSearch
-import io.glnt.gpms.handler.discount.model.reqApplyInoutDiscountSearch
 import io.glnt.gpms.handler.discount.service.DiscountService
-import io.glnt.gpms.model.dto.CorpTicketClassDTO
-import io.glnt.gpms.model.entity.CorpTicketInfo
-import io.glnt.gpms.model.entity.InoutDiscount
+import io.glnt.gpms.model.dto.entity.CorpTicketClassDTO
 import io.glnt.gpms.model.mapper.CorpTicketClassMapper
 import io.glnt.gpms.model.repository.CorpTicketClassRepository
 import mu.KLogging

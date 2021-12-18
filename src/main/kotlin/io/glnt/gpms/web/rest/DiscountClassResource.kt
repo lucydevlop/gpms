@@ -2,8 +2,7 @@ package io.glnt.gpms.web.rest
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.configs.ApiConfig
-import io.glnt.gpms.model.dto.DiscountClassDTO
-import io.glnt.gpms.model.dto.request.reqDiscountTicket
+import io.glnt.gpms.model.dto.entity.DiscountClassDTO
 import io.glnt.gpms.service.DiscountClassService
 import mu.KLogging
 import org.springframework.http.ResponseEntity

@@ -5,7 +5,7 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.model.dto.HolidayDTO
+import io.glnt.gpms.model.dto.entity.HolidayDTO
 import io.glnt.gpms.service.HolidayService
 import mu.KLogging
 import org.springframework.http.ResponseEntity

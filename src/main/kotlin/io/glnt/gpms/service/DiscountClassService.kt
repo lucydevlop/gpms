@@ -1,10 +1,8 @@
 package io.glnt.gpms.service
 
 import io.glnt.gpms.common.utils.DateUtil
-import io.glnt.gpms.model.dto.DiscountClassDTO
-import io.glnt.gpms.model.dto.request.reqDiscountTicket
+import io.glnt.gpms.model.dto.entity.DiscountClassDTO
 import io.glnt.gpms.model.entity.DiscountClass
-import io.glnt.gpms.model.entity.timeRange
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.mapper.DiscountClassMapper
 import io.glnt.gpms.model.repository.DiscountClassRepository

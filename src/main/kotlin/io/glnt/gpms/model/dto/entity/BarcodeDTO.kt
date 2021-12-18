@@ -1,8 +1,7 @@
-package io.glnt.gpms.model.dto
+package io.glnt.gpms.model.dto.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.entity.Barcode
-import io.glnt.gpms.model.entity.BarcodeTickets
 import io.glnt.gpms.model.enums.DelYn
 import java.io.Serializable
 import java.time.LocalDateTime

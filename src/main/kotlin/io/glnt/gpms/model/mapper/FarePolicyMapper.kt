@@ -1,7 +1,7 @@
 package io.glnt.gpms.model.mapper
 
-import io.glnt.gpms.model.dto.FareInfoDTO
-import io.glnt.gpms.model.dto.FarePolicyDTO
+import io.glnt.gpms.model.dto.entity.FareInfoDTO
+import io.glnt.gpms.model.dto.entity.FarePolicyDTO
 import io.glnt.gpms.model.entity.FarePolicy
 import io.glnt.gpms.model.repository.FareInfoRepository
 import org.springframework.stereotype.Service

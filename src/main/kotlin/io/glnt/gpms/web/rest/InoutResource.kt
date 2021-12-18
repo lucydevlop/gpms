@@ -12,11 +12,13 @@ import io.glnt.gpms.handler.calc.service.FareRefService
 import io.glnt.gpms.handler.inout.model.reqAddParkIn
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.common.api.ExternalClient
+import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.model.criteria.InoutPaymentCriteria
-import io.glnt.gpms.model.dto.ParkOutDTO
-import io.glnt.gpms.model.dto.ParkinglotVehicleDTO
+import io.glnt.gpms.model.dto.entity.ParkOutDTO
+import io.glnt.gpms.model.dto.entity.ParkinglotVehicleDTO
 import io.glnt.gpms.model.dto.RequestParkOutDTO
+import io.glnt.gpms.model.dto.TicketInfoDTO
 import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.mapper.GateMapper
@@ -26,7 +28,9 @@ import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.validation.Valid
 
 @RestController
@@ -53,6 +57,27 @@ class InoutResource (
     private var seasonTicketService: TicketService
 ){
     companion object : KLogging()
+
+    @RequestMapping(value=["/inouts"], method = [RequestMethod.GET])
+    fun getInouts(@RequestParam(name = "startDate", required = false) startDate: String,
+                  @RequestParam(name = "endDate", required = false) endDate: String,
+                  @RequestParam(name = "searchDateLabel", required = false) searchDateLabel: DisplayMessageClass,
+                  @RequestParam(name = "vehicleNo", required = false) vehicleNo: String? = null,
+                  @RequestParam(name = "parkCarType", required = false) parkCarType: String? = null,
+                  @RequestParam(name = "outSn", required = false) outSn: Long? = null
+    ) : ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(CommonResult.data(
+            inoutService.getAllParkLists(
+                reqSearchParkin(searchDateLabel = searchDateLabel,
+                fromDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                toDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                searchLabel = vehicleNo?.let { "CARNUM" },
+                searchText = vehicleNo,
+                parkcartype = parkCarType,
+                outSn = outSn
+            ))
+            ))
+    }
 
     @RequestMapping(value=["/inout"], method = [RequestMethod.GET])
     fun getInout(@RequestParam(name = "sn", required = false) sn: Long,): ResponseEntity<CommonResult> {
@@ -376,6 +401,15 @@ class InoutResource (
                         if ( -3 <= days || days <= 7 ) {
                             // 정기권 정보
                             logger.debug { "extended payment ${seasonTicketDTO.sn} ${seasonTicketDTO.vehicleNo} ${seasonTicketDTO.expireDate}" }
+                            var ticketInfo = TicketInfoDTO(
+                                sn = seasonTicketDTO.sn.toString(),
+                                effectDate = DateUtil.LocalDateTimeToDateString(DateUtil.beginTimeToLocalDateTime(DateUtil.LocalDateTimeToDateString(DateUtil.getAddDays(seasonTicketDTO.expireDate?: LocalDateTime.now(), 1)))),
+                                expireDate = DateUtil.LocalDateTimeToDateString(DateUtil.getAddMonths(seasonTicketDTO.expireDate?: LocalDateTime.now(), 1)),
+                                name = seasonTicketDTO.ticket?.ticketName ?: kotlin.run { "정기권" },
+                                price = seasonTicketDTO.ticket?.price.toString() ?: kotlin.run { "0" }
+                            )
+                            inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!, null, ticketInfo)
+                        } else {
                             inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!)
                         }
                     }?: run {

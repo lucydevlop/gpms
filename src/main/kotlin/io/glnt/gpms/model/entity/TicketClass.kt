@@ -5,8 +5,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.vladmihalcea.hibernate.type.json.JsonStringType
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.common.utils.JsonToMapConverter
 import io.glnt.gpms.model.entity.Auditable
 import io.glnt.gpms.model.enums.*
+import org.hibernate.annotations.Type
 import org.hibernate.annotations.TypeDef
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
@@ -64,6 +66,15 @@ data class TicketClass(
 
     @Column(name = "available")
     var available: Int? = 0, //구매 이후 1년 사용 가능(시간권일 경우)
+
+    @Type(type = "json")
+    @Column(name = "period", columnDefinition = "json")
+    @Convert(attributeName = "period", converter = JsonToMapConverter::class)
+    var period: Map<String, Any>? = null,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "extend_yn", nullable = true)
+    var extendYn: Yn? = null,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)

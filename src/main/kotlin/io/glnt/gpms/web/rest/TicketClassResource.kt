@@ -4,8 +4,7 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.model.dto.GateDTO
-import io.glnt.gpms.model.dto.TicketClassDTO
+import io.glnt.gpms.model.dto.entity.TicketClassDTO
 import io.glnt.gpms.service.TicketClassService
 import mu.KLogging
 import org.springframework.http.ResponseEntity

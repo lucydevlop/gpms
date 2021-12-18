@@ -1,9 +1,7 @@
 package io.glnt.gpms.model.mapper
 
-import io.glnt.gpms.model.dto.BarcodeTicketsDTO
+import io.glnt.gpms.model.dto.entity.BarcodeTicketsDTO
 import io.glnt.gpms.model.entity.BarcodeTickets
-import org.mapstruct.Mapper
-import org.mapstruct.ReportingPolicy
 import org.springframework.stereotype.Service
 
 @Service

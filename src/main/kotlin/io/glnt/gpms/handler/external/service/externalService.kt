@@ -5,7 +5,7 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.exception.CustomException
 //import io.glnt.gpms.handler.corp.service.CorpService
 import io.glnt.gpms.handler.product.service.ProductService
-import io.glnt.gpms.model.dto.CorpDTO
+import io.glnt.gpms.model.dto.entity.CorpDTO
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.enums.DelYn

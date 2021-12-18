@@ -1,10 +1,12 @@
 package io.glnt.gpms.service
 
+import io.glnt.gpms.model.dto.entity.CorpDTO
+import io.glnt.gpms.model.dto.entity.CorpTicketDTO
+import io.glnt.gpms.model.dto.entity.CorpTicketHistoryDTO
 import io.glnt.gpms.model.criteria.CorpCriteria
 import io.glnt.gpms.model.dto.*
 import io.glnt.gpms.model.entity.CorpTicketInfo
 import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.UserRole
 import io.glnt.gpms.model.mapper.CorpMapper
 import io.glnt.gpms.model.mapper.CorpTicketHistoryMapper
 import io.glnt.gpms.model.mapper.CorpTicketMapper

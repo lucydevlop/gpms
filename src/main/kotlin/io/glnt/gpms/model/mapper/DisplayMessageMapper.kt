@@ -1,7 +1,7 @@
 package io.glnt.gpms.model.mapper
 
-import io.glnt.gpms.model.dto.DisplayColorDTO
-import io.glnt.gpms.model.dto.DisplayMessageDTO
+import io.glnt.gpms.model.dto.entity.DisplayColorDTO
+import io.glnt.gpms.model.dto.entity.DisplayMessageDTO
 import io.glnt.gpms.model.entity.DisplayMessage
 import io.glnt.gpms.model.repository.DisplayColorRepository
 import org.springframework.stereotype.Service

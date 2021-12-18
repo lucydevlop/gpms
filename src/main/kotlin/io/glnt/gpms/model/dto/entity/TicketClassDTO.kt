@@ -1,11 +1,15 @@
-package io.glnt.gpms.model.dto
+package io.glnt.gpms.model.dto.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.common.utils.JsonToMapConverter
 import io.glnt.gpms.model.entity.TicketClass
 import io.glnt.gpms.model.enums.*
+import org.hibernate.annotations.Type
 import java.io.Serializable
 import java.time.LocalDateTime
+import javax.persistence.Column
+import javax.persistence.Convert
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 import javax.validation.constraints.NotNull
@@ -45,6 +49,11 @@ data class TicketClassDTO(
 
     var available: Int? = null, //구매 이후 1년 사용 가능(시간권일 경우)
 
+    var period: Map<String, Any>? = null,
+
+    @Enumerated(EnumType.STRING)
+    var extendYn: Yn? = null,
+
     @get: NotNull
     @Enumerated(EnumType.STRING)
     var delYn: DelYn? = null
@@ -52,7 +61,7 @@ data class TicketClassDTO(
     constructor(ticketClass: TicketClass) :
         this(
             ticketClass.sn, ticketClass.ticketType, ticketClass.ticketName, ticketClass.aplyType, ticketClass.startTime, ticketClass.endTime,
-            ticketClass.rangeType, ticketClass.effectDate, ticketClass.expireDate, ticketClass.price, ticketClass.vehicleType, ticketClass.available, ticketClass.delYn
+            ticketClass.rangeType, ticketClass.effectDate, ticketClass.expireDate, ticketClass.price, ticketClass.vehicleType, ticketClass.available, ticketClass.period, ticketClass.extendYn, ticketClass.delYn
         )
 
     override fun equals(other: Any?): Boolean {

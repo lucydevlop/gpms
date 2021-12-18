@@ -1,6 +1,6 @@
 package io.glnt.gpms.service
 
-import io.glnt.gpms.model.dto.ParkInDTO
+import io.glnt.gpms.model.dto.entity.ParkInDTO
 import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.mapper.ParkInMapper
@@ -8,7 +8,6 @@ import io.glnt.gpms.model.repository.ParkInRepository
 import mu.KLogging
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
-import java.util.*
 
 @Service
 class ParkInService(

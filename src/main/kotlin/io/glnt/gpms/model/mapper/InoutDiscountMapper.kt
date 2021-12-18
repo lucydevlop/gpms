@@ -1,8 +1,8 @@
 package io.glnt.gpms.model.mapper
 
-import io.glnt.gpms.model.dto.DiscountClassDTO
-import io.glnt.gpms.model.dto.InoutDiscountDTO
-import io.glnt.gpms.model.dto.ParkInDTO
+import io.glnt.gpms.model.dto.entity.DiscountClassDTO
+import io.glnt.gpms.model.dto.entity.InoutDiscountDTO
+import io.glnt.gpms.model.dto.entity.ParkInDTO
 import io.glnt.gpms.model.entity.InoutDiscount
 import io.glnt.gpms.model.repository.DiscountClassRepository
 import io.glnt.gpms.model.repository.ParkInRepository

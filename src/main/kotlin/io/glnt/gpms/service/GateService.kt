@@ -1,8 +1,8 @@
 package io.glnt.gpms.service
 
 import io.glnt.gpms.model.mapper.GateMapper
-import io.glnt.gpms.model.dto.GateDTO
-import io.glnt.gpms.model.dto.GateGroupDTO
+import io.glnt.gpms.model.dto.entity.GateDTO
+import io.glnt.gpms.model.dto.entity.GateGroupDTO
 import io.glnt.gpms.model.entity.GateGroup
 import io.glnt.gpms.model.repository.GateGroupRepository
 import io.glnt.gpms.model.repository.GateRepository
@@ -18,7 +18,7 @@ import javax.annotation.PostConstruct
 import kotlin.collections.ArrayList
 
 @Service
-class GateService(
+open class GateService(
     private val gateGroupRepository: GateGroupRepository,
     private val gateRepository: GateRepository,
     private val gateMapper: GateMapper
@@ -70,7 +70,7 @@ class GateService(
     }
 
     @Transactional(readOnly = true)
-    fun findAll(): List<GateDTO> {
+    open fun findAll(): List<GateDTO> {
         return gateRepository.findAll().map(gateMapper::toDto)
     }
 

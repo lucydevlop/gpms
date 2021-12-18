@@ -1,6 +1,6 @@
 package io.glnt.gpms.service
 
-import io.glnt.gpms.model.dto.ParkinglotVehicleDTO
+import io.glnt.gpms.model.dto.entity.ParkinglotVehicleDTO
 import io.glnt.gpms.model.mapper.ParkinglotVehicleMapper
 import io.glnt.gpms.model.repository.ParkinglotVehicleRepository
 import mu.KLogging

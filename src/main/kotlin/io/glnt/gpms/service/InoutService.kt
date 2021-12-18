@@ -18,6 +18,10 @@ import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
+import io.glnt.gpms.model.dto.entity.DisplayMessageDTO
+import io.glnt.gpms.model.dto.entity.InoutPaymentDTO
+import io.glnt.gpms.model.dto.entity.ParkInDTO
+import io.glnt.gpms.model.dto.entity.ParkOutDTO
 import io.glnt.gpms.model.criteria.ParkInCriteria
 import io.glnt.gpms.model.criteria.ParkOutCriteria
 import io.glnt.gpms.model.dto.*
@@ -1551,7 +1555,7 @@ class InoutService(
         }
     }
 
-    fun waitFacilityIF(type: String, parkCarType: String, vehicleNo: String, gate: Gate, parkOutDTO: ParkOutDTO, inDate: LocalDateTime, dtFacilityId: String? = null) {
+    fun waitFacilityIF(type: String, parkCarType: String, vehicleNo: String, gate: Gate, parkOutDTO: ParkOutDTO, inDate: LocalDateTime, dtFacilityId: String? = null, ticketInfo: TicketInfoDTO? = null) {
         // 결제금액 전광판
         val payFee = if (type == "PAYMENT") parkOutDTO.originPayFee?: 0 else parkOutDTO.payfee?: 0
         val discount = if (type == "PAYMENT") parkOutDTO.originDiscountFee?: 0 else parkOutDTO.discountfee?: 0
@@ -1611,7 +1615,8 @@ class InoutService(
                             paymentAmount = (inoutPayment.parkFee?: 0).toString(),
                             parktime = parkOutDTO.parktime.toString(),
                             parkTicketMoney = totalDiscount.toString(),  // 할인요금
-                            vehicleIntime = DateUtil.formatDateTime(inDate, "yyyy-MM-dd HH:mm")
+                            vehicleIntime = DateUtil.formatDateTime(inDate, "yyyy-MM-dd HH:mm"),
+                            extendTicket = ticketInfo
                         ),
                         dtFacilityId = dtFacilityId
                     )

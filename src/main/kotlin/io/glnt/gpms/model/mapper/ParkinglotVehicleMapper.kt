@@ -1,6 +1,6 @@
 package io.glnt.gpms.model.mapper
 
-import io.glnt.gpms.model.dto.ParkinglotVehicleDTO
+import io.glnt.gpms.model.dto.entity.ParkinglotVehicleDTO
 import io.glnt.gpms.model.entity.ParkinglotVehicle
 import org.springframework.stereotype.Service
 

@@ -3,7 +3,7 @@ package io.glnt.gpms.service
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.repository.FailureRepository
 import io.glnt.gpms.model.criteria.FailureCriteria
-import io.glnt.gpms.model.dto.FailureDTO
+import io.glnt.gpms.model.dto.entity.FailureDTO
 import io.glnt.gpms.model.entity.Failure
 import io.glnt.gpms.model.mapper.FailureMapper
 import mu.KLogging

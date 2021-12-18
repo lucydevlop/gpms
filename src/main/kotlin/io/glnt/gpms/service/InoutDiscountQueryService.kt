@@ -3,7 +3,7 @@ package io.glnt.gpms.service
 import io.github.jhipster.service.QueryService
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.criteria.InoutDiscountCriteria
-import io.glnt.gpms.model.dto.InoutDiscountDTO
+import io.glnt.gpms.model.dto.entity.InoutDiscountDTO
 import io.glnt.gpms.model.entity.InoutDiscount
 import io.glnt.gpms.model.mapper.InoutDiscountMapper
 import io.glnt.gpms.model.repository.InoutDiscountRepository

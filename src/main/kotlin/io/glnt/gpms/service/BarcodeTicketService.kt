@@ -1,11 +1,9 @@
 package io.glnt.gpms.service
 
-import io.glnt.gpms.model.dto.BarcodeTicketsDTO
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.dto.entity.BarcodeTicketsDTO
 import io.glnt.gpms.model.mapper.BarcodeTicketsMapper
 import io.glnt.gpms.model.repository.BarcodeTicketsRepository
 import mu.KLogging
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

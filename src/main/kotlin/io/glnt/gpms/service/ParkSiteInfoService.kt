@@ -4,12 +4,11 @@ import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.dto.DiscountApplyDTO
 import io.glnt.gpms.model.dto.EnterNotiDTO
-import io.glnt.gpms.model.dto.ParkSiteInfoDTO
+import io.glnt.gpms.model.dto.entity.ParkSiteInfoDTO
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.mapper.ParkSiteInfoMapper
 import io.glnt.gpms.model.repository.ParkSiteInfoRepository
 import mu.KLogging
-import okhttp3.internal.format
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

@@ -4,9 +4,8 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.model.dto.BarcodeClassDTO
-import io.glnt.gpms.model.dto.BarcodeDTO
-import io.glnt.gpms.model.dto.request.resParkInList
+import io.glnt.gpms.model.dto.entity.BarcodeClassDTO
+import io.glnt.gpms.model.dto.entity.BarcodeDTO
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.service.BarcodeClassService
 import io.glnt.gpms.service.BarcodeService

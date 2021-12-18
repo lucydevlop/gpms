@@ -1,6 +1,6 @@
 package io.glnt.gpms.model.mapper
 
-import io.glnt.gpms.model.dto.CorpDTO
+import io.glnt.gpms.model.dto.entity.CorpDTO
 import io.glnt.gpms.model.entity.Corp
 import org.springframework.stereotype.Service
 

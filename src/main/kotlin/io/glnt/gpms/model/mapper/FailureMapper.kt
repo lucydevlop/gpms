@@ -1,6 +1,6 @@
 package io.glnt.gpms.model.mapper
 
-import io.glnt.gpms.model.dto.FailureDTO
+import io.glnt.gpms.model.dto.entity.FailureDTO
 import io.glnt.gpms.model.entity.Failure
 import org.springframework.stereotype.Service
 

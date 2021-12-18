@@ -7,9 +7,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.vladmihalcea.hibernate.type.json.JsonStringType
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.entity.TicketClass
-import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.TicketType
-import io.glnt.gpms.model.enums.VehicleType
+import io.glnt.gpms.model.enums.*
 import org.hibernate.annotations.Type
 import org.hibernate.annotations.TypeDef
 import org.springframework.format.annotation.DateTimeFormat
@@ -109,6 +107,16 @@ data class SeasonTicket(
     @Enumerated(EnumType.STRING)
     @Column(name = "ticket_type", nullable = true)
     var ticketType: TicketType? = TicketType.SEASONTICKET,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "extend_yn", nullable = true)
+    var extendYn: Yn? = null,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pay_method", nullable = true)
+    var payMethod: PayType? = null,
+
+    var nextSn: Long? = null,
 
     @Type(type = "json")
     @Column(name = "gates", columnDefinition = "json")

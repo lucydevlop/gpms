@@ -1,6 +1,5 @@
-package io.glnt.gpms.model.dto
+package io.glnt.gpms.model.dto.entity
 
-import io.glnt.gpms.model.dto.FacilityDTO
 import io.glnt.gpms.model.entity.ParkAlarmSetting
 import io.glnt.gpms.model.enums.checkUseStatus
 import java.io.Serializable

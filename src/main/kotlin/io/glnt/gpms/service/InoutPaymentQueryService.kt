@@ -3,7 +3,7 @@ package io.glnt.gpms.service
 import io.github.jhipster.service.QueryService
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.criteria.InoutPaymentCriteria
-import io.glnt.gpms.model.dto.InoutPaymentDTO
+import io.glnt.gpms.model.dto.entity.InoutPaymentDTO
 import io.glnt.gpms.model.entity.InoutPayment
 import io.glnt.gpms.model.mapper.InoutPaymentMapper
 import io.glnt.gpms.model.repository.InoutPaymentRepository

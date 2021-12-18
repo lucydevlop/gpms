@@ -1,6 +1,8 @@
-package io.glnt.gpms.model.dto
+package io.glnt.gpms.model.dto.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import io.glnt.gpms.model.dto.entity.GateDTO
+import io.glnt.gpms.model.dto.entity.ParkInDTO
 import io.glnt.gpms.model.entity.ParkOut
 import io.glnt.gpms.model.enums.DelYn
 import java.io.Serializable

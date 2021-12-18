@@ -1,6 +1,5 @@
-package io.glnt.gpms.model.dto
+package io.glnt.gpms.model.dto.entity
 
-import io.glnt.gpms.model.entity.DisplayColor
 import io.glnt.gpms.model.entity.DisplayMessage
 import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DisplayMessageClass

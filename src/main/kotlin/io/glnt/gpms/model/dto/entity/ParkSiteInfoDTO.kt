@@ -1,5 +1,6 @@
-package io.glnt.gpms.model.dto
+package io.glnt.gpms.model.dto.entity
 
+import io.glnt.gpms.model.dto.DiscountApplyDTO
 import io.glnt.gpms.model.dto.EnterNotiDTO
 import io.glnt.gpms.model.entity.ParkSiteInfo
 import io.glnt.gpms.model.enums.*

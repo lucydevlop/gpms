@@ -17,8 +17,8 @@ import io.glnt.gpms.handler.tmap.model.*
 import io.glnt.gpms.handler.tmap.service.TmapSendService
 import io.glnt.gpms.common.api.RcsClient
 import io.glnt.gpms.common.api.RelayClient
-import io.glnt.gpms.model.dto.BarcodeTicketsDTO
-import io.glnt.gpms.model.dto.ParkOutDTO
+import io.glnt.gpms.model.dto.entity.BarcodeTicketsDTO
+import io.glnt.gpms.model.dto.entity.ParkOutDTO
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.*
