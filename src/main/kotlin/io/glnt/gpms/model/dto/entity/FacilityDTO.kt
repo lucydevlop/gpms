@@ -71,7 +71,6 @@ data class FacilityDTO(
     var checkTime: Int? = null,
 
     var counterResetTime: Int? = null
-
 ): Serializable {
     constructor(facility: Facility) :
         this(

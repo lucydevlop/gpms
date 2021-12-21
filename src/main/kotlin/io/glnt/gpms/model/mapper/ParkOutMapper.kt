@@ -15,7 +15,7 @@ class ParkOutMapper (
 ) {
     fun toDTO(entity: ParkOut): ParkOutDTO {
         ParkOutDTO(entity).apply {
-            gateRepository.findByGateId(this.gateId ?: "").ifPresent {
+            gateRepository.findByGateId(this.gateId ?: "")?.let {
                 this.gate = GateDTO(it)
             }
             this.inSn?.let { it ->

@@ -1029,7 +1029,7 @@ open class InoutService(
     fun createInout(request: resParkInList): CommonResult {
         logger.info { "createInout request $request" }
         try {
-            val gate = gateService.findOne(request.inGateId ?: "").orElse(null)
+            val gate = gateService.findOne(request.inGateId ?: "")
 
             gate?.let { gateDTO ->
                 val uuid = UUID.randomUUID().toString()
@@ -1039,11 +1039,12 @@ open class InoutService(
                 }
 
                 // 기 입차 여부 확인 및 update
-                val parkins = searchParkInByVehicleNo(request.vehicleNo?: "", gate.gateId!!)
-                if (!parkins.isNullOrEmpty()) {
-                    parkins.filter { it.outSn == 0L }.forEach {
-                        it.outSn = -1
-                        parkInService.save(it)
+                searchParkInByVehicleNo(request.vehicleNo?: "", gate.gateId!!).let { parkins ->
+                    if (parkins.isNotEmpty()) {
+                        parkins.filter { it.outSn == 0L }.forEach {
+                            it.outSn = -1
+                            parkInService.save(it)
+                        }
                     }
                 }
 
@@ -1102,20 +1103,24 @@ open class InoutService(
                     }
 
                     request.outDate?.let {
-                        request.parkoutSn?.let {
-                            //기존 출차 데이터 update
-                            parkOutRepository.findBySn(it).ifPresent { parkOut ->
-                                parkOut.outDate = request.outDate
-                                parkOut.parktime = request.parktime
-                                request.outGateId?.let { parkOut.gateId = request.outGateId }
-                                request.parktime?.let {  parkOut.parktime = request.parktime}
-                                request.parkfee?.let {  parkOut.parkfee = request.parkfee}
-                                request.payfee?.let {  parkOut.payfee = request.payfee }
-                                request.dayDiscountfee?.let {  parkOut.dayDiscountfee = request.dayDiscountfee }
-                                request.discountfee?.let {  parkOut.discountfee = request.discountfee}
-                                parkOutRepository.saveAndFlush(parkOut)
+                        if ((request.parkoutSn?: 0) > 0) {
+                            request.parkoutSn?.let {
+                                //기존 출차 데이터 update
+                                parkOutRepository.findBySn(it).ifPresent { parkOut ->
+                                    parkOut.outDate = request.outDate
+                                    parkOut.parktime = request.parktime
+                                    request.outGateId?.let { parkOut.gateId = request.outGateId }
+                                    request.parktime?.let { parkOut.parktime = request.parktime }
+                                    request.parkfee?.let { parkOut.parkfee = request.parkfee }
+                                    request.payfee?.let { parkOut.payfee = request.payfee }
+                                    request.dayDiscountfee?.let { parkOut.dayDiscountfee = request.dayDiscountfee }
+                                    request.discountfee?.let { parkOut.discountfee = request.discountfee }
+                                    parkOutRepository.saveAndFlush(parkOut)
+                                }
+                            }?: run {
+                                return null
                             }
-                        }?: kotlin.run {
+                        } else {
                             // 입차 기준으로 출차 데이터 확인
                             val existIn = request.parkinSn?.let { it1 -> parkOutRepository.findByInSnAndDelYn(it1, DelYn.N).orElse(null) }
                             val sn = existIn?.sn
@@ -1145,7 +1150,6 @@ open class InoutService(
                             parkOutRepository.saveAndFlush(new)
                             request.parkoutSn = new.sn
                         }
-
 //                        displayMessage( parkIn.parkcartype!!,
 //                            (request.payfee?.let{ it.toString()+"원"}?: kotlin.run { "0원" }), "WAIT", request.outGateId!!)
 //
@@ -1279,13 +1283,11 @@ open class InoutService(
                 parkIn.delYn = DelYn.Y
                 parkInRepository.save(parkIn)
                 parkInRepository.flush()
-                parkIn.outSn?.let {
-                    if (parkIn.outSn!! > 0L){
-                        parkOutRepository.findBySn(parkIn.outSn!!).ifPresent { parkOut ->
-                            parkOut.delYn = DelYn.Y
-                            parkOutRepository.save(parkOut)
-                            parkOutRepository.flush()
-                        }
+                parkIn.outSn?.let { outSn ->
+                    parkOutRepository.findBySn(outSn).ifPresent { parkOut ->
+                        parkOut.delYn = DelYn.Y
+                        parkOutRepository.save(parkOut)
+                        parkOutRepository.flush()
                     }
                 }
             }

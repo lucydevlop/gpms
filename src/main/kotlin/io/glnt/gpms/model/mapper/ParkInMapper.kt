@@ -16,7 +16,7 @@ class ParkInMapper(
     fun toDTO(entity: ParkIn) : ParkInDTO {
         ParkInDTO(entity).apply {
             this.seasonTicketDTO = seasonTicketRepository.findBySn(this.ticketSn ?: 0)?.let { SeasonTicketDTO(it) }
-            gateRepository.findByGateId(this.gateId!!).ifPresent {
+            gateRepository.findByGateId(this.gateId!!)?.let {
                 this.gate = GateDTO(it)
             }
             return this

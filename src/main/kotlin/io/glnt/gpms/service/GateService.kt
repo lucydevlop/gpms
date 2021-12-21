@@ -28,28 +28,7 @@ open class GateService(
     lateinit var gates: List<Gate>
 
     @PostConstruct
-    fun initalizeData() {
-        gateRepository.findByGateId("GATE001")?: run {
-            gateRepository.saveAndFlush(
-                Gate(sn = null, gateId = "GATE001", gateName = "입구게이트1", gateType = GateTypeStatus.IN, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
-                    seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateid = "FCL0000001", delYn = DelYn.N, resetSvr = "http://192.168.20.211/io.cgi?relay="))
-        }
-        gateRepository.findByGateId("GATE002")?: run {
-            gateRepository.saveAndFlush(
-                Gate(sn = null, gateId = "GATE002", gateName = "출구게이트1", gateType = GateTypeStatus.OUT, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
-                    seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateid = "FCL0000002", delYn = DelYn.N, resetSvr = "http://192.168.20.211/io.cgi?relay="))
-        }
-        gateRepository.findByGateId("GATE003")?: run {
-            gateRepository.saveAndFlush(
-                Gate(sn = null, gateId = "GATE003", gateName = "입구게이트2", gateType = GateTypeStatus.IN, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
-                    seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateid = "FCL0000001", delYn = DelYn.N, resetSvr = "http://192.168.20.212/io.cgi?relay="))
-        }
-        gateRepository.findByGateId("GATE004")?: run {
-            gateRepository.saveAndFlush(
-                Gate(sn = null, gateId = "GATE004", gateName = "출구게이트2", gateType = GateTypeStatus.OUT, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
-                    seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateid = "FCL0000002", delYn = DelYn.N, resetSvr = "http://192.168.20.212/io.cgi?relay="))
-        }
-
+    fun initializeData() {
         gateRepository.findAll().let {
             gates = it
         }
@@ -84,9 +63,9 @@ open class GateService(
         return gateMapper.toDto(gate)
     }
 
-    fun findOne(gateId: String): Optional<GateDTO> {
+    fun findOne(gateId: String): GateDTO? {
         logger.debug { "Request to get Gate $gateId" }
-        return gateRepository.findByGateId(gateId).map(gateMapper::toDto)
+        return gateRepository.findByGateId(gateId)?.let { GateDTO(it) }
 
     }
 

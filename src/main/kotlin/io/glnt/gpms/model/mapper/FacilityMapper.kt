@@ -15,7 +15,7 @@ class FacilityMapper(
 ) {
     fun toDTO(entity: Facility): FacilityDTO {
         FacilityDTO(entity).apply {
-            gateRepository.findByGateId(this.gateId!!).ifPresent {
+            gateRepository.findByGateId(this.gateId!!)?.let {
                 this.gateType = it.gateType
                 this.relaySvrKey = it.relaySvrKey
             }

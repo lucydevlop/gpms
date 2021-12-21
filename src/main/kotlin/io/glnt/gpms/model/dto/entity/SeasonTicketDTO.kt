@@ -5,7 +5,6 @@ import io.glnt.gpms.model.entity.SeasonTicket
 import io.glnt.gpms.model.enums.*
 import java.io.Serializable
 import java.time.LocalDateTime
-import javax.persistence.Column
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 import javax.validation.constraints.NotNull

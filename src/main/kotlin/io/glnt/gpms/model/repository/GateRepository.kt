@@ -10,7 +10,7 @@ import java.util.*
 interface GateRepository : JpaRepository<Gate, Long> {
     fun findBySn(sn: Long): Gate?
     fun findByDelYn(delYn: DelYn): List<Gate>
-    fun findByGateId(gateId: String): Optional<Gate>
+    fun findByGateId(gateId: String): Gate?
     fun findByUdpGateid(udpGateid: String): Gate?
     fun findByRelaySvrKey(relaySvrKey: String): List<Gate>
     fun findByGateGroupId(gateGroupId: String): List<Gate>

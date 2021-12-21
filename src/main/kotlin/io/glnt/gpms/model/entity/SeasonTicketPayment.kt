@@ -15,7 +15,7 @@ import javax.persistence.*
 data class SeasonTicketPayment(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "sn", unique = true, nullable = false)
+    @Column(name = "sn", unique = true, nullable = false, insertable = true, updatable = false)
     var sn: Long?,
 
     @Column(name = "ticket_sn")

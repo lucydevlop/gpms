@@ -105,35 +105,41 @@ class InoutResource (
     @RequestMapping(value = ["/inouts/transfer"], method = [RequestMethod.PUT])
     fun parkOutTransfer(@Valid @RequestBody resParkInList: resParkInList): ResponseEntity<CommonResult> {
         logger.debug { "inout transfer $resParkInList" }
-        val result = inoutService.updateInout(resParkInList)
-        val gateDTO = gateService.findOne(resParkInList.outGateId ?: "").orElse(null)
-        if ( parkinglotService.isPaid() ) {
-            // 출차 처리
-            parkOutService.findOne(resParkInList.parkoutSn!!).ifPresent { parkOutDTO ->
-                gateDTO?.let { gate ->
-                    inoutService.waitFacilityIF(
-                        "MANPAYMENT",
-                        resParkInList.parkcartype,
-                        resParkInList.vehicleNo!!,
-                        gateMapper.toEntity(gate)!!,
-                        parkOutDTO,
-                        resParkInList.inDate
-                    )
-
-                    // total 0원, 무료 주차장 출차 처리
-                    if ( (!parkinglotService.isPaid()) || ( parkinglotService.isPaid() && parkOutDTO.payfee?: 0 <= 0)) {
-                        // 출차 처리
-                        inoutService.outFacilityIF(
+        inoutService.updateInout(resParkInList)?.let { result ->
+            val gateDTO = gateService.findOne(resParkInList.outGateId ?: "")
+            if ( parkinglotService.isPaid() ) {
+                // 출차 처리
+                parkOutService.findOne(result.parkoutSn!!).ifPresent { parkOutDTO ->
+                    gateDTO?.let { gate ->
+                        inoutService.waitFacilityIF(
+                            "MANPAYMENT",
                             resParkInList.parkcartype,
                             resParkInList.vehicleNo!!,
                             gateMapper.toEntity(gate)!!,
-                            parkInService.findOne(resParkInList.parkinSn!!)?.let { parkInMapper.toEntity(it) },
-                            parkOutDTO.sn!!)
+                            parkOutDTO,
+                            resParkInList.inDate
+                        )
+
+                        // total 0원, 무료 주차장 출차 처리
+                        if ( (!parkinglotService.isPaid()) || ( parkinglotService.isPaid() && (parkOutDTO.payfee?: 0) <= 0)) {
+                            // 출차 처리
+                            inoutService.outFacilityIF(
+                                resParkInList.parkcartype,
+                                resParkInList.vehicleNo!!,
+                                gateMapper.toEntity(gate)!!,
+                                parkInService.findOne(resParkInList.parkinSn!!)?.let { parkInMapper.toEntity(it) },
+                                parkOutDTO.sn!!)
+                        }
                     }
                 }
             }
+            return CommonResult.returnResult(CommonResult.data(result))
         }
-        return CommonResult.returnResult(CommonResult.data(result))
+        throw CustomException(
+            "${resParkInList.parkinSn} transfer(update) failed",
+            ResultCode.FAILED
+        )
+
     }
 
     @RequestMapping(value = ["/inouts/payment"], method = [RequestMethod.GET])
