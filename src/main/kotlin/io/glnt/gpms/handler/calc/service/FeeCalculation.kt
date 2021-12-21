@@ -7,9 +7,9 @@ import io.glnt.gpms.handler.calc.model.*
 import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.service.HolidayService
 import io.glnt.gpms.handler.product.service.ProductService
+import io.glnt.gpms.model.dto.DiscountApplyDTO
 import io.glnt.gpms.model.dto.request.ReqAddParkingDiscount
 import io.glnt.gpms.model.entity.FareInfo
-import io.glnt.gpms.model.entity.InoutDiscount
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.service.InoutDiscountService
 import io.glnt.gpms.service.ParkSiteInfoService
@@ -210,17 +210,17 @@ class FeeCalculation(
         //할인권 제외
         if (inSn != null) {
             discountService.searchInoutDiscount(inSn)?.let { discounts ->
+                var dailySplits: List<DailySplit>? = discountApply?.let { discountApplyDTO ->
+                    if ((discountApplyDTO.criteria
+                            ?: DiscountApplyCriteriaType.FRONT) == DiscountApplyCriteriaType.FRONT
+                    ) retPrice.dailySplits
+                    else retPrice.dailySplits?.reversed()
+                }?: kotlin.run { retPrice.dailySplits }
+
                 discounts.forEach { discount ->
                     val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
                     if (discountClass.discountApplyType == DiscountApplyType.TIME) {
                         var discountTime = discountClass.unitTime * discount.quantity!!
-
-                        val dailySplits: List<DailySplit>? = discountApply?.let { discountApplyDTO ->
-                            if ((discountApplyDTO.criteria
-                                    ?: DiscountApplyCriteriaType.FRONT) == DiscountApplyCriteriaType.FRONT
-                            ) retPrice.dailySplits
-                            else retPrice.dailySplits?.reversed()
-                        }?: kotlin.run { retPrice.dailySplits }
 
                         dailySplits!!.forEach { dailySplit ->
                             if (dailySplit.feeType == "BASIC" && (discountApply?.baseFeeInclude ?: DelYn.Y) == DelYn.N)  return@forEach
@@ -245,6 +245,32 @@ class FeeCalculation(
 //                        discountService.saveInoutDiscount(discount)
                     }
                 }
+
+                if (discounts.isNotEmpty()) {
+                    dailySplits?.let { it ->
+                        dailySplits = applyDiscountTime(it, discountApply, calcData.cgBasic.ticketTime ?: 0)
+                    }
+                }
+
+//                dailySplits!!.forEach { dailySplit ->
+//                    if (dailySplit.feeType == "BASIC" && (discountApply?.baseFeeInclude ?: DelYn.Y) == DelYn.N)  return@forEach
+//                    if (dailySplit.priceType == "Normal") {
+//                        val min = if (dailySplit.discountRange != null)  DateUtil.diffMins(dailySplit.discountRange!!.endTime!!, dailySplit.endTime!!)
+//                        else DateUtil.diffMins(dailySplit.startTime, dailySplit.endTime!!)
+//                        if (min > 0) {
+//                            val applyTime = if (min > ticketTime) ticketTime else min
+//                            if (dailySplit.discountRange != null) {
+//                                dailySplit.discountRange!!.endTime = DateUtil.getAddMinutes(dailySplit.discountRange!!.endTime!!, applyTime.toLong())
+//                            } else {
+//                                val disCount = TimeRange(startTime = dailySplit.startTime,
+//                                    endTime = DateUtil.getMinByDates(DateUtil.getAddMinutes(dailySplit.startTime, applyTime.toLong()), dailySplit.endTime!! ), type = "DiscountTicket")
+//                                dailySplit.discountRange = disCount
+//                            }
+//                            ticketTime = ticketTime.minus(applyTime)
+//                        }
+//                    }
+//                }
+
             }
         }
 
@@ -665,16 +691,16 @@ class FeeCalculation(
             }
 
             discountItmes.let { discounts ->
+                var dailySplits: List<DailySplit>? = discountApply?.let { discountApplyDTO ->
+                    if ((discountApplyDTO.criteria
+                            ?: DiscountApplyCriteriaType.FRONT) == DiscountApplyCriteriaType.FRONT
+                    ) retPrice.dailySplits
+                    else retPrice.dailySplits?.reversed()
+                }?: kotlin.run { retPrice.dailySplits }
+
                 discounts.forEach { discount ->
                     val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
                     var discountTime = discountClass.unitTime * discount.cnt
-
-                    val dailySplits: List<DailySplit>? = discountApply?.let { discountApplyDTO ->
-                        if ((discountApplyDTO.criteria
-                                ?: DiscountApplyCriteriaType.FRONT) == DiscountApplyCriteriaType.FRONT
-                        ) retPrice.dailySplits
-                        else retPrice.dailySplits?.reversed()
-                    }?: kotlin.run { retPrice.dailySplits }
 
                     dailySplits!!.forEach { dailySplit ->
                         if (dailySplit.feeType == "BASIC" && (discountApply?.baseFeeInclude ?: DelYn.Y) == DelYn.N)  return@forEach
@@ -698,6 +724,11 @@ class FeeCalculation(
         //                    discountService.saveInoutDiscount(discount)
                 }
 
+                if (discountItmes.isNotEmpty()) {
+                    dailySplits?.let { it ->
+                        dailySplits = applyDiscountTime(it, discountApply, calcData.cgBasic.ticketTime ?: 0)
+                    }
+                }
             }
         }
 
@@ -767,6 +798,30 @@ class FeeCalculation(
         logger.info { "-------------------getBasicPayment-------------------" }
         logger.info { retPrice }
         return retPrice
+    }
+
+    fun applyDiscountTime(dailySplits: List<DailySplit>, discountApply: DiscountApplyDTO?, applyDiscountTime: Int ): List<DailySplit> {
+        var discountTime = applyDiscountTime
+
+        dailySplits.forEach { dailySplit ->
+            if (dailySplit.feeType == "BASIC" && (discountApply?.baseFeeInclude ?: DelYn.Y) == DelYn.N)  return@forEach
+            if (dailySplit.priceType == "Normal") {
+                val min = if (dailySplit.discountRange != null)  DateUtil.diffMins(dailySplit.discountRange!!.endTime!!, dailySplit.endTime!!)
+                else DateUtil.diffMins(dailySplit.startTime, dailySplit.endTime!!)
+                if (min > 0) {
+                    val applyTime = if (min > discountTime) discountTime else min
+                    if (dailySplit.discountRange != null) {
+                        dailySplit.discountRange!!.endTime = DateUtil.getAddMinutes(dailySplit.discountRange!!.endTime!!, applyTime.toLong())
+                    } else {
+                        val disCount = TimeRange(startTime = dailySplit.startTime,
+                            endTime = DateUtil.getMinByDates(DateUtil.getAddMinutes(dailySplit.startTime, applyTime.toLong()), dailySplit.endTime!! ), type = "DiscountTicket")
+                        dailySplit.discountRange = disCount
+                    }
+                    discountTime = discountTime.minus(applyTime)
+                }
+            }
+        }
+        return dailySplits
     }
 }
 

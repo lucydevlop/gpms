@@ -136,6 +136,11 @@ class InoutResource (
         return CommonResult.returnResult(CommonResult.data(result))
     }
 
+    @RequestMapping(value = ["/inouts/payment"], method = [RequestMethod.GET])
+    fun getInoutPayment(@RequestParam(name = "sn", required = false) sn: Long,): ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(CommonResult.data(inoutPaymentService.findByInSn(sn)))
+    }
+
     @RequestMapping(value = ["/inouts/payments"], method = [RequestMethod.GET])
     fun getInoutPayments(@RequestParam(name = "fromDate", required = false) fromDate: String,
                          @RequestParam(name = "toDate", required = false) toDate: String,
@@ -264,24 +269,30 @@ class InoutResource (
         logger.warn {" 차량번호 ${requestParkOutDTO.vehicleNo} LPR시설정보 ${requestParkOutDTO.dtFacilitiesId} 입차시간 ${requestParkOutDTO.date} UUID ${requestParkOutDTO.uuid} OCR결과 ${requestParkOutDTO.resultcode}"  }
 
         parkinglotService.getGateInfoByDtFacilityId(requestParkOutDTO.dtFacilitiesId ?: "")?.let { gate ->
-            // 출차 skip
-            // 1. uuid 동일 기존 출차 데이터가 미인식 차량이 아닌 경우
-            requestParkOutDTO.uuid?.let {  uuid ->
-                parkOutService.findByUuid(uuid)?.let {
-                    if (it.parkcartype!!.contains("RECOGNIZED")) {
-                        throw CustomException(
-                            "${requestParkOutDTO.uuid} uuid is exists",
-                            ResultCode.FAILED
-                        )
-                    }
-                }
-            }
-
             // 사진 이미지 저장
             requestParkOutDTO.base64Str?.let {
                 requestParkOutDTO.fileFullPath = inoutService.saveImage(it, requestParkOutDTO.vehicleNo?: "", gate.udpGateid?: "")
                 requestParkOutDTO.fileName = DataCheckUtil.getFileName(requestParkOutDTO.fileFullPath!!)
                 requestParkOutDTO.fileUploadId = DateUtil.stringToNowDateTimeMS()+"_F"
+            }
+
+            // 출차 skip
+            // 1. uuid 동일 기존 출차 데이터가 이미 입차데이터가 매칭 된 경우
+            requestParkOutDTO.uuid?.let {  uuid ->
+                parkOutService.findByUuid(uuid)?.let {
+                    if (it.inSn != null) {
+                        throw CustomException(
+                            "${requestParkOutDTO.uuid} uuid ${requestParkOutDTO.vehicleNo} is exists", ResultCode.FAILED
+                        )
+                    }
+
+//                    if (it.parkcartype!!.contains("RECOGNIZED")) {
+//                        throw CustomException(
+//                            "${requestParkOutDTO.uuid} uuid is exists",
+//                            ResultCode.FAILED
+//                        )
+//                    }
+                }
             }
 
             val parkCarType = inoutService.confirmParkCarType(requestParkOutDTO.vehicleNo ?: "", requestParkOutDTO.date!!, "OUT")

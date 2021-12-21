@@ -19,6 +19,7 @@ class CgBasicMapper {
                     effectDate = dto.effectDate,
                     serviceTime = dto.serviceTime,
                     regTime = dto.regTime,
+                    ticketTime = dto.ticketTime,
                     dayMaxAmt = dto.dayMaxAmt,
                     delYn = dto.delYn
                 )

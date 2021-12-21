@@ -25,6 +25,9 @@ data class CgBasic(
     @Column(name = "regTime", nullable = true)
     var regTime: Int? = 0,
 
+    @Column(name = "ticket_time", nullable = true)
+    var ticketTime: Int? = 0,
+
     @Column(name = "residentDiscount", nullable = true)
     var residentDiscount: Int? = 0,
 

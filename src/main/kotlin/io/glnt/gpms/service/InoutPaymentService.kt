@@ -11,14 +11,14 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
 @Service
-class InoutPaymentService (
+open class InoutPaymentService (
     private var inoutPaymentRepository: InoutPaymentRepository,
     private var inoutPaymentMapper: InoutPaymentMapper
 ){
     companion object : KLogging()
 
     @Transactional(readOnly = true)
-    fun findAll(): List<InoutPaymentDTO> {
+    open fun findAll(): List<InoutPaymentDTO> {
         return inoutPaymentRepository.findAll().map(inoutPaymentMapper::toDTO)
     }
 
@@ -28,9 +28,15 @@ class InoutPaymentService (
     }
 
     @Transactional(readOnly = true)
-    fun findByInSnAndResult(sn: Long, result: ResultType): List<InoutPaymentDTO>? {
+    open fun findByInSnAndResult(sn: Long, result: ResultType): List<InoutPaymentDTO>? {
         logger.debug { "Request to get InoutPayment $sn" }
         return inoutPaymentRepository.findByInSnAndResultAndDelYn(sn, result, DelYn.N)?.map(inoutPaymentMapper::toDTO)
+    }
+
+    @Transactional(readOnly = true)
+    open fun findByInSn(sn: Long): List<InoutPaymentDTO>? {
+        logger.debug { "Request to get InoutPayment $sn" }
+        return inoutPaymentRepository.findByInSnAndDelYn(sn, DelYn.N)?.map(inoutPaymentMapper::toDTO)
     }
 
     fun save(inoutPaymentDTO: InoutPaymentDTO) : InoutPaymentDTO {

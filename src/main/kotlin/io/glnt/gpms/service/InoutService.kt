@@ -45,7 +45,7 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 @Service
-class InoutService(
+open class InoutService(
     private var inoutPaymentRepository: InoutPaymentRepository,
     private var feeCalculation: FeeCalculation,
     private var gateRepository: GateRepository,
@@ -728,7 +728,7 @@ class InoutService(
     }
 
     @Transactional(readOnly = true)
-    fun getInout(sn: Long): resParkInList {
+    open fun getInout(sn: Long): resParkInList {
         logger.debug { "getInout $sn" }
         parkInQueryService.findByCriteria(ParkInCriteria(sn = sn))[0].let { parkInDTO ->
             val result = resParkInList(
@@ -764,7 +764,7 @@ class InoutService(
 
 
     @Transactional(readOnly = true)
-    fun getAllParkLists(request: reqSearchParkin): List<resParkInList>? {
+    open fun getAllParkLists(request: reqSearchParkin): List<resParkInList>? {
         logger.info { "getAllParkLists $request" }
         try {
             when (request.searchDateLabel) {
@@ -782,7 +782,7 @@ class InoutService(
                     parkInQueryService.findByCriteria(criteria).let { list ->
                         list.forEach { it ->
                             val result = resParkInList(
-                                type = DisplayMessageClass.IN,
+                                type = if ((it.outSn?: -1) > 0) DisplayMessageClass.OUT else DisplayMessageClass.IN,
                                 parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
                                 inGateId = it.gateId, inDate = it.inDate!!,
                                 ticketCorpName = it.seasonTicketDTO?.corpName, memo = it.memo,
@@ -796,7 +796,6 @@ class InoutService(
 //                            result.aplyDiscountClasses = discountService.searchInoutDiscount(it.sn!!) as ArrayList<InoutDiscount>?
 //                            if (it.outSn!! > 0L && it.outSn != null) {
                             parkOutRepository.findByInSnAndDelYn(it.sn!!, DelYn.N).ifPresent { out ->
-                                result.type = DisplayMessageClass.OUT
                                 result.parkoutSn = out.sn
                                 result.outDate = out.outDate
                                 result.outGateId = out.gateId
@@ -995,7 +994,7 @@ class InoutService(
     }
 
     @Transactional(readOnly = true)
-    fun getParkInOutDetail(request: Long): CommonResult {
+    open fun getParkInOutDetail(request: Long): CommonResult {
         logger.info { "getParkInOutDetail inseq $request" }
         try {
             parkInRepository.findBySn(request)?.let { it ->

@@ -50,4 +50,11 @@ class FareService(
     fun findFareBasic(): CgBasicDTO? {
         return fareBasicRepository.findByDelYn(DelYn.N)?.let { cgBasicMapper.toDTO(it) }
     }
+
+    fun saveFareBasic(cgBasicDTO: CgBasicDTO) : CgBasicDTO {
+        var fareBasic = cgBasicMapper.toEntity(cgBasicDTO)
+        fareBasic = fareBasicRepository.save(fareBasic!!)
+        fareRefService.init()
+        return cgBasicMapper.toDTO(fareBasic)
+    }
 }

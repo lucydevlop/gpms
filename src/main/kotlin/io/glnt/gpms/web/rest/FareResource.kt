@@ -4,6 +4,7 @@ import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
+import io.glnt.gpms.model.dto.entity.CgBasicDTO
 import io.glnt.gpms.model.dto.entity.FareInfoDTO
 import io.glnt.gpms.model.dto.entity.FarePolicyDTO
 import io.glnt.gpms.model.dto.rcs.RcsRateInfoDTO
@@ -78,5 +79,27 @@ class FareResource (
         val fareBasic = fareService.findFareBasic()
         val farePolicies = fareService.findFarePolicies()
         return CommonResult.returnResult(CommonResult.data(RcsRateInfoDTO(fareBasic = fareBasic, farePolicies = farePolicies)))
+    }
+
+    @RequestMapping(value = ["/fare/basic"], method = [RequestMethod.PUT])
+    fun updateFareBasic(@Valid @RequestBody cgBasicDTO: CgBasicDTO) : ResponseEntity<CommonResult> {
+        if (cgBasicDTO.sn == null) {
+            throw CustomException(
+                "Fare Basic not found sn",
+                ResultCode.FAILED
+            )
+        }
+        return CommonResult.returnResult(CommonResult.data(fareService.saveFareBasic(cgBasicDTO)))
+    }
+
+    @RequestMapping(value = ["/fare/basic"], method = [RequestMethod.POST])
+    fun createFareBasic(@Valid @RequestBody cgBasicDTO: CgBasicDTO) : ResponseEntity<CommonResult> {
+        if (cgBasicDTO.sn != null) {
+            throw CustomException(
+                "Fare Basic sn exists",
+                ResultCode.FAILED
+            )
+        }
+        return CommonResult.returnResult(CommonResult.data(fareService.saveFareBasic(cgBasicDTO)))
     }
 }

@@ -8,6 +8,7 @@ import io.glnt.gpms.handler.calc.model.TimeRange
 import io.glnt.gpms.handler.calc.service.FeeCalculation
 import io.glnt.gpms.model.dto.DiscountApplyDTO
 import io.glnt.gpms.model.dto.request.ReqAddParkingDiscount
+import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.DiscountRangeType
 import io.glnt.gpms.model.enums.TicketAplyType
 import io.glnt.gpms.model.enums.VehicleType
@@ -132,5 +133,4 @@ class CalcService(
 
         }?: run { return null }
     }
-
 }

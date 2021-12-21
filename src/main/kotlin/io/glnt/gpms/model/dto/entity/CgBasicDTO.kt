@@ -16,6 +16,8 @@ data class CgBasicDTO (
 
     var regTime: Int? = null,
 
+    var ticketTime: Int? = null,
+
     var dayMaxAmt: Int? = null,
 
     var delYn: DelYn? = null
@@ -24,7 +26,7 @@ data class CgBasicDTO (
 
     constructor(cgBasic: CgBasic) :
             this(
-                cgBasic.sn, cgBasic.effectDate, cgBasic.serviceTime, cgBasic.regTime, cgBasic.dayMaxAmt, cgBasic.delYn
+                cgBasic.sn, cgBasic.effectDate, cgBasic.serviceTime, cgBasic.regTime, cgBasic.ticketTime, cgBasic.dayMaxAmt, cgBasic.delYn
             )
 
     override fun equals(other: Any?): Boolean {
