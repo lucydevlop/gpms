@@ -6,9 +6,8 @@ import io.glnt.gpms.handler.calc.CalculationData
 import io.glnt.gpms.model.entity.CgBasic
 import io.glnt.gpms.model.entity.FareInfo
 import io.glnt.gpms.model.entity.FarePolicy
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.VehicleType
-import io.glnt.gpms.model.enums.WeekType
 import io.glnt.gpms.model.repository.CgBasicRepository
 import io.glnt.gpms.model.repository.FareInfoRepository
 import io.glnt.gpms.model.repository.FarePolicyRepository
@@ -37,7 +36,7 @@ class FareRefService(
     fun createFareInfo(request: FareInfo): FareInfo? {
         logger.info { "createFareInfo $request" }
         try {
-            fareInfoRepository.findByFareNameAndDelYn(request.fareName, DelYn.N)?.let {
+            fareInfoRepository.findByFareNameAndDelYn(request.fareName, YN.N)?.let {
                 return null
             }
             return fareInfoRepository.saveAndFlush(request)
@@ -50,7 +49,7 @@ class FareRefService(
     fun createFarePolicy(request: FarePolicy): FarePolicy? {
         logger.info { "createFarePolicy $request" }
         try {
-            farePolicyRepository.findByFareNameAndVehicleTypeAndDelYn(request.fareName, VehicleType.SMALL, DelYn.N)?.let { list ->
+            farePolicyRepository.findByFareNameAndVehicleTypeAndDelYn(request.fareName, VehicleType.SMALL, YN.N)?.let { list ->
                 list.forEach { farePolicy ->
                     request.week!!.forEach { it ->
                         if (farePolicy.week!!.contains(it)) {
@@ -65,7 +64,7 @@ class FareRefService(
                            startTime = request.startTime, endTime = request.endTime,
                            basicFareSn = request.basicFareSn, addFareSn = request.addFareSn,
                            effectDate = request.effectDate, expireDate = request.expireDate,
-                           week = request.week, delYn = DelYn.N))
+                           week = request.week, delYn = YN.N))
         }catch (e: CustomException) {
             logger.error { "fare policy create failed ${request.fareName} $e" }
 //            return CommonResult.error("fare policy create failed ${request.fareName}")
@@ -76,7 +75,7 @@ class FareRefService(
     fun deleteFarePolicy(sn: Long): FarePolicy? {
         try {
             farePolicyRepository.findBySn(sn)?.let {
-                it.delYn = DelYn.Y
+                it.delYn = YN.Y
                 return farePolicyRepository.saveAndFlush(it)
             }
             return null
@@ -101,7 +100,7 @@ class FareRefService(
 
     fun getFareInfo(): CommonResult {
         try {
-            return CommonResult.data(fareInfoRepository.findByDelYn(DelYn.N))
+            return CommonResult.data(fareInfoRepository.findByDelYn(YN.N))
         }catch (e: CustomException) {
             return CommonResult.error("get fare info failed $e")
         }
@@ -109,7 +108,7 @@ class FareRefService(
 
     fun getFarePolicy(): CommonResult {
         try {
-            return CommonResult.data(farePolicyRepository.findByDelYn(DelYn.N))
+            return CommonResult.data(farePolicyRepository.findByDelYn(YN.N))
         }catch (e: CustomException) {
             return CommonResult.error("get fare info failed $e")
         }
@@ -117,7 +116,7 @@ class FareRefService(
 
     fun getFareBasic(): CgBasic? {
         try {
-            return cgBasicRepository.findByDelYn(DelYn.N)
+            return cgBasicRepository.findByDelYn(YN.N)
         }catch (e: CustomException) {
             logger.error { "get fare basic failed $e" }
             return null
@@ -126,7 +125,7 @@ class FareRefService(
 
     fun updateFareBasic(new: CgBasic): CgBasic? {
         try {
-            return cgBasicRepository.findByDelYn(DelYn.N)?.let { basic ->
+            return cgBasicRepository.findByDelYn(YN.N)?.let { basic ->
                 basic.serviceTime = new.serviceTime?.let { it }?: kotlin.run { basic.serviceTime }
                 basic.regTime = new.regTime?.let { it }?: kotlin.run { basic.regTime }
                 basic.dayMaxAmt = new.dayMaxAmt?.let { it }?: kotlin.run { basic.dayMaxAmt }

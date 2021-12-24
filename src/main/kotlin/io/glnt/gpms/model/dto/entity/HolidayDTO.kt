@@ -2,10 +2,11 @@ package io.glnt.gpms.model.dto.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.entity.Holiday
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.HolidayType
 import java.io.Serializable
 import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.validation.constraints.NotNull
 
 data class HolidayDTO (
@@ -15,12 +16,12 @@ data class HolidayDTO (
     var name: String? = null,
 
     @get: NotNull
-    @JsonFormat(pattern="yyyy-MM-dd")
-    var startDate: LocalDate?,
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var startDate: LocalDateTime?,
 
     @get: NotNull
-    @JsonFormat(pattern="yyyy-MM-dd")
-    var endDate: LocalDate?,
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var endDate: LocalDateTime?,
 
     var startTime: String? = null,
     var endTime: String? = null,
@@ -29,7 +30,7 @@ data class HolidayDTO (
     var isWorking: Boolean?,
 
     @get: NotNull
-    var delYn: DelYn? = null,
+    var delYn: YN? = null,
 
     var type: HolidayType?
 ): Serializable {

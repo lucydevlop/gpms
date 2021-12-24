@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.common.utils.DateUtil
+import io.glnt.gpms.model.entity.Auditable
 import io.glnt.gpms.model.enums.*
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
@@ -61,7 +62,7 @@ data class CorpTicketClass (
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn")
-    var delYn: DelYn? = null,
+    var delYn: YN? = null,
 
     @Enumerated(EnumType.STRING)
     var applyTarget: DiscountApplyTargetType? = null,

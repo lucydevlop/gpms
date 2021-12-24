@@ -1,9 +1,8 @@
 package io.glnt.gpms.model.dto.entity
 
 import io.glnt.gpms.model.entity.SiteUser
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.UserRole
-import io.glnt.gpms.model.enums.checkUseStatus
 import java.io.Serializable
 import java.time.LocalDateTime
 import javax.persistence.EnumType
@@ -27,7 +26,7 @@ data class SiteUserDTO(
     var userEmail: String? = null,
 
     @Enumerated(value = EnumType.STRING)
-    var checkUse: checkUseStatus? = null,
+    var checkUse: YN? = null,
 
     var wrongCount: Int? = null,
 
@@ -42,9 +41,9 @@ data class SiteUserDTO(
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null,
+    var delYn: YN? = null,
 
-) : Serializable {
+    ) : Serializable {
     constructor(siteUser: SiteUser) :
             this(
                 siteUser.idx, siteUser.id, siteUser.password, siteUser.userName, siteUser.userPhone, siteUser.userEmail,

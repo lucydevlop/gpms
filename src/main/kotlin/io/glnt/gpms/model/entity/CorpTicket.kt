@@ -2,12 +2,10 @@ package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import io.glnt.gpms.common.utils.DateUtil
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.YN
 import org.hibernate.annotations.Where
-import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
-import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
@@ -37,7 +35,7 @@ data class CorpTicketInfo(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = true)
-    var delYn: DelYn? = DelYn.N
+    var delYn: YN? = YN.N
 
 ): Auditable(), Serializable {
     @OneToOne

@@ -4,7 +4,7 @@ import io.glnt.gpms.handler.calc.service.FareRefService
 import io.glnt.gpms.model.dto.entity.CgBasicDTO
 import io.glnt.gpms.model.dto.entity.FareInfoDTO
 import io.glnt.gpms.model.dto.entity.FarePolicyDTO
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.mapper.CgBasicMapper
 import io.glnt.gpms.model.mapper.FareInfoMapper
 import io.glnt.gpms.model.mapper.FarePolicyMapper
@@ -48,7 +48,7 @@ class FareService(
 
     @Transactional(readOnly = true)
     fun findFareBasic(): CgBasicDTO? {
-        return fareBasicRepository.findByDelYn(DelYn.N)?.let { cgBasicMapper.toDTO(it) }
+        return fareBasicRepository.findByDelYn(YN.N)?.let { cgBasicMapper.toDTO(it) }
     }
 
     fun saveFareBasic(cgBasicDTO: CgBasicDTO) : CgBasicDTO {

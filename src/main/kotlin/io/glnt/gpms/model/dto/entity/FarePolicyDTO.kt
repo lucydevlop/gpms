@@ -2,7 +2,7 @@ package io.glnt.gpms.model.dto.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.entity.FarePolicy
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.VehicleType
 import io.glnt.gpms.model.enums.WeekType
 import java.io.Serializable
@@ -43,7 +43,7 @@ data class FarePolicyDTO(
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null,
+    var delYn: YN? = null,
 
     var basicFare: FareInfoDTO? = null,
 

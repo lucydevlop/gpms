@@ -2,14 +2,10 @@ package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import io.glnt.gpms.common.utils.StringPrefixedSequenceIdGenerator
 import io.glnt.gpms.model.entity.Auditable
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.annotations.GenerationTime
-import org.hibernate.annotations.GeneratorType
-import org.hibernate.annotations.GenericGenerator
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -30,7 +26,7 @@ data class Corp(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn")
-    var delYn: DelYn? = null,
+    var delYn: YN? = null,
 
 //    @Column(name = "flag", nullable = false)
 //    var flag: Int = 1,

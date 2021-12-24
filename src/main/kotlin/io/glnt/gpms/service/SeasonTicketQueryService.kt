@@ -5,7 +5,7 @@ import io.glnt.gpms.model.criteria.SeasonTicketCriteria
 import io.glnt.gpms.model.dto.entity.SeasonTicketDTO
 import io.glnt.gpms.model.entity.SeasonTicket
 import io.glnt.gpms.model.enums.DateType
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.TicketType
 import io.glnt.gpms.model.mapper.SeasonTicketMapper
 import io.glnt.gpms.model.repository.SeasonTicketRepository
@@ -98,12 +98,12 @@ class SeasonTicketQueryService(
                     when(criteria.delYn) {
                         "Y" -> {
                             clues.add(
-                                criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.Y)
+                                criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), YN.Y)
                             )
                         }
                         else -> {
                             clues.add(
-                                criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N)
+                                criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), YN.N)
                             )
                         }
                     }

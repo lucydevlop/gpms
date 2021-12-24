@@ -12,7 +12,7 @@ import io.glnt.gpms.model.dto.entity.CorpTicketDTO
 import io.glnt.gpms.model.criteria.CorpCriteria
 import io.glnt.gpms.model.criteria.InoutDiscountCriteria
 import io.glnt.gpms.model.dto.*
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.DiscountApplyTargetType
 import io.glnt.gpms.model.enums.DiscountRangeType
 import io.glnt.gpms.service.*
@@ -71,7 +71,7 @@ class CorpResource (
         logger.debug { "store fetch able ticket" }
         val tickets = corpService.getCorpTicketsByCorpSn(sn)
             .filter { t ->
-                t.delYn == DelYn.N && t.corpTicketClass?.discountClass?.delYn == DelYn.N
+                t.delYn == YN.N && t.corpTicketClass?.discountClass?.delYn == YN.N
             }
         if (inSn == "ALL") {
             tickets.forEach{ ticket ->
@@ -112,11 +112,11 @@ class CorpResource (
         logger.debug { "corp fetch ticket summary" }
         var summarys = ArrayList<CorpTicketSummaryDTO>()
 
-        val corpTicketClass = corpTicketClassService.findAll().filter { corpTicketClassDTO -> corpTicketClassDTO.delYn == DelYn.N }
+        val corpTicketClass = corpTicketClassService.findAll().filter { corpTicketClassDTO -> corpTicketClassDTO.delYn == YN.N }
 
         if (sn == "ALL") {
             val tickets = corpService.getAllCorpTickets()
-            val corps = corpQueryService.findByCriteria(CorpCriteria(delYn = DelYn.N))
+            val corps = corpQueryService.findByCriteria(CorpCriteria(delYn = YN.N))
             corps.forEach { corpDTO ->
                 val corpTickets = tickets.filter { corpTicketDTO -> corpTicketDTO.corpSn == corpDTO.sn}
                 val results = ArrayList<HashMap<String, Any?>>()
@@ -134,7 +134,7 @@ class CorpResource (
             return CommonResult.returnResult(CommonResult.data(summarys))
         } else {
             val tickets = corpService.getCorpTicketsByCorpSn(sn.toLong())
-            val corps = corpQueryService.findByCriteria(CorpCriteria(delYn = DelYn.N, sn = sn.toLong()))
+            val corps = corpQueryService.findByCriteria(CorpCriteria(delYn = YN.N, sn = sn.toLong()))
             val results = ArrayList<HashMap<String, Any?>>()
             for (i in corpTicketClass.indices) {
                 val corpTicket = tickets.filter { it -> it.corpTicketClass!!.sn == corpTicketClass[i].sn }
@@ -175,7 +175,7 @@ class CorpResource (
                 ResDiscountTicetsApplyList(
                     sn = it.sn!!,
                     vehicleNo = it.parkInDTO!!.vehicleNo!!,
-                    discountType = it.discontType!!,
+                    discountType = it.discountType!!,
                     discountClassSn = it.discountClassSn!!,
                     discountNm = it.discountClass!!.discountNm!!,
                     calcYn = it.calcYn!!,

@@ -1,9 +1,6 @@
 package io.glnt.gpms.handler.dashboard.admin.model
 
-import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.enums.*
-import java.time.LocalDate
-import java.time.LocalDateTime
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 
@@ -35,19 +32,19 @@ data class ReqCreateMessage(
 
 data class reqChangeUseGate(
     var gateId: String,
-    var delYn: DelYn
+    var delYn: YN
 )
 
 data class reqChangeUseFacility(
     var dtFacilitiesId: String,
-    var delYn: DelYn
+    var delYn: YN
 )
 
 data class reqSearchCorp(
     var corpId: String? = null,
     var searchLabel: String? = null,
     var searchText: String? = null,
-    @Enumerated(EnumType.STRING) var useStatus: DelYn? = null
+    @Enumerated(EnumType.STRING) var useStatus: YN? = null
 )
 
 data class reqSearchItem(

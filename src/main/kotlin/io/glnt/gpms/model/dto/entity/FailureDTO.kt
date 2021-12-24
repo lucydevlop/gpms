@@ -2,7 +2,8 @@ package io.glnt.gpms.model.dto.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.entity.Failure
-import io.glnt.gpms.model.enums.Yn
+import io.glnt.gpms.model.enums.FacilityCategoryType
+import io.glnt.gpms.model.enums.YN
 import java.io.Serializable
 import java.time.LocalDateTime
 import javax.persistence.EnumType
@@ -28,12 +29,18 @@ data class FailureDTO(
     var failureFlag: Int? = 0,
 
     @Enumerated(EnumType.STRING)
-    var syncYn: Yn? = null
+    var syncYn: YN? = null,
+
+    var category: FacilityCategoryType? = null,
+
+    var gateId: String? = null,
+
+    var gateName: String? = null
 ): Serializable {
     constructor(failure: Failure):
             this(
                 failure.sn, failure.issueDateTime, failure.expireDateTime, failure.facilitiesId,
-                failure.fName, failure.failureCode, failure.failureType, failure.failureFlag, failure.syncYn
+                failure.fName, failure.failureCode, failure.failureType, failure.failureFlag, failure.syncYn, failure.category, failure.gateId
             )
 
     override fun equals(other: Any?): Boolean {

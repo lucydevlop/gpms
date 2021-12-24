@@ -2,7 +2,7 @@ package io.glnt.gpms.service
 
 import io.glnt.gpms.model.dto.entity.ParkOutDTO
 import io.glnt.gpms.model.entity.ParkOut
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.mapper.ParkOutMapper
 import io.glnt.gpms.model.repository.ParkOutRepository
 import mu.KLogging
@@ -23,7 +23,7 @@ class ParkOutService (
 
     fun findByInSn(sn: Long): Optional<ParkOutDTO> {
         logger.debug { "Reqeust to get ParkOut by InSn $sn" }
-        return parkOutRepository.findTopByInSnAndDelYnOrderByOutDateDescSnDesc(sn, DelYn.N).map(parkOutMapper::toDTO)
+        return parkOutRepository.findTopByInSnAndDelYnOrderByOutDateDescSnDesc(sn, YN.N).map(parkOutMapper::toDTO)
     }
 
     fun findByUuid(uuid: String): ParkOut? {

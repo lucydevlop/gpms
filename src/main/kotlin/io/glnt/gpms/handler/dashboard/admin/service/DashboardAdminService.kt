@@ -694,7 +694,7 @@ class DashboardAdminService(
                 serviceTime = request.serviceTime,
                 regTime = request.regTime,
                 effectDate = request.effectDate,
-                delYn = DelYn.N,
+                delYn = YN.N,
                 dayMaxAmt = request.dayMaxAmt)
             )?.let {
                 fareRefService.init()
@@ -713,7 +713,7 @@ class DashboardAdminService(
         try {
             return fareRefService.createFareInfo(
                 FareInfo(sn = null, fareName = request.fareName, type = request.type,
-                         time1 = request.time1, won1 = request.won1, count = request.count, count1 = request.count1, delYn = DelYn.N))?.let {
+                         time1 = request.time1, won1 = request.won1, count = request.count, count1 = request.count1, delYn = YN.N))?.let {
                 CommonResult.data(it)
             }?: kotlin.run {
                 CommonResult.Companion.error("Admin createFareInfo failed")
@@ -731,7 +731,7 @@ class DashboardAdminService(
                 FarePolicy(sn = null, fareName = request.fareName, vehicleType = request.vehicleType,
                     startTime = request.startTime, endTime = request.endTime, basicFareSn = request.basicFareSn, addFareSn = request.addFareSn,
                     effectDate = request.effectDate, expireDate = request.expireDate,
-                    week = request.week, delYn = DelYn.N ))?.let {
+                    week = request.week, delYn = YN.N ))?.let {
                 fareRefService.init()
                 CommonResult.data(it)
             }?: kotlin.run {
@@ -759,20 +759,13 @@ class DashboardAdminService(
 
     fun createDiscountTicket(request: reqDiscountTicket): CommonResult {
         try {
-            discountService.createDiscountClass(DiscountClass(sn = null, discountNm = request.discountNm,
+            discountService.createDiscountClass(
+                DiscountClass(sn = null, discountNm = request.discountNm,
                               dayRange = request.dayRange, unitTime = request.unitTime!!,
                               disUse = request.disUse, disMaxNo = request.disMaxNo,
                               disMaxDay = request.disMaxDay,  disMaxMonth = request.disMaxMonth,
                               disPrice = request.disPrice, effectDate = request.effectDate, expireDate = request.expireDate,
-                              delYn = DelYn.N))?.let { discountClass ->
-
-                // 할인권 생성 시 rcs 계정에도 할인권 생성
-//                corpService.getCorp(reqSearchCorp(corpId = "RCS")).data.let {
-//                    val corp = it as Corp
-//                    discountService.createCorpTicket(
-//                        reqCreateCorpTicket(corpSn = corp.sn!!, discountClassSn = discountClass.sn!!, quantity = 999999999)
-//                    )
-//                }
+                              delYn = YN.N))?.let { discountClass ->
                 return CommonResult.data(discountClass)
             }?: kotlin.run {
                 return CommonResult.error("Admin createDiscountTicket failed")

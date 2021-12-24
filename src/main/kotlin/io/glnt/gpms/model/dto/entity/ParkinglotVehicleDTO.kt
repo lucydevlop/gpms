@@ -1,7 +1,7 @@
 package io.glnt.gpms.model.dto.entity
 
 import io.glnt.gpms.model.entity.ParkinglotVehicle
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.GateTypeStatus
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -29,7 +29,7 @@ data class ParkinglotVehicleDTO(
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null
+    var delYn: YN? = null
 ): Serializable {
 
     constructor(parkinglotVehicle: ParkinglotVehicle) :

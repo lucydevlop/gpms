@@ -3,7 +3,8 @@ package io.glnt.gpms.model.entity
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.YN
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -38,7 +39,7 @@ data class BarcodeTickets(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
-    var delYn: DelYn? = DelYn.N
+    var delYn: YN? = YN.N
 
 ): Auditable(), Serializable {
 

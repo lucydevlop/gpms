@@ -1,7 +1,7 @@
 package io.glnt.gpms.model.dto.entity
 
 import io.glnt.gpms.model.entity.InoutDiscount
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.TicketType
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -12,7 +12,7 @@ data class InoutDiscountDTO (
     var sn: Long? = null,
 
     @Enumerated(EnumType.STRING)
-    var discontType: TicketType? = TicketType.CORPTICKET,
+    var discountType: TicketType? = TicketType.CORPTICKET,
 
     var corpSn: Long? = null,
 
@@ -31,14 +31,14 @@ data class InoutDiscountDTO (
     var applyDate: LocalDateTime? = null,
 
     @Enumerated(EnumType.STRING)
-    var calcYn: DelYn? = DelYn.N,
+    var calcYn: YN? = YN.N,
 
     var outSn: Long? = null,
 
     var createDate: LocalDateTime? = null,
 
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = DelYn.N,
+    var delYn: YN? = YN.N,
 
     var discountClass: DiscountClassDTO? = null,
 

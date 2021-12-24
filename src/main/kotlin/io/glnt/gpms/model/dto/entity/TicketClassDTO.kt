@@ -2,14 +2,10 @@ package io.glnt.gpms.model.dto.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.common.utils.DateUtil
-import io.glnt.gpms.common.utils.JsonToMapConverter
 import io.glnt.gpms.model.entity.TicketClass
 import io.glnt.gpms.model.enums.*
-import org.hibernate.annotations.Type
 import java.io.Serializable
 import java.time.LocalDateTime
-import javax.persistence.Column
-import javax.persistence.Convert
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 import javax.validation.constraints.NotNull
@@ -52,11 +48,11 @@ data class TicketClassDTO(
     var period: Map<String, Any>? = null,
 
     @Enumerated(EnumType.STRING)
-    var extendYn: Yn? = null,
+    var extendYn: YN? = null,
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null
+    var delYn: YN? = null
 ): Serializable {
     constructor(ticketClass: TicketClass) :
         this(

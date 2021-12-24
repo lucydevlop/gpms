@@ -2,7 +2,7 @@ package io.glnt.gpms.model.dto.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.entity.ParkIn
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import java.io.Serializable
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -42,7 +42,7 @@ data class ParkInDTO(
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null,
+    var delYn: YN? = null,
 
     var seasonTicketDTO: SeasonTicketDTO? = null,
 

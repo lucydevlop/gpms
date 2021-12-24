@@ -2,7 +2,7 @@ package io.glnt.gpms.model.dto.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.entity.FareInfo
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.FareType
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -48,7 +48,7 @@ data class FareInfoDTO(
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null
+    var delYn: YN? = null
 ): Serializable {
 
     constructor(fareInfo: FareInfo) :

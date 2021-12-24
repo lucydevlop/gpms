@@ -23,7 +23,10 @@ class HolidayResource (
 
     @RequestMapping(value = ["/holidays"], method = [RequestMethod.GET])
     fun getHolidays(@RequestParam startDate: String, @RequestParam endDate: String): ResponseEntity<CommonResult> {
-        return CommonResult.returnResult(CommonResult.data(holidayService.findByDays(DateUtil.stringToLocalDate(startDate), DateUtil.stringToLocalDate(endDate))))
+        return CommonResult.returnResult(
+            CommonResult.data(holidayService.findByDays(
+                DateUtil.stringToLocalDateTime("$startDate 00:00:00", "yyyy-MM-dd HH:mm:ss"),
+                DateUtil.stringToLocalDateTime("$endDate 23:59:59","yyyy-MM-dd HH:mm:ss"))))
     }
 
     @RequestMapping(value = ["/holiday"], method = [RequestMethod.POST])

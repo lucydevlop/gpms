@@ -1,11 +1,10 @@
 package io.glnt.gpms.model.entity
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.common.utils.JsonToMapConverter
-import io.glnt.gpms.model.entity.GateGroup
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.GateTypeStatus
 import io.glnt.gpms.model.enums.OpenActionType
 import org.hibernate.annotations.Type
@@ -63,7 +62,7 @@ data class Gate(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
-    var delYn: DelYn? = DelYn.N,
+    var delYn: YN? = YN.N,
 
     @Column(name = "reset_svr", nullable = false)
     var resetSvr: String? = "http://192.168.20.211/io.cgi?relay=",
@@ -76,7 +75,7 @@ data class Gate(
     @Convert(attributeName = "open_type", converter = JsonToMapConverter::class)
     var openType: ArrayList<Map<String, Any>>? = null,
 
-): Auditable(), Serializable {
+    ): Auditable(), Serializable {
 
     @OneToOne
     @JoinColumn(name = "gate_group_id", referencedColumnName = "gate_group_id", insertable = false, updatable = false)

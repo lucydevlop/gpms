@@ -1,7 +1,7 @@
 package io.glnt.gpms.model.dto.entity
 
 import io.glnt.gpms.model.entity.GateGroup
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import java.io.Serializable
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
@@ -18,7 +18,7 @@ data class GateGroupDTO(
     var memo: String? = null,
 
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null
+    var delYn: YN? = null
 ): Serializable {
     constructor(gateGroup: GateGroup) :
         this(

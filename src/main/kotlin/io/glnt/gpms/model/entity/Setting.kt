@@ -2,7 +2,8 @@ package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.YN
 import java.io.Serializable
 import javax.persistence.*
 
@@ -27,7 +28,7 @@ data class Setting(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
-    var delYn: DelYn? = DelYn.N
+    var delYn: YN? = YN.N
 ): Auditable(), Serializable {
 
 }

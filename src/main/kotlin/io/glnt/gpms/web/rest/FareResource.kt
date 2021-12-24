@@ -8,7 +8,7 @@ import io.glnt.gpms.model.dto.entity.CgBasicDTO
 import io.glnt.gpms.model.dto.entity.FareInfoDTO
 import io.glnt.gpms.model.dto.entity.FarePolicyDTO
 import io.glnt.gpms.model.dto.rcs.RcsRateInfoDTO
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.service.FareService
 import mu.KLogging
 import org.springframework.http.ResponseEntity
@@ -27,7 +27,7 @@ class FareResource (
 
     @RequestMapping(value = ["/fare/policies"], method = [RequestMethod.GET])
     fun getFarePolicies(): ResponseEntity<CommonResult> {
-        return CommonResult.returnResult(CommonResult.data(fareService.findFarePolicies().filter { farePolicyDTO -> farePolicyDTO.delYn == DelYn.N }))
+        return CommonResult.returnResult(CommonResult.data(fareService.findFarePolicies().filter { farePolicyDTO -> farePolicyDTO.delYn == YN.N }))
     }
 
     @RequestMapping(value = ["/fare/policy"], method = [RequestMethod.POST])

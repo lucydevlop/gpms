@@ -2,12 +2,11 @@ package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.UserRole
-import io.glnt.gpms.model.enums.checkUseStatus
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
-import java.sql.Date
 import java.time.LocalDateTime
 import javax.persistence.*
 
@@ -38,7 +37,7 @@ data class SiteUser(
 
     @Column(name = "check_use", nullable = false, columnDefinition = "varchar(1) default 'Y'")
     @Enumerated(value = EnumType.STRING)
-    var checkUse: checkUseStatus? = checkUseStatus.Y,
+    var checkUse: YN? = YN.Y,
 
     @Column(name = "wrong_count", nullable = true, columnDefinition = "tinyint(1) default 0")
     var wrongCount: Int? = 0,
@@ -60,7 +59,7 @@ data class SiteUser(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
-    var delYn: DelYn? = DelYn.N
+    var delYn: YN? = YN.N
 ): Auditable(), Serializable {
 
 }

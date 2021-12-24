@@ -1,8 +1,7 @@
 package io.glnt.gpms.model.dto.entity
 
-import io.glnt.gpms.model.dto.entity.ParkInDTO
 import io.glnt.gpms.model.entity.InoutPayment
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.PayType
 import io.glnt.gpms.model.enums.ResultType
 import java.io.Serializable
@@ -49,7 +48,7 @@ data class InoutPaymentDTO(
     var failureMessage: String? = null,
 
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = DelYn.N,
+    var delYn: YN? = YN.N,
 
     var outSn: Long? = null,
 

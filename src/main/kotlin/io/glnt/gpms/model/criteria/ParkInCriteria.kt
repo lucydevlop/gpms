@@ -1,7 +1,7 @@
 package io.glnt.gpms.model.criteria
 
 import com.fasterxml.jackson.annotation.JsonFormat
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import java.io.Serializable
 import java.time.LocalDate
 
@@ -22,7 +22,7 @@ data class ParkInCriteria (
 
     var outSn: Long? = null,
 
-    var delYn: DelYn? = null
+    var delYn: YN? = null
 
 ): Serializable {
     constructor(other: ParkInCriteria) :

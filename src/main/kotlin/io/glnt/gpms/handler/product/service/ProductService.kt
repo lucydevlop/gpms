@@ -8,7 +8,7 @@ import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.entity.SeasonTicket
 import io.glnt.gpms.model.entity.TicketClass
 import io.glnt.gpms.model.enums.DateType
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.DiscountRangeType
 import io.glnt.gpms.model.enums.TicketAplyType
 import io.glnt.gpms.model.repository.CorpRepository
@@ -41,7 +41,7 @@ class ProductService {
     }
 
     fun getValidProductByVehicleNo(vehicleNo: String, startTime: LocalDateTime, endTime: LocalDateTime): SeasonTicket? {
-        var tickets = seasonTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startTime, endTime, DelYn.N)
+        var tickets = seasonTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startTime, endTime, YN.N)
 
         if (tickets.isNullOrEmpty()) return null
 
@@ -152,7 +152,7 @@ class ProductService {
             val new = SeasonTicket(
                 sn = request.sn?.let { if (it > 0) it else null },
                 vehicleNo = request.vehicleNo,
-                delYn = DelYn.N,
+                delYn = YN.N,
                 effectDate = request.effectDate,
                 expireDate = request.expireDate,
                 userId = request.userId,
@@ -183,14 +183,14 @@ class ProductService {
                 }
             }?: run {
                 //차량, 동일 일자 등록 시 update
-                seasonTicketRepository.findByVehicleNoAndEffectDateAndExpireDateAndTicketTypeAndDelYn(request.vehicleNo, request.effectDate, request.expireDate, request.ticketType!!, DelYn.N)?.let { ticket ->
+                seasonTicketRepository.findByVehicleNoAndEffectDateAndExpireDateAndTicketTypeAndDelYn(request.vehicleNo, request.effectDate, request.expireDate, request.ticketType!!, YN.N)?.let { ticket ->
                     new.sn = ticket.sn
                     saveProductTicket(new)
                     return CommonResult.data(new)
                 }
 
                 // 정기권 이력 안에 포함 시 skip
-                if (seasonTicketRepository.countByVehicleNoAndTicketTypeAndDelYnAndEffectDateLessThanEqualAndExpireDateGreaterThanEqual(request.vehicleNo, request.ticketType!!, DelYn.N, request.effectDate, request.expireDate) > 0) {
+                if (seasonTicketRepository.countByVehicleNoAndTicketTypeAndDelYnAndEffectDateLessThanEqualAndExpireDateGreaterThanEqual(request.vehicleNo, request.ticketType!!, YN.N, request.effectDate, request.expireDate) > 0) {
                     logger.warn { "product ticket exists $request" }
                     return CommonResult.data("product ticket exists")
                 }
@@ -418,7 +418,7 @@ class ProductService {
         logger.info { "delete ticket : $request" }
         try {
             seasonTicketRepository.findBySn(request)?.let { ticket ->
-                ticket.delYn = DelYn.Y
+                ticket.delYn = YN.Y
                 return CommonResult.data(seasonTicketRepository.save(ticket))
             }
         }catch (e: CustomException) {
@@ -504,12 +504,12 @@ class ProductService {
                 when(request.delYn) {
                     "Y" -> {
                         clues.add(
-                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.Y)
+                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), YN.Y)
                         )
                     }
                     else -> {
                         clues.add(
-                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N)
+                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), YN.N)
                         )
                     }
                 }
@@ -526,7 +526,7 @@ class ProductService {
 
     fun createTicketClass(request: TicketClass): TicketClass? {
         try {
-            ticketClassRepository.findByTicketNameAndDelYn(request.ticketName, DelYn.N)?.let {
+            ticketClassRepository.findByTicketNameAndDelYn(request.ticketName, YN.N)?.let {
                 return null
             }?: kotlin.run {
                 return ticketClassRepository.save(request)

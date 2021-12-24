@@ -197,7 +197,6 @@ class FacilityService(
     }
 
     fun getDisplayMessage() : CommonResult {
-        logger.info { "getDisplayMessage" }
         try {
             displayMessageRepository.findAll().let { it ->
                 return CommonResult.data(it)
@@ -386,7 +385,7 @@ class FacilityService(
     fun getStatusByGateAndCategory(gateId: String, category: FacilityCategoryType): HashMap<String, Any?>? {
         try {
             var result = HashMap<String, Any?>()
-            facilityRepository.findByGateIdAndCategoryAndDelYn(gateId, category, DelYn.N)?.let { facilities ->
+            facilityRepository.findByGateIdAndCategoryAndDelYn(gateId, category, YN.N)?.let { facilities ->
                 val total = facilities.filter {
                     it.lprType != LprTypeStatus.ASSIST
                 }
@@ -423,7 +422,7 @@ class FacilityService(
 
     fun getStatusByGateAndCategoryAndLprType(gateId: String, category: FacilityCategoryType, lprType: LprTypeStatus): HashMap<String, Any?>? {
         var result = HashMap<String, Any?>()
-        facilityRepository.findByGateIdAndCategoryAndDelYnAndLprType(gateId, category, DelYn.N, lprType)?.let { facilities ->
+        facilityRepository.findByGateIdAndCategoryAndDelYnAndLprType(gateId, category, YN.N, lprType)?.let { facilities ->
             val total = facilities.filter {
                 it.lprType != LprTypeStatus.ASSIST
             }
@@ -457,8 +456,8 @@ class FacilityService(
     fun getActionByGateAndCategory(gateId: String, category: FacilityCategoryType): HashMap<String, Any?>? {
         try {
             var result = HashMap<String, Any?>()
-            facilityRepository.findByGateIdAndCategoryAndDelYn(gateId, category, DelYn.N)?.let { facilities ->
-                if (facilities.isNullOrEmpty()) return result
+            facilityRepository.findByGateIdAndCategoryAndDelYn(gateId, category, YN.N)?.let { facilities ->
+                if (facilities.isEmpty()) return result
                 facilities.forEach { facility ->
                     val id = facility.facilitiesId ?: run { facility.dtFacilitiesId }
 
@@ -559,7 +558,7 @@ class FacilityService(
     }
 
     fun getOneFacilityByGateIdAndCategory(gateId: String, category: FacilityCategoryType): Facility? {
-        return facilityRepository.findByGateIdAndCategoryAndDelYn(gateId, category, DelYn.N)?.let { list ->
+        return facilityRepository.findByGateIdAndCategoryAndDelYn(gateId, category, YN.N)?.let { list ->
             list[0]
         }
     }
@@ -567,8 +566,8 @@ class FacilityService(
     fun activeGateFacilities(): List<FacilityDTO> {
         var result = ArrayList<FacilityDTO>()
         gateService.findActiveGate().let { gates ->
-            for (gate in gates.filter { g -> g.delYn == DelYn.N }) {
-                facilityRepository.findByGateIdAndDelYn(gate.gateId!!, DelYn.N)?.let { facilities ->
+            for (gate in gates.filter { g -> g.delYn == YN.N }) {
+                facilityRepository.findByGateIdAndDelYn(gate.gateId!!, YN.N)?.let { facilities ->
                     for (facility in facilities) {
                         result.add(facilityMapper.toDTO(facility)
                         )

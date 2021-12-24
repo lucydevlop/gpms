@@ -1,7 +1,7 @@
 package io.glnt.gpms.service
 
 import io.glnt.gpms.model.dto.entity.InoutPaymentDTO
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.ResultType
 import io.glnt.gpms.model.mapper.InoutPaymentMapper
 import io.glnt.gpms.model.repository.InoutPaymentRepository
@@ -30,13 +30,13 @@ open class InoutPaymentService (
     @Transactional(readOnly = true)
     open fun findByInSnAndResult(sn: Long, result: ResultType): List<InoutPaymentDTO>? {
         logger.debug { "Request to get InoutPayment $sn" }
-        return inoutPaymentRepository.findByInSnAndResultAndDelYn(sn, result, DelYn.N)?.map(inoutPaymentMapper::toDTO)
+        return inoutPaymentRepository.findByInSnAndResultAndDelYn(sn, result, YN.N)?.map(inoutPaymentMapper::toDTO)
     }
 
     @Transactional(readOnly = true)
     open fun findByInSn(sn: Long): List<InoutPaymentDTO>? {
         logger.debug { "Request to get InoutPayment $sn" }
-        return inoutPaymentRepository.findByInSnAndDelYn(sn, DelYn.N)?.map(inoutPaymentMapper::toDTO)
+        return inoutPaymentRepository.findByInSnAndDelYn(sn, YN.N)?.map(inoutPaymentMapper::toDTO)
     }
 
     fun save(inoutPaymentDTO: InoutPaymentDTO) : InoutPaymentDTO {
@@ -47,7 +47,7 @@ open class InoutPaymentService (
             }?: kotlin.run {
                 // 중복 데이터 check 후 save
                 if (inoutPayment.failureMessage == null && inoutPayment.transactionId != null) {
-                    inoutPaymentRepository.findByInSnAndResultAndTransactionIdAndDelYn(inoutPayment.inSn ?: -1, ResultType.SUCCESS, inoutPayment.transactionId!!, DelYn.N)?.let { it ->
+                    inoutPaymentRepository.findByInSnAndResultAndTransactionIdAndDelYn(inoutPayment.inSn ?: -1, ResultType.SUCCESS, inoutPayment.transactionId!!, YN.N)?.let { it ->
                         return inoutPaymentMapper.toDTO(it)
                     }
                 } else {

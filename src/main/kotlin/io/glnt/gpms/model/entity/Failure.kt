@@ -4,10 +4,9 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.entity.Auditable
-import io.glnt.gpms.model.enums.Yn
-import org.springframework.format.annotation.DateTimeFormat
+import io.glnt.gpms.model.enums.FacilityCategoryType
+import io.glnt.gpms.model.enums.YN
 import java.io.Serializable
-import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.persistence.*
 
@@ -46,7 +45,14 @@ data class Failure(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "sync_yn", nullable = true)
-    var syncYn: Yn? = Yn.N
+    var syncYn: YN? = YN.N,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category")
+    var category: FacilityCategoryType? = null,
+
+    @Column(name = "gate_id")
+    var gateId: String? = null
 ): Auditable(), Serializable {
 
 }

@@ -2,7 +2,7 @@ package io.glnt.gpms.service
 
 import io.glnt.gpms.model.dto.entity.ParkInDTO
 import io.glnt.gpms.model.entity.ParkIn
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.mapper.ParkInMapper
 import io.glnt.gpms.model.repository.ParkInRepository
 import mu.KLogging
@@ -23,7 +23,7 @@ class ParkInService(
     }
 
     fun getLastVehicleNoByDate(vehicleNo: String, date: LocalDateTime): ParkIn? {
-        return parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, DelYn.N, date)
+        return parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, YN.N, date)
     }
 
     fun findOne(sn: Long) : ParkInDTO? {

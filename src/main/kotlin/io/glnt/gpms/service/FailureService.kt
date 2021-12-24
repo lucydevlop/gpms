@@ -21,7 +21,13 @@ class FailureService (
         return failureRepository.findAll().map(failureMapper::toDTO)
     }
 
-    fun findByCriteria(criteria: FailureCriteria): List<FailureDTO> {4
+    fun findByCriteria(criteria: FailureCriteria): List<FailureDTO> {
         return failureQueryService.findByCriteria(criteria)
+    }
+
+    fun save(failureDTO: FailureDTO) : FailureDTO {
+        var failure = failureMapper.toEntity(failureDTO)
+        failure = failureRepository.save(failure!!)
+        return failureMapper.toDTO(failure)
     }
 }

@@ -6,7 +6,7 @@ import io.glnt.gpms.handler.rcs.model.ReqFailureAlarm
 import io.glnt.gpms.handler.rcs.model.ReqHealthCheck
 import io.glnt.gpms.model.entity.Failure
 import io.glnt.gpms.model.enums.ExternalSvrType
-import io.glnt.gpms.model.enums.checkUseStatus
+import io.glnt.gpms.model.enums.YN
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -30,6 +30,9 @@ class RcsClient(
                     reqeust
                 )
             }
+            else -> {
+
+            }
         }
     }
 
@@ -40,6 +43,9 @@ class RcsClient(
                     request
                 )
             }
+            else -> {
+
+            }
         }
     }
 
@@ -47,8 +53,11 @@ class RcsClient(
         when (externalSvr) {
             ExternalSvrType.GLNT -> {
                 restAPIManager.sendPatchRequest("$glntUrl/parkinglots/facilities/errors",
-                    ReqFailureAlarm(parkinglotId = rcsParkId, facilityId = request.facilitiesId!!, createDate = request.expireDateTime.toString(), contents = request.failureCode!!, resolvedYn = checkUseStatus.Y)
+                    ReqFailureAlarm(parkinglotId = rcsParkId, facilityId = request.facilitiesId!!, createDate = request.expireDateTime.toString(), contents = request.failureCode!!, resolvedYn = YN.Y)
                 )
+            }
+            else -> {
+
             }
         }
     }
@@ -59,6 +68,9 @@ class RcsClient(
                 restAPIManager.sendPatchRequest("$glntUrl/parkinglots/facilities/errors",
                     ReqFailureAlarm(parkinglotId = rcsParkId, facilityId = request.facilitiesId!!, createDate = request.issueDateTime.toString(), contents = request.failureCode!!)
                 )
+            }
+            else -> {
+
             }
         }
     }

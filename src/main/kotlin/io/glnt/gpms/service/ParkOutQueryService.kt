@@ -5,7 +5,7 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.criteria.ParkOutCriteria
 import io.glnt.gpms.model.dto.entity.ParkOutDTO
 import io.glnt.gpms.model.entity.ParkOut
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.mapper.ParkOutMapper
 import io.glnt.gpms.model.repository.ParkOutRepository
 import mu.KLogging
@@ -68,7 +68,7 @@ class ParkOutQueryService(
                     )
                 }
             }
-            clues.add(criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N))
+            clues.add(criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), YN.N))
             query.orderBy(criteriaBuilder.desc(root.get<LocalDateTime>("outDate")))
             criteriaBuilder.and(*clues.toTypedArray())
         }

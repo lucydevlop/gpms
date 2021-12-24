@@ -5,7 +5,7 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.criteria.ParkInCriteria
 import io.glnt.gpms.model.dto.entity.ParkInDTO
 import io.glnt.gpms.model.entity.ParkIn
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.mapper.ParkInMapper
 import io.glnt.gpms.model.repository.ParkInRepository
 import mu.KLogging
@@ -86,7 +86,7 @@ class ParkInQueryService(
                     )
                 }
             }
-            clues.add(criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N))
+            clues.add(criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), YN.N))
             query.orderBy(criteriaBuilder.desc(root.get<LocalDateTime>("inDate")))
             criteriaBuilder.and(*clues.toTypedArray())
         }

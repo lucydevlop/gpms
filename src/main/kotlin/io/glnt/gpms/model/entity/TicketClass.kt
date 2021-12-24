@@ -74,11 +74,11 @@ data class TicketClass(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "extend_yn", nullable = true)
-    var extendYn: Yn? = null,
+    var extendYn: YN? = null,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
-    var delYn: DelYn? = DelYn.N
+    var delYn: YN? = YN.N
 
 ): Auditable(), Serializable {
 

@@ -2,7 +2,6 @@ package io.glnt.gpms.web.rest
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.configs.ApiConfig.API_VERSION
-import io.glnt.gpms.handler.calc.service.FareRefService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.model.criteria.CorpCriteria
@@ -12,7 +11,7 @@ import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.enums.DateType
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.service.*
 import org.springframework.http.ResponseEntity
@@ -142,7 +141,7 @@ class RcsResource(
 
     @RequestMapping(value=["/corps"], method = [RequestMethod.GET])
     fun getCorpInfo(): ResponseEntity<CommonResult> {
-        val criteria = CorpCriteria(delYn = DelYn.N)
+        val criteria = CorpCriteria(delYn = YN.N)
         return CommonResult.returnResult(CommonResult.data(corpQueryService.findByCriteria(criteria)))
     }
 

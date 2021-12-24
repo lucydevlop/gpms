@@ -1,7 +1,7 @@
 package io.glnt.gpms.model.dto.entity
 
 import io.glnt.gpms.model.entity.DisplayMessage
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayMessageType
 import java.io.Serializable
@@ -33,7 +33,7 @@ data class DisplayMessageDTO(
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null,
+    var delYn: YN? = null,
 
     var displayColor: DisplayColorDTO? = null
 ): Serializable {

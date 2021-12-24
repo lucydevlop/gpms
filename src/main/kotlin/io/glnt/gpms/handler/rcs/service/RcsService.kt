@@ -12,22 +12,18 @@ import io.glnt.gpms.exception.CustomException
 //import io.glnt.gpms.handler.corp.service.CorpService
 import io.glnt.gpms.handler.dashboard.admin.service.singleTimer
 import io.glnt.gpms.handler.discount.service.DiscountService
-import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
-import io.glnt.gpms.service.InoutService
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.handler.rcs.model.*
 import io.glnt.gpms.common.api.ResetClient
-import io.glnt.gpms.service.RelayService
 import io.glnt.gpms.model.dto.entity.FacilityDTO
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
 import io.glnt.gpms.model.dto.request.resParkInList
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.ExternalSvrType
-import io.glnt.gpms.service.CorpService
-import io.glnt.gpms.service.ParkSiteInfoService
+import io.glnt.gpms.service.*
 import io.reactivex.Observable
 import mu.KLogging
 import org.apache.http.HttpStatus
@@ -43,7 +39,7 @@ class RcsService(
     private var inoutService: InoutService,
     private var restAPIManager: RestAPIManagerUtil,
     private var productService: ProductService,
-    private var discountService: DiscountService,
+    private var discountClassService: DiscountClassService,
     private var corpService: CorpService,
     private var parkSiteInfoService: ParkSiteInfoService,
     private var rcsClient: RcsClient,
@@ -120,7 +116,7 @@ class RcsService(
 //                ExternalSvrType.GLNT -> {
 //                    restAPIManager.sendPatchRequest(
 //                        glntUrl+"/parkinglots/facilities/errors",
-//                        ReqFailureAlarm(parkinglotId = parkinglotService.parkSite!!.rcsParkId!!, facilityId = request.facilitiesId!!, createDate = request.expireDateTime.toString(), contents = request.failureCode!!, resolvedYn = checkUseStatus.Y)
+//                        ReqFailureAlarm(parkinglotId = parkinglotService.parkSite!!.rcsParkId!!, facilityId = request.facilitiesId!!, createDate = request.expireDateTime.toString(), contents = request.failureCode!!, resolvedYn = YN.Y)
 //                    )
 //                }
 //            }
@@ -311,11 +307,11 @@ class RcsService(
 
     @Throws(CustomException::class)
     fun getDiscountClasses(): CommonResult {
-        try {
-            return CommonResult.data(discountService.getDiscountClass()!!.filter { it.delYn == DelYn.N && it.rcsUse == true })
+        return try {
+            CommonResult.data(discountClassService.findAll().filter { it.delYn == YN.N && it.rcsUse == true })
         }catch (e: CustomException) {
             logger.error { "rcs getTickets failed $e" }
-            return CommonResult.error("rcs getTickets failed")
+            CommonResult.error("rcs getTickets failed")
         }
     }
 

@@ -2,6 +2,7 @@ package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.glnt.gpms.model.entity.Auditable
 import java.io.Serializable
 import javax.persistence.*
 

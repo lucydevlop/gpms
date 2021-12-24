@@ -2,7 +2,7 @@ package io.glnt.gpms.model.dto.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.entity.BarcodeTickets
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import java.io.Serializable
 import java.time.LocalDateTime
 import javax.persistence.EnumType
@@ -26,7 +26,7 @@ data class  BarcodeTicketsDTO (
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null,
+    var delYn: YN? = null,
 
     ) : Serializable {
     constructor(barcodeTickets: BarcodeTickets) :

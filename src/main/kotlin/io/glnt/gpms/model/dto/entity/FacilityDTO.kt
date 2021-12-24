@@ -2,7 +2,7 @@ package io.glnt.gpms.model.dto.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.entity.Facility
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.FacilityCategoryType
 import io.glnt.gpms.model.enums.GateTypeStatus
 import io.glnt.gpms.model.enums.LprTypeStatus
@@ -61,7 +61,7 @@ data class FacilityDTO(
     var statusDate: LocalDateTime? = null,
 
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null,
+    var delYn: YN? = null,
 
     @Enumerated(EnumType.STRING)
     var gateType: GateTypeStatus? = null,

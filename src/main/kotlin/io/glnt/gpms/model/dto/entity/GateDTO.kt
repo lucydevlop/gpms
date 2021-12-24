@@ -1,7 +1,7 @@
 package io.glnt.gpms.model.dto.entity
 
 import io.glnt.gpms.model.entity.Gate
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.GateTypeStatus
 import io.glnt.gpms.model.enums.OpenActionType
 import java.io.Serializable
@@ -35,7 +35,7 @@ data class GateDTO(
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null,
+    var delYn: YN? = null,
 
     var resetSvr: String? = null,
 

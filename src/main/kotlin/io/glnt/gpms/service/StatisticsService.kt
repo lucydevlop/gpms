@@ -4,7 +4,7 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.dto.StatisticsInoutCountDTO
 import io.glnt.gpms.model.dto.StatisticsInoutDTO
 import io.glnt.gpms.model.dto.StatisticsInoutPaymentDTO
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.mapper.StatisticsInoutMapper
 import io.glnt.gpms.model.repository.ParkInRepository
 import io.glnt.gpms.model.repository.ParkOutRepository
@@ -28,11 +28,11 @@ class StatisticsService(
         while (day <= DateUtil.stringToLocalDate(endDate)) {
             val parkIns = parkInRepository.findByInDateBetweenAndDelYnAndOutSnGreaterThan(
                 DateUtil.beginTimeToLocalDateTime(day.toString()),
-                DateUtil.lastTimeToLocalDateTime(day.toString()), DelYn.N, -1)
+                DateUtil.lastTimeToLocalDateTime(day.toString()), YN.N, -1)
 
             val parkOuts = parkOutRepository.findByOutDateBetweenAndDelYn(
                 DateUtil.beginTimeToLocalDateTime(day.toString()),
-                DateUtil.lastTimeToLocalDateTime(day.toString()), DelYn.N)
+                DateUtil.lastTimeToLocalDateTime(day.toString()), YN.N)
 
             statisticsInoutCountsDTO.add(
                 StatisticsInoutCountDTO(
@@ -69,11 +69,11 @@ class StatisticsService(
             var result = ArrayList<StatisticsInoutDTO>()
             val parkIns = parkInRepository.findByInDateBetweenAndDelYnAndOutSnGreaterThan(
                 DateUtil.firstDayToLocalDateTime(day.toString()),
-                DateUtil.lastDayToLocalDateTime(day.toString()), DelYn.N, -1)
+                DateUtil.lastDayToLocalDateTime(day.toString()), YN.N, -1)
 
             val parkOuts = parkOutRepository.findByOutDateBetweenAndDelYn(
                 DateUtil.firstDayToLocalDateTime(day.toString()),
-                DateUtil.lastDayToLocalDateTime(day.toString()), DelYn.N)
+                DateUtil.lastDayToLocalDateTime(day.toString()), YN.N)
 
             statisticsInoutCountsDTO.add(
                 StatisticsInoutCountDTO(
@@ -104,7 +104,7 @@ class StatisticsService(
 
             parkOutRepository.findByOutDateBetweenAndDelYn(
                 DateUtil.beginTimeToLocalDateTime(day.toString()),
-                DateUtil.lastTimeToLocalDateTime(day.toString()), DelYn.N)?.let { parkOuts ->
+                DateUtil.lastTimeToLocalDateTime(day.toString()), YN.N)?.let { parkOuts ->
 
                 parkOuts.forEach { parkOut ->
                     result.add(statisticsInoutMapper.toDTO(parkOut))
@@ -137,7 +137,7 @@ class StatisticsService(
 
             parkOutRepository.findByOutDateBetweenAndDelYn(
                 DateUtil.firstDayToLocalDateTime(day.toString()),
-                DateUtil.lastDayToLocalDateTime(day.toString()), DelYn.N)?.let { parkOuts ->
+                DateUtil.lastDayToLocalDateTime(day.toString()), YN.N)?.let { parkOuts ->
 
                 parkOuts.forEach { parkOut ->
                     result.add(statisticsInoutMapper.toDTO(parkOut))

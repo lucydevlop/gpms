@@ -1,7 +1,7 @@
 package io.glnt.gpms.model.dto.entity
 
 import io.glnt.gpms.model.entity.ParkAlarmSetting
-import io.glnt.gpms.model.enums.checkUseStatus
+import io.glnt.gpms.model.enums.YN
 import java.io.Serializable
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
@@ -10,12 +10,12 @@ data class ParkAlarmSettingDTO (
     var siteid: String? = null,
 
     @Enumerated(EnumType.STRING)
-    var payAlarm: checkUseStatus? = checkUseStatus.N,
+    var payAlarm: YN? = YN.N,
 
     var payLimitTime: Int? = 0,
 
     @Enumerated(EnumType.STRING)
-    var gateAlarm: checkUseStatus? = checkUseStatus.N,
+    var gateAlarm: YN? = YN.N,
 
     var gateLimitTime: Int? = 0,
 

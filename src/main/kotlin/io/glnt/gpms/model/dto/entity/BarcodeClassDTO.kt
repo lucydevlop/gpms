@@ -1,8 +1,7 @@
 package io.glnt.gpms.model.dto.entity
 
-import io.glnt.gpms.model.dto.entity.DiscountClassDTO
 import io.glnt.gpms.model.entity.BarcodeClass
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import java.io.Serializable
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
@@ -13,7 +12,7 @@ data class BarcodeClassDTO (
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null,
+    var delYn: YN? = null,
 
     var start: Int? = null,
 

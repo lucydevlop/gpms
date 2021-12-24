@@ -41,7 +41,7 @@ data class CorpTicketClassDTO (
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null,
+    var delYn: YN? = null,
 
     @Enumerated(EnumType.STRING)
     var applyTarget: DiscountApplyTargetType? = DiscountApplyTargetType.NOW,

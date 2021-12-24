@@ -22,7 +22,6 @@ import io.glnt.gpms.model.dto.entity.ParkOutDTO
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.*
-import io.glnt.gpms.service.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -102,7 +101,7 @@ class RelayService(
 //                }
             }
 
-            if (parkAlarmSetting.payAlarm == checkUseStatus.Y && parkAlarmSetting.payLimitTime!! > 0) {
+            if (parkAlarmSetting.payAlarm == YN.Y && parkAlarmSetting.payLimitTime!! > 0) {
                 paymentHealthCheck()
             }
 
@@ -126,7 +125,9 @@ class RelayService(
                                 facilitiesId = list.dtFacilitiesId,
                                 fName = facility.fname,
                                 failureCode = list.failureAlarm,
-                                failureType = list.status
+                                failureType = list.status,
+                                category = facility.category,
+                                gateId = facility.gateId
                             )
                         )
                     }
@@ -155,7 +156,9 @@ class RelayService(
                                 facilitiesId = facility.dtFacilitiesId,
                                 fName = data.fname,
                                 failureCode = "crossingGateLongTimeOpen",
-                                failureType = "NORMAL"
+                                failureType = "NORMAL",
+                                category = data.category,
+                                gateId = data.gateId
                             )
                         )
                     } else {
@@ -166,7 +169,9 @@ class RelayService(
                                 facilitiesId = facility.dtFacilitiesId,
                                 fName = data.fname,
                                 failureCode = "crossingGateBarDamageDoubt",
-                                failureType = "NORMAL"
+                                failureType = "NORMAL",
+                                category = data.category,
+                                gateId = data.gateId
                             )
                         )
                     }
@@ -217,7 +222,9 @@ class RelayService(
                             facilitiesId = failure.dtFacilitiesId,
                             fName = facility.fname,
                             failureCode = failure.failureAlarm,
-                            failureType = failure.status)
+                            failureType = failure.status,
+                            category = facility.category,
+                            gateId = facility.gateId)
                     )
                     if (facility.category == FacilityCategoryType.PAYSTATION)
                         facilityService.updateStatusCheck(facility.facilitiesId!!, facility.status!!)
@@ -284,16 +291,21 @@ class RelayService(
                                     facilitiesId = facility.facilitiesId,
                                     fName = facility.fname,
                                     failureCode = "dailyUnAdjustment",
-                                    failureType = "dailyUnAdjustment")
+                                    failureType = "dailyUnAdjustment",
+                                    category = facility.category,
+                                    gateId = facility.gateId)
                             )
                         } else {
                             saveFailure(
                                 Failure(sn = null,
-                                        issueDateTime = LocalDateTime.now(),
-                                        facilitiesId = facility.facilitiesId,
-                                        fName = facility.fname,
-                                        failureCode = "dailyUnAdjustment",
-                                        failureType = "NORMAL")
+                                    issueDateTime = LocalDateTime.now(),
+                                    facilitiesId = facility.facilitiesId,
+                                    fName = facility.fname,
+                                    failureCode = "dailyUnAdjustment",
+                                    failureType = "NORMAL",
+                                    category = facility.category,
+                                    gateId = facility.gateId
+                                )
                             )
                         }
                     } ?: run{
@@ -474,7 +486,7 @@ class RelayService(
             val contents = JSONUtil.readValue(JSONUtil.getJsObject(request.contents).toString(), reqDiscountTicket::class.java)
 
             val info = barcodeService.findAll().filter {
-                it.effectDate!! <= LocalDateTime.now() && it.expireDate!! >= LocalDateTime.now() && it.delYn == DelYn.N}.get(0)
+                it.effectDate!! <= LocalDateTime.now() && it.expireDate!! >= LocalDateTime.now() && it.delYn == YN.N}.get(0)
 
             // inout_payment sn
             val sn = request.requestId!!.toLong()
@@ -488,7 +500,7 @@ class RelayService(
                                 inSn = parkIn.sn,
                                 applyDate = DateUtil.stringToLocalDateTime(request.eventDateTime!!),
                                 price = contents.barcode?.substring(info.startIndex!!, info.endIndex!!)?.toInt(),
-                                vehicleNo = contents.vehicleNumber, delYn = DelYn.N
+                                vehicleNo = contents.vehicleNumber, delYn = YN.N
                             )
 
                             val barcodeClass = barcodeClassService.findByStartLessThanEqualAndEndGreaterThanAndDelYn(barcodeTicketDTO.price!!)
@@ -499,7 +511,7 @@ class RelayService(
                                     discountService.saveInoutDiscount(
                                         InoutDiscount(
                                             sn = null, discontType = TicketType.BARCODE, discountClassSn = barcodeClass.discountClassSn, inSn = it,
-                                            quantity = 1, useQuantity = 1, delYn = DelYn.N, applyDate = barcodeTicketDTO.applyDate))
+                                            quantity = 1, useQuantity = 1, delYn = YN.N, applyDate = barcodeTicketDTO.applyDate))
                                 }
                             }
                             barcodeTicketService.save(barcodeTicketDTO)
@@ -530,7 +542,7 @@ class RelayService(
                                 inSn = it.inSn,
                                 applyDate = DateUtil.stringToLocalDateTime(request.eventDateTime!!),
                                 price = contents.barcode?.substring(info.startIndex!!, info.endIndex!!)?.toInt(),
-                                vehicleNo = contents.vehicleNumber, delYn = DelYn.N
+                                vehicleNo = contents.vehicleNumber, delYn = YN.N
                             )
 
                             val barcodeClass = barcodeClassService.findByStartLessThanEqualAndEndGreaterThanAndDelYn(barcodeTicketDTO.price!!)
@@ -541,7 +553,7 @@ class RelayService(
                                     discountService.saveInoutDiscount(
                                         InoutDiscount(
                                             sn = null, discontType = TicketType.BARCODE, discountClassSn = barcodeClass.discountClassSn, inSn = it,
-                                            quantity = 1, useQuantity = 1, delYn = DelYn.N, applyDate = barcodeTicketDTO.applyDate))
+                                            quantity = 1, useQuantity = 1, delYn = YN.N, applyDate = barcodeTicketDTO.applyDate))
                                 }
                             }
                             barcodeTicketService.save(barcodeTicketDTO)
@@ -565,7 +577,7 @@ class RelayService(
                                         payfee = price?.totalPrice ?: 0,
                                         discountfee = price?.discountPrice ?: 0,
                                         dayDiscountfee = price?.dayilyMaxDiscount ?: 0,
-                                        delYn = DelYn.N,
+                                        delYn = YN.N,
                                         inSn = it.inSn,
                                         originDayDiscountFee = price?.dayilyMaxDiscount ?: 0,
                                         originParkFee = price?.orgTotalPrice ?: 0,

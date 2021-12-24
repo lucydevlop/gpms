@@ -4,9 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.entity.Auditable
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.TicketType
-import org.hibernate.annotations.Where
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -49,7 +48,7 @@ data class InoutDiscount(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
-    var delYn: DelYn? = DelYn.N,
+    var delYn: YN? = YN.N,
 
     @Column(name = "apply_date")
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
@@ -58,7 +57,7 @@ data class InoutDiscount(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "calc_yn")
-    var calcYn: DelYn? = DelYn.N,
+    var calcYn: YN? = YN.N,
 
     @Column(name = "out_sn")
     var outSn: Long? = null

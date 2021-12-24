@@ -1,12 +1,8 @@
 package io.glnt.gpms.service
 
 import io.glnt.gpms.model.dto.entity.DisplayMessageDTO
-import io.glnt.gpms.model.entity.DisplayColor
-import io.glnt.gpms.model.entity.DisplayInfo
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.DisplayMessageClass
-import io.glnt.gpms.model.enums.DisplayMessageType
-import io.glnt.gpms.model.enums.DisplayStatus
 import io.glnt.gpms.model.mapper.DisplayMessageMapper
 import io.glnt.gpms.model.repository.DisplayColorRepository
 import io.glnt.gpms.model.repository.DisplayInfoRepository
@@ -33,7 +29,7 @@ class DisplayService(
     }
 
     fun initStaticData() {
-        val displayMessages = findDisplayMessageAll().filter { displayMessageDTO -> displayMessageDTO.delYn == DelYn.N }
+        val displayMessages = findDisplayMessageAll().filter { displayMessageDTO -> displayMessageDTO.delYn == YN.N }
         displayMessagesIn = displayMessages.filter { displayMessageDTO -> displayMessageDTO.messageClass == DisplayMessageClass.IN }
         displayMessagesOut = displayMessages.filter { displayMessageDTO -> displayMessageDTO.messageClass == DisplayMessageClass.OUT }
         displayMessagesWait = displayMessages.filter { displayMessageDTO -> displayMessageDTO.messageClass == DisplayMessageClass.WAIT }

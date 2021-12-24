@@ -6,7 +6,7 @@ import io.glnt.gpms.model.dto.entity.CorpTicketHistoryDTO
 import io.glnt.gpms.model.criteria.CorpCriteria
 import io.glnt.gpms.model.dto.*
 import io.glnt.gpms.model.entity.CorpTicketInfo
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.mapper.CorpMapper
 import io.glnt.gpms.model.mapper.CorpTicketHistoryMapper
 import io.glnt.gpms.model.mapper.CorpTicketMapper
@@ -90,15 +90,15 @@ class CorpService(
     }
 
     fun getCorpTicketHistByTicketSn(ticketSn: Long): MutableList<CorpTicketHistoryDTO>? {
-        return corpTicketHistoryRepository.findByTicketSnAndDelYn(ticketSn, DelYn.N)
+        return corpTicketHistoryRepository.findByTicketSnAndDelYn(ticketSn, YN.N)
             ?.mapTo(mutableListOf(), corpTicketHistoryMapper::toDTO)
     }
 
     fun addCorpTickets(addCorpTicketDTO: AddCorpTicketDTO) {
         var corpTicketInfo = CorpTicketInfo(sn = null, corpSn = addCorpTicketDTO.corpSn, classSn = addCorpTicketDTO.corpTicketClassSn,
-            totalQuantity = addCorpTicketDTO.cnt, useQuantity = 0, delYn = DelYn.N)
+            totalQuantity = addCorpTicketDTO.cnt, useQuantity = 0, delYn = YN.N)
 
-        corpTicketRepository.findByCorpSnAndClassSnAndDelYn(addCorpTicketDTO.corpSn, addCorpTicketDTO.corpTicketClassSn, DelYn.N)?.let { it ->
+        corpTicketRepository.findByCorpSnAndClassSnAndDelYn(addCorpTicketDTO.corpSn, addCorpTicketDTO.corpTicketClassSn, YN.N)?.let { it ->
             corpTicketInfo = it
             corpTicketInfo.totalQuantity = corpTicketInfo.totalQuantity.plus(addCorpTicketDTO.cnt)
 
@@ -107,7 +107,7 @@ class CorpService(
         saveCorpTicket(corpTicketMapper.toDTO(corpTicketInfo)).apply {
             saveCorpTicketHistory(
                 CorpTicketHistoryDTO(sn = null, ticketSn = this.sn!!, totalQuantity = addCorpTicketDTO.cnt,
-                    effectDate = LocalDateTime.now(), delYn = DelYn.N)
+                    effectDate = LocalDateTime.now(), delYn = YN.N)
             )
         }
     }

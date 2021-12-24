@@ -2,7 +2,8 @@ package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.YN
 import org.hibernate.annotations.Where
 import java.io.Serializable
 import javax.persistence.*
@@ -19,7 +20,7 @@ data class BarcodeClass(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = true)
-    var delYn: DelYn? = DelYn.N,
+    var delYn: YN? = YN.N,
 
     @Column(name = "start")
     var start: Int? = null,

@@ -3,7 +3,7 @@ package io.glnt.gpms.service
 import io.glnt.gpms.model.mapper.BarcodeClassMapper
 import io.glnt.gpms.model.dto.entity.BarcodeClassDTO
 import io.glnt.gpms.model.entity.BarcodeClass
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.repository.BarcodeClassRepository
 import mu.KLogging
 import org.springframework.stereotype.Service
@@ -32,13 +32,13 @@ class BarcodeClassService(
     }
 
     fun findByStartLessThanEqualAndEndGreaterThanAndDelYn(price: Int): BarcodeClass? {
-        return barcodeClassRepository.findByStartLessThanEqualAndEndGreaterThanAndDelYn(price, price, DelYn.N)
+        return barcodeClassRepository.findByStartLessThanEqualAndEndGreaterThanAndDelYn(price, price, YN.N)
     }
 
     fun delete(sn: Long): BarcodeClassDTO {
         logger.debug("Request to delete BarcodeClass : $sn")
         val barcodeClass = barcodeClassRepository.findBySn(sn).orElseThrow { EntityNotFoundException("BarcodeClass sn") }
-        barcodeClass.delYn = DelYn.Y
+        barcodeClass.delYn = YN.Y
         barcodeClassRepository.save(barcodeClass)
 
         return barcodeClassMapper.toDto(barcodeClass)

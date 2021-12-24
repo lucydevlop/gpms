@@ -11,8 +11,10 @@ import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.service.InoutService
 //import io.glnt.gpms.handler.inout.service.checkItemsAre
 import io.glnt.gpms.model.criteria.ParkInCriteria
+import io.glnt.gpms.model.dto.entity.InoutDiscountDTO
 import io.glnt.gpms.model.entity.CorpTicketInfo
 import io.glnt.gpms.model.enums.TicketType
+import io.glnt.gpms.service.InoutDiscountService
 import io.glnt.gpms.service.ParkInQueryService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,7 +25,8 @@ import kotlin.collections.ArrayList
 
 @Service
 class DashboardUserService(
-    private val parkInQueryService: ParkInQueryService
+    private val parkInQueryService: ParkInQueryService,
+    private val inoutDiscountService: InoutDiscountService
 ) {
     companion object : KLogging()
 
@@ -186,17 +189,28 @@ class DashboardUserService(
                                 do {
                                     discountService.getDiscountableTicketsBySn(ticket.sn!!)?.let { history ->
                                         useCnt = min(history.totalQuantity - history.useQuantity, addTicket.cnt)
-                                        discountService.addInoutDiscount(
-                                            reqAddInoutDiscount(
+                                        inoutDiscountService.save(
+                                            InoutDiscountDTO(
                                                 inSn = addTicket.inSn,
                                                 discountType = TicketType.CORPTICKET,
-                                                ticketSn = history.sn!!,
+                                                ticketHistSn = history.sn!!,
                                                 quantity = useCnt,
                                                 discountClassSn = corps.corpTicketClass!!.discountClassSn!!,
                                                 corpSn = corps.corpSn,
                                                 ticketClassSn = corps.corpTicketClass!!.sn!!
-                                            )
-                                        )
+                                            ))
+
+//                                        discountService.addInoutDiscount(
+//                                            reqAddInoutDiscount(
+//                                                inSn = addTicket.inSn,
+//                                                discountType = TicketType.CORPTICKET,
+//                                                ticketSn = history.sn!!,
+//                                                quantity = useCnt,
+//                                                discountClassSn = corps.corpTicketClass!!.discountClassSn!!,
+//                                                corpSn = corps.corpSn,
+//                                                ticketClassSn = corps.corpTicketClass!!.sn!!
+//                                            )
+//                                        )
                                         history.useQuantity = history.useQuantity.plus(useCnt)
                                         discountService.updateCorpTicketHistory(history)
                                     }

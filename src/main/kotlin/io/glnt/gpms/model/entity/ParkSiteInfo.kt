@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType
 import io.glnt.gpms.common.utils.JsonToMapConverter
+import io.glnt.gpms.model.entity.Auditable
 import io.glnt.gpms.model.dto.DiscountApplyDTO
 import io.glnt.gpms.model.dto.EnterNotiDTO
 import io.glnt.gpms.model.enums.*

@@ -2,7 +2,7 @@ package io.glnt.gpms.handler.rcs.model
 
 import io.glnt.gpms.model.dto.entity.FacilityDTO
 import io.glnt.gpms.model.enums.CityType
-import io.glnt.gpms.model.enums.checkUseStatus
+import io.glnt.gpms.model.enums.YN
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 
@@ -13,7 +13,7 @@ data class ReqFailureAlarm(
     var createDate: String,
     var contents: String,
     @Enumerated(EnumType.STRING)
-    var resolvedYn: checkUseStatus? = null
+    var resolvedYn: YN? = null
 )
 
 data class ReqHealthCheck(

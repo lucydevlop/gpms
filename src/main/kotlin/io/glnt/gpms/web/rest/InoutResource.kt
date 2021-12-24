@@ -107,10 +107,11 @@ class InoutResource (
         logger.debug { "inout transfer $resParkInList" }
         inoutService.updateInout(resParkInList)?.let { result ->
             val gateDTO = gateService.findOne(resParkInList.outGateId ?: "")
-            if ( parkinglotService.isPaid() ) {
-                // 출차 처리
-                parkOutService.findOne(result.parkoutSn!!).ifPresent { parkOutDTO ->
-                    gateDTO?.let { gate ->
+
+            // 출차 처리
+            parkOutService.findOne(result.parkoutSn!!).ifPresent { parkOutDTO ->
+                gateDTO?.let { gate ->
+                    if (parkinglotService.isPaid()) {
                         inoutService.waitFacilityIF(
                             "MANPAYMENT",
                             resParkInList.parkcartype,
@@ -119,17 +120,17 @@ class InoutResource (
                             parkOutDTO,
                             resParkInList.inDate
                         )
+                    }
 
-                        // total 0원, 무료 주차장 출차 처리
-                        if ( (!parkinglotService.isPaid()) || ( parkinglotService.isPaid() && (parkOutDTO.payfee?: 0) <= 0)) {
-                            // 출차 처리
-                            inoutService.outFacilityIF(
-                                resParkInList.parkcartype,
-                                resParkInList.vehicleNo!!,
-                                gateMapper.toEntity(gate)!!,
-                                parkInService.findOne(resParkInList.parkinSn!!)?.let { parkInMapper.toEntity(it) },
-                                parkOutDTO.sn!!)
-                        }
+                    // total 0원, 무료 주차장 출차 처리
+                    if ( (!parkinglotService.isPaid()) || ( parkinglotService.isPaid() && (parkOutDTO.payfee?: 0) <= 0)) {
+                        // 출차 처리
+                        inoutService.outFacilityIF(
+                            resParkInList.parkcartype,
+                            resParkInList.vehicleNo!!,
+                            gateMapper.toEntity(gate)!!,
+                            parkInService.findOne(resParkInList.parkinSn!!)?.let { parkInMapper.toEntity(it) },
+                            parkOutDTO.sn!!)
                     }
                 }
             }
@@ -240,9 +241,13 @@ class InoutResource (
                     type = GateTypeStatus.IN,
                     uuid = requestParkInDTO.uuid,
                     image = requestParkInDTO.fileFullPath,
-                    delYn = DelYn.N
+                    delYn = YN.N
                 )
             )
+
+            // 입차 skip 조건
+
+
 
             val result = inoutService.parkIn(requestParkInDTO)
 
@@ -313,7 +318,7 @@ class InoutResource (
                     type = GateTypeStatus.OUT,
                     uuid = requestParkOutDTO.uuid,
                     image = requestParkOutDTO.fileFullPath,
-                    delYn = DelYn.N
+                    delYn = YN.N
                 )
             )
 
@@ -351,7 +356,7 @@ class InoutResource (
 
             var price: BasicPrice? = null
             var prePrice: BasicPrice? = null
-            //유료 주차장인 경우 요금 계산
+            // 유료 주차장인 경우 요금 계산
             if (parkIn!= null && parkinglotService.isPaid() && requestParkOutDTO.parkCarType != "UNRECOGNIZED") {
                 // 사전 정산 시 inout-payment 데이터 확인 후 legTime 이후 out_date 이면 시간만큼 요금 계산
                 val prePayments = inoutPaymentService.findByInSnAndResult(parkIn.sn ?: -1, ResultType.SUCCESS)
@@ -391,7 +396,7 @@ class InoutResource (
                 discountfee = (price?.discountPrice ?: 0) + (prePrice?.discountPrice ?: 0),
                 dayDiscountfee = (price?.dayilyMaxDiscount ?: 0) + (prePrice?.dayilyMaxDiscount ?: 0),
                 date = requestParkOutDTO.date!!.toLocalDate(),
-                delYn = DelYn.N ,
+                delYn = YN.N ,
                 inSn = parkIn?.sn,
                 originDiscountFee = price?.discountPrice?: 0,
                 originParkFee = price?.orgTotalPrice?: 0,

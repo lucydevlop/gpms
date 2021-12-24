@@ -1,6 +1,6 @@
 package io.glnt.gpms.handler.facility.model
 
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.GateTypeStatus
 import io.glnt.gpms.model.enums.LprTypeStatus
 
@@ -24,6 +24,6 @@ data class resRelaySvrFacility(
     var gateType: GateTypeStatus,
     var relaySvrKey: String?,
     var checkTime: Int? = null,
-    var delYn: DelYn?
+    var delYn: YN?
 )
 

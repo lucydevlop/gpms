@@ -1,11 +1,10 @@
 package io.glnt.gpms.handler.calc
 
 import io.glnt.gpms.common.utils.DateUtil
-import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.model.entity.CgBasic
 import io.glnt.gpms.model.repository.FarePolicyRepository
 import io.glnt.gpms.model.entity.FarePolicy
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.VehicleType
 import io.glnt.gpms.model.enums.WeekType
 import io.glnt.gpms.model.repository.CgBasicRepository
@@ -39,13 +38,13 @@ class CalculationData(
      */
     @PostConstruct
     fun init() {
-        cgBasicRepository.findByDelYn(DelYn.N)?: kotlin.run {
+        cgBasicRepository.findByDelYn(YN.N)?: kotlin.run {
             cgBasicRepository.saveAndFlush(
-                CgBasic(sn = null, serviceTime = 0, regTime = 0, dayMaxAmt = 0, effectDate = DateUtil.stringToLocalDateTime(DateUtil.nowDateTime, "yyyy-MM-dd HH:mm:ss"), delYn = DelYn.N))
+                CgBasic(sn = null, serviceTime = 0, regTime = 0, dayMaxAmt = 0, effectDate = DateUtil.stringToLocalDateTime(DateUtil.nowDateTime, "yyyy-MM-dd HH:mm:ss"), delYn = YN.N))
         }
 //        if (parkinglotService.isPaid()) {
-        parkingFareInfo = farePolicyRepository.findAll().filter { farePolicy -> farePolicy.delYn == DelYn.N }
-        cgBasicRepository.findByDelYn(DelYn.N)?.let {
+        parkingFareInfo = farePolicyRepository.findAll().filter { farePolicy -> farePolicy.delYn == YN.N }
+        cgBasicRepository.findByDelYn(YN.N)?.let {
             cgBasic = it
         }
 //        }
@@ -53,7 +52,7 @@ class CalculationData(
 
     fun getBizHourInfoForDate(date: String, vehicleType: VehicleType): List<FarePolicy> {
         val data = parkingFareInfo.filter {
-            it.delYn == DelYn.N &&
+            it.delYn == YN.N &&
                     it.vehicleType == vehicleType &&
 
 //                    ( it.week == DateUtil.getWeek(date) || it.week!!.contains(WeekType.ALL)) &&
@@ -68,7 +67,7 @@ class CalculationData(
     fun getBizHourInfoForDateTime(date: String, time: String, vehicleType: VehicleType): FarePolicy {
 
         val data = parkingFareInfo.filter {
-            it.delYn == DelYn.N &&
+            it.delYn == YN.N &&
                     it.vehicleType == vehicleType &&
                     ( (it.startTime!! <= time && time < it.endTime!! && it.startTime!! < it.endTime!!) ||
                       (it.startTime!! > it.endTime!! && it.endTime!! > time && it.startTime!! >= time) ||
@@ -84,7 +83,7 @@ class CalculationData(
 
     fun getBizHourInfoForPreDateTime(date: String, vehicleType: VehicleType, startTime: String): List<FarePolicy> {
         val data = parkingFareInfo.filter {
-            it.delYn == DelYn.N &&
+            it.delYn == YN.N &&
                     it.vehicleType == vehicleType &&
 //                    ( it.week == DateUtil.getWeek(date) || it.week == WeekType.ALL) &&
                     ( it.effectDate!! <= DateUtil.beginTimeToLocalDateTime(date) &&

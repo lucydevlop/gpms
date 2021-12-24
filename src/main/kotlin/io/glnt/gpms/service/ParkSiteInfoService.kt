@@ -18,7 +18,8 @@ import javax.annotation.PostConstruct
 @Service
 class ParkSiteInfoService (
     private val parkSiteInfoRepository: ParkSiteInfoRepository,
-    private val parkSiteInfoMapper: ParkSiteInfoMapper
+    private val parkSiteInfoMapper: ParkSiteInfoMapper,
+    private val holidayService: HolidayService
 ) {
     companion object : KLogging()
 
@@ -103,6 +104,15 @@ class ParkSiteInfoService (
 
     fun checkOperationDay(date: LocalDateTime) : Boolean {
         return this.parkSite?.let { parkSite ->
+            // 특근일 확인
+            holidayService.findByDay(date).let {
+                if (it.isNotEmpty()) {
+                    it[0].isWorking?.let { isWorking ->
+                        return isWorking
+                    }
+                }
+            }
+
             // 무휴
             if (parkSite.operatingDays == DiscountRangeType.ALL) return true
 

@@ -2,7 +2,8 @@ package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.FacilityCategoryType
 import io.glnt.gpms.model.enums.GateTypeStatus
 import io.glnt.gpms.model.enums.LprTypeStatus
@@ -84,7 +85,7 @@ data class Facility (
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
-    var delYn: DelYn? = DelYn.N,
+    var delYn: YN? = YN.N,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gate_type", nullable = false)

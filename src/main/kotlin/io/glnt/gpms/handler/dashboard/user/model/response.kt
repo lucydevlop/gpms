@@ -1,7 +1,6 @@
 package io.glnt.gpms.handler.dashboard.user.model
 
-import com.fasterxml.jackson.annotation.JsonFormat
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.TicketType
 import java.time.LocalDateTime
 
@@ -18,8 +17,8 @@ data class ResDiscountTicetsApplyList(
     var vehicleNo: String,
     var discountClassSn: Long,
     var discountNm: String,
-    var calcYn: DelYn,
-    var delYn: DelYn,
+    var calcYn: YN,
+    var delYn: YN,
     var createDate: LocalDateTime,
     var quantity: Int,
     var ticketClassSn: Long? = null

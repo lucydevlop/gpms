@@ -1,7 +1,7 @@
 package io.glnt.gpms.model.dto.entity
 
 import io.glnt.gpms.model.entity.Setting
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import java.io.Serializable
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
@@ -19,7 +19,7 @@ data class SettingDTO (
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null,
+    var delYn: YN? = null,
 
     ) : Serializable {
     constructor(setting: Setting) :

@@ -3,8 +3,9 @@ package io.glnt.gpms.model.entity
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.glnt.gpms.model.entity.Auditable
 import io.glnt.gpms.model.enums.UserRole
-import io.glnt.gpms.model.enums.checkUseStatus
+import io.glnt.gpms.model.enums.YN
 import java.io.Serializable
 import java.sql.Date
 import javax.persistence.*
@@ -38,7 +39,7 @@ data class User(
 
     @Column(name = "check_use", nullable = false, columnDefinition = "varchar(1) default 'Y'")
     @Enumerated(value = EnumType.STRING)
-    var checkUse: checkUseStatus,
+    var checkUse: YN,
 
     @Column(name = "wrong_count", nullable = false, columnDefinition = "tinyint(1) default 0")
     var wrongCount: Int,

@@ -3,7 +3,7 @@ package io.glnt.gpms.model.entity
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.entity.Auditable
-import io.glnt.gpms.model.enums.checkUseStatus
+import io.glnt.gpms.model.enums.YN
 import java.io.Serializable
 import javax.persistence.*
 
@@ -18,14 +18,14 @@ data class ParkAlarmSetting(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "pay_alarm")
-    var payAlarm: checkUseStatus? = checkUseStatus.N,
+    var payAlarm: YN? = YN.N,
 
     @Column(name = "pay_limit_time")
     var payLimitTime: Int? = 0,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gate_alarm")
-    var gateAlarm: checkUseStatus? = checkUseStatus.N,
+    var gateAlarm: YN? = YN.N,
 
     @Column(name = "gate_limit_time")
     var gateLimitTime: Int? = 0,

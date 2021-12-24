@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.vladmihalcea.hibernate.type.json.JsonStringType
 import io.glnt.gpms.common.utils.DateUtil
-import io.glnt.gpms.model.entity.TicketClass
+import io.glnt.gpms.model.entity.Auditable
 import io.glnt.gpms.model.enums.*
 import org.hibernate.annotations.Type
 import org.hibernate.annotations.TypeDef
@@ -51,7 +51,7 @@ data class SeasonTicket(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
-    var delYn: DelYn? = DelYn.N,
+    var delYn: YN? = YN.N,
 
     @Column(name = "cardnum", nullable = true)
     var cardNum: String? = null,
@@ -110,7 +110,7 @@ data class SeasonTicket(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "extend_yn", nullable = true)
-    var extendYn: Yn? = null,
+    var extendYn: YN? = null,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "pay_method", nullable = true)

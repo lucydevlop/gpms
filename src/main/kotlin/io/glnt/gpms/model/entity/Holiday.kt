@@ -3,11 +3,12 @@ package io.glnt.gpms.model.entity
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.glnt.gpms.model.entity.Auditable
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.HolidayType
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
 import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
@@ -24,12 +25,12 @@ data class Holiday(
     var name: String? = null,
 
     @Column(name = "start_date", nullable = false)
-    @DateTimeFormat(pattern="yyyy-MM-dd")
-    var startDate: LocalDate,
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var startDate: LocalDateTime,
 
     @Column(name = "end_date", nullable = false)
-    @DateTimeFormat(pattern="yyyy-MM-dd")
-    var endDate: LocalDate,
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    var endDate: LocalDateTime,
 
     @Column(name = "start_time", length=10)
     var startTime: String? = "0000",
@@ -46,7 +47,7 @@ data class Holiday(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
-    var delYn: DelYn? = DelYn.N
+    var delYn: YN? = YN.N
 
 ): Auditable(), Serializable {
 

@@ -20,7 +20,7 @@ class ExternalClient(
             restAPIManager.sendPostRequest(
                 "$url/parkinglot/paystation",
                 ReqEnterNotiDTO(
-                    vehicleNo = requestParkInDTO.vehicleNo ?: "",
+                    vehicleNo = requestParkInDTO.vehicleNo,
                     inDate = requestParkInDTO.date,
                     gateId = gate.gateId,
                     gateName = gate.gateName

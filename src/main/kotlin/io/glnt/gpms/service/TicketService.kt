@@ -2,15 +2,14 @@ package io.glnt.gpms.service
 
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.dto.entity.SeasonTicketDTO
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.TicketType
-import io.glnt.gpms.model.enums.Yn
 import io.glnt.gpms.model.mapper.SeasonTicketMapper
 import io.glnt.gpms.model.repository.SeasonTicketRepository
 import mu.KLogging
 import org.springframework.stereotype.Service
+import java.lang.Long.min
 import java.time.LocalDateTime
-import javax.print.attribute.IntegerSyntax
 
 @Service
 class TicketService(
@@ -58,30 +57,39 @@ class TicketService(
     }
 
     fun getTicketByVehicleNoAndDate(vehicleNo: String, startDate: LocalDateTime, endDate: LocalDateTime): List<SeasonTicketDTO>? {
-        return seasonTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startDate, endDate,DelYn.N)
+        return seasonTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startDate, endDate,YN.N)
             ?.map(seasonTicketMapper::toDTO)
             ?: kotlin.run { null }
     }
 
     fun getTicketByVehicleNoAndTicketTypeAndRangeDate(vehicleNo: String, ticketType: TicketType, startDate: LocalDateTime, endDate: LocalDateTime): List<SeasonTicketDTO>? {
-        return seasonTicketRepository.findByVehicleNoAndTicketTypeAndEffectDateBetweenAndDelYn(vehicleNo, ticketType, startDate, endDate, DelYn.N)
+        return seasonTicketRepository.findByVehicleNoAndTicketTypeAndEffectDateBetweenAndDelYn(vehicleNo, ticketType, startDate, endDate, YN.N)
             ?.map(seasonTicketMapper::toDTO)
             ?: kotlin.run { null }
     }
 
     fun getLastTicketByVehicleNoAndTicketType(vehicleNo: String, ticketType: TicketType) : SeasonTicketDTO? {
-        return if (ticketType == TicketType.ALL) seasonTicketRepository.findTopByVehicleNoAndDelYnOrderByExpireDateDesc(vehicleNo, DelYn.N)?.let { seasonTicket -> seasonTicketMapper.toDTO(seasonTicket) }
-        else seasonTicketRepository.findTopByVehicleNoAndDelYnAndTicketTypeOrderByExpireDateDesc(vehicleNo, DelYn.N, ticketType)?.let { seasonTicket -> seasonTicketMapper.toDTO(seasonTicket) }
+        return if (ticketType == TicketType.ALL) seasonTicketRepository.findTopByVehicleNoAndDelYnOrderByExpireDateDesc(vehicleNo, YN.N)?.let { seasonTicket -> seasonTicketMapper.toDTO(seasonTicket) }
+        else seasonTicketRepository.findTopByVehicleNoAndDelYnAndTicketTypeOrderByExpireDateDesc(vehicleNo, YN.N, ticketType)?.let { seasonTicket -> seasonTicketMapper.toDTO(seasonTicket) }
     }
 
     fun extendSeasonTicket() {
         // 1. 연장 대상 fetch
-        // 조건 ( 연장 대상, 만료 7일 이전 대상)
-        val date = DateUtil.getMinusDays(LocalDateTime.now(), 7)
+
         // 연장 대상 상품 리스트
-        ticketClassService.findByExtendYn(Yn.Y)?.let { ticketClasses ->
+        ticketClassService.findByExtendYn(YN.Y)?.let { ticketClasses ->
             ticketClasses.forEach { ticketClassDTO ->
-                seasonTicketRepository.findByTicketSnAndDelYnAndExtendYnAndEffectDateLessThanAndExpireDateGreaterThanAndTicketTypeAndNextSnIsNull(ticketClassDTO.sn?: 0, DelYn.N, Yn.Y, date, date, TicketType.SEASONTICKET)?.let { tickets ->
+                // 조건 ( 연장 대상, 달 - 만료 7일 이전 대상 / 일 - period 날짜 전으로 세팅)
+                val date =
+                ticketClassDTO.period?.let { period ->
+                    val number = period["number"] as Int
+                    when(period["type"]) {
+                        "MONTH" -> { DateUtil.getMinusDays(LocalDateTime.now(), 7) }
+                        else -> { DateUtil.getMinusDays(LocalDateTime.now(), min(number.toLong(), 7)) }
+                    }
+                }?: kotlin.run { LocalDateTime.now() }
+
+                seasonTicketRepository.findByTicketSnAndDelYnAndExtendYnAndEffectDateLessThanAndExpireDateGreaterThanAndTicketTypeAndNextSnIsNullAndPayMethodIsNotNull(ticketClassDTO.sn?: 0, YN.N, YN.Y, date, date, TicketType.SEASONTICKET)?.let { tickets ->
                     tickets.forEach { seasonTicket ->
                         val new = seasonTicketMapper.toDTO(seasonTicket)
 

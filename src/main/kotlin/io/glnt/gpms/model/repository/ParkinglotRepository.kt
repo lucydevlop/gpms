@@ -1,13 +1,12 @@
 package io.glnt.gpms.model.repository
 
+import io.glnt.gpms.model.entity.ParkSiteInfo
 import io.glnt.gpms.model.entity.*
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.FacilityCategoryType
 import io.glnt.gpms.model.enums.LprTypeStatus
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
-import java.util.*
 
 @Repository
 interface ParkSiteInfoRepository: JpaRepository<ParkSiteInfo, String> {
@@ -27,19 +26,19 @@ interface ParkFacilityRepository: JpaRepository<Facility, Long> {
     fun findByDtFacilitiesId(dtFacilitiesId: String): Facility?
 //    @Query("SELECT v from Facility v where v.category != 'LPR' or (v.category = 'LPR' and v.imagePath is not null)")
 //    fun findByGateSvrKey(gateSvrKey: String): List<Facility>?
-    fun findByGateIdAndDelYn(gateId: String, delYn: DelYn): List<Facility>?
+    fun findByGateIdAndDelYn(gateId: String, delYn: YN): List<Facility>?
     fun findByGateIdAndCategory(gateId: String, category: FacilityCategoryType): List<Facility>?
-    fun findByGateIdAndCategoryAndDelYn(gateId: String, category: FacilityCategoryType, delYn: DelYn): List<Facility>?
+    fun findByGateIdAndCategoryAndDelYn(gateId: String, category: FacilityCategoryType, delYn: YN): List<Facility>?
     fun findByCategory(category: FacilityCategoryType): List<Facility>?
     fun findByGateId(gateId: String): List<Facility>?
     fun findTopByGateIdAndCategoryOrderByStatusDate(gateId: String, category: FacilityCategoryType): Facility
-    fun findByGateIdAndCategoryAndDelYnAndLprType(gateId: String, category: FacilityCategoryType, delYn: DelYn, lprTypeStatus: LprTypeStatus) : List<Facility>?
+    fun findByGateIdAndCategoryAndDelYnAndLprType(gateId: String, category: FacilityCategoryType, delYn: YN, lprTypeStatus: LprTypeStatus) : List<Facility>?
 }
 
 @Repository
 interface ParkGateRepository: JpaRepository<Gate, Long> {
     fun findBySn(sn: Long): Gate?
-    fun findByDelYn(delYn: DelYn): List<Gate>
+    fun findByDelYn(delYn: YN): List<Gate>
     fun findByGateId(gateId: String): Gate?
     fun findByUdpGateid(udpGateid: String): Gate?
     fun findByRelaySvrKey(relaySvrKey: String): List<Gate>

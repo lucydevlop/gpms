@@ -1,7 +1,6 @@
 package io.glnt.gpms.handler.discount.service
 
 import io.glnt.gpms.common.api.CommonResult
-import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
 //import io.glnt.gpms.handler.corp.service.CorpService
@@ -10,8 +9,7 @@ import io.glnt.gpms.handler.dashboard.common.model.reqParkingDiscountSearchTicke
 import io.glnt.gpms.handler.discount.model.*
 import io.glnt.gpms.model.dto.request.ReqAddParkingDiscount
 import io.glnt.gpms.model.entity.*
-import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.DiscountRangeType
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.TicketType
 import io.glnt.gpms.model.repository.*
 import io.glnt.gpms.service.CorpService
@@ -66,7 +64,7 @@ class DiscountService {
         logger.info { "deleteDiscountClass $sn" }
         try {
             return getDiscountClassBySn(sn).let {
-                it.delYn = DelYn.Y
+                it.delYn = YN.Y
                 discountClassRepository.saveAndFlush(it)
             }?: kotlin.run {
                 return null
@@ -83,7 +81,7 @@ class DiscountService {
             request.searchLabel?.let {
                 val data = corpService.getStoreBySn(request.searchText!!.toLong())
                 data.ifPresent { corp ->
-                    val tickets = corpTicketRepository.findByCorpSnAndDelYn(corp.sn!!, DelYn.N)
+                    val tickets = corpTicketRepository.findByCorpSnAndDelYn(corp.sn!!, YN.N)
                     if (tickets!!.isNotEmpty()) {
                         tickets.forEach {
                             result.add(it)
@@ -121,7 +119,7 @@ class DiscountService {
 
     fun searchCorpTicketByCorpAndDiscountClass(corpSn: Long, discountClassNo: Long): CommonResult {
         try{
-            return CommonResult.data(corpTicketRepository.findByCorpSnAndClassSnAndDelYn(corpSn, discountClassNo, DelYn.N))
+            return CommonResult.data(corpTicketRepository.findByCorpSnAndClassSnAndDelYn(corpSn, discountClassNo, YN.N))
 
         }catch (e: CustomException){
             logger.error { "searchCorpTicketByCorpAndDiscountClass error $e" }
@@ -132,19 +130,19 @@ class DiscountService {
     @Throws(CustomException::class)
     fun createCorpTicket(request: reqCreateCorpTicket): CommonResult {
         try {
-            val corpTicket = corpTicketRepository.findByCorpSnAndClassSnAndDelYn(request.corpSn, request.classSn, DelYn.N)?.let {
+            val corpTicket = corpTicketRepository.findByCorpSnAndClassSnAndDelYn(request.corpSn, request.classSn, YN.N)?.let {
                 it.totalQuantity = it.totalQuantity.plus(request.quantity!!)
                 corpTicketRepository.save(it)
             } ?: run {
                 corpTicketRepository.save(
                     CorpTicketInfo(sn = null, corpSn = request.corpSn, classSn = request.classSn,
-                        totalQuantity = request.quantity!!, useQuantity = 0, delYn = DelYn.N)
+                        totalQuantity = request.quantity!!, useQuantity = 0, delYn = YN.N)
                 )
             }
 
             corpTicketHistoryRepository.save(
                 CorpTicketHistory(sn = null, ticketSn = corpTicket.sn!!, totalQuantity = request.quantity!!,
-                    effectDate = LocalDateTime.now(), delYn = DelYn.N)
+                    effectDate = LocalDateTime.now(), delYn = YN.N)
             )
             return CommonResult.data()
         }catch (e: CustomException){
@@ -156,8 +154,8 @@ class DiscountService {
     @Throws(CustomException::class)
     fun deleteCorpTicket(sn: Long) : CorpTicketInfo? {
         try {
-            return corpTicketRepository.findBySnAndDelYn(sn, DelYn.N)?.let {
-                it.delYn = DelYn.Y
+            return corpTicketRepository.findBySnAndDelYn(sn, YN.N)?.let {
+                it.delYn = YN.Y
                 corpTicketRepository.saveAndFlush(it)
             }?: kotlin.run {
                 return null
@@ -220,17 +218,17 @@ class DiscountService {
             val result = ArrayList<Long>()
             corpTicketClassRepository.findBySn(request.ticketSn).let { corpTicketClass ->
 //                discountClassRepository.findBySn(corpTicketClass.discountClassSn!!).let { discountClass ->
-                inoutDiscountRepository.findByInSnAndDiscountClassSnAndDelYn(request.inSn, corpTicketClass.discountClassSn!!, DelYn.N)?.sumBy { it -> it.quantity!! }.also {
+                inoutDiscountRepository.findByInSnAndDiscountClassSnAndDelYn(request.inSn, corpTicketClass.discountClassSn!!, YN.N)?.sumBy { it -> it.quantity!! }.also {
                     if (it!! > corpTicketClass.onceMax!!) return 0
                     if (it == 0) result.add(corpTicketClass.onceMax!!) else  result.add(corpTicketClass.onceMax!!-it)
                 }
                 inoutDiscountRepository.findByDiscountClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(
-                    request.ticketSn, DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate), DateUtil.lastTimeToLocalDateTime(DateUtil.nowDate), DelYn.N )?.sumBy { it -> it.quantity!! }.also {
+                    request.ticketSn, DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate), DateUtil.lastTimeToLocalDateTime(DateUtil.nowDate), YN.N )?.sumBy { it -> it.quantity!! }.also {
                     if (it!! > corpTicketClass.dayMax!!) return 0
                     if (it == 0) result.add(corpTicketClass.dayMax!!) else  result.add(corpTicketClass.dayMax!!-it)
                 }
                 inoutDiscountRepository.findByDiscountClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(
-                    request.ticketSn, DateUtil.firstDayToLocalDateTime(DateUtil.nowDate), DateUtil.lastDayToLocalDateTime(DateUtil.nowDate), DelYn.N )?.sumBy { it -> it.quantity!! }.also {
+                    request.ticketSn, DateUtil.firstDayToLocalDateTime(DateUtil.nowDate), DateUtil.lastDayToLocalDateTime(DateUtil.nowDate), YN.N )?.sumBy { it -> it.quantity!! }.also {
                     if (it!! > corpTicketClass.monthMax!!) return 0
                     if (it == 0) result.add(corpTicketClass.monthMax!!) else  result.add(corpTicketClass.monthMax!!-it)
                 }
@@ -246,7 +244,7 @@ class DiscountService {
     fun addInoutDiscount(request: reqAddInoutDiscount): InoutDiscount {
         return inoutDiscountRepository.save(
             InoutDiscount(sn = null, discontType = request.discountType, discountClassSn = request.discountClassSn,
-                          ticketHistSn = request.ticketSn, inSn = request.inSn, quantity = request.quantity, delYn = DelYn.N,
+                          ticketHistSn = request.ticketSn, inSn = request.inSn, quantity = request.quantity, delYn = YN.N,
                           corpSn = request.corpSn, ticketClassSn = request.ticketClassSn))
     }
 
@@ -256,7 +254,7 @@ class DiscountService {
 
     fun applyInoutDiscount(inSn: Long) {
         try {
-            inoutDiscountRepository.findByInSnAndDelYnAndCalcYn(inSn, DelYn.N, DelYn.Y)?.let { discounts ->
+            inoutDiscountRepository.findByInSnAndDelYnAndCalcYn(inSn, YN.N, YN.Y)?.let { discounts ->
                 discounts.forEach { it ->
                     it.applyDate = LocalDateTime.now()
                     saveInoutDiscount(it)
@@ -269,13 +267,13 @@ class DiscountService {
     }
 
     fun searchInoutDiscount(inSn: Long) : List<InoutDiscount>? {
-        return inoutDiscountRepository.findByInSnAndDelYn(inSn, DelYn.N)
+        return inoutDiscountRepository.findByInSnAndDelYn(inSn, YN.N)
     }
 
     fun searchInoutDiscount(request: reqApplyInoutDiscountSearch): List<InoutDiscount>? {
         try{
             val ticketHists = ArrayList<Long>()
-            corpTicketHistoryRepository.findByTicketSnAndDelYn(request.ticketSn, DelYn.N)?.let { tickets ->
+            corpTicketHistoryRepository.findByTicketSnAndDelYn(request.ticketSn, YN.N)?.let { tickets ->
                 tickets.forEach { ticket ->
                     ticketHists.add(ticket.sn!!)
                 }
@@ -323,18 +321,18 @@ class DiscountService {
                 when (request.applyStatus) {
                     "DO" -> {
                         clues.add(
-                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("calcYn")), DelYn.N)
+                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("calcYn")), YN.N)
                         )
                         clues.add(
-                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N)
+                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), YN.N)
                         )
                     }
                     "DONE" -> {
                         clues.add(
-                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("calcYn")), DelYn.Y)
+                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("calcYn")), YN.Y)
                         )
                         clues.add(
-                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N)
+                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), YN.N)
                         )
 //                        clues.add(
 //                            criteriaBuilder.isNotNull(root.get<LocalDateTime>("applyDate"))
@@ -342,7 +340,7 @@ class DiscountService {
                     }
                     "CANCEL" -> {
                         clues.add(
-                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.Y)
+                            criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), YN.Y)
                         )
                     }
                 }
@@ -356,14 +354,14 @@ class DiscountService {
 
     fun cancelInoutDiscount(inoutDiscountSn: Long): Boolean {
         try {
-            inoutDiscountRepository.findBySnAndDelYn(inoutDiscountSn, DelYn.N)?.let { inoutDiscount ->
-                inoutDiscount.delYn = DelYn.Y
+            inoutDiscountRepository.findBySnAndDelYn(inoutDiscountSn, YN.N)?.let { inoutDiscount ->
+                inoutDiscount.delYn = YN.Y
                 inoutDiscountRepository.save(inoutDiscount)
                 //수량 증가
-                corpTicketHistoryRepository.findBySnAndDelYn(inoutDiscount.ticketHistSn!!, DelYn.N)?.let { hist ->
+                corpTicketHistoryRepository.findBySnAndDelYn(inoutDiscount.ticketHistSn!!, YN.N)?.let { hist ->
                     hist.useQuantity = hist.useQuantity.minus(inoutDiscount.quantity!!)
                     corpTicketHistoryRepository.save(hist)
-                    corpTicketRepository.findBySnAndDelYn(hist.ticketSn!!, DelYn.N)?.let { info ->
+                    corpTicketRepository.findBySnAndDelYn(hist.ticketSn!!, YN.N)?.let { info ->
                         info.useQuantity = info.useQuantity.minus(inoutDiscount.quantity!!)
                         corpTicketRepository.save(info)
                     }
@@ -378,7 +376,7 @@ class DiscountService {
 
     fun getTodayUseDiscountTicket(corpSn: Long, ticketClassSn: Long) : Int {
         try {
-            inoutDiscountRepository.findByCorpSnAndTicketClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(corpSn, ticketClassSn, DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate), DateUtil.lastTimeToLocalDateTime(DateUtil.nowDate), DelYn.N)?.let { inoutDiscounts ->
+            inoutDiscountRepository.findByCorpSnAndTicketClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(corpSn, ticketClassSn, DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate), DateUtil.lastTimeToLocalDateTime(DateUtil.nowDate), YN.N)?.let { inoutDiscounts ->
                 return inoutDiscounts.sumOf { it -> it.quantity ?: 0 }
             }?.run {
                 return 0
@@ -395,7 +393,7 @@ class DiscountService {
             request.filter { it.cnt > 0 }.forEach { addDiscount ->
                 saveInoutDiscount(
                     InoutDiscount(sn = null, discontType = TicketType.DISCOUNT, discountClassSn = addDiscount.discountClassSn,
-                        inSn = addDiscount.inSn, quantity = addDiscount.cnt, delYn = DelYn.N, calcYn = DelYn.Y, )
+                        inSn = addDiscount.inSn, quantity = addDiscount.cnt, delYn = YN.N, calcYn = YN.Y, )
                 )
             }
             return true

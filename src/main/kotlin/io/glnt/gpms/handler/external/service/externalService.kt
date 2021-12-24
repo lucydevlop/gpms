@@ -8,7 +8,7 @@ import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.model.dto.entity.CorpDTO
 import io.glnt.gpms.model.dto.request.reqCreateProductTicket
 import io.glnt.gpms.model.dto.request.reqSearchProductTicket
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.service.CorpService
 import io.glnt.gpms.service.ParkSiteInfoService
 import mu.KLogging
@@ -59,7 +59,7 @@ class externalService(
                     exist?.let {
                         ticket.corpSn = it.sn
                     }?: kotlin.run {
-                        val corp = CorpDTO(corpName = ticket.corpName, ceoName = ticket.ceoName, delYn = DelYn.N, tel = (ticket.corpTel?: "").replace("-", "") )
+                        val corp = CorpDTO(corpName = ticket.corpName, ceoName = ticket.ceoName, delYn = YN.N, tel = (ticket.corpTel?: "").replace("-", "") )
                         corpService.save(corp, "create", parkSiteInfoService.getSiteId()).let { corpDTO ->
                             ticket.corpSn = corpDTO.sn
                         }

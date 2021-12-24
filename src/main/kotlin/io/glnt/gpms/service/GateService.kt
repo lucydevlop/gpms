@@ -7,13 +7,10 @@ import io.glnt.gpms.model.entity.GateGroup
 import io.glnt.gpms.model.repository.GateGroupRepository
 import io.glnt.gpms.model.repository.GateRepository
 import io.glnt.gpms.model.entity.Gate
-import io.glnt.gpms.model.enums.DelYn
-import io.glnt.gpms.model.enums.GateTypeStatus
-import io.glnt.gpms.model.enums.OpenActionType
+import io.glnt.gpms.model.enums.YN
 import mu.KLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
 import javax.annotation.PostConstruct
 import kotlin.collections.ArrayList
 
@@ -35,10 +32,10 @@ open class GateService(
 
         val defaultGateGroups = ArrayList<GateGroup>()
         defaultGateGroups.add(
-            GateGroup(gateGroupId = "GATEGROUP1", gateGroupName = "GATEGROUP1", delYn = DelYn.N, id = null)
+            GateGroup(gateGroupId = "GATEGROUP1", gateGroupName = "GATEGROUP1", delYn = YN.N, id = null)
         )
         defaultGateGroups.add(
-            GateGroup(gateGroupId = "GATEGROUP2", gateGroupName = "GATEGROUP2", delYn = DelYn.N, id = null)
+            GateGroup(gateGroupId = "GATEGROUP2", gateGroupName = "GATEGROUP2", delYn = YN.N, id = null)
         )
 
         defaultGateGroups.forEach { gateGroup ->
@@ -54,7 +51,7 @@ open class GateService(
     }
 
     fun getGateGroups(): List<GateGroup> {
-        return gateGroupRepository.findByDelYn(DelYn.N)
+        return gateGroupRepository.findByDelYn(YN.N)
     }
 
     fun saveGate(gateDTO: GateDTO) : GateDTO {
@@ -71,7 +68,7 @@ open class GateService(
 
     fun findActiveGate(): List<GateDTO> {
         logger.debug { "Request to get Active Gate " }
-        return gateRepository.findByDelYn(DelYn.N).map(gateMapper::toDto)
+        return gateRepository.findByDelYn(YN.N).map(gateMapper::toDto)
     }
 
     fun findGateGroupByGateGroupId(groupId: String): GateGroupDTO? {

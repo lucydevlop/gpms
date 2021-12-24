@@ -3,7 +3,7 @@ package io.glnt.gpms.model.repository
 import io.glnt.gpms.model.entity.DisplayColor
 import io.glnt.gpms.model.entity.DisplayInfo
 import io.glnt.gpms.model.entity.DisplayMessage
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayMessageType
 //import io.glnt.gpms.model.enums.DisplayType
@@ -20,7 +20,7 @@ interface DisplayColorRepository: JpaRepository<DisplayColor, Long> {
 interface DisplayMessageRepository: JpaRepository<DisplayMessage, Long> {
     fun findByMessageClassAndMessageTypeAndOrder(messageClass: DisplayMessageClass, messageType: DisplayMessageType, order: Int) : DisplayMessage?
     fun findByMessageClass(messageClass: DisplayMessageClass) : List<DisplayMessage>?
-    fun findByMessageClassAndDelYn(messageClass: DisplayMessageClass, delYn: DelYn): List<DisplayMessage>?
+    fun findByMessageClassAndDelYn(messageClass: DisplayMessageClass, delYn: YN): List<DisplayMessage>?
     fun findBySn(sn: Long): DisplayMessage?
 }
 

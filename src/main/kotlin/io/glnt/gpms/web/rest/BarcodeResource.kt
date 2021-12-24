@@ -6,7 +6,7 @@ import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.model.dto.entity.BarcodeClassDTO
 import io.glnt.gpms.model.dto.entity.BarcodeDTO
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.service.BarcodeClassService
 import io.glnt.gpms.service.BarcodeService
 import mu.KLogging
@@ -28,7 +28,7 @@ class BarcodeResource (
     @RequestMapping(value = ["/barcode"], method = [RequestMethod.GET])
     fun findAll(): ResponseEntity<CommonResult> {
         logger.debug { "barcode fetch" }
-        var result = barcodeService.findAll().filter { it.delYn == DelYn.N }
+        var result = barcodeService.findAll().filter { it.delYn == YN.N }
         if (result.isNotEmpty()) result = listOf(result[0])
         return CommonResult.returnResult(CommonResult.data(result))
     }

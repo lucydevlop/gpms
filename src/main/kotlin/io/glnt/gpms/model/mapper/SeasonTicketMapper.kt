@@ -4,7 +4,7 @@ import io.glnt.gpms.model.dto.entity.CorpDTO
 import io.glnt.gpms.model.dto.entity.SeasonTicketDTO
 import io.glnt.gpms.model.dto.entity.TicketClassDTO
 import io.glnt.gpms.model.entity.SeasonTicket
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.repository.CorpRepository
 import io.glnt.gpms.model.repository.ParkInRepository
 import io.glnt.gpms.model.repository.TicketClassRepository
@@ -25,7 +25,7 @@ class SeasonTicketMapper(
                 }
             }
             this.lastInDate =
-                parkInRepository.findTopByVehicleNoAndOutSnGreaterThanAndDelYnOrderByInDateDesc(this.vehicleNo?: "-", 0, DelYn.N)?.inDate
+                parkInRepository.findTopByVehicleNoAndOutSnGreaterThanAndDelYnOrderByInDateDesc(this.vehicleNo?: "-", 0, YN.N)?.inDate
             return this
         }
     }

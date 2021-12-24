@@ -8,7 +8,7 @@ import io.glnt.gpms.exception.CustomException
 //import io.glnt.gpms.handler.corp.service.CorpService
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.model.entity.SeasonTicket
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.TicketType
 import io.glnt.gpms.model.enums.VehicleType
 import io.glnt.gpms.service.CorpService
@@ -95,7 +95,7 @@ class ExcelUploadService {
                     corpSn = corpSn as Long?,
                     etc = list[8],
                     etc1 = list[9],
-                    delYn = DelYn.N,
+                    delYn = YN.N,
                     vehicleType = VehicleType.SMALL
                 )
                 productService.saveProductTicket(newData)

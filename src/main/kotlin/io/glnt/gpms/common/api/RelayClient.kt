@@ -8,7 +8,7 @@ import io.glnt.gpms.handler.facility.model.reqSendDisplay
 import io.glnt.gpms.handler.tmap.model.reqApiTmapCommon
 import io.glnt.gpms.model.dto.entity.FacilityDTO
 import io.glnt.gpms.model.dto.entity.GateDTO
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.FacilityCategoryType
 import io.glnt.gpms.model.enums.GateTypeStatus
 import io.glnt.gpms.model.enums.LprTypeStatus
@@ -35,8 +35,8 @@ class RelayClient (
 
     @PostConstruct
     fun postConstruct() {
-        gateDTOs = gateService.findAll().filter { g -> g.delYn == DelYn.N }
-        facilityDTOs = facilityRepository.findAll().map(facilityMapper::toDTO).filter { f -> f.delYn == DelYn.N }
+        gateDTOs = gateService.findAll().filter { g -> g.delYn == YN.N }
+        facilityDTOs = facilityRepository.findAll().map(facilityMapper::toDTO).filter { f -> f.delYn == YN.N }
     }
 
     fun sendShowDisplayMessages(gateId: String, type: String?, data: ArrayList<reqDisplayMessage>, reset: String ) {

@@ -2,7 +2,7 @@ package io.glnt.gpms.model.dto.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.entity.CgBasic
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import java.io.Serializable
 import java.time.LocalDateTime
 
@@ -20,7 +20,7 @@ data class CgBasicDTO (
 
     var dayMaxAmt: Int? = null,
 
-    var delYn: DelYn? = null
+    var delYn: YN? = null
 
 ): Serializable {
 

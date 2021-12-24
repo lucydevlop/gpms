@@ -2,15 +2,14 @@ package io.glnt.gpms.model.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.entity.Auditable
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.DisplayMessageClass
 import io.glnt.gpms.model.enums.DisplayMessageType
 import io.glnt.gpms.model.enums.DisplayStatus
 //import io.glnt.gpms.model.enums.DisplayType
-import org.hibernate.annotations.Where
 import java.io.Serializable
 import javax.persistence.*
-import kotlin.jvm.Transient
 
 @Entity
 @Table(schema = "glnt_parking", name="tb_display_color")
@@ -66,7 +65,7 @@ data class DisplayMessage(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
-    var delYn: DelYn? = DelYn.N
+    var delYn: YN? = YN.N
 
 
 ): Auditable(), Serializable {

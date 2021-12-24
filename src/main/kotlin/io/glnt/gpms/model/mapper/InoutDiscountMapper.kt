@@ -27,7 +27,7 @@ class InoutDiscountMapper(
             else -> {
                 InoutDiscount(
                     sn = dto.sn,
-                    discontType = dto.discontType,
+                    discontType = dto.discountType,
                     corpSn = dto.corpSn,
                     discountClassSn = dto.discountClassSn!!,
                     ticketHistSn = dto.ticketHistSn,

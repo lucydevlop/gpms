@@ -70,7 +70,7 @@ dependencies {
     implementation('org.jetbrains.kotlin:kotlin-reflect:1.6.0')
     implementation('org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.31')
     implementation 'org.springframework.plugin:spring-plugin-core:2.0.0.RELEASE'
-    implementation 'com.zaxxer:HikariCP:5.0.0'
+    implementation 'com.zaxxer:HikariCP:4.0.3' // 5.x -> java 11
     // jsonb
     implementation 'javax.inject:javax.inject:1'
     implementation 'com.vladmihalcea:hibernate-types-52:2.14.0'

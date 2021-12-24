@@ -1,6 +1,6 @@
 package io.glnt.gpms.model.criteria
 
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import java.io.Serializable
 
 data class CorpCriteria(
@@ -12,7 +12,7 @@ data class CorpCriteria(
 
     var tel: String? = null,
 
-    var delYn: DelYn? = null
+    var delYn: YN? = null
 
 ): Serializable {
     constructor(other: CorpCriteria) :

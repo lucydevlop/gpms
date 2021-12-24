@@ -1,7 +1,6 @@
 package io.glnt.gpms.handler.user.service
 
 import io.glnt.gpms.common.api.CommonResult
-import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.dashboard.admin.model.reqSearchItem
 import io.glnt.gpms.handler.user.model.reqLogin
@@ -11,10 +10,8 @@ import io.glnt.gpms.handler.user.model.resLogin
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.model.dto.request.reqUserInfo
 import io.glnt.gpms.model.entity.Corp
-import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.entity.SiteUser
-import io.glnt.gpms.model.entity.User
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.UserRole
 import io.glnt.gpms.model.repository.CorpRepository
 import io.glnt.gpms.model.repository.UserRepository
@@ -34,7 +31,6 @@ import java.time.LocalDateTime
 import javax.annotation.PostConstruct
 import javax.persistence.criteria.Predicate
 import javax.servlet.http.HttpServletRequest
-import kotlin.math.log
 
 @Service
 class AuthService(
@@ -74,7 +70,7 @@ class AuthService(
                     userName = "glnt",
                     userPhone = "0100000000",
                     role = UserRole.SUPER_ADMIN,
-                    delYn = DelYn.N
+                    delYn = YN.N
                 )
             )
         }
@@ -87,7 +83,7 @@ class AuthService(
                     userName = "관리자",
                     userPhone = "0100000000",
                     role = UserRole.ADMIN,
-                    delYn = DelYn.N
+                    delYn = YN.N
                 )
             )
         }
@@ -100,7 +96,7 @@ class AuthService(
                     userName = "rcs",
                     userPhone = "0100000000",
                     role = UserRole.SUPER_ADMIN,
-                    delYn = DelYn.N
+                    delYn = YN.N
                 )
             )
         }
@@ -114,7 +110,7 @@ class AuthService(
 
             SecurityContextHolder.getContext().authentication = authentication
 
-            val admin = userRepository.findUsersByIdAndDelYn(id, DelYn.N) ?: return CommonResult.notfound("User not found")
+            val admin = userRepository.findUsersByIdAndDelYn(id, YN.N) ?: return CommonResult.notfound("User not found")
 
             if (!isAdmin(admin.role!!)) {
                 return CommonResult.unauthorized()
@@ -158,7 +154,7 @@ class AuthService(
                     userName = userName,
                     userPhone = userPhone,
                     role = userRole!!,
-                    delYn = DelYn.N )))
+                    delYn = YN.N )))
 
         } catch (e: CustomException) {
             logger.error { "admin register error $request ${e.message}" }
@@ -174,7 +170,7 @@ class AuthService(
 
             SecurityContextHolder.getContext().authentication = authentication
 
-            val user = userRepository.findUsersByIdAndDelYn(id, DelYn.N) ?: return CommonResult.notfound("User not found")
+            val user = userRepository.findUsersByIdAndDelYn(id, YN.N) ?: return CommonResult.notfound("User not found")
 
             if (isAdmin(user.role!!) || (user.corpSn == null || user.corpSn!! < 1)) {
                 return CommonResult.unauthorized()
@@ -205,7 +201,7 @@ class AuthService(
             var corp = corpRepository.save(Corp( 
                 sn = null, corpName = corpName, form = form!!, resident = resident!!,
                 dong = dong, ho = ho, ceoName = userName, tel = userPhone, corpId = " ",
-                delYn = DelYn.N
+                delYn = YN.N
             ))
             corp.corpId = parkSiteInfoService.getParkSiteId()+"_"+ format("%05d", corp.sn!!)
             corp = corpRepository.save(corp)
@@ -233,7 +229,7 @@ class AuthService(
                     var corp = corpRepository.save(Corp(
                         sn = null, corpName = req.corpName, form = req.form!!, resident = req.resident!!,
                         dong = req.dong, ho = req.ho, ceoName = req.userName, tel = req.userPhone, corpId = if (req.corpId == null || req.corpId.equals(" ") || req.corpId.equals(""))  "NoCorpId" else req.corpId,
-                        delYn = DelYn.N
+                        delYn = YN.N
                     ))
                     if (!corp.corpId.equals("NoCorpId")) {
                         corpRepository.save(corp);
@@ -315,7 +311,7 @@ class AuthService(
     fun  deleteUser(sn: Long): CommonResult {
         try{
             userRepository.findUserByIdx(sn)?.let {
-                it.delYn = DelYn.Y
+                it.delYn = YN.Y
                 userRepository.save(it)
             }
         }catch (e: CustomException) {
@@ -371,7 +367,7 @@ class AuthService(
 //                )
             }
 
-            clues.add(criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), DelYn.N))
+            clues.add(criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), YN.N))
 
 
             criteriaBuilder.and(*clues.toTypedArray())

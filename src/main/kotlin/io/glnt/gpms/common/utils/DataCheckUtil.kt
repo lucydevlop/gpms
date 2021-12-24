@@ -81,7 +81,7 @@ object DataCheckUtil {
                     WeekType.FRI -> {
                         return !(num == 5 || num == 0)
                     }
-                    else -> true
+                    else -> return true
                 }
             }
             else -> false

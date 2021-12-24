@@ -89,9 +89,9 @@ class ParkinglotService (
             val mapData : ArrayList<parkinglotMap> = ArrayList()
             val gateList : ArrayList<gateLists> = ArrayList()
             val facilitiesList: ArrayList<facilitiesLists> = ArrayList()
-            val gateData = parkGateRepository.findByDelYn(DelYn.N)
+            val gateData = parkGateRepository.findByDelYn(YN.N)
             gateData.forEach { gate ->
-                val facilities = parkFacilityRepository.findByGateIdAndDelYn(gate.gateId, DelYn.Y)!!
+                val facilities = parkFacilityRepository.findByGateIdAndDelYn(gate.gateId, YN.Y)!!
                 val FacilitiesId = facilities.map { it.dtFacilitiesId }.toTypedArray()
                 facilities.map {
                     facility -> facilitiesList.add(facilitiesLists(category = facility.category!!, modelId = facility.modelid, dtFacilitiesId = facility.dtFacilitiesId, facilitiesName = facility.fname))
@@ -160,7 +160,7 @@ class ParkinglotService (
                 parkGateRepository.save(it)
             }
             facilityService.initalizeData()
-            return CommonResult.data(parkGateRepository.findByDelYn(DelYn.N))
+            return CommonResult.data(parkGateRepository.findByDelYn(YN.N))
         } catch (e: CustomException) {
             logger.error("updateGates error {} ", e.message)
             return CommonResult.error("updateGates failed ")
@@ -181,7 +181,7 @@ class ParkinglotService (
         logger.trace { "delete gate: $id"}
         try{
             parkGateRepository.findBySn(id)?.let { gate ->
-                gate.delYn = DelYn.Y
+                gate.delYn = YN.Y
                 return CommonResult.data(parkGateRepository.save(gate))
             }
         }catch (e: CustomException) {
@@ -190,7 +190,7 @@ class ParkinglotService (
         return CommonResult.error("deleteGate failed ")
     }
 
-    fun changeDelYnGate(gateId: String, delYn: DelYn) : CommonResult {
+    fun changeDelYnGate(gateId: String, delYn: YN) : CommonResult {
         logger.trace { "changeDelYnGate $gateId $delYn" }
         try{
             parkGateRepository.findByGateId(gateId)?.let { gate ->
@@ -210,7 +210,7 @@ class ParkinglotService (
         return CommonResult.error("changeDelYnGate failed ")
     }
 
-    fun changeDelYnFacility(dtFacilitiesId: String, delYn: DelYn) : CommonResult {
+    fun changeDelYnFacility(dtFacilitiesId: String, delYn: YN) : CommonResult {
         logger.trace { "changeDelYnFacility $dtFacilitiesId $delYn" }
         try{
             getFacilityByDtFacilityId(dtFacilitiesId)?.let { facility ->
@@ -250,21 +250,10 @@ class ParkinglotService (
             requet.relaySvrKey?.let {
                 parkGateRepository.findByRelaySvrKey(it).let { gates ->
                     gates.forEach { gate ->
-                        parkFacilityRepository.findByGateIdAndDelYn(gate.gateId, DelYn.N)?.let { facilities ->
-                            facilities.filter { f -> f.delYn == DelYn.N }.forEach { facility ->
+                        parkFacilityRepository.findByGateIdAndDelYn(gate.gateId, YN.N)?.let { facilities ->
+                            facilities.filter { f -> f.delYn == YN.N }.forEach { facility ->
                                 result.add(
                                     facilityMapper.toDTO(facility)
-//                                    resRelaySvrFacility(sn = facility.sn,
-//                                        category = facility.category, modelid = facility.modelid,
-//                                        fname = facility.fname, dtFacilitiesId = facility.dtFacilitiesId,
-//                                        facilitiesId = facility.facilitiesId, flagUse = facility.flagUse,
-//                                        gateId = facility.gateId, udpGateid = facility.udpGateid,
-//                                        ip = facility.ip, port = facility.port, sortCount = facility.sortCount,
-//                                        resetPort = facility.resetPort, flagConnect = facility.flagConnect, lprType = facility.lprType,
-//                                        imagePath = facility.imagePath, gateType = gate.gateType, relaySvrKey = gate.relaySvrKey,
-//                                        checkTime = if (facility.category == "BREAKER") gateLimitTime else 0,
-//                                        delYn = facility.delYn
-//                                    )
                                 )
                             }
                         }
@@ -344,7 +333,7 @@ class ParkinglotService (
     }
 
     fun getFacilityGateAndCategoryAndLprType(gate: String, category: FacilityCategoryType, lprType: LprTypeStatus) : List<Facility>? {
-        parkFacilityRepository.findByGateIdAndCategoryAndDelYnAndLprType(gate, category, DelYn.N, lprType)?.let {
+        parkFacilityRepository.findByGateIdAndCategoryAndDelYnAndLprType(gate, category, YN.N, lprType)?.let {
             return it
         }
         return null
@@ -539,7 +528,7 @@ class ParkinglotService (
         logger.info { "getDiscountCounpon" }
         try {
             return CommonResult.data(
-                data = discountClassRepository.findByExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(LocalDateTime.now(), LocalDateTime.now(), DelYn.N)
+                data = discountClassRepository.findByExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(LocalDateTime.now(), LocalDateTime.now(), YN.N)
             )
         }catch(e: CustomException) {
             logger.error { "getDiscountCounpon error ${e.message}" }

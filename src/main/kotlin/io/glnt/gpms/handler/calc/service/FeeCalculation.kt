@@ -144,7 +144,7 @@ class FeeCalculation(
                     startTime = startTime, endTime = outTime
                 )
 
-                if (holidayService.isHolidayByDay(dailySplit.startTime.toLocalDate())) {
+                if (holidayService.isHolidayByDay(dailySplit.startTime)) {
                     dailySplit.dateType = "Holiday"
                 } else {
 
@@ -223,7 +223,7 @@ class FeeCalculation(
                         var discountTime = discountClass.unitTime * discount.quantity!!
 
                         dailySplits!!.forEach { dailySplit ->
-                            if (dailySplit.feeType == "BASIC" && (discountApply?.baseFeeInclude ?: DelYn.Y) == DelYn.N)  return@forEach
+                            if (dailySplit.feeType == "BASIC" && (discountApply?.baseFeeInclude ?: YN.Y) == YN.N)  return@forEach
                             if (dailySplit.priceType == "Normal") {
                                 val min = if (dailySplit.discountRange != null)  DateUtil.diffMins(dailySplit.discountRange!!.endTime!!, dailySplit.endTime!!)
                                 else DateUtil.diffMins(dailySplit.startTime, dailySplit.endTime!!)
@@ -609,7 +609,7 @@ class FeeCalculation(
                     startTime = startTime, endTime = outTime
                 )
 
-                if (holidayService.isHolidayByDay(dailySplit.startTime.toLocalDate())) {
+                if (holidayService.isHolidayByDay(dailySplit.startTime)) {
                     dailySplit.dateType = "Holiday"
                 } else {
 
@@ -703,7 +703,7 @@ class FeeCalculation(
                     var discountTime = discountClass.unitTime * discount.cnt
 
                     dailySplits!!.forEach { dailySplit ->
-                        if (dailySplit.feeType == "BASIC" && (discountApply?.baseFeeInclude ?: DelYn.Y) == DelYn.N)  return@forEach
+                        if (dailySplit.feeType == "BASIC" && (discountApply?.baseFeeInclude ?: YN.Y) == YN.N)  return@forEach
                         if (dailySplit.priceType == "Normal" && discountClass.discountApplyType == DiscountApplyType.TIME) {
                             val min = if (dailySplit.discountRange != null)  DateUtil.diffMins(dailySplit.discountRange!!.endTime!!, dailySplit.endTime!!)
                             else DateUtil.diffMins(dailySplit.startTime, dailySplit.endTime!!)
@@ -804,7 +804,7 @@ class FeeCalculation(
         var discountTime = applyDiscountTime
 
         dailySplits.forEach { dailySplit ->
-            if (dailySplit.feeType == "BASIC" && (discountApply?.baseFeeInclude ?: DelYn.Y) == DelYn.N)  return@forEach
+            if (dailySplit.feeType == "BASIC" && (discountApply?.baseFeeInclude ?: YN.Y) == YN.N)  return@forEach
             if (dailySplit.priceType == "Normal") {
                 val min = if (dailySplit.discountRange != null)  DateUtil.diffMins(dailySplit.discountRange!!.endTime!!, dailySplit.endTime!!)
                 else DateUtil.diffMins(dailySplit.startTime, dailySplit.endTime!!)

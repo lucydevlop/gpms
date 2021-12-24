@@ -1,9 +1,7 @@
 package io.glnt.gpms.model.criteria
 
 import com.fasterxml.jackson.annotation.JsonFormat
-import io.glnt.gpms.model.criteria.ParkOutCriteria
 import io.glnt.gpms.model.enums.DateType
-import io.glnt.gpms.model.enums.DelYn
 import io.glnt.gpms.model.enums.TicketType
 import java.io.Serializable
 import java.time.LocalDate

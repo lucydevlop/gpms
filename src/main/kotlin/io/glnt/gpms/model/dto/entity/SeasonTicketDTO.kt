@@ -47,7 +47,7 @@ data class SeasonTicketDTO (
     var expireDate: LocalDateTime? = null,
 
     @Enumerated(EnumType.STRING)
-    var extendYn: Yn? = null,
+    var extendYn: YN? = null,
 
     @Enumerated(EnumType.STRING)
     var payMethod: PayType? = null,
@@ -56,7 +56,7 @@ data class SeasonTicketDTO (
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null,
+    var delYn: YN? = null,
 
     var corp: CorpDTO? = null,
 

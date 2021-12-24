@@ -2,7 +2,7 @@ package io.glnt.gpms.model.dto.entity
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.model.entity.Barcode
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import java.io.Serializable
 import java.time.LocalDateTime
 import javax.persistence.EnumType
@@ -14,7 +14,7 @@ data class BarcodeDTO (
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null,
+    var delYn: YN? = null,
 
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     var effectDate: LocalDateTime? = null,

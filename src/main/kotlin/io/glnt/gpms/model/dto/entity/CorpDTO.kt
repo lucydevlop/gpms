@@ -1,10 +1,9 @@
 package io.glnt.gpms.model.dto.entity
 
 import io.glnt.gpms.model.entity.Corp
-import io.glnt.gpms.model.enums.DelYn
+import io.glnt.gpms.model.enums.YN
 import java.io.Serializable
 import java.time.LocalDateTime
-import javax.persistence.Column
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 import javax.validation.constraints.NotNull
@@ -52,7 +51,7 @@ data class CorpDTO (
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
-    var delYn: DelYn? = null
+    var delYn: YN? = null
 ): Serializable {
 
     constructor(corp: Corp) :
