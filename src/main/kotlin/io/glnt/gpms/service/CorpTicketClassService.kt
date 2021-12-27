@@ -1,6 +1,5 @@
 package io.glnt.gpms.service
 
-import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.model.dto.entity.CorpTicketClassDTO
 import io.glnt.gpms.model.mapper.CorpTicketClassMapper
 import io.glnt.gpms.model.repository.CorpTicketClassRepository
@@ -11,8 +10,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class CorpTicketClassService(
     private val corpTicketClassRepository: CorpTicketClassRepository,
-    private val corpTicketClassMapper: CorpTicketClassMapper,
-    private val discountService: DiscountService
+    private val corpTicketClassMapper: CorpTicketClassMapper
 ) {
     companion object : KLogging()
 

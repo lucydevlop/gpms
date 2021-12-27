@@ -9,6 +9,7 @@ import io.glnt.gpms.handler.calc.service.FareRefService
 import io.glnt.gpms.handler.calc.service.FeeCalculation
 import io.glnt.gpms.model.entity.FareInfo
 import io.glnt.gpms.model.entity.FarePolicy
+import io.glnt.gpms.model.enums.CalcType
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -51,7 +52,7 @@ class CalcController {
     @Throws(CustomException::class)
     fun calcInout(@RequestBody request: reqCalc) : ResponseEntity<*> {
         feeCalculation.init()
-        return ResponseEntity(feeCalculation.getBasicPayment(request.inTime, request.outTime, request.vehicleType, request.vehicleNo, request.type, request.discountMin, request.inSn), HttpStatus.OK)
+        return ResponseEntity(feeCalculation.getCalcPayment(CalcType.CALC, request.inTime, request.outTime, request.vehicleType, request.vehicleNo?: "", request.discountMin, request.inSn), HttpStatus.OK)
 
     }
 

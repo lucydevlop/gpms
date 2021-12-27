@@ -1,18 +1,16 @@
-package io.glnt.gpms.handler.discount.service
+package io.glnt.gpms.service
 
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
-//import io.glnt.gpms.handler.corp.service.CorpService
 import io.glnt.gpms.handler.dashboard.admin.model.reqCreateCorpTicket
 import io.glnt.gpms.handler.dashboard.common.model.reqParkingDiscountSearchTicket
 import io.glnt.gpms.handler.discount.model.*
+import io.glnt.gpms.model.dto.entity.DiscountClassDTO
 import io.glnt.gpms.model.dto.request.ReqAddParkingDiscount
 import io.glnt.gpms.model.entity.*
-import io.glnt.gpms.model.enums.YN
-import io.glnt.gpms.model.enums.TicketType
+import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.repository.*
-import io.glnt.gpms.service.CorpService
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.jpa.domain.Specification
@@ -21,14 +19,12 @@ import java.time.LocalDateTime
 import javax.persistence.criteria.Predicate
 
 @Service
-class DiscountService {
+class DiscountService(
+    private val discountClassService: DiscountClassService,
+    private val inoutDiscountService: InoutDiscountService,
+    private val corpService: CorpService
+) {
     companion object : KLogging()
-
-    @Autowired
-    lateinit var corpService: CorpService
-
-    @Autowired
-    private lateinit var discountClassRepository: DiscountClassRepository
 
     @Autowired
     private lateinit var corpTicketRepository: CorpTicketRepository
@@ -42,79 +38,11 @@ class DiscountService {
     @Autowired
     private lateinit var corpTicketClassRepository: CorpTicketClassRepository
 
-    fun getDiscountClass() : List<DiscountClass>? {
-        return discountClassRepository.findAll()
-    }
-
-    fun getDiscountClassBySn(sn: Long): DiscountClass {
-        return discountClassRepository.findBySn(sn)
-    }
-
-    fun createDiscountClass(request: DiscountClass): DiscountClass? {
-        logger.info { "createDiscountClass $request" }
-        try {
-            return discountClassRepository.save(request)
-        }catch (e: RuntimeException) {
-            logger.error { "createDiscountClass error $e" }
-            return null
-        }
-    }
-
-    fun deleteDiscountClass(sn: Long) : DiscountClass? {
+    fun deleteDiscountClass(sn: Long) : DiscountClassDTO {
         logger.info { "deleteDiscountClass $sn" }
-        try {
-            return getDiscountClassBySn(sn).let {
-                it.delYn = YN.Y
-                discountClassRepository.saveAndFlush(it)
-            }?: kotlin.run {
-                return null
-            }
-        }catch (e: RuntimeException) {
-            logger.error { "deleteDiscountClass error $e" }
-            return null
-        }
-    }
-
-    fun searchCorpTicketByCorp(request: reqParkingDiscountSearchTicket) : CommonResult {
-        try{
-            val result = ArrayList<Any>()
-            request.searchLabel?.let {
-                val data = corpService.getStoreBySn(request.searchText!!.toLong())
-                data.ifPresent { corp ->
-                    val tickets = corpTicketRepository.findByCorpSnAndDelYn(corp.sn!!, YN.N)
-                    if (tickets!!.isNotEmpty()) {
-                        tickets.forEach {
-                            result.add(it)
-                        }
-                    }
-                }
-
-//                when(data.code) {
-//                    ResultCode.SUCCESS.getCode() -> {
-//                        val corps: List<Corp> = data.data as? List<Corp> ?: emptyList()
-//                        if (corps.isNotEmpty()) {
-//                            corps.forEach {
-//                                val tickets = corpTicketRepository.findByCorpSnAndDelYn(it.sn!!, DelYn.N)
-//                                if (tickets!!.isNotEmpty()) {
-//                                    tickets.forEach {
-//                                        result.add(it)
-//                                    }
-//
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-                return CommonResult.data(result)
-            } ?: run {
-                corpTicketRepository.findAll().let {
-                    return CommonResult.data(it)
-                }
-            }
-        }catch (e: CustomException){
-            logger.error { "searchCorpTicketByCorp error $e" }
-            return CommonResult.error("searchCorpTicketByCorp search failed")
-        }
+        val discountClass = discountClassService.findBySn(sn)
+        discountClass.delYn = YN.Y
+        return discountClassService.save(discountClass)
     }
 
     fun searchCorpTicketByCorpAndDiscountClass(corpSn: Long, discountClassNo: Long): CommonResult {
@@ -124,6 +52,16 @@ class DiscountService {
         }catch (e: CustomException){
             logger.error { "searchCorpTicketByCorpAndDiscountClass error $e" }
             return CommonResult.error("searchCorpTicketByCorpAndDiscountClass search failed")
+        }
+    }
+
+    fun createDiscountClass(request: DiscountClass): DiscountClassDTO? {
+        logger.info { "createDiscountClass $request" }
+        try {
+            return discountClassService.save(DiscountClassDTO(request))
+        }catch (e: RuntimeException) {
+            logger.error { "createDiscountClass error $e" }
+            return null
         }
     }
 
@@ -177,6 +115,32 @@ class DiscountService {
     fun updateCorpTicketHistory(data: CorpTicketHistory): CorpTicketHistory {
         return corpTicketHistoryRepository.save(data)
     }
+
+    fun searchCorpTicketByCorp(request: reqParkingDiscountSearchTicket) : CommonResult {
+        try{
+            val result = ArrayList<Any>()
+            request.searchLabel?.let {
+                val data = corpService.getStoreBySn(request.searchText!!.toLong())
+                data.ifPresent { corp ->
+                    val tickets = corpTicketRepository.findByCorpSnAndDelYn(corp.sn!!, YN.N)
+                    if (tickets!!.isNotEmpty()) {
+                        tickets.forEach {
+                            result.add(it)
+                        }
+                    }
+                }
+                return CommonResult.data(result)
+            } ?: run {
+                corpTicketRepository.findAll().let {
+                    return CommonResult.data(it)
+                }
+            }
+        }catch (e: CustomException){
+            logger.error { "searchCorpTicketByCorp error $e" }
+            return CommonResult.error("searchCorpTicketByCorp search failed")
+        }
+    }
+
 
 //    fun getDiscountableTickets(request: reqDiscountableTicket): CommonResult {
 //        logger.info { "getDiscountableTickets $request" }
@@ -270,23 +234,6 @@ class DiscountService {
         return inoutDiscountRepository.findByInSnAndDelYn(inSn, YN.N)
     }
 
-    fun searchInoutDiscount(request: reqApplyInoutDiscountSearch): List<InoutDiscount>? {
-        try{
-            val ticketHists = ArrayList<Long>()
-            corpTicketHistoryRepository.findByTicketSnAndDelYn(request.ticketSn, YN.N)?.let { tickets ->
-                tickets.forEach { ticket ->
-                    ticketHists.add(ticket.sn!!)
-                }
-            }
-            request.ticketsSn = ticketHists
-            return inoutDiscountRepository.findAll(findAllInoutDiscountSpecification(request))
-
-        }catch (e: CustomException) {
-            logger.error { "searchInoutDiscount error $e" }
-        }
-        return null
-    }
-
     fun findAllInoutDiscountSpecification(request: reqApplyInoutDiscountSearch): Specification<InoutDiscount> {
         val spec = Specification<InoutDiscount> { root, query, criteriaBuilder ->
             val clues = mutableListOf<Predicate>()
@@ -377,7 +324,7 @@ class DiscountService {
     fun getTodayUseDiscountTicket(corpSn: Long, ticketClassSn: Long) : Int {
         try {
             inoutDiscountRepository.findByCorpSnAndTicketClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(corpSn, ticketClassSn, DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate), DateUtil.lastTimeToLocalDateTime(DateUtil.nowDate), YN.N)?.let { inoutDiscounts ->
-                return inoutDiscounts.sumOf { it -> it.quantity ?: 0 }
+                return inoutDiscounts.sumOf { it.quantity ?: 0 }
             }?.run {
                 return 0
             }
@@ -389,17 +336,103 @@ class DiscountService {
     }
 
     fun addInoutDiscount(request: ArrayList<ReqAddParkingDiscount>) : Boolean{
-        try {
+        return try {
             request.filter { it.cnt > 0 }.forEach { addDiscount ->
                 saveInoutDiscount(
                     InoutDiscount(sn = null, discontType = TicketType.DISCOUNT, discountClassSn = addDiscount.discountClassSn,
                         inSn = addDiscount.inSn, quantity = addDiscount.cnt, delYn = YN.N, calcYn = YN.Y, )
                 )
             }
-            return true
+            true
         } catch (e: CustomException) {
             logger.error { "addInoutDiscount failed $e" }
-            return false
+            false
         }
     }
+
+    fun calcDiscountPercent(inSn: Long, type: CalcType, totalPrice: Int, discounts: ArrayList<ReqAddParkingDiscount>? = null): Int {
+        var result = 0
+
+        val discountClasses = ArrayList<DiscountClassDTO>()
+
+        discounts?.let { list ->
+            list.forEach { discount ->
+                discountClassService.findBySn(discount.discountClassSn).apply {
+                    if (this.discountApplyType == DiscountApplyType.PERCENT) {
+                        discountClasses.add(this)
+
+                        if (type == CalcType.SETTLE) {
+                            inoutDiscountService.findBySn(discount.sn ?: 0)?.let {
+                                inoutDiscountService.completeCalc(it)
+                            }
+                        }
+                    }
+                }
+            }
+            if (discountClasses.isEmpty()) return 0
+
+            val apply =  discountClasses.maxOf { it.unitTime }
+            result = ( totalPrice * apply ) / 100
+        }
+        return result
+    }
+
+    fun calcDiscountWonByFix(inSn: Long, type: CalcType, totalPrice: Int, discounts: ArrayList<ReqAddParkingDiscount>? = null): Int {
+        var result = 0
+
+        val discountClasses = ArrayList<DiscountClassDTO>()
+
+        discounts?.let { list ->
+            list.forEach { discount ->
+                discountClassService.findBySn(discount.discountClassSn).apply {
+                    if (this.discountApplyType == DiscountApplyType.WON && this.discountApplyRate == DiscountApplyRateType.FIX) {
+                        discountClasses.add(this)
+
+                        if (type == CalcType.SETTLE) {
+                            inoutDiscountService.findBySn(discount.sn ?: 0)?.let {
+                                inoutDiscountService.completeCalc(it)
+                            }
+                        }
+                    }
+                }
+            }
+            if (discountClasses.isEmpty()) return 0
+
+            val apply =  discountClasses.minOf { it.unitTime }
+            result = totalPrice - apply
+        }
+        return result
+    }
+
+    fun calcDiscountWonByVariable(inSn: Long, type: CalcType, totalPrice: Int, discounts: ArrayList<ReqAddParkingDiscount>? = null): Int {
+        var result = 0
+
+        val discountClasses = ArrayList<DiscountClassDTO>()
+
+        discounts?.let { list ->
+            list.forEach { discount ->
+                discountClassService.findBySn(discount.discountClassSn).apply {
+                    if (this.discountApplyType == DiscountApplyType.WON && this.discountApplyRate == DiscountApplyRateType.VARIABLE) {
+                        discountClasses.add(this)
+
+                        if (type == CalcType.SETTLE) {
+                            inoutDiscountService.findBySn(discount.sn ?: 0)?.let {
+                                inoutDiscountService.completeCalc(it)
+                            }
+                        }
+                    }
+                }
+            }
+            if (discountClasses.isEmpty()) return 0
+
+            val apply = discountClasses.sumOf { it.unitTime }
+
+            result = apply
+
+            //result = if (apply > totalPrice) totalPrice else apply
+        }
+        return result
+    }
+
+
 }

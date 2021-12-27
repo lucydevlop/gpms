@@ -47,6 +47,8 @@ data class InoutPaymentDTO(
 
     var failureMessage: String? = null,
 
+    var facilityId: String? = null,
+
     @Enumerated(EnumType.STRING)
     var delYn: YN? = YN.N,
 
@@ -74,6 +76,7 @@ data class InoutPaymentDTO(
             transactionId = inoutPayment.transactionId,
             result = inoutPayment.result,
             failureMessage = inoutPayment.failureMessage,
+            facilityId = inoutPayment.facilityId,
             delYn = inoutPayment.delYn,
             outSn = inoutPayment.outSn,
             createDate = inoutPayment.createDate

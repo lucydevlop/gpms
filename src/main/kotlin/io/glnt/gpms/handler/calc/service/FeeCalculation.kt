@@ -4,15 +4,12 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.calc.CalculationData
 import io.glnt.gpms.handler.calc.model.*
-import io.glnt.gpms.handler.discount.service.DiscountService
-import io.glnt.gpms.service.HolidayService
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.model.dto.DiscountApplyDTO
 import io.glnt.gpms.model.dto.request.ReqAddParkingDiscount
 import io.glnt.gpms.model.entity.FareInfo
 import io.glnt.gpms.model.enums.*
-import io.glnt.gpms.service.InoutDiscountService
-import io.glnt.gpms.service.ParkSiteInfoService
+import io.glnt.gpms.service.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -25,7 +22,8 @@ import kotlin.math.ceil
 @Service
 class FeeCalculation(
     private val parkSiteInfoService: ParkSiteInfoService,
-    private val inoutDiscountService: InoutDiscountService
+    private val inoutDiscountService: InoutDiscountService,
+    private val discountClassService: DiscountClassService
 ) {
     companion object : KLogging()
 
@@ -54,11 +52,11 @@ class FeeCalculation(
      * @param type  0 : 할인없음, 1 : 전방시간할인, 2 : 후방시간 할인
      * @param discountMin 할인이 있을때 해당시간 설정, 없으면 0으로 호출
      * @return 요금정보관련클래스
-     */
+
     fun getBasicPayment(
         inTime: LocalDateTime, outTime: LocalDateTime?,
         vehicleType: VehicleType, vehicleNo: String?,
-        type: Int, discountMin: Int, inSn: Long?
+        type: CalcType, discountMin: Int, inSn: Long?
     )
     : BasicPrice? {
         if (outTime == null) return null
@@ -100,7 +98,7 @@ class FeeCalculation(
                     basicTime.startTime!!,
                     basic.toLong()
                 )
-                retPrice.basic = basicTime
+                retPrice.basicRange = basicTime
                 retPrice.basicFare = it.basicFare
 
                 //정기권 기간 체크
@@ -133,8 +131,8 @@ class FeeCalculation(
             }
         }
 
-        if (retPrice.basic!!.endTime!! <= retPrice.origin?.endTime) {
-            var startTime = retPrice.basic!!.endTime!!
+        if (retPrice.basicRange!!.endTime!! <= retPrice.origin?.endTime) {
+            var startTime = retPrice.basicRange!!.endTime!!
             do {
                 val seasonTicket = getSeasonTicket(vehicleNo!!, startTime, outTime)
 
@@ -251,31 +249,11 @@ class FeeCalculation(
                         dailySplits = applyDiscountTime(it, discountApply, calcData.cgBasic.ticketTime ?: 0)
                     }
                 }
-
-//                dailySplits!!.forEach { dailySplit ->
-//                    if (dailySplit.feeType == "BASIC" && (discountApply?.baseFeeInclude ?: DelYn.Y) == DelYn.N)  return@forEach
-//                    if (dailySplit.priceType == "Normal") {
-//                        val min = if (dailySplit.discountRange != null)  DateUtil.diffMins(dailySplit.discountRange!!.endTime!!, dailySplit.endTime!!)
-//                        else DateUtil.diffMins(dailySplit.startTime, dailySplit.endTime!!)
-//                        if (min > 0) {
-//                            val applyTime = if (min > ticketTime) ticketTime else min
-//                            if (dailySplit.discountRange != null) {
-//                                dailySplit.discountRange!!.endTime = DateUtil.getAddMinutes(dailySplit.discountRange!!.endTime!!, applyTime.toLong())
-//                            } else {
-//                                val disCount = TimeRange(startTime = dailySplit.startTime,
-//                                    endTime = DateUtil.getMinByDates(DateUtil.getAddMinutes(dailySplit.startTime, applyTime.toLong()), dailySplit.endTime!! ), type = "DiscountTicket")
-//                                dailySplit.discountRange = disCount
-//                            }
-//                            ticketTime = ticketTime.minus(applyTime)
-//                        }
-//                    }
-//                }
-
             }
         }
 
         //원단위 할인 금액 계산
-        var wonFixDiscountAmt: Int = calcDiscountWonByVariable(inSn ?: -1, "out")
+        var wonFixDiscountAmt: Int = calcDiscountWonByVariable(inSn ?: -1, CalcType.SETTLE)
 
         val dailyPrices = ArrayList<DailyPrice>()
         for (i in 0..DateUtil.diffDays(inTime, outTime)+1) {
@@ -328,12 +306,12 @@ class FeeCalculation(
             retPrice.dayilyMaxDiscount = retPrice.dayilyMaxDiscount!!.plus(it.dayMaxDiscount!!)
         }
 
-        val wonVariableDiscountAmt = applyInoutDiscountWon(inSn ?: -1, retPrice.totalPrice ?: 0, "out")
+        val wonVariableDiscountAmt = applyInoutDiscountWon(inSn ?: -1, retPrice.totalPrice ?: 0, type)
         retPrice.discountPrice = retPrice.discountPrice!!.plus(wonVariableDiscountAmt)
         retPrice.totalPrice = retPrice.totalPrice!!.minus(wonVariableDiscountAmt)
 
         // PERCENT 할인 적용
-        val percentDiscount = calcDiscountPercent(inSn?: -1, "out")
+        val percentDiscount = calcDiscountPercent(inSn?: -1, type)
         if (percentDiscount > 0) {
             val discoutAmt = ((retPrice.totalPrice ?: 0) * percentDiscount) / 100
             retPrice.discountPrice = retPrice.discountPrice!!.plus(discoutAmt)
@@ -344,110 +322,75 @@ class FeeCalculation(
         logger.info { retPrice }
         return retPrice
     }
+     */
 
-    fun calcDiscountWonByVariable(inSn: Long, type: String, discountClasses: ArrayList<ReqAddParkingDiscount>? = null): Int {
-        var discountAmt = 0
+//    fun calcDiscountWonByVariable(inSn: Long, type: CalcType, discountClasses: ArrayList<ReqAddParkingDiscount>? = null): Int {
+//        var discountAmt = 0
+//
+//        // todo 할인 방식 수정
+//        discountClasses?.let { discounts ->
+//            discounts.forEach { discount ->
+//                val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
+//                if (discountClass.discountApplyType == DiscountApplyType.WON) {
+//                    if (discountClass.discountApplyRate == DiscountApplyRateType.VARIABLE) {
+//                        discountAmt = discountAmt.plus(discountClass.unitTime*discount.cnt)
+//                    }
+//                }
+//            }
+//        }
+//
+//        discountService.searchInoutDiscount(inSn)?.let { discounts ->
+//            discounts.forEach { discount ->
+//                val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
+//                if (discountClass.discountApplyType == DiscountApplyType.WON) {
+//                    if (discountClass.discountApplyRate == DiscountApplyRateType.VARIABLE) {
+//                        discountAmt = discountAmt.plus(discountClass.unitTime*discount.quantity!!)
+//                    }
+//                }
+//                if (type == CalcType.SETTLE) {
+//                    inoutDiscountService.completeCalc(discount)
+//                }
+//            }
+//        }
+//
+//        return discountAmt
+//    }
 
-        // todo 할인 방식 수정
-        discountClasses?.let { discounts ->
-            discounts.forEach { discount ->
-                val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
-                if (discountClass.discountApplyType == DiscountApplyType.WON) {
-                    if (discountClass.discountApplyRate == DiscountApplyRateType.VARIABLE) {
-                        discountAmt = discountAmt.plus(discountClass.unitTime*discount.cnt)
-                    }
-                }
-            }
-        }
+//    fun applyInoutDiscountWon(inSn: Long, totalPrice: Int, type: CalcType, discountClasses: ArrayList<ReqAddParkingDiscount>? = null): Int {
+//        var discountAmt = 0
+//
+//        discountClasses?.let { discounts ->
+//            discounts.forEach { discount ->
+//                discountAmt = calcDiscountWonByFix(discount.discountClassSn, totalPrice, discountAmt)
+//            }
+//        }
+//
+//        discountService.searchInoutDiscount(inSn)?.let { discounts ->
+//            discounts.forEach { discount ->
+//                discountAmt = calcDiscountWonByFix(discount.discountClassSn, totalPrice, discountAmt)
+//                if (type == CalcType.SETTLE) {
+//                    inoutDiscountService.completeCalc(discount)
+//                }
+//            }
+//        }
+//
+//        return discountAmt
+//    }
 
-        discountService.searchInoutDiscount(inSn)?.let { discounts ->
-            discounts.forEach { discount ->
-                val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
-                if (discountClass.discountApplyType == DiscountApplyType.WON) {
-                    if (discountClass.discountApplyRate == DiscountApplyRateType.VARIABLE) {
-                        discountAmt = discountAmt.plus(discountClass.unitTime*discount.quantity!!)
-                    }
-                }
-                if (type == "out") {
-                    inoutDiscountService.completeCalc(discount)
-//                    discount.calcYn = DelYn.Y
-//                    discountService.saveInoutDiscount(discount)
-                }
-            }
-        }
-
-        return discountAmt
-    }
-
-    fun applyInoutDiscountWon(inSn: Long, totalPrice: Int, type: String, discountClasses: ArrayList<ReqAddParkingDiscount>? = null): Int {
-        var discountAmt = 0
-
-        discountClasses?.let { discounts ->
-            discounts.forEach { discount ->
-                discountAmt = calcDiscountWonByFix(discount.discountClassSn, totalPrice, discountAmt)
-            }
-        }
-
-        discountService.searchInoutDiscount(inSn)?.let { discounts ->
-            discounts.forEach { discount ->
-                discountAmt = calcDiscountWonByFix(discount.discountClassSn, totalPrice, discountAmt)
-                if (type == "out") {
-                    inoutDiscountService.completeCalc(discount)
-//                    discount.calcYn = DelYn.Y
-//                    discountService.saveInoutDiscount(discount)
-                }
-            }
-        }
-
-        return discountAmt
-    }
-
-    fun calcDiscountWonByFix(sn: Long, totalPrice: Int, discountAmt: Int): Int {
-        var discount = 0
-
-        val discountClass = discountService.getDiscountClassBySn(sn)
-        if (discountClass.discountApplyType == DiscountApplyType.WON) {
-            if (discountClass.discountApplyRate == DiscountApplyRateType.FIX) {
-                if (totalPrice - discountAmt > discountClass.unitTime)
-                    discount = totalPrice - discountAmt - discountClass.unitTime
-                else
-                    discount = totalPrice - discountAmt
-            }
-        }
-        return discount
-    }
-
-    fun calcDiscountPercent(inSn: Long, type: String, discountClasses: ArrayList<ReqAddParkingDiscount>? = null): Int {
-        var discountAmt = 0
-
-        // todo 할인 방식 수정
-        discountClasses?.let { discounts ->
-            discounts.forEach { discount ->
-                val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
-                if (discountClass.discountApplyType == DiscountApplyType.PERCENT) {
-                    if (discountClass.unitTime > discountAmt)
-                        discountAmt = discountClass.unitTime
-                }
-            }
-        }
-
-        discountService.searchInoutDiscount(inSn)?.let { discounts ->
-            discounts.forEach { discount ->
-                val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
-                if (discountClass.discountApplyType == DiscountApplyType.PERCENT) {
-                    if (discountClass.unitTime > discountAmt)
-                        discountAmt = discountClass.unitTime
-                }
-                if (type == "out") {
-                    inoutDiscountService.completeCalc(discount)
-//                    discount.calcYn = DelYn.Y
-//                    discountService.saveInoutDiscount(discount)
-                }
-            }
-        }
-
-        return discountAmt
-    }
+//    fun calcDiscountWonByFix(sn: Long, totalPrice: Int, discountAmt: Int): Int {
+//        var discount = 0
+//
+//        val discountClass = discountService.getDiscountClassBySn(sn)
+//        if (discountClass.discountApplyType == DiscountApplyType.WON) {
+//            if (discountClass.discountApplyRate == DiscountApplyRateType.FIX) {
+//                if (totalPrice - discountAmt > discountClass.unitTime)
+//                    discount = totalPrice - discountAmt - discountClass.unitTime
+//                else
+//                    discount = totalPrice - discountAmt
+//            }
+//        }
+//        return discount
+//    }
 
     fun getSeasonTicket(vehicleNo: String, startTime: LocalDateTime, endTime: LocalDateTime): TimeRange? {
         logger.debug { "vaildate season ticket $vehicleNo, $startTime $endTime" }
@@ -524,38 +467,51 @@ class FeeCalculation(
         return result
     }
 
-    fun getCalcPayment(inTime: LocalDateTime, outTime: LocalDateTime?, vehicleType: VehicleType, vehicleNo: String?,
-                       type: Int, discountMin: Int, inSn: Long?, discountClasses: ArrayList<ReqAddParkingDiscount>?): BasicPrice? {
+    fun getCalcPayment(
+        type: CalcType,
+        inTime: LocalDateTime,
+        outTime: LocalDateTime?,
+        vehicleType: VehicleType,
+        vehicleNo: String,
+        discountMin: Int,
+        inSn: Long?,
+        discountClasses: ArrayList<ReqAddParkingDiscount>? = null,
+        isReCharge: Boolean = false): BasicPrice? {
         if (outTime == null) return null
 
         logger.info { "-------------------getCalcPayment-------------------" }
+        logger.info { "type(CALC: 요금계산, SETTLE: 정산) : $type" }
         logger.info { "입차시간 : $inTime / 출차시간 : $outTime" }
         logger.info { "차종 : $vehicleType / 차량번호 : $vehicleNo" }
-        logger.info { "type(0:할인없음, 1:전방시간할인, 2:후방시간할인) : $type / 할인있을 때의 해당 시간 설정 : $discountMin" }
+        //logger.info { "type(0:할인없음, 1:전방시간할인, 2:후방시간할인) : $type / 할인있을 때의 해당 시간 설정 : $discountMin" }
         logger.info { "-------------------getCalcPayment-------------------" }
         val retPrice = BasicPrice(
-            origin = TimeRange(startTime = inTime, endTime = outTime), parkTime = DateUtil.diffMins(
-                inTime,
-                outTime
-            ), dailySplits = null
+            origin = TimeRange(startTime = inTime, endTime = outTime),
+            parkTime = DateUtil.diffMins(inTime, outTime),
+            dailySplits = ArrayList<DailySplit>()
         )
 
-        val service = TimeRange()
-        if (retPrice.parkTime <= calcData.cgBasic.serviceTime!!) {
-            // BasicPrice(orgTotalPrice = 0, totalPrice = 0, discountPrice = 0, dayilyMaxDiscount = 0)
-            service.startTime = inTime
-            service.endTime = outTime
-            return retPrice
-        } else {
-            service.startTime = inTime
-            service.endTime = DateUtil.getAddMinutes(service.startTime!!, calcData.cgBasic.serviceTime!!.toLong())
-        }
-        retPrice.service = service
 
-        // 기본요금 타임 적용
-        // 서비스 타임 endtime 으로 조회
-        if (retPrice.dailySplits == null) {
-            logger.debug { "basic fare is null" }
+        if (isReCharge) {
+            logger.info { "re-settlement : $isReCharge" }
+            retPrice.basicRange = TimeRange(startTime = inTime, endTime = inTime)
+        } else {
+            val service = TimeRange()
+            if (retPrice.parkTime <= calcData.cgBasic.serviceTime!!) {
+                // BasicPrice(orgTotalPrice = 0, totalPrice = 0, discountPrice = 0, dayilyMaxDiscount = 0)
+                service.startTime = inTime
+                service.endTime = outTime
+                return retPrice
+            } else {
+                service.startTime = inTime
+                service.endTime = DateUtil.getAddMinutes(service.startTime!!, calcData.cgBasic.serviceTime!!.toLong())
+            }
+            retPrice.service = service
+
+            // 기본요금 타임 적용(재정산 시 제외)
+            // 서비스 타임 endtime 으로 조회
+//            if (retPrice.dailySplits == null) {
+            logger.debug { "basic fare setting" }
             calcData.getBizHourInfoForDateTime(DateUtil.LocalDateTimeToDateString(inTime), DateUtil.getHourMinuteByLocalDateTime(inTime), vehicleType).let {
                 logger.info { "기본 요금제 $inTime ${it.basicFare?.fareName}" }
                 val basic = getBasicFare(it.basicFare!!)
@@ -566,11 +522,11 @@ class FeeCalculation(
                     basicTime.startTime!!,
                     basic.toLong()
                 )
-                retPrice.basic = basicTime
+                retPrice.basicRange = basicTime
                 retPrice.basicFare = it.basicFare
 
                 //정기권 기간 체크
-                val seasonTicket = getSeasonTicket(vehicleNo!!, basicTime.startTime!!, basicTime.endTime!!)
+                val seasonTicket = getSeasonTicket(vehicleNo, basicTime.startTime!!, basicTime.endTime!!)
                 val dailySplit = DailySplit(
                     startTime = basicTime.startTime!!, endTime = basicTime.endTime!!,
                     payStartTime = basicTime.startTime!!, payEndTime = basicTime.endTime!!,
@@ -579,29 +535,30 @@ class FeeCalculation(
                     priceType = if (seasonTicket != null) "SeasonTicket" else "Normal",
                     feeType = "BASIC"
                 )
-                val dailySplits = ArrayList<DailySplit>()
-                dailySplits.add(dailySplit)
-                retPrice.dailySplits = dailySplits
+//                val dailySplits = ArrayList<DailySplit>()
 
-                if (seasonTicket != null) {
-                    if (seasonTicket.startTime!! <= basicTime.startTime && seasonTicket.endTime!! >= basicTime.endTime) {
-                    } else {
-                        dailySplits.add(DailySplit(
-                            startTime = basicTime.startTime!!, endTime = basicTime.endTime!!,
-                            payStartTime = basicTime.startTime!!, payEndTime = basicTime.endTime!!,
-                            fareInfo = it.basicFare, date = DateUtil.LocalDateTimeToDateString(basicTime.startTime!!),
-                            week = DateUtil.getWeek(DateUtil.formatDateTime(basicTime.startTime!!, "yyyy-MM-dd")),
-                            priceType = "Normal", feeType = "BASIC"
-                        ))
-                    }
-                }
+                retPrice.dailySplits?.add(dailySplit)// = dailySplits.add(dailySplit)
+
+//                if (seasonTicket != null) {
+//                    if (seasonTicket.startTime!! <= basicTime.startTime && seasonTicket.endTime!! >= basicTime.endTime) {
+//                    } else {
+//                        dailySplits.add(DailySplit(
+//                            startTime = basicTime.startTime!!, endTime = basicTime.endTime!!,
+//                            payStartTime = basicTime.startTime!!, payEndTime = basicTime.endTime!!,
+//                            fareInfo = it.basicFare, date = DateUtil.LocalDateTimeToDateString(basicTime.startTime!!),
+//                            week = DateUtil.getWeek(DateUtil.formatDateTime(basicTime.startTime!!, "yyyy-MM-dd")),
+//                            priceType = "Normal", feeType = "BASIC"
+//                        ))
+//                    }
+//                }
             }
+//            }
         }
 
-        if (retPrice.basic!!.endTime!! <= retPrice.origin?.endTime) {
-            var startTime = retPrice.basic!!.endTime!!
+        if (retPrice.basicRange!!.endTime!! <= retPrice.origin?.endTime) {
+            var startTime = retPrice.basicRange!!.endTime!!
             do {
-                val seasonTicket = getSeasonTicket(vehicleNo!!, startTime, outTime)
+                val seasonTicket = getSeasonTicket(vehicleNo, startTime, outTime)
 
                 val dailySplit = DailySplit(
                     date = DateUtil.LocalDateTimeToDateString(startTime),
@@ -666,31 +623,33 @@ class FeeCalculation(
                     }
                 }
                 startTime = dailySplit.endTime!!
-                retPrice.dailySplits!!.add(dailySplit)
+                retPrice.dailySplits?.add(dailySplit)
             } while(startTime < outTime)
         }
 
-        //할인 적용 기준 fetch
-        var discountApply = parkSiteInfoService.getDiscountApply()
+        // 할인 적용 기준 fetch
+        val discountApply = parkSiteInfoService.getDiscountApply()
 
-        //원단위 할인 금액 계산
-        var wonFixDiscountAmt: Int = calcDiscountWonByVariable(inSn ?: -1, "calc", discountClasses)
-
-        //할인권 제외
-        if (inSn != null) {
-            //이전 등록 할인권과 merge
-            var discountItmes = ArrayList<ReqAddParkingDiscount>()
-            discountService.searchInoutDiscount(inSn)?.let { discounts ->
-                discounts.forEach { discount ->
-                    discountItmes.add(ReqAddParkingDiscount(inSn = discount.inSn, discountClassSn = discount.discountClassSn, cnt = discount.quantity?: 0))
+        val discountItmes = ArrayList<ReqAddParkingDiscount>()
+        //이전 등록 할인권과 merge
+        discountService.searchInoutDiscount(inSn?: -1)?.let { discounts ->
+            if (type == CalcType.SETTLE) {
+                discounts.filter { it.calcYn == YN.N }.forEach { discount ->
+                    discountItmes.add(ReqAddParkingDiscount(inSn = discount.inSn, discountClassSn = discount.discountClassSn, cnt = discount.quantity?: 0, sn = discount.sn))
                 }
             }
+            discounts.forEach { discount ->
+                discountItmes.add(ReqAddParkingDiscount(inSn = discount.inSn, discountClassSn = discount.discountClassSn, cnt = discount.quantity?: 0, sn = discount.sn))
+            }
+        }
 
+        // 할인권 제외
+        if (inSn != null) {
             discountClasses?.forEach { discount ->
                 discountItmes.add(ReqAddParkingDiscount(inSn = discount.inSn, discountClassSn = discount.discountClassSn, cnt = discount.cnt?: 0))
             }
 
-            discountItmes.let { discounts ->
+            discountItmes.let { items ->
                 var dailySplits: List<DailySplit>? = discountApply?.let { discountApplyDTO ->
                     if ((discountApplyDTO.criteria
                             ?: DiscountApplyCriteriaType.FRONT) == DiscountApplyCriteriaType.FRONT
@@ -698,9 +657,9 @@ class FeeCalculation(
                     else retPrice.dailySplits?.reversed()
                 }?: kotlin.run { retPrice.dailySplits }
 
-                discounts.forEach { discount ->
-                    val discountClass = discountService.getDiscountClassBySn(discount.discountClassSn)
-                    var discountTime = discountClass.unitTime * discount.cnt
+                items.forEach { item ->
+                    val discountClass = discountClassService.findBySn(item.discountClassSn)
+                    var discountTime = discountClass.unitTime * item.cnt
 
                     dailySplits!!.forEach { dailySplit ->
                         if (dailySplit.feeType == "BASIC" && (discountApply?.baseFeeInclude ?: YN.Y) == YN.N)  return@forEach
@@ -720,8 +679,11 @@ class FeeCalculation(
                             }
                         }
                     }
-        //                    discount.calcYn = DelYn.Y
-        //                    discountService.saveInoutDiscount(discount)
+                    if (type == CalcType.SETTLE && ((item.sn?: 0) > 0)) {
+                        inoutDiscountService.findBySn(item.sn?: 0)?.let {
+                            inoutDiscountService.completeCalc(it)
+                        }
+                    }
                 }
 
                 if (discountItmes.isNotEmpty()) {
@@ -731,6 +693,10 @@ class FeeCalculation(
                 }
             }
         }
+
+        // 원단위 할인 금액 계산
+        var wonVariableDiscountAmt: Int = discountService.calcDiscountWonByVariable(
+            inSn ?: -1, type, retPrice.totalPrice ?: 0, discountItmes)
 
         val dailyPrices = ArrayList<DailyPrice>()
         for (i in 0..DateUtil.diffDays(inTime, outTime)+1) {
@@ -761,9 +727,9 @@ class FeeCalculation(
             dailyPrice.price = dailyPrice.price!!.plus(totalPrice)
 
             //원 변동 할인 적용
-            val applyDiscount = if ((dailyPrice.price ?: 0) > wonFixDiscountAmt) wonFixDiscountAmt else dailyPrice.price?: 0
+            val applyDiscount = if ((dailyPrice.price ?: 0) > wonVariableDiscountAmt) wonVariableDiscountAmt else dailyPrice.price?: 0
             if (applyDiscount > 0) {
-                wonFixDiscountAmt = wonFixDiscountAmt.minus(applyDiscount)
+                wonVariableDiscountAmt = wonVariableDiscountAmt.minus(applyDiscount)
                 dailyPrice.discount = dailyPrice.discount!!.plus(applyDiscount)
                 dailyPrice.price = dailyPrice.price!!.minus(applyDiscount)
             }
@@ -783,17 +749,17 @@ class FeeCalculation(
             retPrice.dayilyMaxDiscount = retPrice.dayilyMaxDiscount!!.plus(it.dayMaxDiscount!!)
         }
 
-        val wonDiscountAmt = applyInoutDiscountWon(inSn ?: -1, retPrice.totalPrice ?: 0, "calc", discountClasses)
-        retPrice.discountPrice = retPrice.discountPrice!!.plus(wonDiscountAmt)
-        retPrice.totalPrice = retPrice.totalPrice!!.minus(wonDiscountAmt)
+        // 고정 할인 적용
+        val wonFixDiscountAmt = discountService.calcDiscountWonByFix(
+                                inSn ?: -1, type, retPrice.totalPrice ?: 0, discountItmes)
+        retPrice.discountPrice = retPrice.discountPrice!!.plus(wonFixDiscountAmt)
+        retPrice.totalPrice = retPrice.totalPrice!!.minus(wonFixDiscountAmt)
 
         // PERCENT 할인 적용
-        val percentDiscount = calcDiscountPercent(inSn?: -1, "calc", discountClasses)
-        if (percentDiscount > 0) {
-            val discoutAmt = ((retPrice.totalPrice ?: 0) * percentDiscount) / 100
-            retPrice.discountPrice = retPrice.discountPrice!!.plus(discoutAmt)
-            retPrice.totalPrice = retPrice.totalPrice!!.minus(discoutAmt)
-        }
+        val percentDiscountAmt = discountService.calcDiscountPercent(
+                                    inSn?: -1, type, retPrice.totalPrice ?: 0, discountItmes)
+        retPrice.discountPrice = retPrice.discountPrice!!.plus(percentDiscountAmt)
+        retPrice.totalPrice = retPrice.totalPrice!!.minus(percentDiscountAmt)
 
         logger.info { "-------------------getBasicPayment-------------------" }
         logger.info { retPrice }

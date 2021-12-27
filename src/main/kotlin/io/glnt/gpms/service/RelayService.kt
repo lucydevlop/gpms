@@ -5,7 +5,6 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.common.utils.JSONUtil
 import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
-import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.model.*
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.rcs.model.ReqFacilityStatus

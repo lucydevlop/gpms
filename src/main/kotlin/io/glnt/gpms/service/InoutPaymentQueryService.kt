@@ -5,6 +5,7 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.criteria.InoutPaymentCriteria
 import io.glnt.gpms.model.dto.entity.InoutPaymentDTO
 import io.glnt.gpms.model.entity.InoutPayment
+import io.glnt.gpms.model.enums.ResultType
 import io.glnt.gpms.model.mapper.InoutPaymentMapper
 import io.glnt.gpms.model.repository.InoutPaymentRepository
 import mu.KLogging
@@ -46,6 +47,11 @@ class InoutPaymentQueryService (
                 if (criteria.vehicleNo != null && criteria.vehicleNo!!.isNotEmpty()) {
                     clues.add(
                         criteriaBuilder.like((root.get<String>("vehicleNo")), "%" + criteria.vehicleNo + "%")
+                    )
+                }
+                if (criteria.resultType != null) {
+                    clues.add(
+                        criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("result")), criteria.resultType)
                     )
                 }
             }

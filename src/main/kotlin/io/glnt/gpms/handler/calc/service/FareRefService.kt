@@ -126,10 +126,10 @@ class FareRefService(
     fun updateFareBasic(new: CgBasic): CgBasic? {
         try {
             return cgBasicRepository.findByDelYn(YN.N)?.let { basic ->
-                basic.serviceTime = new.serviceTime?.let { it }?: kotlin.run { basic.serviceTime }
-                basic.regTime = new.regTime?.let { it }?: kotlin.run { basic.regTime }
-                basic.dayMaxAmt = new.dayMaxAmt?.let { it }?: kotlin.run { basic.dayMaxAmt }
-                basic.effectDate = new.effectDate?.let { it }?: kotlin.run { basic.effectDate }
+                basic.serviceTime = new.serviceTime ?: kotlin.run { basic.serviceTime }
+                basic.legTime = new.legTime ?: kotlin.run { basic.legTime }
+                basic.dayMaxAmt = new.dayMaxAmt ?: kotlin.run { basic.dayMaxAmt }
+                basic.effectDate = new.effectDate ?: kotlin.run { basic.effectDate }
                 cgBasicRepository.saveAndFlush(basic)
             }?: kotlin.run {
                 cgBasicRepository.saveAndFlush(new)

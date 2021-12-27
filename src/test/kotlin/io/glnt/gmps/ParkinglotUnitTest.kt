@@ -3,6 +3,8 @@ package io.glnt.gmps
 import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
+import io.glnt.gpms.model.enums.VehicleType
+import io.glnt.gpms.service.CalcService
 import io.glnt.gpms.service.RelayService
 import io.vertx.core.Vertx
 import io.vertx.ext.auth.jwt.JWTAuth
@@ -29,6 +31,9 @@ class ParkinglotUnitTest {
 
     @Autowired
     private lateinit var relayService: RelayService
+
+    @Autowired
+    private lateinit var calcService: CalcService
 
     @Test
     fun test_parkIn() {
@@ -78,6 +83,17 @@ class ParkinglotUnitTest {
 //                     failureCode = "crossingGateLongTimeOpen",
 //                     failureType = "ERROR"
 //        ))
+    }
+
+    @Test
+    fun calcParkinglotFee() {
+        calcService.calcParkinglotFee(
+            inTime = DateUtil.stringToLocalDateTime("2021-12-24 00:00:00", "yyyy-MM-dd HH:mm:ss"),
+            outTime = DateUtil.stringToLocalDateTime("2021-12-25 02:00:00", "yyyy-MM-dd HH:mm:ss"),
+            vehicleType = VehicleType.SMALL,
+            vehicleNo = "11호1111",
+            //type = null,
+            discountMin = 0, inSn = 0, discountClasses = null, isReCharge = false)
     }
 
 

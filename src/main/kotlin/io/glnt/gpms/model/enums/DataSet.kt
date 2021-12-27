@@ -12,9 +12,9 @@ enum class OnOff {
     ON, OFF
 }
 
-enum class ResultType {
-    SUCCESS, FAILURE, WAIT, ERROR, CANCEL
-}
+//enum class ResultType {
+//    SUCCESS, FAILURE, WAIT, ERROR, CANCEL
+//}
 
 enum class FacilityCategoryType {
     LPR, BREAKER, DISPLAY, PAYSTATION, VOIP

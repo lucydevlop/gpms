@@ -23,7 +23,7 @@ data class CgBasic(
     var serviceTime: Int? = 0,
 
     @Column(name = "regTime", nullable = true)
-    var regTime: Int? = 0,
+    var legTime: Int? = 0,
 
     @Column(name = "ticket_time", nullable = true)
     var ticketTime: Int? = 0,

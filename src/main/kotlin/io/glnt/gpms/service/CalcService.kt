@@ -3,13 +3,17 @@ package io.glnt.gpms.service
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.handler.calc.CalculationData
 import io.glnt.gpms.handler.calc.model.BasicPrice
+import io.glnt.gpms.handler.calc.model.FareItem
+import io.glnt.gpms.handler.calc.model.FareRange
 import io.glnt.gpms.handler.calc.model.TimeRange
 import io.glnt.gpms.handler.calc.service.FeeCalculation
 import io.glnt.gpms.model.dto.DiscountApplyDTO
 import io.glnt.gpms.model.dto.request.ReqAddParkingDiscount
+import io.glnt.gpms.model.entity.FareInfo
 import io.glnt.gpms.model.enums.DiscountRangeType
 import io.glnt.gpms.model.enums.TicketAplyType
 import io.glnt.gpms.model.enums.VehicleType
+import mu.KLogging
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -18,6 +22,7 @@ class CalcService(
     private var calcData: CalculationData,
     private var ticketService: TicketService
 ) {
+    companion object : KLogging()
 
     /**
      * @param inTime 입차시간
@@ -30,54 +35,109 @@ class CalcService(
      * @param discountClasses 적용하지 않은
      * @return 요금정보관련클래스
      */
-    fun calcParkinglotFee(inTime: LocalDateTime, outTime: LocalDateTime?,
-                          vehicleType: VehicleType, vehicleNo: String,
-                          type: DiscountApplyDTO?, discountMin: Int,
-                          inSn: Long?, discountClasses: ArrayList<ReqAddParkingDiscount>?): BasicPrice? {
+    fun calcParkinglotFee(inTime: LocalDateTime, outTime: LocalDateTime?, vehicleType: VehicleType, vehicleNo: String,
+                          //type: DiscountApplyDTO?,
+                          discountMin: Int,
+                          inSn: Long?, discountClasses: ArrayList<ReqAddParkingDiscount>?, isReCharge: Boolean): BasicPrice? {
         if (outTime == null) return null
         FeeCalculation.logger.info { "-------------------getCalcPayment-------------------" }
         FeeCalculation.logger.info { "입차시간 : $inTime / 출차시간 : $outTime" }
         FeeCalculation.logger.info { "차종 : $vehicleType / 차량번호 : $vehicleNo / 입차seq : $inSn" }
-        FeeCalculation.logger.info { "type(0:할인없음, 1:전방시간할인, 2:후방시간할인) : $type / 할인있을 때의 해당 시간 설정(회차시간) : $discountMin" }
+        FeeCalculation.logger.info { "type(0:할인없음, 1:전방시간할인, 2:후방시간할인) : / 할인있을 때의 해당 시간 설정(회차시간) : $discountMin" }
         FeeCalculation.logger.info { "-------------------getCalcPayment-------------------" }
 
         val retPrice = BasicPrice(
             origin = TimeRange(startTime = inTime, endTime = outTime),
             parkTime = DateUtil.diffMins(inTime, outTime),
-            dailySplits = null
+            dailySplits = null,
+            totalPrice = 0,
+            orgTotalPrice = 0
         )
 
-        //회차 데이터 check
-        if (retPrice.parkTime <= calcData.cgBasic.serviceTime!!) {
-            val service = TimeRange()
-            // BasicPrice(orgTotalPrice = 0, totalPrice = 0, discountPrice = 0, dayilyMaxDiscount = 0)
-            service.startTime = inTime
-            service.endTime = outTime
+        retPrice.serviceTime = if (isReCharge) calcData.cgBasic.legTime?: 0 else calcData.cgBasic.serviceTime?: 0
+        // 회차(레그) 타임 check
+        if (retPrice.parkTime <= retPrice.serviceTime) {
+            retPrice.service = TimeRange(startTime = inTime, endTime = outTime)
             return retPrice
+        } else {
+            retPrice.service = TimeRange(startTime = inTime, endTime = DateUtil.getAddMinutes(inTime, retPrice.serviceTime.toLong()))
+        }
+
+        // 요금구간 세팅
+        // step1. 기본요금
+        calcData.getBizHourInfoForDateTime(DateUtil.LocalDateTimeToDateString(inTime), DateUtil.getHourMinuteByLocalDateTime(inTime), vehicleType).let { farePolicy ->
+            farePolicy.basicFare?.let { basicFare ->
+                logger.info { "기본 요금제 $inTime ${basicFare.fareName}" }
+                getFareTimes(basicFare).let { times ->
+                    val basicTime = times.sumOf { (it.time?: 1) * (it.count?: 1) }
+                    retPrice.basicRange = TimeRange(
+                        startTime = inTime,
+                        endTime = if (DateUtil.getAddMinutes(inTime, basicTime.toLong()) > retPrice.origin?.endTime)
+                                    retPrice.origin?.endTime
+                                  else DateUtil.getAddMinutes(inTime, basicTime.toLong()
+                        ))
+                    retPrice.basicFare = basicFare
+                    var fareTime = 0
+                    times.forEach { time ->
+                        val apply = fareTime + ( (time.time?: 0) * (time.count?: 0))
+                        retPrice.fareRanges?.add(FareRange(startTime = DateUtil.getAddMinutes(inTime, fareTime.toLong()), endTime = DateUtil.getAddMinutes(inTime, apply.toLong()), won = time.won))
+                        fareTime = apply
+                    }
+                }
+            }
+        }
+
+        // step2. 추가요금
+        if (retPrice.basicRange!!.endTime!! <= retPrice.origin?.endTime) {
+            var startTime = retPrice.basicRange!!.endTime!!
+            do {
+                calcData.getBizHourInfoForDateTime(DateUtil.LocalDateTimeToDateString(startTime), DateUtil.getHourMinuteByLocalDateTime(startTime), vehicleType).let { farePolicy ->
+                    farePolicy.addFare?.let { addFare ->
+                        logger.info { "추가 요금제 $inTime ${addFare.fareName}" }
+                        getFareTimes(addFare).let { times ->
+                            val basicTime = times.sumOf { (it.time?: 1) * (it.count?: 1) }
+                            retPrice.addRange?.add(TimeRange(
+                                startTime = startTime,
+                                endTime = if (DateUtil.getAddMinutes(startTime, basicTime.toLong()) > retPrice.origin?.endTime)
+                                    retPrice.origin?.endTime
+                                else DateUtil.getAddMinutes(startTime, basicTime.toLong())))
+                            var fareTime = 0
+                            times.forEach { time ->
+                                val apply = fareTime + ( (time.time?: 0) * (time.count?: 0))
+                                retPrice.fareRanges?.add(FareRange(startTime = DateUtil.getAddMinutes(startTime, fareTime.toLong()), endTime = DateUtil.getAddMinutes(startTime, apply.toLong()), won = time.won))
+                                fareTime = apply
+                            }
+                            startTime = DateUtil.getAddMinutes(startTime, fareTime.toLong())
+                        }
+                    }
+                }
+            } while(startTime < outTime)
         }
 
         val seasonTickets = getSeasonTicketRange(vehicleNo, inTime, outTime)
 
-        //기본요금 적용
-        calcData.getBizHourInfoForDateTime(DateUtil.LocalDateTimeToDateString(inTime), DateUtil.getHourMinuteByLocalDateTime(inTime), vehicleType).let { farePolicy ->
-            farePolicy.basicFare?.let { basicFare ->
-                val time = ((basicFare.time1 ?: 0) * (basicFare.count1?: 0))
-                val basic = TimeRange()
-                basic.startTime = inTime
-                basic.endTime = if (DateUtil.getAddMinutes(inTime, time.toLong()) > retPrice.origin?.endTime)
-                                    retPrice.origin?.endTime
-                                else DateUtil.getAddMinutes(inTime, time.toLong())
-                retPrice.basic = basic
-                retPrice.basicFare = basicFare
-            }
-        }
+        // step3. 정기권 구간 check
 
-
-        while(true){
-
-        }
 
         //시간 구간에 따라
+        return retPrice
+    }
+
+    private fun getFareTimes(fareInfo: FareInfo): ArrayList<FareItem> {
+        val times = ArrayList<FareItem>()
+        fareInfo.time1?.let { time ->
+            times.add(FareItem(time = time, won = (fareInfo.won1?: 1), count = (fareInfo.count1?: 1)))
+        }
+        fareInfo.time2?.let { time ->
+            times.add(FareItem(time = time, won = (fareInfo.won2?: 1), count = (fareInfo.count2?: 1)))
+        }
+        fareInfo.time3?.let { time ->
+            times.add(FareItem(time = time, won = (fareInfo.won3?: 1), count = (fareInfo.count3?: 1)))
+        }
+        fareInfo.time4?.let { time ->
+            times.add(FareItem(time = time, won = (fareInfo.won4?: 1), count = (fareInfo.count4?: 1)))
+        }
+        return times
     }
 
     private fun getSeasonTicketRange(vehicleNo: String, startTime: LocalDateTime, endTime: LocalDateTime): List<TimeRange>? {

@@ -36,6 +36,7 @@ class InoutPaymentMapper (
                     transactionId = dto.transactionId,
                     result = dto.result ?: ResultType.FAILURE,
                     failureMessage = dto.failureMessage,
+                    facilityId = dto.facilityId,
                     delYn = dto.delYn,
                     outSn = dto.outSn,
                     parkTime = dto.parkTime,

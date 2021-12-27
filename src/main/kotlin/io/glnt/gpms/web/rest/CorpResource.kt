@@ -6,7 +6,7 @@ import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.dashboard.user.model.ResDiscountTicetsApplyList
-import io.glnt.gpms.handler.discount.service.DiscountService
+import io.glnt.gpms.service.DiscountService
 import io.glnt.gpms.model.dto.entity.CorpDTO
 import io.glnt.gpms.model.dto.entity.CorpTicketDTO
 import io.glnt.gpms.model.criteria.CorpCriteria

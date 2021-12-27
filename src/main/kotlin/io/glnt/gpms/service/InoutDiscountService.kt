@@ -40,6 +40,10 @@ class InoutDiscountService(
         return result.minOrNull()?.toInt()
     }
 
+    fun findBySn(sn: Long): InoutDiscount? {
+        return inoutDiscountRepository.findBySnAndDelYn(sn, YN.N)
+    }
+
     fun completeCalc(inoutDiscount: InoutDiscount): InoutDiscount {
         inoutDiscount.calcYn = YN.Y
         return inoutDiscountRepository.saveAndFlush(inoutDiscount)

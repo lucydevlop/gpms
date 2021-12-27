@@ -68,6 +68,10 @@ class DiscountClassService (
         return discountClassRepository.findAll().map(discountClassMapper::toDto)
     }
 
+    fun findBySn(sn: Long) : DiscountClassDTO {
+        return discountClassMapper.toDto(discountClassRepository.findBySn(sn))
+    }
+
     fun save(discountClassDTO: DiscountClassDTO): DiscountClassDTO {
         var discountClass = discountClassMapper.toEntity(discountClassDTO)
         discountClass = discountClassRepository.save(discountClass!!)

@@ -8,7 +8,7 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.calc.model.BasicPrice
 import io.glnt.gpms.handler.calc.service.FeeCalculation
-import io.glnt.gpms.handler.discount.service.DiscountService
+import io.glnt.gpms.service.DiscountService
 import io.glnt.gpms.handler.facility.model.reqDisplayMessage
 import io.glnt.gpms.handler.facility.model.reqPayData
 import io.glnt.gpms.handler.facility.model.reqPayStationData
@@ -1183,7 +1183,7 @@ open class InoutService(
 
     fun calcInout(request: resParkInList): resParkInList {
         if (parkSiteInfoService.parkSite!!.saleType == SaleType.PAID) {
-            val price = feeCalculation.getCalcPayment(request.inDate, request.outDate, VehicleType.SMALL, request.vehicleNo, 1, 0, request.parkinSn, request.addDiscountClasses)
+            val price = feeCalculation.getCalcPayment(CalcType.CALC, request.inDate, request.outDate, VehicleType.SMALL, request.vehicleNo?: "",  0, request.parkinSn, request.addDiscountClasses, false)
             logger.warn { "-------------------getCalcPayment Result -------------------" }
             logger.warn { "입차시간 : ${request.inDate} / 출차시간 : ${request.outDate} / 주차시간: ${price!!.parkTime}" }
             logger.warn { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price.totalPrice} / 할인 요금 : ${price.discountPrice} / 일최대할인요금 : ${price.dayilyMaxDiscount}" }
@@ -1205,18 +1205,18 @@ open class InoutService(
 
     fun calcParkFee(type: String, inDate: LocalDateTime, outDate: LocalDateTime, vehicleType: VehicleType, vehicleNo: String, parkInSn: Long, discountClasses: ArrayList<ReqAddParkingDiscount>? = null): BasicPrice? {
         val price =
-            if (type == "OUT")
-                feeCalculation.getBasicPayment(inDate, outDate, vehicleType, vehicleNo, 1, 0, parkInSn)
+            if (type == "RECALC")
+                feeCalculation.getCalcPayment(CalcType.SETTLE, inDate, outDate, vehicleType, vehicleNo, 0, parkInSn, null, true)
             else
-                feeCalculation.getCalcPayment(inDate, outDate, vehicleType, vehicleNo, 1, 0, parkInSn, discountClasses)
+                feeCalculation.getCalcPayment(CalcType.SETTLE, inDate, outDate, vehicleType, vehicleNo, 0, parkInSn, discountClasses, false)
 
         logger.warn { "-------------------getCalcPayment Result -------------------" }
-        logger.warn { "입차시간 : ${inDate} / 출차시간 : ${outDate} / 주차시간: ${price!!.parkTime}" }
+        logger.warn { "입차시간 : $inDate / 출차시간 : $outDate / 주차시간: ${price!!.parkTime}" }
         logger.warn { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price.totalPrice} / 할인 요금 : ${price.discountPrice} / 일최대할인요금 : ${price.dayilyMaxDiscount}" }
         return price
     }
 
-    fun savePayment(contents: reqPaymentResult, sn: Long, outSn: Long? = null): InoutPaymentDTO? {
+    fun savePayment(contents: reqPaymentResult, sn: Long, facilityId: String, outSn: Long? = null): InoutPaymentDTO? {
         logger.debug { "savePayment $sn $contents $outSn" }
 
         val inoutPayment = inoutPaymentService.findOne(sn).orElse(null)
@@ -1229,10 +1229,11 @@ open class InoutService(
             inoutPaymentDTO.transactionId = contents.transactionId
             inoutPaymentDTO.result = contents.result?: ResultType.SUCCESS
             inoutPaymentDTO.failureMessage = contents.failureMessage
-            inoutPayment.outSn = outSn
+            inoutPaymentDTO.outSn = outSn
+            inoutPaymentDTO.facilityId = facilityId
 
             // 결제 금액 저장
-            return inoutPaymentService.save(inoutPayment)
+            return inoutPaymentService.save(inoutPaymentDTO)
         }
         return null
     }

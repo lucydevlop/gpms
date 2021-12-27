@@ -151,10 +151,12 @@ class InoutResource (
     @RequestMapping(value = ["/inouts/payments"], method = [RequestMethod.GET])
     fun getInoutPayments(@RequestParam(name = "fromDate", required = false) fromDate: String,
                          @RequestParam(name = "toDate", required = false) toDate: String,
+                         @RequestParam(name = "resultType", required = true) resultType: ResultType? = null,
                          @RequestParam(name = "vehicleNo", required = false) vehicleNo: String): ResponseEntity<CommonResult> {
         val result = inoutPaymentQueryService.findByCriteria(InoutPaymentCriteria(
                                                                 fromDate = DateUtil.stringToLocalDate(fromDate),
                                                                 toDate = DateUtil.stringToLocalDate(toDate),
+                                                                resultType = resultType,
                                                                 vehicleNo = vehicleNo))
         return CommonResult.returnResult(
 //            CommonResult.data(result.filter { it -> it.result != ResultType.WAIT })
@@ -373,8 +375,8 @@ class InoutResource (
                             dayilyMaxDiscount = prePayments[0].dayDiscount ?: 0)
 
                         val diffMins = DateUtil.diffMins(DateUtil.stringToLocalDateTime(prePayments[0].approveDateTime!!), requestParkOutDTO.date ?: LocalDateTime.now())
-                        if (diffMins > (cgBasic.regTime ?: 0)) {
-                            price = inoutService.calcParkFee("OUT", DateUtil.stringToLocalDateTime(prePayments[0].approveDateTime!!), requestParkOutDTO.date!!, VehicleType.SMALL, requestParkOutDTO.vehicleNo ?: "", parkIn.sn ?: -1)
+                        if (diffMins > (cgBasic.legTime ?: 0)) {
+                            price = inoutService.calcParkFee("RECALC", DateUtil.stringToLocalDateTime(prePayments[0].approveDateTime!!), requestParkOutDTO.date!!, VehicleType.SMALL, requestParkOutDTO.vehicleNo ?: "", parkIn.sn ?: -1)
                         }
                     }
                 }

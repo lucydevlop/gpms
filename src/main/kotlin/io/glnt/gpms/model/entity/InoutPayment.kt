@@ -69,6 +69,9 @@ data class InoutPayment(
     @Column(name = "failure_message")
     var failureMessage: String? = null,
 
+    @Column(name = "facility_id")
+    var facilityId: String? = null,
+
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
     var delYn: YN? = YN.N

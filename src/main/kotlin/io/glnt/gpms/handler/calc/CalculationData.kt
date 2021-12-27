@@ -40,7 +40,7 @@ class CalculationData(
     fun init() {
         cgBasicRepository.findByDelYn(YN.N)?: kotlin.run {
             cgBasicRepository.saveAndFlush(
-                CgBasic(sn = null, serviceTime = 0, regTime = 0, dayMaxAmt = 0, effectDate = DateUtil.stringToLocalDateTime(DateUtil.nowDateTime, "yyyy-MM-dd HH:mm:ss"), delYn = YN.N))
+                CgBasic(sn = null, serviceTime = 0, legTime = 0, dayMaxAmt = 0, effectDate = DateUtil.stringToLocalDateTime(DateUtil.nowDateTime, "yyyy-MM-dd HH:mm:ss"), delYn = YN.N))
         }
 //        if (parkinglotService.isPaid()) {
         parkingFareInfo = farePolicyRepository.findAll().filter { farePolicy -> farePolicy.delYn == YN.N }

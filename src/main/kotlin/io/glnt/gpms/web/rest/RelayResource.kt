@@ -123,7 +123,7 @@ class RelayResource (
                                     dayilyMaxDiscount = prePayments[0].dayDiscount ?: 0)
 
                                 val diffMins = DateUtil.diffMins(DateUtil.stringToLocalDateTime(prePayments[0].approveDateTime!!), LocalDateTime.now() ?: LocalDateTime.now())
-                                if (diffMins > (cgBasic.regTime ?: 0)) {
+                                if (diffMins > (cgBasic.legTime ?: 0)) {
                                     price = inoutService.calcParkFee("OUT", DateUtil.stringToLocalDateTime(prePayments[0].approveDateTime!!), LocalDateTime.now(), VehicleType.SMALL, parkInDTO.vehicleNo ?: "", parkInDTO.sn ?: -1)
                                 }
                             }
@@ -180,14 +180,14 @@ class RelayResource (
 
             if (gate.gateType == GateTypeStatus.ETC) {
                 logger.warn { "사전 정산 완료 $dtFacilityId ${contents.vehicleNumber} " }
-                inoutService.savePayment(contents, sn)
+                inoutService.savePayment(contents, sn, dtFacilityId)
             } else {
                 logger.warn { "출차 정산 완료 $dtFacilityId ${contents.vehicleNumber} " }
                 // 정상 출차 시
                 inoutPaymentService.findOne(sn).ifPresent { inoutPayment ->
                     val parkOut = parkOutService.findByInSn(inoutPayment.inSn ?: -1).orElse(null)
                     parkOut?.let { parkOutDTO ->
-                        inoutService.savePayment(contents, sn, parkOut.sn)
+                        inoutService.savePayment(contents, sn, dtFacilityId, parkOut.sn)
                         parkInService.findOne(parkOutDTO.inSn ?: -1)?.let {
 
                             val parkCarType = when(contents.result?: ResultType.SUCCESS) {

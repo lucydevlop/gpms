@@ -6,23 +6,18 @@ import io.glnt.gpms.common.utils.RestAPIManagerUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.calc.service.FareRefService
 import io.glnt.gpms.handler.dashboard.admin.model.*
-import io.glnt.gpms.handler.discount.service.DiscountService
 import io.glnt.gpms.handler.facility.model.reqSetDisplayMessage
-import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
-import io.glnt.gpms.service.InoutService
 import io.glnt.gpms.handler.parkinglot.model.reqSearchParkinglotFeature
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.handler.product.service.ProductService
-import io.glnt.gpms.service.RelayService
 import io.glnt.gpms.handler.user.service.AuthService
 import io.glnt.gpms.handler.file.service.ExcelUploadService
 import io.glnt.gpms.common.api.ResetClient
 import io.glnt.gpms.model.dto.request.*
 import io.glnt.gpms.model.entity.*
 import io.glnt.gpms.model.enums.*
-import io.glnt.gpms.service.CorpService
-import io.glnt.gpms.service.GateService
+import io.glnt.gpms.service.*
 import io.reactivex.Observable
 import io.reactivex.Single
 import mu.KLogging
@@ -692,7 +687,7 @@ class DashboardAdminService(
             return fareRefService.updateFareBasic(CgBasic(
                 sn = null,
                 serviceTime = request.serviceTime,
-                regTime = request.regTime,
+                legTime = request.regTime,
                 effectDate = request.effectDate,
                 delYn = YN.N,
                 dayMaxAmt = request.dayMaxAmt)
@@ -788,23 +783,6 @@ class DashboardAdminService(
             return CommonResult.error("Admin deleteDiscountTicket failed $e")
         }
     }
-
-//    fun externalAsyncParkinglot(): CommonResult {
-//        try {
-//            parkinglotService.parkSite!!.ip?.let {
-//                val result: ResAsyncParkinglot? = rcsService.asyncParkinglot()
-//                result?.let { it ->
-//                    parkinglotService.parkSite!!.rcsParkId = it.data.toString().toLong()
-//                    parkinglotService.saveParkSiteInfo(parkinglotService.parkSite!!)
-//                }
-//                return CommonResult.data("Admin externalAsyncParkinglot success")
-//            }?: kotlin.run {
-//                return CommonResult.error("Admin externalAsyncParkinglot failed")
-//            }
-//        } catch (e: CustomException) {
-//            return CommonResult.error("Admin externalAsyncParkinglot failed")
-//        }
-//    }
 
     fun getTicketList() : CommonResult {
         return CommonResult.data(productService.getTicketClass())

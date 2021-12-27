@@ -33,11 +33,13 @@ data class BasicPrice(
     // 서비스시간
     var serviceTime: Int = 0,
     var service: TimeRange? = null,
+    // 요금구간
+    var fareRanges: ArrayList<FareRange>? = null,
     // 요금
-    var basic: TimeRange? = null,
+    var basicRange: TimeRange? = null,
     var basicFare: FareInfo? = null,
     // 추가요금
-    var add: TimeRange? = null,
+    var addRange: ArrayList<TimeRange>? = null,
     // fare list
     var dailySplits: ArrayList<DailySplit>? = null
 )
@@ -81,11 +83,25 @@ data class DailySplit(
 data class TimeRange(
     var startTime: LocalDateTime? = null,
     var endTime: LocalDateTime? = null,
-    var type: String? = null
+    var type: String? = null,
 )
 
 data class ParkingFareInfo(
     var time : Int? = 0,
     var won : Int? = 0,
     var count : Int? = 0
+)
+
+data class FareRange (
+    var startTime: LocalDateTime? = null,
+    var endTime: LocalDateTime? = null,
+    var fareInfo: FareInfo? = null,
+    var won: Int? = 0,
+    var type: String? = "NORMAL"
+)
+
+data class FareItem (
+    var time: Int? = 0,
+    var won: Int? = 0,
+    var count: Int? = 0
 )
