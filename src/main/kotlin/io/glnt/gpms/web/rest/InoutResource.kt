@@ -15,6 +15,7 @@ import io.glnt.gpms.common.api.ExternalClient
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.model.criteria.InoutPaymentCriteria
+import io.glnt.gpms.model.dto.ReceiptIssuanceDTO
 import io.glnt.gpms.model.dto.entity.ParkOutDTO
 import io.glnt.gpms.model.dto.entity.ParkinglotVehicleDTO
 import io.glnt.gpms.model.dto.RequestParkOutDTO
@@ -28,6 +29,7 @@ import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import retrofit2.http.Path
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -465,6 +467,38 @@ class InoutResource (
             logger.warn {" ##### 출차 요청 ERROR ${requestParkOutDTO.dtFacilitiesId} gate not found #####"}
             throw CustomException(
                 "${requestParkOutDTO.dtFacilitiesId} gate not found",
+                ResultCode.FAILED
+            )
+        }
+    }
+
+    @RequestMapping(value = ["/inouts/payment/receipt/{sn}/print/{facilityId}"], method = [RequestMethod.GET])
+    fun printReceipt(@PathVariable sn: Long, @PathVariable facilityId: String): ResponseEntity<CommonResult> {
+        val inoutPayment = inoutPaymentService.findOne(sn).orElse(null)
+        inoutPayment?.let { inoutPaymentDTO ->
+            val receiptIssuance = ReceiptIssuanceDTO(
+                vehicleNumber = inoutPaymentDTO.vehicleNo,
+                inVehicleDateTime = DateUtil.formatDateTime(parkInService.findOne(inoutPaymentDTO.inSn?: 0)?.inDate?: LocalDateTime.now(), "yyyy-MM-dd HH:mm"),
+                parkingTimes = inoutPaymentDTO.parkTime.toString(),
+                parkingAmount = inoutPaymentDTO.parkFee.toString(),
+                discountAmount = ((inoutPaymentDTO.discount?: 0) + (inoutPaymentDTO.dayDiscount?: 0)).toString(),
+                adjustmentAmount = ((inoutPaymentDTO.parkFee?: 0) - ((inoutPaymentDTO.discount?: 0) + (inoutPaymentDTO.dayDiscount?: 0))).toString(),
+                cardNumber = inoutPaymentDTO.cardNumber,
+                cardCorp = inoutPaymentDTO.cardCorp,
+                transactionId = inoutPaymentDTO.transactionId,
+                adjustmentDateTime = DateUtil.formatDateTime(DateUtil.stringToLocalDateTime(inoutPaymentDTO.approveDateTime?: ""),"yyyy-MM-dd HH:mm:ss")
+            )
+            relayClient.sendPayStation(
+                parkinglotService.getGateInfoByDtFacilityId(facilityId ?: "")?.gateId?: "",
+                "receiptIssuance",
+                inoutPaymentDTO.sn.toString(),
+                receiptIssuance,
+                facilityId
+            )
+            return ResponseEntity.ok(CommonResult.data())
+        }?: run {
+            throw CustomException(
+                "$sn payment not found",
                 ResultCode.FAILED
             )
         }
