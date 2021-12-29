@@ -6,8 +6,15 @@ import io.glnt.gpms.model.enums.ResultType
 import io.glnt.gpms.model.mapper.InoutPaymentMapper
 import io.glnt.gpms.model.repository.InoutPaymentRepository
 import mu.KLogging
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
+import java.time.LocalDate
 import java.util.*
 
 @Service
@@ -15,6 +22,9 @@ open class InoutPaymentService (
     private var inoutPaymentRepository: InoutPaymentRepository,
     private var inoutPaymentMapper: InoutPaymentMapper
 ){
+    @Value("\${receipt.filepath}")
+    lateinit var receiptPath: String
+
     companion object : KLogging()
 
     @Transactional(readOnly = true)
@@ -57,5 +67,27 @@ open class InoutPaymentService (
             }
         }
         return inoutPaymentDTO
+    }
+
+    fun uploadReceipt(sn: Long, file: MultipartFile) {
+        try {
+            val fileFullPath: String = "$receiptPath/"+ LocalDate.now()
+            File(fileFullPath).apply {
+                if (!exists()) {
+                    mkdirs()
+                }
+            }
+
+            val fileName : String = "$fileFullPath/" + (file.originalFilename ?: ("$sn.jpg"))
+            val path = Paths.get(fileName)
+            Files.copy(file.inputStream, path, StandardCopyOption.REPLACE_EXISTING)
+
+            findOne(sn).ifPresent { inoutPayment ->
+                inoutPayment.receipt = fileName
+                save(inoutPayment)
+            }
+        }catch (e:Exception){
+            throw Exception(e.message)
+        }
     }
 }

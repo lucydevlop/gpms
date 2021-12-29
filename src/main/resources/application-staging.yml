@@ -46,6 +46,9 @@ image:
 file:
   filepath: C://park//data
 
+receipt:
+  filepath: C://park//receipt
+
 tmap:
   send: "OFF"
   url: http://127.0.0.1:10000/api/v1/manage/devices/events

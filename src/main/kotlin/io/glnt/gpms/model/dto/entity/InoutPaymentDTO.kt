@@ -49,6 +49,8 @@ data class InoutPaymentDTO(
 
     var facilityId: String? = null,
 
+    var receipt: String? = null,
+
     @Enumerated(EnumType.STRING)
     var delYn: YN? = YN.N,
 
@@ -56,7 +58,9 @@ data class InoutPaymentDTO(
 
     var createDate: LocalDateTime? = null,
 
-    var parkInDTO: ParkInDTO? = null
+    var parkInDTO: ParkInDTO? = null,
+
+    var receiptImage: String? = null,
 ): Serializable {
     constructor(inoutPayment: InoutPayment):
         this(
@@ -79,6 +83,7 @@ data class InoutPaymentDTO(
             facilityId = inoutPayment.facilityId,
             delYn = inoutPayment.delYn,
             outSn = inoutPayment.outSn,
-            createDate = inoutPayment.createDate
+            createDate = inoutPayment.createDate,
+            receipt = inoutPayment.receipt
         )
 }

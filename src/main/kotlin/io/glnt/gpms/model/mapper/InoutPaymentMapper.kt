@@ -16,6 +16,7 @@ class InoutPaymentMapper (
     fun toDTO(entity: InoutPayment): InoutPaymentDTO {
         InoutPaymentDTO(entity).apply {
             this.parkInDTO = parkInRepository.findBySn(this.inSn!!)?.let { ParkInDTO(it) }
+            this.receiptImage = this.receipt?.let { image -> image.substring(image.indexOf("/park")) }
             return this
         }
     }
@@ -37,6 +38,7 @@ class InoutPaymentMapper (
                     result = dto.result ?: ResultType.FAILURE,
                     failureMessage = dto.failureMessage,
                     facilityId = dto.facilityId,
+                    receipt = dto.receipt,
                     delYn = dto.delYn,
                     outSn = dto.outSn,
                     parkTime = dto.parkTime,

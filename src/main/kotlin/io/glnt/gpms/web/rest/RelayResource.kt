@@ -24,6 +24,7 @@ import io.glnt.gpms.service.*
 import mu.KLogging
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDateTime
 
 @RestController
@@ -290,6 +291,14 @@ class RelayResource (
                 dtFacilityId
             )
         }
+        return ResponseEntity.ok(CommonResult.data())
+    }
+
+    @PostMapping(value = ["/upload/receipt/{sn}"], consumes = ["multipart/form-data"], produces = ["application/json"])
+    fun upload(@PathVariable sn: Long, @RequestPart("file") file: MultipartFile):ResponseEntity<CommonResult> {
+
+        inoutPaymentService.uploadReceipt(sn, file)
+//        val file = fileService.save(file)
         return ResponseEntity.ok(CommonResult.data())
     }
 

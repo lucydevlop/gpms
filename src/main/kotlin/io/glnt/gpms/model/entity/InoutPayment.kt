@@ -72,6 +72,9 @@ data class InoutPayment(
     @Column(name = "facility_id")
     var facilityId: String? = null,
 
+    @Column(name = "receipt")
+    var receipt: String? = null,
+
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
     var delYn: YN? = YN.N
