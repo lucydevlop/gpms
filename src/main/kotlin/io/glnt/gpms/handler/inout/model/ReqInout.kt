@@ -2,6 +2,7 @@ package io.glnt.gpms.handler.inout.model
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.glnt.gpms.handler.calc.model.BasicPrice
+import io.glnt.gpms.model.dto.entity.ParkInDTO
 import io.glnt.gpms.model.entity.ParkIn
 import io.glnt.gpms.model.entity.ParkOut
 import io.glnt.gpms.model.enums.DisplayMessageClass
@@ -36,8 +37,11 @@ data class reqAddParkIn(
     var fileUploadId: String? = null,
     var fileFullPath: String? = null,
     var recognitionResult: String? = null,
-    var assistant: Boolean? = false,
-    var isEmergency: Boolean? = null
+
+    var isSecond: Boolean? = false,
+    var isEmergency: Boolean? = null,
+
+    var beforeParkIn: ParkInDTO? = null
 )
 
 data class reqAddParkOut(

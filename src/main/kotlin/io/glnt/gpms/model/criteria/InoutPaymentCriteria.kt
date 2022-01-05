@@ -14,7 +14,9 @@ data class InoutPaymentCriteria(
 
     var vehicleNo: String? = null,
 
-    var resultType: ResultType? = null
+    var resultType: ResultType? = null,
+
+    var limit: Int? = null
 ): Serializable {
     constructor(other: InoutPaymentCriteria) :
         this(

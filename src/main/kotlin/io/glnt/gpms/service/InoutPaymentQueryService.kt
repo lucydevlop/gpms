@@ -5,15 +5,18 @@ import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.criteria.InoutPaymentCriteria
 import io.glnt.gpms.model.dto.entity.InoutPaymentDTO
 import io.glnt.gpms.model.entity.InoutPayment
-import io.glnt.gpms.model.enums.ResultType
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.mapper.InoutPaymentMapper
 import io.glnt.gpms.model.repository.InoutPaymentRepository
 import mu.KLogging
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import javax.persistence.criteria.Predicate
+
 
 @Service
 @Transactional(readOnly = true)
@@ -54,6 +57,10 @@ class InoutPaymentQueryService (
                         criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("result")), criteria.resultType)
                     )
                 }
+
+                clues.add(
+                    criteriaBuilder.equal(criteriaBuilder.upper(root.get<String>("delYn")), YN.N)
+                )
             }
             query.orderBy(criteriaBuilder.desc(root.get<LocalDateTime>("createDate")))
             criteriaBuilder.and(*clues.toTypedArray())

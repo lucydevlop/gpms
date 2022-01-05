@@ -20,6 +20,7 @@ import io.glnt.gpms.model.dto.entity.ParkOutDTO
 import io.glnt.gpms.model.dto.entity.ParkinglotVehicleDTO
 import io.glnt.gpms.model.dto.RequestParkOutDTO
 import io.glnt.gpms.model.dto.TicketInfoDTO
+import io.glnt.gpms.model.dto.entity.ParkInDTO
 import io.glnt.gpms.model.dto.request.resParkInList
 import io.glnt.gpms.model.enums.*
 import io.glnt.gpms.model.mapper.GateMapper
@@ -30,6 +31,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import retrofit2.http.Path
+import java.lang.Integer.min
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -153,16 +155,20 @@ class InoutResource (
     @RequestMapping(value = ["/inouts/payments"], method = [RequestMethod.GET])
     fun getInoutPayments(@RequestParam(name = "fromDate", required = false) fromDate: String,
                          @RequestParam(name = "toDate", required = false) toDate: String,
-                         @RequestParam(name = "resultType", required = true) resultType: ResultType? = null,
+                         @RequestParam(name = "resultType", required = false) resultType: ResultType? = null,
+                         @RequestParam(name = "limit", required = false) limit: Int? = 0,
                          @RequestParam(name = "vehicleNo", required = false) vehicleNo: String): ResponseEntity<CommonResult> {
-        val result = inoutPaymentQueryService.findByCriteria(InoutPaymentCriteria(
+        var result = inoutPaymentQueryService.findByCriteria(InoutPaymentCriteria(
                                                                 fromDate = DateUtil.stringToLocalDate(fromDate),
                                                                 toDate = DateUtil.stringToLocalDate(toDate),
                                                                 resultType = resultType,
-                                                                vehicleNo = vehicleNo))
+                                                                vehicleNo = vehicleNo, limit = limit)).filter { it -> (it.amount?: 0) > 0 }
+        if ((limit?: 0) > 0) {
+            result = result.subList(0, min((limit?: 0) - 1, result.size))
+        }
         return CommonResult.returnResult(
 //            CommonResult.data(result.filter { it -> it.result != ResultType.WAIT })
-            CommonResult.data(result.filter { it -> (it.amount?: 0) > 0 })
+            CommonResult.data(result)
         )
     }
 
@@ -187,49 +193,6 @@ class InoutResource (
         }
 
         parkinglotService.getGateInfoByDtFacilityId(requestParkInDTO.dtFacilitiesId ?: "")?.let { gate ->
-            if (!requestParkInDTO.isEmergency!!) {
-                // 입차 skip
-                // 1. 주차장 운영일 확인
-                if (!parkSiteInfoService.checkOperationDay(requestParkInDTO.date)) {
-                    logger.warn {" ##### 주차장 운영일이 아님 입차 처리 skip #####"}
-                    inoutService.inFacilityIF("RESTRICTE", requestParkInDTO.vehicleNo, gate.gateId, gate.openAction?: OpenActionType.NONE)
-                    return ResponseEntity.ok(CommonResult.data())
-                }
-                // 2. 차량 요일제 확인
-                parkSiteInfoService.parkSite!!.vehicleDayOption?.let {
-                    if (requestParkInDTO.recognitionResult == "RECOGNITION" && it != VehicleDayType.OFF) {
-                        if (DataCheckUtil.isRotation(it, requestParkInDTO.vehicleNo)) {
-                        } else {
-                            logger.warn {" ##### 입차 차단 요일제적용 차량번호 ${requestParkInDTO.vehicleNo} #####"}
-                            inoutService.inFacilityIF("RESTRICTE", requestParkInDTO.vehicleNo, gate.gateId, gate.openAction?: OpenActionType.NONE)
-                            return ResponseEntity.ok(CommonResult.data("Restricte vehicle $requestParkInDTO.vehicleNo $requestParkInDTO.parkingtype"))
-                        }
-                    }
-                }
-                // 3. 만차 제어
-                if (parkSiteInfoService.parkSite!!.space != null) {
-                    parkSiteInfoService.parkSite!!.space?.let { spaces ->
-                        logger.info("parkinglot space $spaces")
-                        gate.gateGroupId?.let { groupId ->
-                            if (groupId.equals(spaces["gateGroupId"].toString())) {
-                                gateService.findGateByGateGroupId(groupId).let { items ->
-                                    val inGates = ArrayList<String>()
-                                    for (item in items) {
-                                        inGates.add(item.gateId?: "")
-                                    }
-                                    if (inoutService.countParkInByGatesAndVehicleStatus(inGates, "IN") >= spaces["space"].toString().toInt()) {
-                                        logger.warn{"##### 입차 차단 만차적용 차량번호: ${requestParkInDTO.vehicleNo} ${spaces["space"].toString().toInt()} #####"}
-                                        inoutService.inFacilityIF("FULL", requestParkInDTO.vehicleNo, gate.gateId, gate.openAction?: OpenActionType.NONE)
-                                        return ResponseEntity.ok(CommonResult.data("Full limit $requestParkInDTO.vehicleNo $requestParkInDTO.parkingtype"))
-                                    }
-                                }
-
-                            }
-                        }
-                    }
-                }
-            }
-
             // 이미지 사진 저장
             requestParkInDTO.base64Str?.let {
                 requestParkInDTO.fileFullPath = inoutService.saveImage(it, requestParkInDTO.vehicleNo?: "", gate.udpGateid?: "")
@@ -249,9 +212,85 @@ class InoutResource (
                 )
             )
 
-            // 입차 skip 조건
+            if (!requestParkInDTO.isEmergency!!) {
+                // 입차 skip
+                // 1. 주차장 운영일 확인
+                if (!parkSiteInfoService.checkOperationDay(requestParkInDTO.date)) {
+                    logger.warn {" ##### 주차장 운영일이 아님 입차 처리 skip #####"}
+                    inoutService.inFacilityIF("RESTRICTE", requestParkInDTO.vehicleNo, gate.gateId, false, false)
+                    return ResponseEntity.ok(CommonResult.data())
+                }
+                // 2. 차량 요일제 확인
+                parkSiteInfoService.parkSite!!.vehicleDayOption?.let {
+                    if (requestParkInDTO.recognitionResult == "RECOGNITION" && it != VehicleDayType.OFF) {
+                        if (DataCheckUtil.isRotation(it, requestParkInDTO.vehicleNo)) {
+                        } else {
+                            logger.warn {" ##### 입차 차단 요일제적용 차량번호 ${requestParkInDTO.vehicleNo} #####"}
+                            inoutService.inFacilityIF("RESTRICTE", requestParkInDTO.vehicleNo, gate.gateId, false, false)
+                            return ResponseEntity.ok(CommonResult.data("Restricte vehicle $requestParkInDTO.vehicleNo $requestParkInDTO.parkingtype"))
+                        }
+                    }
+                }
+                // 3. 만차 제어
+                if (parkSiteInfoService.parkSite!!.space != null) {
+                    parkSiteInfoService.parkSite!!.space?.let { spaces ->
+                        logger.info("parkinglot space $spaces")
+                        gate.gateGroupId?.let { groupId ->
+                            if (groupId.equals(spaces["gateGroupId"].toString())) {
+                                gateService.findGateByGateGroupId(groupId).let { items ->
+                                    val inGates = ArrayList<String>()
+                                    for (item in items) {
+                                        inGates.add(item.gateId?: "")
+                                    }
+                                    if (inoutService.countParkInByGatesAndVehicleStatus(inGates, "IN") >= spaces["space"].toString().toInt()) {
+                                        logger.warn{"##### 입차 차단 만차적용 차량번호: ${requestParkInDTO.vehicleNo} ${spaces["space"].toString().toInt()} #####"}
+                                        inoutService.inFacilityIF("FULL", requestParkInDTO.vehicleNo, gate.gateId, false, false)
+                                        return ResponseEntity.ok(CommonResult.data("Full limit $requestParkInDTO.vehicleNo $requestParkInDTO.parkingtype"))
+                                    }
+                                }
 
+                            }
+                        }
+                    }
+                }
+            }
 
+            // 입차 skip
+            // 4. uuid 동일, 미인식 차량 skip / uuid 동일, 차량번호 동일  기 입차 skip
+            parkInService.findOneByUuid(requestParkInDTO.uuid?: "-")?.let { parkInDTOs ->
+                if (parkInDTOs.isNotEmpty()) {
+                    val parkInDTO = parkInDTOs.sortedByDescending { parkInDTO -> parkInDTO.inDate }[0]
+                    requestParkInDTO.beforeParkIn = parkInDTO
+                    requestParkInDTO.isSecond = true
+                    if (requestParkInDTO.resultcode == "0" || requestParkInDTO.resultcode.toInt() >= 100) { return ResponseEntity.ok(CommonResult.data()) }
+                    if (parkInDTO.vehicleNo == requestParkInDTO.vehicleNo) {
+                        logger.warn{" 기 입차 차량번호:${requestParkInDTO.vehicleNo} skip "}
+                        return ResponseEntity.ok(CommonResult.data("Already in $requestParkInDTO.vehicleNo $requestParkInDTO.parkingtype"))
+                    }
+                }
+            }
+
+            // 5. 입차 후방 카메라 동일 입차건 skip
+            if ((requestParkInDTO.uuid?: "").isEmpty()) {
+                // 후방 카메라 미인식 skip
+                if (requestParkInDTO.resultcode == "0" || requestParkInDTO.resultcode.toInt() >= 100) { return ResponseEntity.ok(CommonResult.data()) }
+                requestParkInDTO.isSecond = true
+                parkInService.getNoExitVehicleNoAndGateId(requestParkInDTO.vehicleNo, gate.gateId)?.let { ins ->
+                    if (ins.isNotEmpty()) {
+                        logger.warn{" 기 입차 차량번호:${requestParkInDTO.vehicleNo} skip "}
+                        return ResponseEntity.ok(CommonResult.data("Already in $requestParkInDTO.vehicleNo $requestParkInDTO.parkingtype"))
+                    }
+
+                }
+                parkInService.getLastByGate(gate.gateId)?.let {
+                    if (it.uuid?.isNotEmpty() == true) {
+                        if (DateUtil.diffSecs(requestParkInDTO.date, it.inDate!!) < 3) {
+                            requestParkInDTO.beforeParkIn = it
+                            requestParkInDTO.uuid = it.uuid
+                        }
+                    }
+                }
+            }
 
             val result = inoutService.parkIn(requestParkInDTO)
 
