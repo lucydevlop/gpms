@@ -192,10 +192,10 @@ class InoutResource (
             requestParkInDTO.recognitionResult = "NOTRECOGNITION"
         }
 
-        parkinglotService.getGateInfoByDtFacilityId(requestParkInDTO.dtFacilitiesId ?: "")?.let { gate ->
+        parkinglotService.getGateInfoByDtFacilityId(requestParkInDTO.dtFacilitiesId)?.let { gate ->
             // 이미지 사진 저장
             requestParkInDTO.base64Str?.let {
-                requestParkInDTO.fileFullPath = inoutService.saveImage(it, requestParkInDTO.vehicleNo?: "", gate.udpGateid?: "")
+                requestParkInDTO.fileFullPath = inoutService.saveImage(it, requestParkInDTO.vehicleNo, gate.udpGateid?: "")
                 requestParkInDTO.fileName = DataCheckUtil.getFileName(requestParkInDTO.fileFullPath!!)
                 requestParkInDTO.fileUploadId = DateUtil.stringToNowDateTimeMS()+"_F"
             }
@@ -349,6 +349,7 @@ class InoutResource (
                 }
             }
 
+            // 차량 타입 확인
             val parkCarType = inoutService.confirmParkCarType(requestParkOutDTO.vehicleNo ?: "", requestParkOutDTO.date!!, "OUT")
             requestParkOutDTO.parkCarType = parkCarType["parkCarType"] as String?
             requestParkOutDTO.recognitionResult = if (requestParkOutDTO.parkCarType == "UNRECOGNIZED") "NOTRECOGNITION" else "RECOGNITION"
@@ -366,24 +367,27 @@ class InoutResource (
             )
 
             // 입차 확인
-            val parkIn = if (requestParkOutDTO.parkCarType != "UNRECOGNIZED") parkInService.getLastVehicleNoByDate(requestParkOutDTO.vehicleNo?: "", requestParkOutDTO.date!!) else null
+            val parkIn =
+                if (requestParkOutDTO.parkCarType != "UNRECOGNIZED")
+                    parkInService.getLastVehicleNoByDate(requestParkOutDTO.vehicleNo?: "", requestParkOutDTO.date!!) else null
 
             // 기존 출차 데이터 확인
             val existsParkOut = parkIn?.sn?.let { sn ->
                 parkOutService.findByInSn(sn).orElse(null)
-            }?: kotlin.run {
-                // One way 등 후진등으로 인하여 재출차 요청 시
-                if (requestParkOutDTO.recognitionResult == "RECOGNITION") {
-                    parkOutService.findByLastVehicleNo(requestParkOutDTO.vehicleNo ?: "", gate.gateId).orElse(null)?.let { parkOutDTO ->
-                        if (DateUtil.diffMins(parkOutDTO.outDate ?: LocalDateTime.now(), requestParkOutDTO.date?: LocalDateTime.now()) < 3) {
-                            logger.warn { "출차 후 재출차 3분 미만 차단기 open 처리 ${requestParkOutDTO.vehicleNo} 기존 출차 시간 ${parkOutDTO.outDate} 현재 출차 시간 ${requestParkOutDTO.date}" }
-                            relayClient.sendActionBreaker(gate.gateId, "open")
-                            return ResponseEntity.ok(CommonResult.data())
-                        }
-                    }
-                }
-                null
             }
+//                ?: kotlin.run {
+//                // One way 등 후진등으로 인하여 재출차 요청 시 삭제 요청 by 2022-01-11 QA
+//                if (requestParkOutDTO.recognitionResult == "RECOGNITION") {
+//                    parkOutService.findByLastVehicleNo(requestParkOutDTO.vehicleNo ?: "", gate.gateId).orElse(null)?.let { parkOutDTO ->
+//                        if (DateUtil.diffMins(parkOutDTO.outDate ?: LocalDateTime.now(), requestParkOutDTO.date?: LocalDateTime.now()) < 3) {
+//                            logger.warn { "출차 후 재출차 3분 미만 차단기 open 처리 ${requestParkOutDTO.vehicleNo} 기존 출차 시간 ${parkOutDTO.outDate} 현재 출차 시간 ${requestParkOutDTO.date}" }
+//                            relayClient.sendActionBreaker(gate.gateId, "open")
+//                            return ResponseEntity.ok(CommonResult.data())
+//                        }
+//                    }
+//                }
+//                null
+//            }
             // 출차 기준 skip
             //입차 확인 후 skip
             existsParkOut?.let { parkOut ->
@@ -458,7 +462,13 @@ class InoutResource (
                 // 유료 주차장인 경우
                 if (parkIn == null || requestParkOutDTO.parkCarType!!.contains("RECOGNIZED")) {
                     // 차량번호로 입차 데이터 미확인, 미인식 인 경우 -> 차량번호 검색
-                    inoutService.searchNumberFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, requestParkOutDTO.recognitionResult!!, parkOutDTO.sn!!.toString())
+                    if (parkOutDTO.parkcartype!!.contains("TICKET")) {
+                        // 입차 데이터 미확인, 정기권 차량인 경우 출차 시킴(2022-01-05)
+                        inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, requestParkOutDTO.date!!, null, null)
+                        inoutService.outFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkIn, parkOutDTO.sn!!)
+                    } else {
+                        inoutService.searchNumberFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, requestParkOutDTO.recognitionResult!!, parkOutDTO.sn!!.toString())
+                    }
                 } else {
                     // 현재 입차 시간 기준으로 정기권 차량 이력 확인
                     seasonTicketService.getLastTicketByVehicleNoAndTicketType(requestParkOutDTO.vehicleNo!!, TicketType.SEASONTICKET)?.let { seasonTicketDTO ->
@@ -466,7 +476,7 @@ class InoutResource (
                         if ( -3 <= days || days <= 7 ) {
                             // 정기권 정보
                             logger.debug { "extended payment ${seasonTicketDTO.sn} ${seasonTicketDTO.vehicleNo} ${seasonTicketDTO.expireDate}" }
-                            var ticketInfo = TicketInfoDTO(
+                            val ticketInfo = TicketInfoDTO(
                                 sn = seasonTicketDTO.sn.toString(),
                                 effectDate = DateUtil.LocalDateTimeToDateString(DateUtil.beginTimeToLocalDateTime(DateUtil.LocalDateTimeToDateString(DateUtil.getAddDays(seasonTicketDTO.expireDate?: LocalDateTime.now(), 1)))),
                                 expireDate = DateUtil.LocalDateTimeToDateString(DateUtil.getAddMonths(seasonTicketDTO.expireDate?: LocalDateTime.now(), 1)),

@@ -29,6 +29,7 @@ class TicketClassMapper() {
                     available = dto.available,
                     period = dto.period,
                     extendYn = dto.extendYn,
+                    week = dto.week,
                     delYn = dto.delYn
                 )
 

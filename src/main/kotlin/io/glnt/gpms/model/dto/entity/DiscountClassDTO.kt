@@ -64,6 +64,8 @@ data class DiscountClassDTO(
     @get: NotNull
     @Enumerated(EnumType.STRING)
     var delYn: YN? = null,
+
+    var useCnt: Int? = null
 ): Serializable {
     constructor(discountClass: DiscountClass) :
         this(

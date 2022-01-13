@@ -45,7 +45,6 @@ import kotlin.collections.HashMap
 open class InoutService(
     private var inoutPaymentRepository: InoutPaymentRepository,
     private var feeCalculation: FeeCalculation,
-    private var gateRepository: GateRepository,
     private var relayClient: RelayClient,
     private var parkInQueryService: ParkInQueryService,
     private var parkInService: ParkInService,
@@ -54,7 +53,8 @@ open class InoutService(
     private var gateService: GateService,
     private val inoutPaymentService: InoutPaymentService,
     private val parkInMapper: ParkInMapper,
-    private val displayService: DisplayService
+    private val displayService: DisplayService,
+    private val ticketService: TicketService
 ) {
     companion object : KLogging()
 
@@ -137,9 +137,9 @@ open class InoutService(
 
                 // 차량번호 정상인식에 한하여 아래의 모듈 처리
                 if (request.recognitionResult.equals("RECOGNITION")) {
-                    productService.getValidProductByVehicleNo(vehicleNo, date, date)?.let {
+                    ticketService.getValidTicket(vehicleNo, date, date)?.let {
                         parkingtype = it.ticketType!!.code
-                        validDate = it.validDate
+                        validDate = it.expireDate
                         ticketSn = it.sn
                     }?: kotlin.run {
                         // TODO 방문차량 확인
@@ -930,7 +930,7 @@ open class InoutService(
                 }
             }
             "SEASONTICKET", "WHITELIST", "FREETICKET", "VISITTICKET" -> {
-                val days = productService.calcRemainDayProduct(vehicleNo)
+                val days = ticketService.calcRemainDayTicket(vehicleNo)
                 if (parkingtype == "SEASONTICKET" && days in 0..7)
                     makeParkPhrase("VIP", vehicleNo, "잔여 0${days}일", type)
                 else
@@ -1265,22 +1265,14 @@ open class InoutService(
 
 
     fun inFacilityIF(parkCarType: String, vehicleNo: String, gateId: String, isOpen: Boolean, isSecond: Boolean) {
-        logger.warn { "parkIn car_number: $vehicleNo 입차 gate $gateId $parkCarType 오픈 $isOpen" }
+        logger.warn { "## 입차 시설 연계 차량번호: $vehicleNo 입차 gate $gateId $parkCarType 오픈 $isOpen ##" }
 
-        if (parkCarType == "RESTRICTE") {
-            displayMessage(parkCarType, vehicleNo, "IN", gateId)
-        } else if (parkCarType == "FULL") {
+        if (parkCarType == "RESTRICTE" || parkCarType == "FULL") {
+            logger.warn { "입차 차단 차량: $vehicleNo $parkCarType" }
             displayMessage(parkCarType, vehicleNo, "IN", gateId)
         } else {
+            displayMessage(parkCarType, vehicleNo, "IN", gateId)
             if (isOpen) {
-                displayMessage(parkCarType, vehicleNo, "IN", gateId)
-            } else {
-                logger.warn { "입차 차단 차량: $vehicleNo $parkCarType" }
-                displayMessage("RESTRICTE", vehicleNo, "IN", gateId)
-            }
-
-            if (!isSecond && isOpen) {
-                logger.info { "게이트 오픈 차량: $vehicleNo $isOpen $isSecond" }
                 relayClient.sendActionBreaker(gateId, "open")
             }
         }
@@ -1432,7 +1424,7 @@ open class InoutService(
 
         if (DataCheckUtil.isValidCarNumber(vehicleNo)) {
             //todo 정기권 차량 여부 확인
-            productService.getValidProductByVehicleNo(vehicleNo, date, date)?.let {
+            ticketService.getValidTicket(vehicleNo, date, date)?.let {
                 result =
                     hashMapOf<String, Any?>(
                         "parkCarType" to it.ticketType!!.code,

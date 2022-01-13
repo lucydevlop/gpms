@@ -3,16 +3,18 @@ package io.glnt.gpms.service
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.criteria.SeasonTicketCriteria
 import io.glnt.gpms.model.dto.entity.SeasonTicketDTO
+import io.glnt.gpms.model.entity.Corp
 import io.glnt.gpms.model.entity.SeasonTicket
 import io.glnt.gpms.model.enums.DateType
-import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.TicketType
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.mapper.SeasonTicketMapper
 import io.glnt.gpms.model.repository.SeasonTicketRepository
 import mu.KLogging
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import javax.persistence.criteria.Join
 import javax.persistence.criteria.Predicate
 
 @Service
@@ -27,7 +29,8 @@ class SeasonTicketQueryService(
     fun findByCriteria(criteria: SeasonTicketCriteria): MutableList<SeasonTicketDTO> {
         logger.trace("seasonTicket find by criteria : {}", criteria)
         val specification = createSpecification(criteria)
-        return seasonTicketRepository.findAll(specification).mapTo(mutableListOf(), seasonTicketMapper::toDTO)
+        val list = seasonTicketRepository.findAll(specification).mapTo(mutableListOf(), seasonTicketMapper::toDTO)
+        return list
     }
 
     private fun createSpecification(criteria: SeasonTicketCriteria?): Specification<SeasonTicket> {
@@ -107,6 +110,13 @@ class SeasonTicketQueryService(
                             )
                         }
                     }
+                }
+                if (criteria.corpName != null && criteria.corpName != "") {
+                    val joinParent: Join<SeasonTicket, Corp> = root.join("corp")
+                    val likeValue = "%" + criteria.corpName + "%"
+                    clues.add(
+                        criteriaBuilder.like(joinParent.get<String>("corpName"), likeValue)
+                    )
                 }
             }
             //query.orderBy(criteriaBuilder.desc(root.get<LocalDateTime>("issueDateTime")))

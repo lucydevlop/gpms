@@ -26,7 +26,9 @@ data class SeasonTicketCriteria (
 
     @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd HH:mm:ss") var expireDate: LocalDateTime? = null,
 
-    var delYn: String? = null
+    var delYn: String? = null,
+
+    var corpName: String? = null
 
 ): Serializable {
     constructor(other: SeasonTicketCriteria) :
@@ -40,7 +42,8 @@ data class SeasonTicketCriteria (
                 other.toDate,
                 other.effectDate,
                 other.expireDate,
-                other.delYn
+                other.delYn,
+                other.corpName
             )
 
     companion object {

@@ -68,9 +68,9 @@ data class CorpTicketClass (
     var applyTarget: DiscountApplyTargetType? = null,
 
     @Enumerated(EnumType.STRING)
-    var applyType: DiscountRangeType? = null,
+    var applyType: DiscountRangeType? = null
 
-    ): Auditable(), Serializable {
+): Auditable(), Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

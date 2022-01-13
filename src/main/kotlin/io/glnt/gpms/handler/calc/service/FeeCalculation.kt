@@ -6,6 +6,8 @@ import io.glnt.gpms.handler.calc.CalculationData
 import io.glnt.gpms.handler.calc.model.*
 import io.glnt.gpms.handler.product.service.ProductService
 import io.glnt.gpms.model.dto.DiscountApplyDTO
+import io.glnt.gpms.model.dto.entity.SeasonTicketDTO
+import io.glnt.gpms.model.dto.entity.TicketClassDTO
 import io.glnt.gpms.model.dto.request.ReqAddParkingDiscount
 import io.glnt.gpms.model.entity.FareInfo
 import io.glnt.gpms.model.enums.*
@@ -23,7 +25,8 @@ import kotlin.math.ceil
 class FeeCalculation(
     private val parkSiteInfoService: ParkSiteInfoService,
     private val inoutDiscountService: InoutDiscountService,
-    private val discountClassService: DiscountClassService
+    private val discountClassService: DiscountClassService,
+    private val ticketService: TicketService
 ) {
     companion object : KLogging()
 
@@ -392,35 +395,72 @@ class FeeCalculation(
 //        return discount
 //    }
 
+    fun makeTicketTimeRange(ticketClass: TicketClassDTO, sesonTicketDTO: SeasonTicketDTO, startTime: LocalDateTime, endTime: LocalDateTime) : TimeRange?{
+        when(ticketClass.aplyType) {
+            TicketAplyType.FULL ->
+                return TimeRange(
+                    startTime = if (startTime > sesonTicketDTO.effectDate) startTime else sesonTicketDTO.effectDate,
+                    endTime = if (endTime > sesonTicketDTO.expireDate) sesonTicketDTO.expireDate else endTime,
+                    type = "SEASONTICKET"
+                )
+            else -> {
+                val effectDate = DateUtil.makeLocalDateTime(
+                    DateUtil.LocalDateTimeToDateString(startTime),
+                    ticketClass.startTime!!.substring(0, 2), ticketClass.startTime!!.substring(2, 4))
+                val expireDate = if (ticketClass.startTime!! > ticketClass.endTime!!) {
+                    DateUtil.makeLocalDateTime(
+                        DateUtil.LocalDateTimeToDateString(DateUtil.getAddDays(startTime, 1)),
+                        ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
+                } else DateUtil.makeLocalDateTime(
+                    DateUtil.LocalDateTimeToDateString(startTime),
+                    ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
+                if (startTime > expireDate) return null
+                return TimeRange(
+                    startTime = if (startTime > effectDate) startTime else effectDate,
+                    endTime = if (endTime > expireDate) expireDate else endTime,
+                    type = "SEASONTICKET"
+                )
+            }
+        }
+    }
+
     fun getSeasonTicket(vehicleNo: String, startTime: LocalDateTime, endTime: LocalDateTime): TimeRange? {
         logger.debug { "vaildate season ticket $vehicleNo, $startTime $endTime" }
         try {
-            productService.getValidProductByVehicleNo(vehicleNo, startTime, endTime)?.let {
+            ticketService.getValidTicket(vehicleNo, startTime, endTime)?.let {
                 it.ticket?.let { ticketClass ->
-                   if (ticketClass.aplyType == TicketAplyType.FULL) {
-                       return TimeRange(
-                           startTime = if (startTime > it.effectDate) startTime else it.effectDate,
-                           endTime = if (endTime > it.expireDate) it.expireDate else endTime,
-                           type = "SEASONTICKET"
-                       )
+                    if (ticketClass.week!!.contains(WeekType.ALL.toString())) {
+                        return makeTicketTimeRange(ticketClass, it, startTime, endTime)
                     } else {
-                        val effectDate = DateUtil.makeLocalDateTime(
-                            DateUtil.LocalDateTimeToDateString(startTime),
-                            ticketClass.startTime!!.substring(0, 2), ticketClass.startTime!!.substring(2, 4))
-                       val expireDate = if (ticketClass.startTime!! > ticketClass.endTime!!) {
-                           DateUtil.makeLocalDateTime(
-                               DateUtil.LocalDateTimeToDateString(DateUtil.getAddDays(startTime, 1)),
-                               ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
-                       } else DateUtil.makeLocalDateTime(
-                           DateUtil.LocalDateTimeToDateString(startTime),
-                           ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
-                       if (startTime > expireDate) return null
-                       return TimeRange(
-                           startTime = if (startTime > effectDate) startTime else effectDate,
-                           endTime = if (endTime > expireDate) expireDate else endTime,
-                           type = "SEASONTICKET"
-                       )
-                   }
+                        return makeTicketTimeRange(ticketClass,
+                            it, startTime, DateUtil.lastTimeToLocalDateTime(DateUtil.LocalDateTimeToDateString(startTime) ))
+                    }
+//                    when(ticketClass.aplyType) {
+//                        TicketAplyType.FULL ->
+//                            return TimeRange(
+//                                startTime = if (startTime > it.effectDate) startTime else it.effectDate,
+//                                endTime = if (endTime > it.expireDate) it.expireDate else endTime,
+//                                type = "SEASONTICKET"
+//                            )
+//                        else -> {
+//                            val effectDate = DateUtil.makeLocalDateTime(
+//                                DateUtil.LocalDateTimeToDateString(startTime),
+//                                ticketClass.startTime!!.substring(0, 2), ticketClass.startTime!!.substring(2, 4))
+//                            val expireDate = if (ticketClass.startTime!! > ticketClass.endTime!!) {
+//                                DateUtil.makeLocalDateTime(
+//                                    DateUtil.LocalDateTimeToDateString(DateUtil.getAddDays(startTime, 1)),
+//                                    ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
+//                            } else DateUtil.makeLocalDateTime(
+//                                DateUtil.LocalDateTimeToDateString(startTime),
+//                                ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
+//                            if (startTime > expireDate) return null
+//                            return TimeRange(
+//                                startTime = if (startTime > effectDate) startTime else effectDate,
+//                                endTime = if (endTime > expireDate) expireDate else endTime,
+//                                type = "SEASONTICKET"
+//                            )
+//                        }
+//                    }
                 }
                 return TimeRange(
                     startTime = if (startTime > it.effectDate) startTime else it.effectDate,
@@ -563,7 +603,8 @@ class FeeCalculation(
                 val dailySplit = DailySplit(
                     date = DateUtil.LocalDateTimeToDateString(startTime),
                     week = DateUtil.getWeek(DateUtil.formatDateTime(startTime, "yyyy-MM-dd")),
-                    startTime = startTime, endTime = outTime
+                    startTime = startTime,
+                    endTime = outTime
                 )
 
                 if (holidayService.isHolidayByDay(dailySplit.startTime)) {

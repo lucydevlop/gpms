@@ -35,4 +35,11 @@ class ScheduledTasks(
         logger.info("batchExtendSeasonTicket")
         seasonTicketService.extendSeasonTicket()
     }
+
+    /* 매일 01:00 시 */
+    @Scheduled(cron = "0 0 1 * * *" , zone = "Asia/Seoul")
+    fun batchExpireSeasonTicket() {
+        logger.info("batchExpireSeasonTicket")
+        seasonTicketService.expireSeasonTicket()
+    }
 }

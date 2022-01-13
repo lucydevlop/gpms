@@ -50,6 +50,8 @@ data class TicketClassDTO(
     @Enumerated(EnumType.STRING)
     var extendYn: YN? = null,
 
+    var week: MutableSet<String>? = mutableSetOf(WeekType.ALL.toString()),
+
     @get: NotNull
     @Enumerated(EnumType.STRING)
     var delYn: YN? = null
@@ -57,7 +59,8 @@ data class TicketClassDTO(
     constructor(ticketClass: TicketClass) :
         this(
             ticketClass.sn, ticketClass.ticketType, ticketClass.ticketName, ticketClass.aplyType, ticketClass.startTime, ticketClass.endTime,
-            ticketClass.rangeType, ticketClass.effectDate, ticketClass.expireDate, ticketClass.price, ticketClass.vehicleType, ticketClass.available, ticketClass.period, ticketClass.extendYn, ticketClass.delYn
+            ticketClass.rangeType, ticketClass.effectDate, ticketClass.expireDate, ticketClass.price, ticketClass.vehicleType, ticketClass.available,
+            ticketClass.period, ticketClass.extendYn, ticketClass.week, ticketClass.delYn
         )
 
     override fun equals(other: Any?): Boolean {

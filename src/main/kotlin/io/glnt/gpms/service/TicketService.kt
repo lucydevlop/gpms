@@ -1,9 +1,12 @@
 package io.glnt.gpms.service
 
+import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.dto.entity.SeasonTicketDTO
+import io.glnt.gpms.model.enums.TicketAplyType
 import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.enums.TicketType
+import io.glnt.gpms.model.enums.WeekType
 import io.glnt.gpms.model.mapper.SeasonTicketMapper
 import io.glnt.gpms.model.repository.SeasonTicketRepository
 import mu.KLogging
@@ -73,6 +76,53 @@ class TicketService(
         else seasonTicketRepository.findTopByVehicleNoAndDelYnAndTicketTypeOrderByExpireDateDesc(vehicleNo, YN.N, ticketType)?.let { seasonTicket -> seasonTicketMapper.toDTO(seasonTicket) }
     }
 
+    fun getValidTicket(vehicleNo: String, startTime: LocalDateTime, endTime: LocalDateTime): SeasonTicketDTO? {
+        seasonTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startTime, endTime, YN.N)?.let { tickets ->
+            if (tickets.isEmpty()) return null
+
+            tickets.forEach { ticket ->
+                ticket.ticket?.let { ticketClass ->
+                    // 유료 정기권 결제 정보 없을 시 false
+                    if (((ticketClass.price?: 0) > 0) && ticket.payMethod == null) return null
+
+                    if (DataCheckUtil.checkIncludeWeek(ticketClass.week!!, startTime)) {
+                        when(ticketClass.aplyType) {
+                            TicketAplyType.FULL -> return seasonTicketMapper.toDTO(ticket)
+                            else -> {
+                                val expireDate = if (ticketClass.startTime!! > ticketClass.endTime!!) {
+                                    DateUtil.makeLocalDateTime(
+                                        DateUtil.LocalDateTimeToDateString(DateUtil.getAddDays(startTime, 1)),
+                                        ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
+                                } else DateUtil.makeLocalDateTime(
+                                    DateUtil.LocalDateTimeToDateString(startTime),
+                                    ticketClass.endTime!!.substring(0, 2), ticketClass.endTime!!.substring(2, 4))
+
+                                val effectDate = DateUtil.makeLocalDateTime(
+                                    DateUtil.LocalDateTimeToDateString(startTime),
+                                    ticketClass.startTime!!.substring(0, 2), ticketClass.startTime!!.substring(2, 4))
+
+                                return if ( ( expireDate < startTime ) || (effectDate > endTime) )
+                                    null
+                                else
+                                    seasonTicketMapper.toDTO(ticket)
+                            }
+                        }
+                    } else {
+                        return null
+                    }
+                }
+            }
+        }
+        return null
+    }
+
+    fun calcRemainDayTicket(vehicleNo: String): Int {
+        getValidTicket(vehicleNo, LocalDateTime.now(), LocalDateTime.now())?.let { it ->
+            return DateUtil.diffDays(LocalDateTime.now(), it.expireDate!!)
+        }
+        return -1
+    }
+
     fun extendSeasonTicket() {
         // 1. 연장 대상 fetch
 
@@ -127,6 +177,18 @@ class TicketService(
                         }
                     }
                 }
+            }
+        }
+    }
+
+    // ticket 비활성화 batch
+    fun expireSeasonTicket() {
+        // 1. 대상 fetch
+        seasonTicketRepository.findByDelYnAndEffectDateLessThanAndExpireDateLessThan(YN.N, LocalDateTime.now(), LocalDateTime.now())?.let { tickets ->
+            tickets.forEach { ticket ->
+                val update = seasonTicketMapper.toDTO(ticket)
+                update.delYn = YN.Y
+                save(update)
             }
         }
     }

@@ -413,6 +413,7 @@ class DiscountService(
             list.forEach { discount ->
                 discountClassService.findBySn(discount.discountClassSn).apply {
                     if (this.discountApplyType == DiscountApplyType.WON && this.discountApplyRate == DiscountApplyRateType.VARIABLE) {
+                        this.useCnt = discount.cnt
                         discountClasses.add(this)
 
                         if (type == CalcType.SETTLE) {
@@ -425,9 +426,9 @@ class DiscountService(
             }
             if (discountClasses.isEmpty()) return 0
 
-            val apply = discountClasses.sumOf { it.unitTime }
+            result = discountClasses.sumOf { it.unitTime * (it.useCnt?: 0) }
 
-            result = apply
+            //result = apply
 
             //result = if (apply > totalPrice) totalPrice else apply
         }

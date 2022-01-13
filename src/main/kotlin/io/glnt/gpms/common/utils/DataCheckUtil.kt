@@ -8,6 +8,7 @@ import io.glnt.gpms.model.enums.WeekType
 import okhttp3.internal.format
 import org.springframework.beans.factory.annotation.Autowired
 import java.lang.Exception
+import java.time.LocalDateTime
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import kotlin.random.Random
@@ -98,5 +99,9 @@ object DataCheckUtil {
             if (vehicleNo.substring(0, 3) == "999" || vehicleNo.substring(0, 3) == "998") return true
         }
         return false
+    }
+
+    fun checkIncludeWeek(week: MutableSet<String>, date: LocalDateTime): Boolean {
+        return week.contains(DateUtil.getWeek(DateUtil.formatDateTime(date, "yyyy-MM-dd")).toString()) || week.contains(WeekType.ALL.toString())
     }
 }

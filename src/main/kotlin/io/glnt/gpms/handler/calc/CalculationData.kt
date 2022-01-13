@@ -1,5 +1,6 @@
 package io.glnt.gpms.handler.calc
 
+import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.model.entity.CgBasic
 import io.glnt.gpms.model.repository.FarePolicyRepository
@@ -72,7 +73,8 @@ class CalculationData(
                     ( (it.startTime!! <= time && time < it.endTime!! && it.startTime!! < it.endTime!!) ||
                       (it.startTime!! > it.endTime!! && it.endTime!! > time && it.startTime!! >= time) ||
                       (it.startTime!! > it.endTime!! && it.endTime!! < time && it.startTime!! <= time) ) &&
-                    ( it.week!!.contains(DateUtil.getWeek(date).toString()) || it.week!!.contains(WeekType.ALL.toString())) &&
+                      (DataCheckUtil.checkIncludeWeek(it.week!!, DateUtil.stringToLocalDateTime("$date 00:00:00", "yyyy-MM-dd HH:mm:ss"))) &&
+                    //( it.week!!.contains(DateUtil.getWeek(date).toString()) || it.week!!.contains(WeekType.ALL.toString())) &&
                     ( it.effectDate!! <= DateUtil.beginTimeToLocalDateTime(date) &&
                             it.expireDate!! > DateUtil.lastTimeToLocalDateTime(date) )
 

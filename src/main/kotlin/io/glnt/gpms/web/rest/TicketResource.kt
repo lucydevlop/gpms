@@ -240,17 +240,24 @@ class TicketResource (
                    @RequestParam(name = "effectDate", required = false) effectDate: String?,
                    @RequestParam(name = "expireDate", required = false) expireDate: String?,
                    @RequestParam(name = "ticketType", required = false) ticketType: TicketType?,
+                   @RequestParam(name = "corpName", required = false) corpName: String?,
                    @RequestParam(name = "delYn", required = false) delYn: String? = "N"): ResponseEntity<CommonResult> {
         logger.debug { "tickets search $searchDateLabel $fromDate $toDate $searchLabel $searchText $ticketType" }
         val criteria = SeasonTicketCriteria(
             searchDateLabel = searchDateLabel, fromDate = DateUtil.stringToLocalDate(fromDate), toDate = DateUtil.stringToLocalDate(toDate), searchLabel = searchLabel, searchText = searchText,
-            ticketType = ticketType, delYn = delYn)
+            ticketType = ticketType, delYn = delYn, corpName = corpName)
         return CommonResult.returnResult(CommonResult.data(seasonTicketQueryService.findByCriteria(criteria)))
     }
 
     @RequestMapping(value = ["/extend/tickets"], method = [RequestMethod.GET])
     fun extendTickets() : ResponseEntity<CommonResult> {
         ticketService.extendSeasonTicket()
+        return CommonResult.returnResult(CommonResult.data())
+    }
+
+    @RequestMapping(value = ["/expire/tickets"], method = [RequestMethod.GET])
+    fun expireTickets() : ResponseEntity<CommonResult> {
+        ticketService.expireSeasonTicket()
         return CommonResult.returnResult(CommonResult.data())
     }
 

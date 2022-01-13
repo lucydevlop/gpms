@@ -47,6 +47,10 @@ data class TicketClass(
     @Column(name = "range_type")
     var rangeType: DiscountRangeType? = DiscountRangeType.ALL,
 
+    @Type(type = "json")
+    @Column(name = "week", columnDefinition = "json")
+    var week: MutableSet<String>? = mutableSetOf(WeekType.ALL.toString()),
+
     @Column(name = "effect_date", nullable = true)
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")

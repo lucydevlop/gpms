@@ -54,7 +54,7 @@ data class DiscountClass(
     var disUse: SaleType? = SaleType.FREE,
 
     @Column(name = "disMaxNo")
-    var disMaxNo: Int? = 1,
+    var disMaxNo: Int? = 9999,
 
     @Column(name = "disMaxDay")
     var disMaxDay: Int? = 9999,

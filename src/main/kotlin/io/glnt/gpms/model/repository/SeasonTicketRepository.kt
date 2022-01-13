@@ -26,8 +26,8 @@ interface SeasonTicketRepository: JpaRepository<SeasonTicket, Long>, JpaSpecific
     fun findTopByVehicleNoAndDelYnOrderByExpireDateDesc(vehiclNo: String, delYn: YN): SeasonTicket?
     fun findTopByVehicleNoAndDelYnAndTicketTypeOrderByExpireDateDesc(vehiclNo: String, delYn: YN, ticketType: TicketType): SeasonTicket?
     fun findByTicketSnAndDelYnAndExtendYnAndEffectDateLessThanAndExpireDateGreaterThanAndTicketTypeAndNextSnIsNullAndPayMethodIsNotNull(ticketSn: Long, delYn: YN, extendYn: YN, date1: LocalDateTime, date2: LocalDateTime, ticketType: TicketType): List<SeasonTicket>?
-
     fun findByVehicleNoAndTicketTypeAndEffectDateBetweenAndDelYn(vehiclNo: String, ticketType: TicketType, date1: LocalDateTime, date2: LocalDateTime, delYn: YN): List<SeasonTicket>?
+    fun findByDelYnAndEffectDateLessThanAndExpireDateLessThan(delYn: YN, date1: LocalDateTime, date2: LocalDateTime): List<SeasonTicket>?
 
 }
 
