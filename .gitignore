@@ -35,7 +35,8 @@ out/
 ### VS Code ###
 .vscode/
 
-### log ###
+### log or ETC ###
 *.log
 *.txt
 *.jpg
+*.png

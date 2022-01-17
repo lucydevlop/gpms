@@ -513,7 +513,7 @@ class FeeCalculation(
         outTime: LocalDateTime?,
         vehicleType: VehicleType,
         vehicleNo: String,
-        discountMin: Int,
+        discountMin: Int? = 0,
         inSn: Long?,
         discountClasses: ArrayList<ReqAddParkingDiscount>? = null,
         isReCharge: Boolean = false): BasicPrice? {
