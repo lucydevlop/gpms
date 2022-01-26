@@ -3,6 +3,7 @@ package io.glnt.gpms.web.rest
 import io.glnt.gpms.common.api.CommonResult
 import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
+import io.glnt.gpms.common.utils.DataCheckUtil
 import io.glnt.gpms.common.utils.DateUtil
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.dashboard.user.model.ResDiscountTicetsApplyList
@@ -86,12 +87,15 @@ class CorpResource (
         val applyTickets = ArrayList<CorpTicketDTO>()
         tickets.forEach { ticket ->
             parkInService.findOne(inSn.toLong())?.let { parkIn ->
-                val date = if (ticket.corpTicketClass!!.applyTarget == DiscountApplyTargetType.NOW) DateUtil.nowDate else DateUtil.LocalDateTimeToDateString(parkIn.inDate ?: LocalDateTime.now())
-                if (ticket.corpTicketClass!!.applyType == DiscountRangeType.ALL) {
+                val date = if (ticket.corpTicketClass!!.applyTarget == DiscountApplyTargetType.NOW) LocalDateTime.now() else parkIn.inDate ?: LocalDateTime.now()
+                if (DataCheckUtil.checkIncludeWeek(ticket.corpTicketClass!!.week!!, date)) {
                     applyTickets.add(ticket)
-                } else {
-                    if (DateUtil.getWeekRange(date) == ticket.corpTicketClass!!.applyType) applyTickets.add(ticket)
                 }
+//                if (ticket.corpTicketClass!!.applyType == DiscountRangeType.ALL) {
+//                    applyTickets.add(ticket)
+//                } else {
+//                    if (DateUtil.getWeekRange(date) == ticket.corpTicketClass!!.applyType) applyTickets.add(ticket)
+//                }
             }
         }
 

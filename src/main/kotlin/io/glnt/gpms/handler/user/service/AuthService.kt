@@ -92,8 +92,22 @@ class AuthService(
                 SiteUser(
                     idx = null,
                     id = "rcs-user",
-                    password = passwordEncoder.encode("glnt123!@#"),
+                    password = passwordEncoder.encode("glnt11!!"),
                     userName = "rcs",
+                    userPhone = "0100000000",
+                    role = UserRole.SUPER_ADMIN,
+                    delYn = YN.N
+                )
+            )
+        }
+
+        userRepository.findUsersById("api-user")?: run {
+            userRepository.save(
+                SiteUser(
+                    idx = null,
+                    id = "api-user",
+                    password = passwordEncoder.encode("glnt11!!"),
+                    userName = "api",
                     userPhone = "0100000000",
                     role = UserRole.SUPER_ADMIN,
                     delYn = YN.N

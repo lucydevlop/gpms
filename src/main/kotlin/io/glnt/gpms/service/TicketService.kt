@@ -110,6 +110,8 @@ class TicketService(
                     } else {
                         return null
                     }
+                }?: run {
+                    return seasonTicketMapper.toDTO(ticket)
                 }
             }
         }

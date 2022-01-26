@@ -50,20 +50,8 @@ class CustomUserDetails : UserDetailsService {
     fun loadApiUser(key: String) : UserDetails {
         val decodeStr = Base64Util.decodeAsString(key)
         val str = decodeStr.split(":").toTypedArray()
-        if (str.size == 0) throw UsernameNotFoundException("User not found")
+        if (str.isEmpty()) throw UsernameNotFoundException("User not found")
 
-        if ((str[0] == "api-user" || str[0] == "rcs-user") && (str[1] == ("apiuser11!!"))) {
-            return UserPrincipal(
-                SiteUser(
-                    idx = 0,
-                    id = str[0],
-                    password = str[1],
-                    userName = str[0],
-                    role = UserRole.API,
-                    userPhone = "00000000"
-                )
-            )
-        }
         userRepository.findUsersById(str[0])?.let { siteUser ->
             if (passwordEncoder.matches(str[0], siteUser.password)) {
                 return UserPrincipal(
@@ -76,9 +64,23 @@ class CustomUserDetails : UserDetailsService {
                         userPhone = "00000000"
                     )
                 )
+            } else {
+                if ((str[0] == "api-user" || str[0] == "rcs-user") && (str[1] == ("glnt11!!"))) {
+                    return UserPrincipal(
+                        SiteUser(
+                            idx = 0,
+                            id = str[0],
+                            password = str[1],
+                            userName = str[0],
+                            role = UserRole.API,
+                            userPhone = "00000000"
+                        )
+                    )
+                }
             }
         }
-        logger.info{ "loadApiUser find not : " + key }
+
+        logger.info{ "loadApiUser find not : $key" }
         throw UsernameNotFoundException("User not found")
     }
 }

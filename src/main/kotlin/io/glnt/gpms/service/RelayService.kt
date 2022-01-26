@@ -590,6 +590,10 @@ class RelayService(
                                     parkinglotService.getGate(it.gateId ?: "")!!,
                                     parkOutDTO,
                                     parkIn.inDate!!)
+
+                                if ((price?.totalPrice?: 0) <= 0) {
+                                    inoutService.outFacilityIF(it.parkcartype!!, it.vehicleNo!!, gate, parkIn, parkOutDTO.sn!!)
+                                }
                             }
                         }
                     }

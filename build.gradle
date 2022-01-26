@@ -38,7 +38,7 @@ apply {
     plugin("kotlin")
     plugin("kotlin-spring")
     plugin("kotlin-jpa")
-    plugin('kotlin-kapt')
+    plugin("kotlin-kapt")
     plugin("idea")
     plugin("eclipse")
     plugin("org.springframework.boot")

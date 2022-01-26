@@ -43,6 +43,10 @@ open class InoutPaymentService (
         return inoutPaymentRepository.findByInSnAndResultAndDelYn(sn, result, YN.N)?.map(inoutPaymentMapper::toDTO)
     }
 
+    fun getLastInSnAndResult(sn: Long, result: ResultType): InoutPaymentDTO? {
+        return inoutPaymentRepository.findTopByInSnAndResultAndDelYnOrderBySnDesc(sn, result, YN.N)?.let { InoutPaymentDTO(it) }
+    }
+
     @Transactional(readOnly = true)
     open fun findByInSn(sn: Long): List<InoutPaymentDTO>? {
         logger.debug { "Request to get InoutPayment $sn" }

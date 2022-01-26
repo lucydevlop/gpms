@@ -66,7 +66,7 @@ class SecurityConfiguration {
 
             authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS).permitAll()
-                .antMatchers("/$API_VERSION/auth/**").permitAll()
+                .antMatchers("/$API_VERSION/login/**").permitAll()
                 .antMatchers("/$API_VERSION/parkinglot/**").permitAll()
                 .antMatchers("/$API_VERSION/corp/**").permitAll()
                 .antMatchers("/$API_VERSION/facility/**").permitAll()

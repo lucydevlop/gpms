@@ -26,15 +26,10 @@ class FeeCalculation(
     private val parkSiteInfoService: ParkSiteInfoService,
     private val inoutDiscountService: InoutDiscountService,
     private val discountClassService: DiscountClassService,
-    private val ticketService: TicketService
+    private val ticketService: TicketService,
+    private val holidayService: HolidayService
 ) {
     companion object : KLogging()
-
-    @Autowired
-    private lateinit var holidayService: HolidayService
-
-    @Autowired
-    private lateinit var productService: ProductService
 
     @Autowired
     private lateinit var calcData: CalculationData
@@ -674,11 +669,6 @@ class FeeCalculation(
         val discountItmes = ArrayList<ReqAddParkingDiscount>()
         //이전 등록 할인권과 merge
         discountService.searchInoutDiscount(inSn?: -1)?.let { discounts ->
-            if (type == CalcType.SETTLE) {
-                discounts.filter { it.calcYn == YN.N }.forEach { discount ->
-                    discountItmes.add(ReqAddParkingDiscount(inSn = discount.inSn, discountClassSn = discount.discountClassSn, cnt = discount.quantity?: 0, sn = discount.sn))
-                }
-            }
             discounts.forEach { discount ->
                 discountItmes.add(ReqAddParkingDiscount(inSn = discount.inSn, discountClassSn = discount.discountClassSn, cnt = discount.quantity?: 0, sn = discount.sn))
             }

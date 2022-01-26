@@ -39,6 +39,8 @@ data class CorpTicketClassDTO (
 
     var extendYn: OnOff? = OnOff.OFF,
 
+    var week: MutableSet<String>? = mutableSetOf(WeekType.ALL.toString()),
+
     @get: NotNull
     @Enumerated(EnumType.STRING)
     var delYn: YN? = null,
@@ -56,7 +58,7 @@ data class CorpTicketClassDTO (
         this(
             corpTicketClass.sn, corpTicketClass.name, corpTicketClass.effectDate, corpTicketClass.expireDate,
             corpTicketClass.discountClassSn, corpTicketClass.onceMax, corpTicketClass.dayMax, corpTicketClass.monthMax,
-            corpTicketClass.saleType, corpTicketClass.price, corpTicketClass.extendYn, corpTicketClass.delYn,
+            corpTicketClass.saleType, corpTicketClass.price, corpTicketClass.extendYn, corpTicketClass.week, corpTicketClass.delYn,
             corpTicketClass.applyTarget, corpTicketClass.applyType
         )
 }

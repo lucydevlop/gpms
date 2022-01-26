@@ -8,6 +8,7 @@ import io.glnt.gpms.model.entity.Auditable
 import io.glnt.gpms.model.enums.*
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import org.hibernate.annotations.Type
 import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -68,7 +69,11 @@ data class CorpTicketClass (
     var applyTarget: DiscountApplyTargetType? = null,
 
     @Enumerated(EnumType.STRING)
-    var applyType: DiscountRangeType? = null
+    var applyType: DiscountRangeType? = null,
+
+    @Type(type = "json")
+    @Column(name = "week", columnDefinition = "json")
+    var week: MutableSet<String>? = mutableSetOf(WeekType.ALL.toString()),
 
 ): Auditable(), Serializable {
 

@@ -21,7 +21,7 @@ import java.time.LocalDateTime
 import javax.servlet.http.HttpServletRequest
 
 @RestController
-@RequestMapping(path=["/${ApiConfig.API_VERSION}/auth"])
+@RequestMapping(path=["/${ApiConfig.API_VERSION}"])
 @CrossOrigin(origins = arrayOf("*"), allowedHeaders = arrayOf("*"))
 class AuthController(
     private val siteUserService: SiteUserService
@@ -33,7 +33,7 @@ class AuthController(
     @Autowired
     private lateinit var passwordEncoder: PasswordEncoder
 
-    @RequestMapping(value = ["/admin/login"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/login/admin"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun adminLogin(@RequestBody request: reqLogin) : ResponseEntity<CommonResult> {
         logger.debug("admin login = $request")
@@ -48,7 +48,7 @@ class AuthController(
         }
     }
 
-    @RequestMapping(value = ["/admin/register"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/auth/admin/register"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun adminRegister(@RequestBody request: reqRegister) : ResponseEntity<CommonResult> {
         logger.debug("admin register = $request")
@@ -62,7 +62,7 @@ class AuthController(
         }
     }
 
-    @RequestMapping(value = ["/user/login"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/login/corp"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun userLogin(@RequestBody request: reqLogin) : ResponseEntity<CommonResult> {
         logger.debug("store login = $request")
@@ -77,7 +77,7 @@ class AuthController(
         }
     }
 
-    @RequestMapping(value = ["/user/register"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/auth/user/register"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun userRegister(@RequestBody request: reqUserRegister) : ResponseEntity<CommonResult> {
         val result = authService.userRegister(request)
@@ -91,7 +91,7 @@ class AuthController(
         }
     }
 
-    @RequestMapping(value = ["/user/registers"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/auth/user/registers"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun userRegisters(@RequestBody request: Array<reqUserRegister>) : ResponseEntity<CommonResult> {
         val result = authService.userRegisters(request)
@@ -119,7 +119,7 @@ class AuthController(
         }
     }
 
-    @RequestMapping(value = ["/change/password"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/auth/change/password"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun changePassword(@RequestBody request: ChangePasswordDTO): ResponseEntity<CommonResult> {
         logger.debug { "change password ${request.idx} " }

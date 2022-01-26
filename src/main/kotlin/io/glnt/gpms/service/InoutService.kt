@@ -1301,7 +1301,7 @@ open class InoutService(
         }
     }
 
-    fun waitFacilityIF(type: String, parkCarType: String, vehicleNo: String, gate: Gate, parkOutDTO: ParkOutDTO, inDate: LocalDateTime, dtFacilityId: String? = null, ticketInfo: TicketInfoDTO? = null) {
+    fun waitFacilityIF(type: String, parkCarType: String, vehicleNo: String, gate: Gate, parkOutDTO: ParkOutDTO, inDate: LocalDateTime, dtFacilityId: String? = null, ticketInfo: TicketInfoDTO? = null, isLegTime: Boolean? = false) {
         // 결제금액 전광판
         val payFee = if (type == "PAYMENT") parkOutDTO.originPayFee?: 0 else parkOutDTO.payfee?: 0
         val discount = if (type == "PAYMENT") parkOutDTO.originDiscountFee?: 0 else parkOutDTO.discountfee?: 0
@@ -1344,7 +1344,7 @@ open class InoutService(
                                     outSn = parkOutDTO.sn )
             var paymentSn = 0L
 
-            if ( ((type == "PAYMENT" || type == "MANPAYMENT") && payFee > 0) || (type == "PREPAYMENT")) {
+            if ( ((type == "PAYMENT" || type == "MANPAYMENT") && payFee > 0) || (type == "PREPAYMENT" && (isLegTime == false))) {
                 inoutPayment = inoutPaymentService.save(inoutPayment)
                 paymentSn = inoutPayment.sn ?: -1L
             }

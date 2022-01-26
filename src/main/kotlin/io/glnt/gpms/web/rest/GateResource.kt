@@ -29,8 +29,8 @@ class GateResource (
         return CommonResult.returnResult(CommonResult.data(gateService.findAll()))
     }
 
-    @RequestMapping(value = ["/gates"], method = [RequestMethod.PUT])
-    fun update(@Valid @RequestBody gateDTO: GateDTO): ResponseEntity<CommonResult> {
+    @RequestMapping(value = ["/gates/{sn}"], method = [RequestMethod.PUT])
+    fun update(@Valid @PathVariable sn: Long, @RequestBody gateDTO: GateDTO): ResponseEntity<CommonResult> {
         if (gateDTO.sn == null) {
             throw CustomException(
                 "gate update not found sn",
@@ -49,7 +49,7 @@ class GateResource (
         return CommonResult.returnResult(CommonResult.data(gate))
     }
 
-    @RequestMapping(value = ["/gate"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/gates"], method = [RequestMethod.POST])
     fun create(@Valid @RequestBody gateDTO: GateDTO): ResponseEntity<CommonResult> {
         if (gateDTO.sn != null) {
             throw CustomException(

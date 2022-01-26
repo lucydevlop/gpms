@@ -403,27 +403,27 @@ class InoutResource (
 
             var price: BasicPrice? = null
             var prePrice: BasicPrice? = null
+            var isLegTime: Boolean = false
             // 유료 주차장인 경우 요금 계산
             if (parkIn!= null && parkinglotService.isPaid() && requestParkOutDTO.parkCarType != "UNRECOGNIZED") {
                 // 사전 정산 시 inout-payment 데이터 확인 후 legTime 이후 out_date 이면 시간만큼 요금 계산
-                val prePayments = inoutPaymentService.findByInSnAndResult(parkIn.sn ?: -1, ResultType.SUCCESS)
-
-                if (prePayments.isNullOrEmpty()) {
-                    price = inoutService.calcParkFee("OUT", parkIn.inDate!!, requestParkOutDTO.date!!, VehicleType.SMALL, requestParkOutDTO.vehicleNo ?: "", parkIn.sn ?: -1)
-                } else {
-                    prePayments.sortedByDescending { it.approveDateTime }
+                inoutPaymentService.getLastInSnAndResult(parkIn.sn ?: -1, ResultType.SUCCESS)?.let { prePayment ->
                     fareRefService.getFareBasic()?.let { cgBasic ->
-                        prePrice = BasicPrice(orgTotalPrice = prePayments[0].parkFee,
-                            parkTime = prePayments[0].parkTime ?: 0,
-                            totalPrice = prePayments[0].amount ?: 0,
-                            discountPrice = prePayments[0].discount ?: 0,
-                            dayilyMaxDiscount = prePayments[0].dayDiscount ?: 0)
+                        prePrice = BasicPrice(
+                            orgTotalPrice = prePayment.parkFee,
+                            parkTime = prePayment.parkTime ?: 0,
+                            totalPrice = prePayment.amount ?: 0,
+                            discountPrice = prePayment.discount ?: 0,
+                            dayilyMaxDiscount = prePayment.dayDiscount ?: 0)
 
-                        val diffMins = DateUtil.diffMins(DateUtil.stringToLocalDateTime(prePayments[0].approveDateTime!!), requestParkOutDTO.date ?: LocalDateTime.now())
-                        if (diffMins > (cgBasic.legTime ?: 0)) {
-                            price = inoutService.calcParkFee("RECALC", DateUtil.stringToLocalDateTime(prePayments[0].approveDateTime!!), requestParkOutDTO.date!!, VehicleType.SMALL, requestParkOutDTO.vehicleNo ?: "", parkIn.sn ?: -1)
+                        val diffMins = DateUtil.diffMins(DateUtil.stringToLocalDateTime(prePayment.approveDateTime!!), requestParkOutDTO.date ?: LocalDateTime.now())
+                        isLegTime = diffMins <= (cgBasic.legTime ?: 0)
+                        if (!isLegTime) {
+                            price = inoutService.calcParkFee("RECALC", DateUtil.stringToLocalDateTime(prePayment.approveDateTime!!), requestParkOutDTO.date!!, VehicleType.SMALL, requestParkOutDTO.vehicleNo ?: "", parkIn.sn ?: -1)
                         }
                     }
+                }?: kotlin.run {
+                    price = inoutService.calcParkFee("OUT", parkIn.inDate!!, requestParkOutDTO.date!!, VehicleType.SMALL, requestParkOutDTO.vehicleNo ?: "", parkIn.sn ?: -1)
                 }
             }
 
@@ -464,7 +464,7 @@ class InoutResource (
                     // 차량번호로 입차 데이터 미확인, 미인식 인 경우 -> 차량번호 검색
                     if (parkOutDTO.parkcartype!!.contains("TICKET")) {
                         // 입차 데이터 미확인, 정기권 차량인 경우 출차 시킴(2022-01-05)
-                        inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, requestParkOutDTO.date!!, null, null)
+                        inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, requestParkOutDTO.date!!, null, null, isLegTime)
                         inoutService.outFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkIn, parkOutDTO.sn!!)
                     } else {
                         inoutService.searchNumberFacilityIF(requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, requestParkOutDTO.recognitionResult!!, parkOutDTO.sn!!.toString())
@@ -483,12 +483,12 @@ class InoutResource (
                                 name = seasonTicketDTO.ticket?.ticketName ?: kotlin.run { "정기권" },
                                 price = seasonTicketDTO.ticket?.price.toString() ?: kotlin.run { "0" }
                             )
-                            inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!, null, ticketInfo)
+                            inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!, null, ticketInfo, isLegTime)
                         } else {
-                            inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!)
+                            inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!, null, null, isLegTime)
                         }
                     }?: run {
-                       inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!)
+                       inoutService.waitFacilityIF("PAYMENT", requestParkOutDTO.parkCarType!!, requestParkOutDTO.vehicleNo!!, gate, parkOutDTO, parkIn.inDate!!,null, null, isLegTime)
                     }
 
                     if ((price?.totalPrice?: 0) <= 0) {

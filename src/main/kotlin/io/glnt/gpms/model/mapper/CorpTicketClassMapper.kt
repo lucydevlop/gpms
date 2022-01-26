@@ -35,7 +35,8 @@ class CorpTicketClassMapper(
                     extendYn = dto.extendYn,
                     delYn = dto.delYn,
                     applyTarget = dto.applyTarget,
-                    applyType = dto.applyType
+                    applyType = dto.applyType,
+                    week = dto.week
                 )
             }
         }
