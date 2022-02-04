@@ -195,7 +195,7 @@ class InoutResource (
         parkinglotService.getGateInfoByDtFacilityId(requestParkInDTO.dtFacilitiesId)?.let { gate ->
             // 이미지 사진 저장
             requestParkInDTO.base64Str?.let {
-                requestParkInDTO.fileFullPath = inoutService.saveImage(it, requestParkInDTO.vehicleNo, gate.udpGateid?: "")
+                requestParkInDTO.fileFullPath = inoutService.saveImage(it, requestParkInDTO.vehicleNo, gate.udpGateId?: "")
                 requestParkInDTO.fileName = DataCheckUtil.getFileName(requestParkInDTO.fileFullPath!!)
                 requestParkInDTO.fileUploadId = DateUtil.stringToNowDateTimeMS()+"_F"
             }
@@ -325,7 +325,7 @@ class InoutResource (
         parkinglotService.getGateInfoByDtFacilityId(requestParkOutDTO.dtFacilitiesId ?: "")?.let { gate ->
             // 사진 이미지 저장
             requestParkOutDTO.base64Str?.let {
-                requestParkOutDTO.fileFullPath = inoutService.saveImage(it, requestParkOutDTO.vehicleNo?: "", gate.udpGateid?: "")
+                requestParkOutDTO.fileFullPath = inoutService.saveImage(it, requestParkOutDTO.vehicleNo?: "", gate.udpGateId?: "")
                 requestParkOutDTO.fileName = DataCheckUtil.getFileName(requestParkOutDTO.fileFullPath!!)
                 requestParkOutDTO.fileUploadId = DateUtil.stringToNowDateTimeMS()+"_F"
             }

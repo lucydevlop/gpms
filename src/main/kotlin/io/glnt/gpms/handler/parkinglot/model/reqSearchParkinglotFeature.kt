@@ -1,5 +1,6 @@
 package io.glnt.gpms.handler.parkinglot.model
 
+import io.glnt.gpms.model.dto.DiscountApplyDTO
 import io.glnt.gpms.model.dto.EnterNotiDTO
 import io.glnt.gpms.model.entity.Gate
 import io.glnt.gpms.model.enums.*
@@ -17,10 +18,10 @@ data class reqCreateParkinglot(
     var siteId: String,
     var siteName: String,
     var limitqty: Int? = null,
-    var saupno: String? = null,
+    var saupNo: String? = null,
     var tel: String? = null,
-    var ceoname: String? = null,
-    var postcode: String? = null,
+    var ceoName: String? = null,
+    var postCode: String? = null,
     var address: String? = null,
     var firsttime: Int? = 30,
     var firstfee: Int? = 100,
@@ -44,7 +45,8 @@ data class reqCreateParkinglot(
     var visitorExternal: VisitorExternalKeyType? = null,
     var visitorExternalKey: String? = null,
     var rcsParkId: Long? = null,
-    var enterNoti: EnterNotiDTO? = null
+    var enterNoti: EnterNotiDTO? = null,
+    var discCriteria: DiscountApplyDTO? = null
 )
 
 data class reqUpdateGates(

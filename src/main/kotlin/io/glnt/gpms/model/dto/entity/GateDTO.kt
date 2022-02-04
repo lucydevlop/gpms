@@ -23,7 +23,7 @@ data class GateDTO(
 
     var takeAction: String? = null,
 
-    var udpGateid: String? = null,
+    var udpGateId: String? = null,
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
@@ -47,7 +47,7 @@ data class GateDTO(
 ) : Serializable {
     constructor(gate: Gate) :
         this(
-            gate.sn, gate.gateName, gate.gateId, gate.gateType, gate.takeAction, gate.udpGateid,
+            gate.sn, gate.gateName, gate.gateId, gate.gateType, gate.takeAction, gate.udpGateId,
             gate.openAction, gate.relaySvrKey, gate.relaySvr, gate.delYn, gate.resetSvr, gate.gateGroupId, gate.openType
         )
 

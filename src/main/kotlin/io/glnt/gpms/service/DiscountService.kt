@@ -323,12 +323,11 @@ class DiscountService(
 
     fun getTodayUseDiscountTicket(corpSn: Long, ticketClassSn: Long) : Int {
         try {
-            inoutDiscountRepository.findByCorpSnAndTicketClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(corpSn, ticketClassSn, DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate), DateUtil.lastTimeToLocalDateTime(DateUtil.nowDate), YN.N)?.let { inoutDiscounts ->
+            val list = corpTicketHistoryRepository.findByTicketSnAndDelYn(ticketClassSn, YN.N).map { it.sn?: 0 }
+
+            inoutDiscountRepository.findByTicketHistSnInAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(list, DateUtil.beginTimeToLocalDateTime(DateUtil.nowDate), DateUtil.lastTimeToLocalDateTime(DateUtil.nowDate), YN.N).let { inoutDiscounts ->
                 return inoutDiscounts.sumOf { it.quantity ?: 0 }
-            }?.run {
-                return 0
             }
-            return 0
         }catch (e: CustomException) {
             logger.error { "getTodayUseDiscountTicket error $e" }
             return 0

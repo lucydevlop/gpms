@@ -136,6 +136,6 @@ class ParkSiteInfoService (
     }
 
     fun getDiscountApply(): DiscountApplyDTO? {
-        return this.parkSite?.discApply ?: kotlin.run { null }
+        return this.parkSite?.discCriteria ?: kotlin.run { null }
     }
 }

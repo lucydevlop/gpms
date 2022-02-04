@@ -45,7 +45,7 @@ data class Gate(
     var flagUse: Int? = 1,
 
     @Column(name = "udp_gateid", nullable = false)
-    var udpGateid: String? = "GATE",
+    var udpGateId: String? = "GATE",
 
     @Column(name = "upload_ct", nullable = false)
     var uploadCt: Int? = 0,

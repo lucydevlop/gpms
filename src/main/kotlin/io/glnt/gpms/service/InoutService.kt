@@ -111,7 +111,6 @@ open class InoutService(
         return false
     }
 
-
     fun parkIn(request: reqAddParkIn) : CommonResult = with(request){
         try {
 
@@ -179,6 +178,7 @@ open class InoutService(
 
                                             }
                                             else ->{
+                                                //
                                                 parkingtype = "NORMAL"
                                             }
                                         }
@@ -236,7 +236,7 @@ open class InoutService(
                 } else {
                     if (gate.takeAction != "PCC"){
                         val currentOpen = isOpenGate(GateDTO(gate), request.date, newData.parkcartype?: "NORMAL")
-                        inFacilityIF(parkingtype!!, vehicleNo, gate.gateId, (!beforeOpen && currentOpen), isSecond?: false)
+                        inFacilityIF(if (currentOpen) parkingtype!! else "RESTRICTE", vehicleNo, gate.gateId, (!beforeOpen && currentOpen), isSecond?: false)
                     }
 
                     //todo 아파트너 입차 정보 전송
@@ -1362,7 +1362,7 @@ open class InoutService(
                         reqPayStationData(
                             paymentMachineType = if (parkCarType == "NORMAL") "exit" else if (payFee > 0) "exit" else "SEASON",
                             vehicleNumber = vehicleNo,
-                            facilitiesId = gate.udpGateid ?: kotlin.run { gate.gateId },
+                            facilitiesId = gate.udpGateId ?: kotlin.run { gate.gateId },
                             recognitionType = if (parkCarType == "NORMAL") "FREE" else if (payFee > 0) "FREE" else "SEASON",
                             recognitionResult = "RECOGNITION",
                             paymentAmount = (inoutPayment.parkFee?: 0).toString(),
@@ -1408,7 +1408,7 @@ open class InoutService(
             reqPayStationData(
                 paymentMachineType = "EXIT",
                 vehicleNumber = vehicleNo,
-                facilitiesId = gate.udpGateid!!,
+                facilitiesId = gate.udpGateId!!,
                 recognitionType = "NOTRECOGNITION",
                 recognitionResult = recognitionResult,
                 paymentAmount = "0",

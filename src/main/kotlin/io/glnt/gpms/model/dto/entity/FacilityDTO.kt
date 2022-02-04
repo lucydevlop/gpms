@@ -20,10 +20,10 @@ data class FacilityDTO(
     var category: FacilityCategoryType? = null,
 
     @get: NotNull
-    var modelid: String? = null,
+    var modelId: String? = null,
 
     @get: NotNull
-    var fname: String? = null,
+    var fName: String? = null,
 
     @get: NotNull
     var dtFacilitiesId: String? = null,
@@ -33,7 +33,7 @@ data class FacilityDTO(
     @get: NotNull
     var gateId: String? = null,
 
-    var udpGateid: String? = null,
+    var udpGateId: String? = null,
 
     var ip: String? = null,
 
@@ -74,8 +74,8 @@ data class FacilityDTO(
 ): Serializable {
     constructor(facility: Facility) :
         this(
-            facility.sn, facility.category, facility.modelid, facility.fname, facility.dtFacilitiesId,
-            facility.facilitiesId, facility.gateId, facility.udpGateid, facility.ip, facility.port,
+            facility.sn, facility.category, facility.modelId, facility.fName, facility.dtFacilitiesId,
+            facility.facilitiesId, facility.gateId, facility.udpGateId, facility.ip, facility.port,
             facility.sortCount, facility.resetPort, facility.flagConnect, facility.lprType, facility.imagePath,
             facility.health, facility.healthDate, facility.status, facility.statusDate, facility.delYn
         )

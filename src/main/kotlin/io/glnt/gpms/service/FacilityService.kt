@@ -45,9 +45,6 @@ class FacilityService(
 //    @Value("\${gateway.url}")
 //    lateinit var url: String
 
-    @Value("\${tmap.send}")
-    lateinit var tmapSend: String
-
 //    @Autowired
 //    private lateinit var displayColorRepository: DisplayColorRepository
 //
@@ -83,6 +80,10 @@ class FacilityService(
         gateService.findAll().let {
             gates = it
         }
+    }
+
+    fun findBySn(sn: Long): FacilityDTO? {
+        return facilityRepository.findBySn(sn)?.let { facilityMapper.toDTO(it) }
     }
 
     fun setDisplayColor(request: ArrayList<reqSetDisplayColor>): CommonResult = with(request) {
@@ -285,7 +286,7 @@ class FacilityService(
             // todo tmap-outvehicle
             tmapSendService.sendOutVehicle(
                 reqOutVehicle(
-                    gateId = parkinglotService.getGateInfoByFacilityId(facilitiesId)!!.udpGateid!!,
+                    gateId = parkinglotService.getGateInfoByFacilityId(facilitiesId)!!.udpGateId!!,
                     seasonTicketYn = "N",
                     vehicleNumber = contents.vehicleNumber,
                     recognitionType = FacilityCategoryType.LPR,

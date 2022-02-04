@@ -27,7 +27,7 @@ interface CorpTicketRepository: JpaRepository<CorpTicketInfo, Long> {
 interface CorpTicketHistoryRepository: JpaRepository<CorpTicketHistory, Long> {
     @Query(value = "SELECT h.* from tb_corp_ticket_history h where h.ticket_sn =:ticketSn And h.total_quantity > h.use_quantity And h.del_Yn = 'N' order by h.create_date Limit 1", nativeQuery = true)
     fun findTopByTicket(ticketSn: Long): CorpTicketHistory?
-    fun findByTicketSnAndDelYn(ticketSn: Long, delYn: YN): List<CorpTicketHistory>?
+    fun findByTicketSnAndDelYn(ticketSn: Long, delYn: YN): List<CorpTicketHistory>
     fun findBySnAndDelYn(sn: Long, delYn: YN): CorpTicketHistory?
 }
 
@@ -49,6 +49,7 @@ interface InoutDiscountRepository: JpaRepository<InoutDiscount, Long>, JpaSpecif
     fun findByDiscountClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(discountClassSn: Long, startDate: LocalDateTime, endDate: LocalDateTime, YN: YN): List<InoutDiscount>?
     fun findByCorpSnAndDiscountClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(corpSn: Long, discountClassSn: Long, startDate: LocalDateTime, endDate: LocalDateTime, YN: YN): List<InoutDiscount>?
     fun findByCorpSnAndTicketClassSnAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(corpSn: Long, discountClassSn: Long, startDate: LocalDateTime, endDate: LocalDateTime, YN: YN): List<InoutDiscount>?
+    fun findByTicketHistSnInAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualAndDelYn(histIn: List<Long>, startDate: LocalDateTime, endDate: LocalDateTime, YN: YN ): List<InoutDiscount>
     fun findByInSnAndDelYnAndCalcYn(inSn: Long, YN: YN, calcYn: YN): List<InoutDiscount>?
 //    fun findAll(specification: Specification<InoutDiscount>): List<InoutDiscount>?
 }

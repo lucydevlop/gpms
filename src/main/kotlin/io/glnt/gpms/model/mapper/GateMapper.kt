@@ -21,7 +21,7 @@ class GateMapper {
                     gateId = dto.gateId!!,
                     gateType = dto.gateType!!,
                     takeAction = dto.takeAction,
-                    udpGateid = dto.udpGateid,
+                    udpGateId = dto.udpGateId,
                     openAction = dto.openAction,
                     relaySvrKey = dto.relaySvrKey,
                     relaySvr = dto.relaySvr,

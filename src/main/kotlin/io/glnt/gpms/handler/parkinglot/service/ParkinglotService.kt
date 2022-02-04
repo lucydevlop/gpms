@@ -94,7 +94,7 @@ class ParkinglotService (
                 val facilities = parkFacilityRepository.findByGateIdAndDelYn(gate.gateId, YN.Y)!!
                 val FacilitiesId = facilities.map { it.dtFacilitiesId }.toTypedArray()
                 facilities.map {
-                    facility -> facilitiesList.add(facilitiesLists(category = facility.category!!, modelId = facility.modelid, dtFacilitiesId = facility.dtFacilitiesId, facilitiesName = facility.fname))
+                    facility -> facilitiesList.add(facilitiesLists(category = facility.category!!, modelId = facility.modelId, dtFacilitiesId = facility.dtFacilitiesId, facilitiesName = facility.fName))
                 }
                 gateList.add(gateLists(
                     dtGateId = gate.gateId+"_aa",
@@ -354,7 +354,7 @@ class ParkinglotService (
     }
 
     fun getGateInfoByUdpGateId(udpGateId: String) : Gate? {
-        parkGateRepository.findByUdpGateid(udpGateId)?.let {
+        parkGateRepository.findByUdpGateId(udpGateId)?.let {
             return it
         }
         return null
@@ -417,10 +417,10 @@ class ParkinglotService (
                     siteId = siteId,
                     siteName = siteName,
                     limitqty = limitqty,
-                    saupno = saupno,
+                    saupNo = saupNo,
                     tel = tel,
-                    ceoname = ceoname,
-                    postcode = postcode,
+                    ceoName = ceoName,
+                    postCode = postCode,
                     address = address,
                     firsttime = firsttime,
                     firstfee = firstfee,

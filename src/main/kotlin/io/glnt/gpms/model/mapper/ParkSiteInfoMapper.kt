@@ -18,10 +18,10 @@ class ParkSiteInfoMapper {
                     siteId = dto.siteId ?: "",
                     siteName = dto.siteName?: "",
                     limitqty = dto.limitqty,
-                    saupno = dto.saupno,
+                    saupNo = dto.saupNo,
                     tel = dto.tel,
-                    ceoname = dto.ceoname,
-                    postcode = dto.postcode,
+                    ceoName = dto.ceoName,
+                    postCode = dto.postCode,
                     city = dto.city,
                     address = dto.address,
                     firsttime = dto.firsttime,
@@ -48,7 +48,7 @@ class ParkSiteInfoMapper {
                     operatingDays = dto.operatingDays,
                     visitorRegister = dto.visitorRegister,
                     enterNoti = dto.enterNoti,
-                    discApply = dto.discApply
+                    discCriteria = dto.discCriteria
                 )
             }
         }

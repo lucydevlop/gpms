@@ -171,7 +171,7 @@ class RelayResource (
                         Failure(sn = null,
                             issueDateTime = LocalDateTime.now(),
                             facilitiesId = facility.dtFacilitiesId,
-                            fName = facility.fname,
+                            fName = facility.fName,
                             failureCode = "paymentFailure",
                             failureType = "ERROR")
                     )
@@ -231,7 +231,7 @@ class RelayResource (
                         Failure(sn = null,
                             issueDateTime = LocalDateTime.now(),
                             facilitiesId = facility.dtFacilitiesId,
-                            fName = facility.fname,
+                            fName = facility.fName,
                             failureCode = "paymentFailure",
                             failureType = "ERROR")
                     )
@@ -293,12 +293,12 @@ class RelayResource (
         return ResponseEntity.ok(CommonResult.data())
     }
 
-    @PostMapping(value = ["/upload/receipt/{sn}"], consumes = ["multipart/form-data"], produces = ["application/json"])
-    fun upload(@PathVariable sn: Long, @RequestPart("file") file: MultipartFile):ResponseEntity<CommonResult> {
-
-        inoutPaymentService.uploadReceipt(sn, file)
-//        val file = fileService.save(file)
-        return ResponseEntity.ok(CommonResult.data())
-    }
+//    @PostMapping(value = ["/upload/receipt/{sn}"], consumes = ["multipart/form-data"], produces = ["application/json"])
+//    fun upload(@PathVariable sn: Long, @RequestPart("file") file: MultipartFile):ResponseEntity<CommonResult> {
+//
+//        inoutPaymentService.uploadReceipt(sn, file)
+////        val file = fileService.save(file)
+//        return ResponseEntity.ok(CommonResult.data())
+//    }
 
 }

@@ -18,13 +18,13 @@ class ParkSiteInfoResource(
 ) {
     companion object : KLogging()
 
-    @RequestMapping(value = ["/parkinglots"], method = [RequestMethod.GET])
+    @RequestMapping(value = ["/parking-lots"], method = [RequestMethod.GET])
     fun findAll(): ResponseEntity<CommonResult> {
         logger.debug { "parkinglots fetch all" }
         return CommonResult.returnResult(CommonResult.data(parkSiteInfoService.find()))
     }
 
-    @RequestMapping(value = ["/parkinglots"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/parking-lots"], method = [RequestMethod.POST])
     fun create(@RequestBody parkSiteInfoDTO: ParkSiteInfoDTO): ResponseEntity<CommonResult> {
         parkSiteInfoService.find()?.let {
             if (parkSiteInfoDTO.siteId != it.siteId)

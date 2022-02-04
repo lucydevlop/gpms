@@ -5,6 +5,7 @@ import io.glnt.gpms.common.api.ResultCode
 import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.model.dto.entity.GateDTO
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.service.FacilityService
 import io.glnt.gpms.service.GateService
 import mu.KLogging
@@ -58,5 +59,26 @@ class GateResource (
             )
         }
         return CommonResult.returnResult(CommonResult.data(gateService.saveGate(gateDTO)))
+    }
+
+    @RequestMapping(value = ["/gates/{sn}"], method = [RequestMethod.DELETE])
+    fun delete(@Valid @PathVariable sn: Long): ResponseEntity<CommonResult> {
+        gateService.findBySn(sn)
+            ?.let { gateDTO ->
+                gateDTO.delYn = YN.Y
+                val gate = gateService.saveGate(gateDTO)
+                // 시설 상태 정보 update
+                facilityService.findByGateId(gate.gateId ?: "")?.let { facilities ->
+                    facilities.forEach { facilityDTO ->
+                        facilityDTO.delYn = gate.delYn
+                        facilityService.save(facilityDTO)
+                    }
+                }
+                return CommonResult.returnResult(CommonResult.data(gate))
+            }
+            ?: throw CustomException(
+                "gate update not found sn",
+                ResultCode.FAILED
+            )
     }
 }

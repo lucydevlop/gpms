@@ -22,6 +22,7 @@ interface ParkAlarmSetttingRepository: JpaRepository<ParkAlarmSetting, String> {
 
 @Repository
 interface ParkFacilityRepository: JpaRepository<Facility, Long> {
+    fun findBySn(sn: Long): Facility?
     fun findByFacilitiesId(facilitiesId: String): Facility?
     fun findByDtFacilitiesId(dtFacilitiesId: String): Facility?
 //    @Query("SELECT v from Facility v where v.category != 'LPR' or (v.category = 'LPR' and v.imagePath is not null)")
@@ -40,7 +41,7 @@ interface ParkGateRepository: JpaRepository<Gate, Long> {
     fun findBySn(sn: Long): Gate?
     fun findByDelYn(delYn: YN): List<Gate>
     fun findByGateId(gateId: String): Gate?
-    fun findByUdpGateid(udpGateid: String): Gate?
+    fun findByUdpGateId(udpGateid: String): Gate?
     fun findByRelaySvrKey(relaySvrKey: String): List<Gate>
 
 }

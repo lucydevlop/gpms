@@ -23,7 +23,7 @@ data class SettingDTO (
 
     ) : Serializable {
     constructor(setting: Setting) :
-            this(setting.sn, setting.code, setting.value, setting.description, setting.delYn)
+            this(setting.sn, setting.code, setting.value, setting.description)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

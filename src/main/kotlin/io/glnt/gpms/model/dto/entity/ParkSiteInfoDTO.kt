@@ -17,13 +17,13 @@ data class ParkSiteInfoDTO (
 
     var limitqty: Int? = 10,
 
-    var saupno: String? = null,
+    var saupNo: String? = null,
 
     var tel: String? = null,
 
-    var ceoname: String? = null,
+    var ceoName: String? = null,
 
-    var postcode: String? = null,
+    var postCode: String? = null,
 
     var city: CityType? = CityType.SEOUL,
 
@@ -84,17 +84,17 @@ data class ParkSiteInfoDTO (
 
     var enterNoti: EnterNotiDTO? = null,
 
-    var discApply: DiscountApplyDTO? = null
+    var discCriteria: DiscountApplyDTO? = null
 ): Serializable {
     constructor(parkSiteInfo: ParkSiteInfo) :
         this(
-            parkSiteInfo.siteId, parkSiteInfo.siteName, parkSiteInfo.limitqty, parkSiteInfo.saupno,
-            parkSiteInfo.tel, parkSiteInfo.ceoname, parkSiteInfo.postcode, parkSiteInfo.city, parkSiteInfo.address,
+            parkSiteInfo.siteId, parkSiteInfo.siteName, parkSiteInfo.limitqty, parkSiteInfo.saupNo,
+            parkSiteInfo.tel, parkSiteInfo.ceoName, parkSiteInfo.postCode, parkSiteInfo.city, parkSiteInfo.address,
             parkSiteInfo.firsttime, parkSiteInfo.firstfee, parkSiteInfo.returntime, parkSiteInfo.overtime,
             parkSiteInfo.overfee, parkSiteInfo.addtime, parkSiteInfo.dayfee, parkSiteInfo.parkingSpotStatusNotiCycle,
             parkSiteInfo.facilitiesStatusNotiCycle, parkSiteInfo.flagMessage, parkSiteInfo.businame, parkSiteInfo.parkId,
             parkSiteInfo.space, parkSiteInfo.saleType, parkSiteInfo.tmapSend, parkSiteInfo.externalSvr, parkSiteInfo.rcsParkId,
             parkSiteInfo.ip, parkSiteInfo.vehicleDayOption, parkSiteInfo.visitorExternal, parkSiteInfo.visitorExternalKey,
-            parkSiteInfo.operatingDays, parkSiteInfo.visitorRegister, parkSiteInfo.enterNoti, parkSiteInfo.discApply
+            parkSiteInfo.operatingDays, parkSiteInfo.visitorRegister, parkSiteInfo.enterNoti, parkSiteInfo.discCriteria
         )
 }

@@ -310,13 +310,13 @@ class DashboardAdminService(
             val gate = facilityService.getGateByGateId(request.gateId)
             val result = facilityService.createFacility(
                 Facility(sn = null,
-                    fname = request.fname,
+                    fName = request.fName,
                     category = request.category,
-                    modelid = request.modelid,
+                    modelId = request.modelId,
                     dtFacilitiesId = request.dtFacilitiesId,
                     facilitiesId = request.facilitiesId,
                     gateId = request.gateId,
-                    udpGateid = gate!!.udpGateid,
+                    udpGateId = gate!!.udpGateId,
                     ip = request.ip,
                     port = request.port,
                     sortCount = request.sortCount,

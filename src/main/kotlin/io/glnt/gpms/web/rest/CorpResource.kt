@@ -76,7 +76,7 @@ class CorpResource (
             }
         if (inSn == "ALL") {
             tickets.forEach{ ticket ->
-                ticket.todayUse = discountService.getTodayUseDiscountTicket(sn, ticket.corpTicketClass!!.sn!!)
+                ticket.todayUse = discountService.getTodayUseDiscountTicket(sn, ticket.sn?: 0)
                 ticket.totalCnt = ticket.totalQuantity
                 ticket.ableCnt = ticket.totalQuantity!! - ticket.useQuantity!!
             }
@@ -91,17 +91,12 @@ class CorpResource (
                 if (DataCheckUtil.checkIncludeWeek(ticket.corpTicketClass!!.week!!, date)) {
                     applyTickets.add(ticket)
                 }
-//                if (ticket.corpTicketClass!!.applyType == DiscountRangeType.ALL) {
-//                    applyTickets.add(ticket)
-//                } else {
-//                    if (DateUtil.getWeekRange(date) == ticket.corpTicketClass!!.applyType) applyTickets.add(ticket)
-//                }
             }
         }
 
         applyTickets.forEach{ ticket ->
             corpService.getCorpTicketHistByTicketSn(ticket.sn!!)?.let {
-                ticket.todayUse = discountService.getTodayUseDiscountTicket(sn, ticket.corpTicketClass!!.sn!!)
+                ticket.todayUse = discountService.getTodayUseDiscountTicket(sn, ticket.sn?: 0)
                 ticket.totalCnt = ticket.totalQuantity!! - ticket.useQuantity!!
                 val ableCnt = inoutDiscountService.ableDiscountCntByInSn(inSn.toLong(), ticket.corpTicketClass!!)?: 0
                 ticket.ableCnt = if (ableCnt > ticket.totalQuantity!! - ticket.useQuantity!!) ticket.totalQuantity!! - ticket.useQuantity!! else ableCnt

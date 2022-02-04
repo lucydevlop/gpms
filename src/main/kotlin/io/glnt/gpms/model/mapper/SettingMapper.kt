@@ -19,7 +19,6 @@ class SettingMapper {
                     code = dto.code,
                     value = dto.value,
                     description = dto.description,
-                    delYn = dto.delYn
                 )
             }
         }

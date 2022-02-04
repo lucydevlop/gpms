@@ -18,8 +18,7 @@ import org.springframework.web.bind.annotation.*
 )
 @CrossOrigin(origins = arrayOf("*"), allowedHeaders = arrayOf("*"))
 class RelayController (
-    private val barcodeTicketService: BarcodeTicketService,
-    private val rcsService: RcsService
+//    private val barcodeTicketService: BarcodeTicketService,
 //    private val barcodeService: BarcodeService,
 //    private val barcodeClassService: BarcodeClassService,
 //    private val discountService: DiscountService
@@ -82,12 +81,6 @@ class RelayController (
     fun sendDisplayInfo(): ResponseEntity<CommonResult> {
         logger.info { "sendDisplayInitMessage" }
         return CommonResult.returnResult(relayService.sendDisplayInfo())
-    }
-
-    @RequestMapping(value = ["/call/voip/{voipId}"], method = [RequestMethod.GET])
-    fun callVoip(@PathVariable voipId: String): ResponseEntity<CommonResult> {
-        logger.info { "callVoip $voipId" }
-        return CommonResult.returnResult(rcsService.asyncCallVoip(voipId))
     }
 
     companion object : KLogging()

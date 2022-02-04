@@ -15,7 +15,7 @@ spring:
     username: glnt-user
     password: glnt123!@#
     driver-class-name: org.mariadb.jdbc.Driver
-    jdbc-url: jdbc:mariadb://test-db.cwvvhmqatlkn.ap-northeast-2.rds.amazonaws.com:3306/glnt_parking?useSSL=false
+    jdbc-url: jdbc:mariadb://test-db.cwvvhmqatlkn.ap-northeast-2.rds.amazonaws.com:3306/glnt_parking_dev?useSSL=false
 
 logging:
   path: C://logs/gpms

@@ -6,10 +6,12 @@ import io.glnt.gpms.common.configs.ApiConfig
 import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.model.dto.entity.FacilityDTO
+import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.service.FacilityService
 import mu.KLogging
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import javax.validation.Valid
 
 @RestController
 @RequestMapping(
@@ -39,8 +41,8 @@ class FacilityResource(
         return CommonResult.returnResult(rcsService.facilityAction(facilityId, status))
     }
 
-    @RequestMapping(value=["/facilities"], method = [RequestMethod.PUT])
-    fun update(@RequestBody facilityDTO: FacilityDTO): ResponseEntity<CommonResult> {
+    @RequestMapping(value=["/facilities/{sn}"], method = [RequestMethod.PUT])
+    fun update(@Valid @PathVariable sn: Long, @RequestBody facilityDTO: FacilityDTO): ResponseEntity<CommonResult> {
         logger.debug { "facility update $facilityDTO" }
         if (facilityDTO.sn == null) {
             throw CustomException(
@@ -49,6 +51,20 @@ class FacilityResource(
             )
         }
         return CommonResult.returnResult(CommonResult.data(facilityService.save(facilityDTO)))
+    }
+
+    @RequestMapping(value=["/facilities/{sn}"], method = [RequestMethod.DELETE])
+    fun delete(@Valid @PathVariable sn: Long): ResponseEntity<CommonResult> {
+        logger.debug { "facility delete $sn" }
+        facilityService.findBySn(sn)
+            ?.let { facilityDTO ->
+                facilityDTO.delYn = YN.Y
+                return CommonResult.returnResult(CommonResult.data(facilityService.save(facilityDTO)))
+            }
+            ?: throw CustomException(
+                "facility update not found sn",
+                ResultCode.FAILED
+            )
     }
 
     @RequestMapping(value=["/facilities"], method = [RequestMethod.POST])

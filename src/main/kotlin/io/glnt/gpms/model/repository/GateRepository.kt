@@ -10,7 +10,7 @@ interface GateRepository : JpaRepository<Gate, Long> {
     fun findBySn(sn: Long): Gate?
     fun findByDelYn(delYn: YN): List<Gate>
     fun findByGateId(gateId: String): Gate?
-    fun findByUdpGateid(udpGateid: String): Gate?
+    fun findByUdpGateId(udpGateId: String): Gate?
     fun findByRelaySvrKey(relaySvrKey: String): List<Gate>
     fun findByGateGroupId(gateGroupId: String): List<Gate>
 }

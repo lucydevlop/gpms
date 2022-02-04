@@ -33,35 +33,6 @@ class AuthController(
     @Autowired
     private lateinit var passwordEncoder: PasswordEncoder
 
-    @RequestMapping(value = ["/login/admin"], method = [RequestMethod.POST])
-    @Throws(CustomException::class)
-    fun adminLogin(@RequestBody request: reqLogin) : ResponseEntity<CommonResult> {
-        logger.debug("admin login = $request")
-        val result = authService.adminLogin(request)
-
-        return when(result.code) {
-            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
-            ResultCode.UNAUTHORIZED.getCode() -> ResponseEntity(result, HttpStatus.UNAUTHORIZED)
-            ResultCode.UNPROCESSABLE_ENTITY.getCode() -> ResponseEntity(result, HttpStatus.UNPROCESSABLE_ENTITY)
-            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
-
-        }
-    }
-
-    @RequestMapping(value = ["/auth/admin/register"], method = [RequestMethod.POST])
-    @Throws(CustomException::class)
-    fun adminRegister(@RequestBody request: reqRegister) : ResponseEntity<CommonResult> {
-        logger.debug("admin register = $request")
-        val result = authService.adminRegister(request)
-
-        return when(result.code) {
-            ResultCode.SUCCESS.getCode() -> ResponseEntity(result, HttpStatus.OK)
-            ResultCode.CONFLICT.getCode() -> ResponseEntity(result, HttpStatus.CONFLICT)
-            else -> ResponseEntity(result, HttpStatus.BAD_REQUEST)
-
-        }
-    }
-
     @RequestMapping(value = ["/login/corp"], method = [RequestMethod.POST])
     @Throws(CustomException::class)
     fun userLogin(@RequestBody request: reqLogin) : ResponseEntity<CommonResult> {

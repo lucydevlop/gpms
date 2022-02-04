@@ -27,10 +27,10 @@ data class Facility (
     var category: FacilityCategoryType? = FacilityCategoryType.LPR,
 
     @Column(name = "modelid", nullable = false)
-    var modelid: String,
+    var modelId: String,
 
     @Column(name = "f_name", nullable = false)
-    var fname: String,
+    var fName: String,
 
     @Column(name = "dtFacilitiesId", nullable = false)
     var dtFacilitiesId: String,
@@ -45,7 +45,7 @@ data class Facility (
     var gateId: String,
 
     @Column(name = "udp_gateid", nullable = true)
-    var udpGateid: String? = null,
+    var udpGateId: String? = null,
 
     @Column(name = "ip", nullable = true)
     var ip: String? = "0.0.0.0",

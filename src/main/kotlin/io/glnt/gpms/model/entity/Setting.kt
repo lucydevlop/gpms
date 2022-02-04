@@ -24,11 +24,7 @@ data class Setting(
     var value: String? = null,
 
     @Column(name = "description")
-    var description: String? = null,
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "del_yn", nullable = false)
-    var delYn: YN? = YN.N
+    var description: String? = null
 ): Auditable(), Serializable {
 
 }

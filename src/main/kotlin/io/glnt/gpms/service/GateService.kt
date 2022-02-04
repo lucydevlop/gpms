@@ -60,6 +60,10 @@ open class GateService(
         return gateMapper.toDto(gate)
     }
 
+    fun findBySn(sn: Long): GateDTO? {
+        return gateRepository.findBySn(sn)?.let { GateDTO(it) }
+    }
+
     fun findOne(gateId: String): GateDTO? {
         logger.debug { "Request to get Gate $gateId" }
         return gateRepository.findByGateId(gateId)?.let { GateDTO(it) }

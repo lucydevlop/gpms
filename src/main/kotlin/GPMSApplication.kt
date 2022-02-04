@@ -62,25 +62,25 @@ class GPMSApplication(
                 gateRepository.findByGateId("GATE001")?: run {
                     gateRepository.saveAndFlush(
                         Gate(sn = null, gateId = "GATE001", gateName = "입구게이트1", gateType = GateTypeStatus.IN, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
-                            seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateid = "FCL0000001", delYn = YN.N, resetSvr = "http://192.168.20.211/io.cgi?relay=")
+                            seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateId = "FCL0000001", delYn = YN.N, resetSvr = "http://192.168.20.211/io.cgi?relay=")
                     )
                 }
                 gateRepository.findByGateId("GATE002")?: run {
                     gateRepository.saveAndFlush(
                         Gate(sn = null, gateId = "GATE002", gateName = "출구게이트1", gateType = GateTypeStatus.OUT, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
-                            seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateid = "FCL0000002", delYn = YN.N, resetSvr = "http://192.168.20.211/io.cgi?relay=")
+                            seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateId = "FCL0000002", delYn = YN.N, resetSvr = "http://192.168.20.211/io.cgi?relay=")
                     )
                 }
                 gateRepository.findByGateId("GATE003")?: run {
                     gateRepository.saveAndFlush(
                         Gate(sn = null, gateId = "GATE003", gateName = "입구게이트2", gateType = GateTypeStatus.IN, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
-                            seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateid = "FCL0000001", delYn = YN.N, resetSvr = "http://192.168.20.212/io.cgi?relay=")
+                            seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateId = "FCL0000001", delYn = YN.N, resetSvr = "http://192.168.20.212/io.cgi?relay=")
                     )
                 }
                 gateRepository.findByGateId("GATE004")?: run {
                     gateRepository.saveAndFlush(
                         Gate(sn = null, gateId = "GATE004", gateName = "출구게이트2", gateType = GateTypeStatus.OUT, openAction = OpenActionType.NONE, relaySvr = "http://localhost:9999/v1", relaySvrKey = "GATESVR1",
-                            seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateid = "FCL0000002", delYn = YN.N, resetSvr = "http://192.168.20.212/io.cgi?relay=")
+                            seasonTicketTakeAction = "GATE", takeAction = "GATE", whiteListTakeAction = "GATE", udpGateId = "FCL0000002", delYn = YN.N, resetSvr = "http://192.168.20.212/io.cgi?relay=")
                     )
                 }
             }
@@ -92,133 +92,133 @@ class GPMSApplication(
                 log.warn("------ Database 초기화 Facility 정보 ------")
                 facilityRepository.findByDtFacilitiesId("LPR001101")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.LPR, modelid = "MDL0000029", fname = "입구1 LPR", dtFacilitiesId = "LPR001101", gateId = "GATE001",
+                        Facility(sn = null, category = FacilityCategoryType.LPR, modelId = "MDL0000029", fName = "입구1 LPR", dtFacilitiesId = "LPR001101", gateId = "GATE001",
                             ip = "192.168.20.101", port = "0", resetPort = 1, gateType = GateTypeStatus.IN, imagePath = "C:\\park\\in_front", lprType = LprTypeStatus.FRONT, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("LPR001201")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.LPR, modelid = "MDL0000029", fname = "입구1 LPR(후방)", dtFacilitiesId = "LPR001201", gateId = "GATE001",
+                        Facility(sn = null, category = FacilityCategoryType.LPR, modelId = "MDL0000029", fName = "입구1 LPR(후방)", dtFacilitiesId = "LPR001201", gateId = "GATE001",
                             ip = "192.168.20.102", port = "0", resetPort = 1, gateType = GateTypeStatus.IN, imagePath = "C:\\park\\in_back", lprType = LprTypeStatus.BACK, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("DSP001101")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.DISPLAY, modelid = "MDL0000043", fname = "입구1 전광판", dtFacilitiesId = "DSP001101", gateId = "GATE001",
+                        Facility(sn = null, category = FacilityCategoryType.DISPLAY, modelId = "MDL0000043", fName = "입구1 전광판", dtFacilitiesId = "DSP001101", gateId = "GATE001",
                             ip = "192.168.20.111", port = "5000", resetPort = 1, gateType = GateTypeStatus.IN, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("BRE001101")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.BREAKER, modelid = "MDL0000035", fname = "입구1 차단기", dtFacilitiesId = "BRE001101", gateId = "GATE001",
+                        Facility(sn = null, category = FacilityCategoryType.BREAKER, modelId = "MDL0000035", fName = "입구1 차단기", dtFacilitiesId = "BRE001101", gateId = "GATE001",
                             ip = "192.168.20.121", port = "4001", resetPort = 2, gateType = GateTypeStatus.IN, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("LPR001102")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.LPR, modelid = "MDL0000029", fname = "입구1 보조 LPR", dtFacilitiesId = "LPR001102", gateId = "GATE001",
+                        Facility(sn = null, category = FacilityCategoryType.LPR, modelId = "MDL0000029", fName = "입구1 보조 LPR", dtFacilitiesId = "LPR001102", gateId = "GATE001",
                             ip = "0.0.0.0", port = "0", resetPort = -1, gateType = GateTypeStatus.IN, lprType = LprTypeStatus.ASSIST, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("LPR002101")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.LPR, modelid = "MDL0000029", fname = "출구1 LPR", dtFacilitiesId = "LPR002101", gateId = "GATE002",
+                        Facility(sn = null, category = FacilityCategoryType.LPR, modelId = "MDL0000029", fName = "출구1 LPR", dtFacilitiesId = "LPR002101", gateId = "GATE002",
                             ip = "192.168.20.103", port = "0", resetPort = 3, gateType = GateTypeStatus.OUT, imagePath = "C:\\park\\out_front", lprType = LprTypeStatus.FRONT, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("DSP002201")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.DISPLAY, modelid = "MDL0000043", fname = "출구1 전광판", dtFacilitiesId = "DSP002201", gateId = "GATE002",
+                        Facility(sn = null, category = FacilityCategoryType.DISPLAY, modelId = "MDL0000043", fName = "출구1 전광판", dtFacilitiesId = "DSP002201", gateId = "GATE002",
                             ip = "192.168.20.112", port = "5000", resetPort = 3, gateType = GateTypeStatus.OUT, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("BRE002201")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.BREAKER, modelid = "MDL0000035", fname = "출구1 차단기", dtFacilitiesId = "BRE002201", gateId = "GATE002",
+                        Facility(sn = null, category = FacilityCategoryType.BREAKER, modelId = "MDL0000035", fName = "출구1 차단기", dtFacilitiesId = "BRE002201", gateId = "GATE002",
                             ip = "192.168.20.122", port = "4001", resetPort = 4, gateType = GateTypeStatus.OUT, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("LPR002102")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.LPR, modelid = "MDL0000029", fname = "출구1 보조 LPR", dtFacilitiesId = "LPR002102", gateId = "GATE002",
+                        Facility(sn = null, category = FacilityCategoryType.LPR, modelId = "MDL0000029", fName = "출구1 보조 LPR", dtFacilitiesId = "LPR002102", gateId = "GATE002",
                             ip = "0.0.0.0", port = "0", resetPort = -1, gateType = GateTypeStatus.OUT, lprType = LprTypeStatus.ASSIST, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("PAY002201")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.PAYSTATION, modelid = "MDL0000030", fname = "출구1 정산기", dtFacilitiesId = "PAY002201", gateId = "GATE002",
+                        Facility(sn = null, category = FacilityCategoryType.PAYSTATION, modelId = "MDL0000030", fName = "출구1 정산기", dtFacilitiesId = "PAY002201", gateId = "GATE002",
                             ip = "192.168.20.131", port = "7373", resetPort = 5, gateType = GateTypeStatus.OUT, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("VOP002201")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.VOIP, modelid = "MDL0000032", fname = "출구1 VOIP", dtFacilitiesId = "VOP002201", gateId = "GATE002",
+                        Facility(sn = null, category = FacilityCategoryType.VOIP, modelId = "MDL0000032", fName = "출구1 VOIP", dtFacilitiesId = "VOP002201", gateId = "GATE002",
                             ip = "192.168.20.142", port = "0", resetPort = -1, gateType = GateTypeStatus.OUT, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("LPR003101")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.LPR, modelid = "MDL0000029", fname = "입구2 LPR", dtFacilitiesId = "LPR003101", gateId = "GATE003",
+                        Facility(sn = null, category = FacilityCategoryType.LPR, modelId = "MDL0000029", fName = "입구2 LPR", dtFacilitiesId = "LPR003101", gateId = "GATE003",
                             ip = "192.168.20.104", port = "0", resetPort = -1, gateType = GateTypeStatus.IN, imagePath = "C:\\park\\in_front2", lprType = LprTypeStatus.FRONT, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("LPR003201")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.LPR, modelid = "MDL0000029", fname = "입구2 LPR(후방)", dtFacilitiesId = "LPR003201", gateId = "GATE003",
+                        Facility(sn = null, category = FacilityCategoryType.LPR, modelId = "MDL0000029", fName = "입구2 LPR(후방)", dtFacilitiesId = "LPR003201", gateId = "GATE003",
                             ip = "192.168.20.105", port = "0", resetPort = -1, gateType = GateTypeStatus.IN, imagePath = "C:\\park\\in_back2", lprType = LprTypeStatus.BACK, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("DSP003101")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.DISPLAY, modelid = "MDL0000043", fname = "입구2 전광판", dtFacilitiesId = "DSP003101", gateId = "GATE003",
+                        Facility(sn = null, category = FacilityCategoryType.DISPLAY, modelId = "MDL0000043", fName = "입구2 전광판", dtFacilitiesId = "DSP003101", gateId = "GATE003",
                             ip = "192.168.20.113", port = "5000", resetPort = 0, gateType = GateTypeStatus.IN, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("BRE003101")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.BREAKER, modelid = "MDL0000035", fname = "입구2 차단기", dtFacilitiesId = "BRE003101", gateId = "GATE003",
+                        Facility(sn = null, category = FacilityCategoryType.BREAKER, modelId = "MDL0000035", fName = "입구2 차단기", dtFacilitiesId = "BRE003101", gateId = "GATE003",
                             ip = "192.168.20.123", port = "4001", resetPort = 0, gateType = GateTypeStatus.IN, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("LPR003102")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.LPR, modelid = "MDL0000029", fname = "입구2 보조 LPR", dtFacilitiesId = "LPR003102", gateId = "GATE003",
+                        Facility(sn = null, category = FacilityCategoryType.LPR, modelId = "MDL0000029", fName = "입구2 보조 LPR", dtFacilitiesId = "LPR003102", gateId = "GATE003",
                             ip = "0.0.0.0", port = "0", resetPort = 0, gateType = GateTypeStatus.IN, lprType = LprTypeStatus.ASSIST, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("LPR004101")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.LPR, modelid = "MDL0000029", fname = "출구2 LPR", dtFacilitiesId = "LPR004101", gateId = "GATE004",
+                        Facility(sn = null, category = FacilityCategoryType.LPR, modelId = "MDL0000029", fName = "출구2 LPR", dtFacilitiesId = "LPR004101", gateId = "GATE004",
                             ip = "192.168.20.106", port = "0", resetPort = 0, gateType = GateTypeStatus.OUT, imagePath = "C:\\park\\out_front2", lprType = LprTypeStatus.FRONT, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("DSP004201")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.DISPLAY, modelid = "MDL0000043", fname = "출구2 전광판", dtFacilitiesId = "DSP004201", gateId = "GATE004",
+                        Facility(sn = null, category = FacilityCategoryType.DISPLAY, modelId = "MDL0000043", fName = "출구2 전광판", dtFacilitiesId = "DSP004201", gateId = "GATE004",
                             ip = "192.168.20.114", port = "5000", resetPort = 0, gateType = GateTypeStatus.OUT, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("BRE004201")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.BREAKER, modelid = "MDL0000035", fname = "출구2 차단기", dtFacilitiesId = "BRE004201", gateId = "GATE004",
+                        Facility(sn = null, category = FacilityCategoryType.BREAKER, modelId = "MDL0000035", fName = "출구2 차단기", dtFacilitiesId = "BRE004201", gateId = "GATE004",
                             ip = "192.168.20.124", port = "4001", resetPort = 0, gateType = GateTypeStatus.OUT, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("LPR004102")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.LPR, modelid = "MDL0000029", fname = "출구2 보조 LPR", dtFacilitiesId = "LPR004102", gateId = "GATE004",
+                        Facility(sn = null, category = FacilityCategoryType.LPR, modelId = "MDL0000029", fName = "출구2 보조 LPR", dtFacilitiesId = "LPR004102", gateId = "GATE004",
                             ip = "0.0.0.0", port = "0", resetPort = 0, gateType = GateTypeStatus.OUT, lprType = LprTypeStatus.ASSIST, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("PAY004201")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.PAYSTATION, modelid = "MDL0000030", fname = "출구2 정산기", dtFacilitiesId = "PAY004201", gateId = "GATE004",
+                        Facility(sn = null, category = FacilityCategoryType.PAYSTATION, modelId = "MDL0000030", fName = "출구2 정산기", dtFacilitiesId = "PAY004201", gateId = "GATE004",
                             ip = "192.168.20.132", port = "7373", resetPort = 0, gateType = GateTypeStatus.OUT, delYn = YN.N)
                     )
                 }
                 facilityRepository.findByDtFacilitiesId("VOP004201")?: run {
                     facilityRepository.saveAndFlush(
-                        Facility(sn = null, category = FacilityCategoryType.VOIP, modelid = "MDL0000032", fname = "출구2 VOIP", dtFacilitiesId = "VOP004201", gateId = "GATE004",
+                        Facility(sn = null, category = FacilityCategoryType.VOIP, modelId = "MDL0000032", fName = "출구2 VOIP", dtFacilitiesId = "VOP004201", gateId = "GATE004",
                             ip = "192.168.20.144", port = "0", resetPort = 0, gateType = GateTypeStatus.OUT, delYn = YN.N)
                     )
                 }

@@ -91,8 +91,8 @@ class TmapCommandService(
             roadNameAddress = parkSite.address!!,
             detailsAddress = "**",
             telephoneNumber = parkSite.tel!!,
-            saupno = parkSite.saupno!!,
-            businessName = parkSite.ceoname!!
+            saupno = parkSite.saupNo!!,
+            businessName = parkSite.ceoName!!
         )
 
         parkinglotService.getFacilityByCategory(FacilityCategoryType.PAYSTATION)?.let { its ->

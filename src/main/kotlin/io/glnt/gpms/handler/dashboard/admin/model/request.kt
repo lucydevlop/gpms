@@ -5,9 +5,9 @@ import javax.persistence.EnumType
 import javax.persistence.Enumerated
 
 data class reqCreateFacility(
-    var fname: String,
+    var fName: String,
     var dtFacilitiesId: String,
-    var modelid: String,
+    var modelId: String,
     var category: FacilityCategoryType,
     var gateId: String,
     var facilitiesId: String? = null,

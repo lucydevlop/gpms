@@ -30,16 +30,16 @@ data class ParkSiteInfo(
     var limitqty: Int? = 10,
 
     @Column(name = "saupno", nullable = true)
-    var saupno: String? = null,
+    var saupNo: String? = null,
 
     @Column(name = "tel", nullable = true)
     var tel: String? = null,
 
     @Column(name = "ceoname", nullable = true)
-    var ceoname: String? = null,
+    var ceoName: String? = null,
 
     @Column(name = "postcode", nullable = true)
-    var postcode: String? = null,
+    var postCode: String? = null,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "city")
@@ -134,7 +134,7 @@ data class ParkSiteInfo(
     @Type(type = "json")
     @Column(name = "disc_apply", columnDefinition = "json")
     @Convert(attributeName = "disc_apply", converter = JsonToMapConverter::class)
-    var discApply: DiscountApplyDTO? = null //emptyMap(),
+    var discCriteria: DiscountApplyDTO? = null //emptyMap(),
 ) : Auditable(), Serializable {
 
 }
