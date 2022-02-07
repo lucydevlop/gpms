@@ -794,7 +794,7 @@ open class InoutService(
                                     parkcartype = it.parkInDTO!!.parkcartype!!,
                                     inGateId = it.parkInDTO!!.gateId,
                                     inDate = it.parkInDTO!!.inDate!!,
-                                    ticketCorpName = it.parkInDTO!!.seasonTicketDTO?.corp?.corpName,
+                                    ticketCorpName = it.parkInDTO!!.seasonTicketDTO?.corpName,
                                     parkoutSn = it.sn ,
                                     outDate = it.outDate,
                                     outGateId = it.gateId,

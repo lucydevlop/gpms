@@ -46,7 +46,7 @@ class TicketResource (
         return CommonResult.returnResult(CommonResult.data(ticketService.saveTickets(ticketDTOs)))
     }
 
-    @RequestMapping(value = ["/tickets/season"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/season-tickets"], method = [RequestMethod.POST])
     fun createSeasonTicket(@Valid @RequestBody ticketDTO: SeasonTicketDTO, servlet: HttpServletRequest): ResponseEntity<CommonResult> {
         if (ticketDTO.sn != null) {
             throw CustomException(
@@ -66,8 +66,8 @@ class TicketResource (
         return CommonResult.returnResult(CommonResult.data(ticketService.saveTicket(ticketDTO)))
     }
 
-    @RequestMapping(value = ["/tickets/season"], method = [RequestMethod.PUT])
-    fun updateSeasonTicket(@Valid @RequestBody ticketDTO: SeasonTicketDTO, servlet: HttpServletRequest): ResponseEntity<CommonResult> {
+    @RequestMapping(value = ["/season-tickets/{sn}"], method = [RequestMethod.PUT])
+    fun updateSeasonTicket(@PathVariable sn: Long, @Valid @RequestBody ticketDTO: SeasonTicketDTO, servlet: HttpServletRequest): ResponseEntity<CommonResult> {
         if (ticketDTO.sn == null) {
             throw CustomException(
                 "season-ticket update not found sn",
@@ -84,14 +84,24 @@ class TicketResource (
         return CommonResult.returnResult(CommonResult.data(ticketService.saveTicket(ticketDTO)))
     }
 
+    @RequestMapping(value = ["/season-tickets/{sn}"], method = [RequestMethod.DELETE])
+    fun deleteSeasonTicket(@PathVariable sn: Long): ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(CommonResult.data(ticketService.delete(sn)))
+    }
+
     private fun checkPeriodSeasonTicket(ticketDTO: SeasonTicketDTO, mode: String): Boolean {
-        ticketService.getTicketByVehicleNoAndTicketTypeAndRangeDate(ticketDTO.vehicleNo?: "", ticketDTO.ticketType?: TicketType.SEASONTICKET, ticketDTO.effectDate?: LocalDateTime.now(), ticketDTO.expireDate?: LocalDateTime.now())?.let { ticketDTOs ->
-            if (ticketDTOs.isEmpty()) return true
-            if (mode == "U" && ticketDTOs.size == 1) {
-                if (ticketDTOs[0].sn == ticketDTO.sn) return true
+        ticketService.getBySn(ticketDTO.sn?: 0)?.let { exist ->
+            if (exist.effectDate != ticketDTO.effectDate || exist.expireDate != ticketDTO.expireDate) {
+                ticketService.getTicketByVehicleNoAndTicketTypeAndRangeDate(ticketDTO.vehicleNo?: "", ticketDTO.ticketType?: TicketType.SEASONTICKET, ticketDTO.effectDate?: LocalDateTime.now(), ticketDTO.expireDate?: LocalDateTime.now())?.let { ticketDTOs ->
+                    if (ticketDTOs.isEmpty()) return true
+                    if (mode == "U" && ticketDTOs.size == 1) {
+                        if (ticketDTOs[0].sn == ticketDTO.sn) return true
+                    }
+                    return false
+                }?: run { return true }
             }
-            return false
-        }?: run { return true }
+        }
+        return true
     }
 
     @RequestMapping(value = ["/tickets/seasons"], method = [RequestMethod.POST])
@@ -231,14 +241,12 @@ class TicketResource (
         return CommonResult.returnResult(CommonResult.data())
     }
 
-    @RequestMapping(value = ["/tickets"], method = [RequestMethod.GET])
+    @RequestMapping(value = ["/season-tickets"], method = [RequestMethod.GET])
     fun getTickets(@RequestParam(name = "fromDate", required = false) fromDate: String,
                    @RequestParam(name = "toDate", required = false) toDate: String,
                    @RequestParam(name = "searchDateLabel", required = false) searchDateLabel: DateType,
                    @RequestParam(name = "searchLabel", required = false) searchLabel: String?,
                    @RequestParam(name = "searchText", required = false) searchText: String?,
-                   @RequestParam(name = "effectDate", required = false) effectDate: String?,
-                   @RequestParam(name = "expireDate", required = false) expireDate: String?,
                    @RequestParam(name = "ticketType", required = false) ticketType: TicketType?,
                    @RequestParam(name = "corpName", required = false) corpName: String?,
                    @RequestParam(name = "delYn", required = false) delYn: String? = "N"): ResponseEntity<CommonResult> {

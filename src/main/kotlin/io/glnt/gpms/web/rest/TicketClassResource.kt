@@ -21,12 +21,12 @@ class TicketClassResource(
 ) {
     companion object : KLogging()
 
-    @RequestMapping(value = ["/ticket/classes"], method = [RequestMethod.GET])
+    @RequestMapping(value = ["/season-ticket-classes"], method = [RequestMethod.GET])
     fun getTicketClasses(): ResponseEntity<CommonResult> {
         return CommonResult.returnResult(CommonResult.data(ticketClassService.findAll()))
     }
 
-    @RequestMapping(value = ["/ticket/classes"], method = [RequestMethod.PUT])
+    @RequestMapping(value = ["/season-ticket-classes"], method = [RequestMethod.PUT])
     fun update(@Valid @RequestBody ticketClassDTO: TicketClassDTO): ResponseEntity<CommonResult> {
         if (ticketClassDTO.sn == null) {
             throw CustomException(
@@ -37,7 +37,7 @@ class TicketClassResource(
         return CommonResult.returnResult(CommonResult.data(ticketClassService.save(ticketClassDTO)))
     }
 
-    @RequestMapping(value = ["/ticket/classes"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/season-ticket-classes"], method = [RequestMethod.POST])
     fun create(@Valid @RequestBody ticketClassDTO: TicketClassDTO): ResponseEntity<CommonResult> {
         if (ticketClassDTO.sn != null) {
             throw CustomException(

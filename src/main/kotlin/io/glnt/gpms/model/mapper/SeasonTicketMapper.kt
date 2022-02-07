@@ -18,10 +18,11 @@ class SeasonTicketMapper(
 ) {
     fun toDTO(entity: SeasonTicket): SeasonTicketDTO {
         SeasonTicketDTO(entity).apply {
-            this.corp = this.corpSn?.let { CorpDTO(corpRepository.findBySn(this.corpSn ?: -1)!!) }
+            this.corpName = this.corpSn?.let { corpRepository.findBySn(it)?.corpName }
             this.ticketSn?.let {
                 ticketClassRepository.findBySn(it).ifPresent { ticketClass ->
                     this.ticket = TicketClassDTO(ticketClass)
+                    this.ticketName = ticketClass.ticketName
                 }
             }
             this.lastInDate =
@@ -42,7 +43,7 @@ class SeasonTicketMapper(
                     ticketType = dto.ticketType,
                     vehicleNo = dto.vehicleNo ?: "",
                     color = dto.color,
-                    vehiclekind = dto.vehiclekind,
+                    vehiclekind = dto.vehicleKind,
                     vehicleType = dto.vehicleType,
                     name = dto.name,
                     tel = dto.tel,

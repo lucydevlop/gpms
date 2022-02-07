@@ -16,6 +16,8 @@ data class SeasonTicketDTO (
 
     var ticketSn: Long? = null,
 
+    var ticketName: String? = null,
+
     var corpName: String? = null,
 
     @get: NotNull
@@ -27,7 +29,7 @@ data class SeasonTicketDTO (
 
     var color: String? = null,
 
-    var vehiclekind: String? = null,
+    var vehicleKind: String? = null,
 
     @Enumerated(EnumType.STRING)
     var vehicleType: VehicleType? = null,
@@ -58,7 +60,8 @@ data class SeasonTicketDTO (
     @Enumerated(EnumType.STRING)
     var delYn: YN? = null,
 
-    var corp: CorpDTO? = null,
+    //var corp: CorpDTO? = null,
+    //var corpName: String? = null,
 
     var ticket: TicketClassDTO? = null,
 
@@ -69,7 +72,7 @@ data class SeasonTicketDTO (
 
     constructor(seasonTicket: SeasonTicket) :
         this(
-            seasonTicket.sn, seasonTicket.corpSn, seasonTicket.ticketSn, seasonTicket.corpName, seasonTicket.ticketType,
+            seasonTicket.sn, seasonTicket.corp?.sn, seasonTicket.ticketSn, seasonTicket.ticket?.ticketName, seasonTicket.corp?.corpName, seasonTicket.ticketType,
             seasonTicket.vehicleNo, seasonTicket.color, seasonTicket.vehiclekind, seasonTicket.vehicleType, seasonTicket.name,
             seasonTicket.tel, seasonTicket.etc, seasonTicket.etc1, seasonTicket.effectDate, seasonTicket.expireDate, seasonTicket.extendYn, seasonTicket.payMethod, seasonTicket.nextSn, seasonTicket.delYn
         )
