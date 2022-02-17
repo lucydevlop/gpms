@@ -50,7 +50,7 @@ class CustomUserDetails : UserDetailsService {
     fun loadApiUser(key: String) : UserDetails {
         val decodeStr = Base64Util.decodeAsString(key)
         val str = decodeStr.split(":").toTypedArray()
-        if (str.isEmpty()) throw UsernameNotFoundException("User not found")
+        if (str.isEmpty()) throw UsernameNotFoundException("User $str not found")
 
         userRepository.findUsersById(str[0])?.let { siteUser ->
             if (passwordEncoder.matches(str[0], siteUser.password)) {

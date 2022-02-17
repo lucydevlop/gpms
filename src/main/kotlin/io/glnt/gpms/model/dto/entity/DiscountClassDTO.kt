@@ -37,7 +37,7 @@ data class DiscountClassDTO(
 
     var timeRange: String? = null,
 
-    var unitTime: Int,
+    var unit: Int,
 
     @get: NotNull
     @Enumerated(EnumType.STRING)
@@ -71,7 +71,7 @@ data class DiscountClassDTO(
         this(
             discountClass.sn, discountClass.discountType, discountClass.discountNm, discountClass.discountApplyType,
             discountClass.discountApplyRate, discountClass.timeTarget, discountClass.dayRange, discountClass.timeRange,
-            discountClass.unitTime, discountClass.disUse, discountClass.disMaxNo, discountClass.disMaxDay, discountClass.disMaxMonth,
+            discountClass.unit, discountClass.disUse, discountClass.disMaxNo, discountClass.disMaxDay, discountClass.disMaxMonth,
             discountClass.disPrice, discountClass.effectDate, discountClass.expireDate, discountClass.rcsUse, discountClass.orderNo, discountClass.delYn
         )
 

@@ -55,8 +55,8 @@ class TicketService(
     fun save(seasonTicketDTO: SeasonTicketDTO): SeasonTicketDTO {
         logger.debug { "Request to save Ticket : $seasonTicketDTO" }
         val ticket = seasonTicketMapper.toEntity(seasonTicketDTO)
-        seasonTicketRepository.save(ticket!!)
-        return seasonTicketMapper.toDTO(ticket)
+        //seasonTicketRepository.save(ticket!!)
+        return seasonTicketMapper.toDTO(seasonTicketRepository.save(ticket!!))
     }
 
     fun delete(sn: Long): SeasonTicketDTO? {

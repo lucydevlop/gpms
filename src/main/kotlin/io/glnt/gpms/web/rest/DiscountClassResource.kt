@@ -20,12 +20,12 @@ class DiscountClassResource (
 ){
     companion object : KLogging()
 
-    @RequestMapping(value = ["/discount/classes"], method = [RequestMethod.GET])
+    @RequestMapping(value = ["/discounts/classes"], method = [RequestMethod.GET])
     fun getDiscountClasses(): ResponseEntity<CommonResult> {
         return CommonResult.returnResult(CommonResult.data(discountClassService.findAll()))
     }
 
-    @RequestMapping(value = ["/discount/classes/create"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/discounts/classes/create"], method = [RequestMethod.POST])
     fun create(@Valid @RequestBody discountClassDTO: DiscountClassDTO): ResponseEntity<CommonResult> {
         return CommonResult.returnResult(CommonResult.data(discountClassService.save(discountClassDTO)))
     }

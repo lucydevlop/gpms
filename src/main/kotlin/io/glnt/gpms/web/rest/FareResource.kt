@@ -8,6 +8,7 @@ import io.glnt.gpms.model.dto.entity.CgBasicDTO
 import io.glnt.gpms.model.dto.entity.FareInfoDTO
 import io.glnt.gpms.model.dto.entity.FarePolicyDTO
 import io.glnt.gpms.model.dto.rcs.RcsRateInfoDTO
+import io.glnt.gpms.model.dto.response.FareReferenceDTO
 import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.service.FareService
 import mu.KLogging
@@ -24,6 +25,19 @@ class FareResource (
     private val fareService: FareService
 ){
     companion object : KLogging()
+
+    @RequestMapping(value = ["/charge/references"], method = [RequestMethod.GET])
+    fun getFareReference(): ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(
+            CommonResult.data(
+                FareReferenceDTO(
+                    fareInfos = fareService.findFareInfo(),
+                    farePolicies = fareService.findFarePolicies().filter { farePolicyDTO -> farePolicyDTO.delYn == YN.N },
+                    fareBasic = fareService.findFareBasic()
+                )
+            )
+        )
+    }
 
     @RequestMapping(value = ["/fare/policies"], method = [RequestMethod.GET])
     fun getFarePolicies(): ResponseEntity<CommonResult> {
@@ -52,7 +66,7 @@ class FareResource (
         return CommonResult.returnResult(CommonResult.data(fareService.saveFarePolicy(farePolicyDTO)))
     }
 
-    @RequestMapping(value = ["/fare/info"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/charge/info"], method = [RequestMethod.POST])
     fun createFareInfo(@Valid @RequestBody fareInfoDTO: FareInfoDTO) : ResponseEntity<CommonResult> {
         if (fareInfoDTO.sn != null) {
             throw CustomException(
@@ -81,25 +95,19 @@ class FareResource (
         return CommonResult.returnResult(CommonResult.data(RcsRateInfoDTO(fareBasic = fareBasic, farePolicies = farePolicies)))
     }
 
-    @RequestMapping(value = ["/fare/basic"], method = [RequestMethod.PUT])
-    fun updateFareBasic(@Valid @RequestBody cgBasicDTO: CgBasicDTO) : ResponseEntity<CommonResult> {
-        if (cgBasicDTO.sn == null) {
-            throw CustomException(
-                "Fare Basic not found sn",
-                ResultCode.FAILED
-            )
-        }
-        return CommonResult.returnResult(CommonResult.data(fareService.saveFareBasic(cgBasicDTO)))
-    }
+//    @RequestMapping(value = ["/charge/basic"], method = [RequestMethod.PUT])
+//    fun updateFareBasic(@Valid @RequestBody cgBasicDTO: CgBasicDTO) : ResponseEntity<CommonResult> {
+//        if (cgBasicDTO.sn == null) {
+//            throw CustomException(
+//                "Fare Basic not found sn",
+//                ResultCode.FAILED
+//            )
+//        }
+//        return CommonResult.returnResult(CommonResult.data(fareService.saveFareBasic(cgBasicDTO)))
+//    }
 
-    @RequestMapping(value = ["/fare/basic"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/charge/basic"], method = [RequestMethod.POST])
     fun createFareBasic(@Valid @RequestBody cgBasicDTO: CgBasicDTO) : ResponseEntity<CommonResult> {
-        if (cgBasicDTO.sn != null) {
-            throw CustomException(
-                "Fare Basic sn exists",
-                ResultCode.FAILED
-            )
-        }
         return CommonResult.returnResult(CommonResult.data(fareService.saveFareBasic(cgBasicDTO)))
     }
 }

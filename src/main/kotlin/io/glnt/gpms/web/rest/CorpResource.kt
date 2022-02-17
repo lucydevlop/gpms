@@ -45,7 +45,7 @@ class CorpResource (
         return CommonResult.returnResult(CommonResult.data(corpQueryService.findByCriteria(criteria)))
     }
 
-    @RequestMapping(value = ["/corps"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/corp/users"], method = [RequestMethod.POST])
     fun createCorp(@Valid @RequestBody corpDTO: CorpDTO): ResponseEntity<CommonResult> {
         if (corpDTO.sn != null) {
             throw CustomException(
@@ -56,8 +56,8 @@ class CorpResource (
         return CommonResult.returnResult(CommonResult.data(corpService.save(corpDTO, "create", parkSiteInfoService.getSiteId())))
     }
 
-    @RequestMapping(value = ["/corps"], method = [RequestMethod.PUT])
-    fun updateCorp(@Valid @RequestBody corpDTO: CorpDTO): ResponseEntity<CommonResult> {
+    @RequestMapping(value = ["/corp/users/{sn}"], method = [RequestMethod.PUT])
+    fun updateCorp(@PathVariable sn: Long, @Valid @RequestBody corpDTO: CorpDTO): ResponseEntity<CommonResult> {
         if (corpDTO.sn == null) {
             throw CustomException(
                 "corp update not found sn",
@@ -65,6 +65,16 @@ class CorpResource (
             )
         }
         return CommonResult.returnResult(CommonResult.data(corpService.save(corpDTO, "update", parkSiteInfoService.getSiteId())))
+    }
+
+    @RequestMapping(value = ["/corp/users/{sn}"], method = [RequestMethod.DELETE])
+    fun updateCorp(@PathVariable sn: Long): ResponseEntity<CommonResult> {
+        corpService.delete(sn)?.let {
+            return CommonResult.returnResult(CommonResult.data(it))
+        }?: throw CustomException(
+            "corp update not found sn",
+            ResultCode.FAILED
+        )
     }
 
     @RequestMapping(value = ["/corps/{sn}/{inSn}/able/ticket"], method = [RequestMethod.GET])

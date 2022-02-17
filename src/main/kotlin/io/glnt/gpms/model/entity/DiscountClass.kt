@@ -47,7 +47,7 @@ data class DiscountClass(
     var timeRange: String? = null,
 
     @Column(name = "unitTime")
-    var unitTime: Int,
+    var unit: Int,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "disUse", nullable = false)

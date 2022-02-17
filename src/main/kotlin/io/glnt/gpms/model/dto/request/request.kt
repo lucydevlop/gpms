@@ -101,24 +101,24 @@ data class reqDiscountTicket(
 
 data class resParkInList(
     var type: DisplayMessageClass? = DisplayMessageClass.IN,
-    var parkinSn: Long? = null,
+    var inSn: Long? = null,
     var vehicleNo: String? = null,
-    var parkcartype: String,
+    var parkCarType: String,
     var inGateId: String? = null,
 
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss") var inDate: LocalDateTime,
-    var parkoutSn: Long? = null,
+    var outSn: Long? = null,
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss") var outDate: LocalDateTime? = null,
     var outGateId: String? = null,
-    var parktime: Int? = 0,
-    var parkfee: Int? = 0,
-    var payfee: Int? = 0,
-    var discountfee: Int? = 0,
+    var parkTime: Int? = 0,
+    var parkFee: Int? = 0,
+    var payFee: Int? = 0,
+    var discountFee: Int? = 0,
     /* 입차 차량이미지 File (base64) */
     var inImgBase64Str: String? = null,
     /* 출차 차량이미지 File (base64) */
     var outImgBase64Str: String? = null,
-    var ticketCorpName: String? = null,
+    var corpName: String? = null,
     var memo: String? = null,
     var paymentAmount: Int? = 0,
     var dayDiscountfee: Int? = 0,

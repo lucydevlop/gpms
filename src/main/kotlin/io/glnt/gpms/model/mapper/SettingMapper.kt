@@ -16,7 +16,8 @@ class SettingMapper {
             else -> {
                 Setting(
                     sn = dto.sn,
-                    code = dto.code,
+                    enabled = dto.enabled,
+                    key = dto.key,
                     value = dto.value,
                     description = dto.description,
                 )

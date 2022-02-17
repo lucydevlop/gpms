@@ -756,7 +756,7 @@ class DashboardAdminService(
         try {
             discountService.createDiscountClass(
                 DiscountClass(sn = null, discountNm = request.discountNm,
-                              dayRange = request.dayRange, unitTime = request.unitTime!!,
+                              dayRange = request.dayRange, unit = request.unitTime!!,
                               disUse = request.disUse, disMaxNo = request.disMaxNo,
                               disMaxDay = request.disMaxDay,  disMaxMonth = request.disMaxMonth,
                               disPrice = request.disPrice, effectDate = request.effectDate, expireDate = request.expireDate,
@@ -772,15 +772,13 @@ class DashboardAdminService(
     }
 
     fun deleteDiscountTicket(request: Long) : CommonResult {
-        try {
-            return discountService.deleteDiscountClass(request)?.let {
+        return try {
+            discountService.deleteDiscountClass(request).let {
                 CommonResult.data(it)
-            }?: kotlin.run {
-                CommonResult.error("Admin deleteDiscountTicket failed")
             }
         }catch (e: CustomException){
             logger.error { "Admin deleteDiscountTicket failed $e" }
-            return CommonResult.error("Admin deleteDiscountTicket failed $e")
+            CommonResult.error("Admin deleteDiscountTicket failed $e")
         }
     }
 

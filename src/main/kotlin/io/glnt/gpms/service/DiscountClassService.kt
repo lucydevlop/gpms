@@ -24,7 +24,7 @@ class DiscountClassService (
         if (discountClasses.none { DiscountClassDTO -> DiscountClassDTO.discountNm == "전액" }) {
             discountClassRepository.save(
                 DiscountClass(sn = null, discountType = DiscountType.DISCOUNT, discountNm = "전액", discountApplyType = DiscountApplyType.PERCENT, discountApplyRate = DiscountApplyRateType.VARIABLE,
-                              timeTarget = TimeTarget.NOW, dayRange = DiscountRangeType.ALL, unitTime = 100, disUse = SaleType.FREE,
+                              timeTarget = TimeTarget.NOW, dayRange = DiscountRangeType.ALL, unit = 100, disUse = SaleType.FREE,
                               effectDate = DateUtil.stringToLocalDateTime("2021-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"), expireDate = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59", "yyyy-MM-dd HH:mm:ss"),
                               rcsUse = true, orderNo = 1, delYn = YN.N)
             )
@@ -32,7 +32,7 @@ class DiscountClassService (
         if (discountClasses.none { DiscountClassDTO -> DiscountClassDTO.discountNm == "500원" }) {
             discountClassRepository.save(
                 DiscountClass(sn = null, discountType = DiscountType.DISCOUNT, discountNm = "500원", discountApplyType = DiscountApplyType.WON, discountApplyRate = DiscountApplyRateType.VARIABLE,
-                    timeTarget = TimeTarget.NOW, dayRange = DiscountRangeType.ALL, unitTime = 500, disUse = SaleType.FREE,
+                    timeTarget = TimeTarget.NOW, dayRange = DiscountRangeType.ALL, unit = 500, disUse = SaleType.FREE,
                     effectDate = DateUtil.stringToLocalDateTime("2021-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"), expireDate = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59", "yyyy-MM-dd HH:mm:ss"),
                     rcsUse = true, orderNo = 2, delYn = YN.N)
             )
@@ -40,7 +40,7 @@ class DiscountClassService (
         if (discountClasses.none { DiscountClassDTO -> DiscountClassDTO.discountNm == "1000원" }) {
             discountClassRepository.save(
                 DiscountClass(sn = null, discountType = DiscountType.DISCOUNT, discountNm = "1000원", discountApplyType = DiscountApplyType.WON, discountApplyRate = DiscountApplyRateType.VARIABLE,
-                    timeTarget = TimeTarget.NOW, dayRange = DiscountRangeType.ALL, unitTime = 1000, disUse = SaleType.FREE,
+                    timeTarget = TimeTarget.NOW, dayRange = DiscountRangeType.ALL, unit = 1000, disUse = SaleType.FREE,
                     effectDate = DateUtil.stringToLocalDateTime("2021-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"), expireDate = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59", "yyyy-MM-dd HH:mm:ss"),
                     rcsUse = true, orderNo = 3, delYn = YN.N)
             )
@@ -48,7 +48,7 @@ class DiscountClassService (
         if (discountClasses.none { DiscountClassDTO -> DiscountClassDTO.discountNm == "5000원" }) {
             discountClassRepository.save(
                 DiscountClass(sn = null, discountType = DiscountType.DISCOUNT, discountNm = "5000원", discountApplyType = DiscountApplyType.WON, discountApplyRate = DiscountApplyRateType.VARIABLE,
-                    timeTarget = TimeTarget.NOW, dayRange = DiscountRangeType.ALL, unitTime = 5000, disUse = SaleType.FREE,
+                    timeTarget = TimeTarget.NOW, dayRange = DiscountRangeType.ALL, unit = 5000, disUse = SaleType.FREE,
                     effectDate = DateUtil.stringToLocalDateTime("2021-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"), expireDate = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59", "yyyy-MM-dd HH:mm:ss"),
                     rcsUse = true, orderNo = 4, delYn = YN.N)
             )
@@ -56,7 +56,7 @@ class DiscountClassService (
         if (discountClasses.none { DiscountClassDTO -> DiscountClassDTO.discountNm == "10000원" }) {
             discountClassRepository.save(
                 DiscountClass(sn = null, discountType = DiscountType.DISCOUNT, discountNm = "10000원", discountApplyType = DiscountApplyType.WON, discountApplyRate = DiscountApplyRateType.VARIABLE,
-                    timeTarget = TimeTarget.NOW, dayRange = DiscountRangeType.ALL, unitTime = 10000, disUse = SaleType.FREE,
+                    timeTarget = TimeTarget.NOW, dayRange = DiscountRangeType.ALL, unit = 10000, disUse = SaleType.FREE,
                     effectDate = DateUtil.stringToLocalDateTime("2021-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss"), expireDate = DateUtil.stringToLocalDateTime("9999-12-31 23:59:59", "yyyy-MM-dd HH:mm:ss"),
                     rcsUse = true, orderNo = 5, delYn = YN.N)
             )

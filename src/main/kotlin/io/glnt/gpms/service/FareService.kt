@@ -39,6 +39,14 @@ class FareService(
         return farePolicyMapper.toDto(farePolicy)
     }
 
+    @Transactional(readOnly = true)
+    fun findFareInfo(): List<FareInfoDTO> {
+        return fareInfoRepository.findAll()
+            .map {
+                FareInfoDTO(it)
+            }
+    }
+
     fun saveFareInfo(fareInfoDTO: FareInfoDTO): FareInfoDTO {
         var fareInfo = fareInfoMapper.toEntity(fareInfoDTO)
         fareInfo = fareInfoRepository.save(fareInfo!!)

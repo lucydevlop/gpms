@@ -113,12 +113,12 @@ class InoutResource (
             val gateDTO = gateService.findOne(resParkInList.outGateId ?: "")
 
             // 출차 처리
-            parkOutService.findOne(result.parkoutSn!!).ifPresent { parkOutDTO ->
+            parkOutService.findOne(result.outSn!!).ifPresent { parkOutDTO ->
                 gateDTO?.let { gate ->
                     if (parkinglotService.isPaid()) {
                         inoutService.waitFacilityIF(
                             "MANPAYMENT",
-                            resParkInList.parkcartype,
+                            resParkInList.parkCarType,
                             resParkInList.vehicleNo!!,
                             gateMapper.toEntity(gate)!!,
                             parkOutDTO,
@@ -130,10 +130,10 @@ class InoutResource (
                     if ( (!parkinglotService.isPaid()) || ( parkinglotService.isPaid() && (parkOutDTO.payfee?: 0) <= 0)) {
                         // 출차 처리
                         inoutService.outFacilityIF(
-                            resParkInList.parkcartype,
+                            resParkInList.parkCarType,
                             resParkInList.vehicleNo!!,
                             gateMapper.toEntity(gate)!!,
-                            parkInService.findOne(resParkInList.parkinSn!!)?.let { parkInMapper.toEntity(it) },
+                            parkInService.findOne(resParkInList.inSn!!)?.let { parkInMapper.toEntity(it) },
                             parkOutDTO.sn!!)
                     }
                 }
@@ -141,7 +141,7 @@ class InoutResource (
             return CommonResult.returnResult(CommonResult.data(result))
         }
         throw CustomException(
-            "${resParkInList.parkinSn} transfer(update) failed",
+            "${resParkInList.inSn} transfer(update) failed",
             ResultCode.FAILED
         )
 
@@ -177,7 +177,7 @@ class InoutResource (
         return CommonResult.returnResult(rcsService.forcedExit(sn))
     }
 
-    @RequestMapping(value = ["/inout/parkin"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/relay/parkIn"], method = [RequestMethod.POST])
     fun parkIn(@Valid @RequestBody requestParkInDTO: reqAddParkIn) : ResponseEntity<CommonResult> {
         logger.warn {" ##### 입차 요청 START #####"}
         logger.warn {" 차량번호 ${requestParkInDTO.vehicleNo} LPR시설정보 ${requestParkInDTO.dtFacilitiesId} 입차시간 ${requestParkInDTO.date} UUID ${requestParkInDTO.uuid} OCR결과 ${requestParkInDTO.resultcode}"  }
@@ -255,6 +255,31 @@ class InoutResource (
                 }
             }
 
+            // 5. 입차 후방 카메라 uuid 매핑
+            if ((requestParkInDTO.uuid?: "").isEmpty()) {
+//                // 후방 카메라 미인식 skip
+//                if (requestParkInDTO.resultcode == "0" || requestParkInDTO.resultcode.toInt() >= 100) { return ResponseEntity.ok(CommonResult.data()) }
+//                requestParkInDTO.isSecond = true
+
+                parkInService.getLastByGate(gate.gateId)?.let {
+                    if (it.uuid?.isNotEmpty() == true) {
+                        if (DateUtil.diffSecs(requestParkInDTO.date, it.inDate!!) < 3) {
+//                            requestParkInDTO.beforeParkIn = it
+                            requestParkInDTO.uuid = it.uuid
+                        }
+                    }
+                }
+
+//                parkInService.getNoExitVehicleNoAndGateId(requestParkInDTO.vehicleNo, gate.gateId)?.let { ins ->
+//                    if (ins.isNotEmpty()) {
+//                        logger.warn{" 기 입차 차량번호:${requestParkInDTO.vehicleNo} skip "}
+//                        return ResponseEntity.ok(CommonResult.data("Already in $requestParkInDTO.vehicleNo $requestParkInDTO.parkingtype"))
+//                    }
+//
+//                }
+
+            }
+
             // 입차 skip
             // 4. uuid 동일, 미인식 차량 skip / uuid 동일, 차량번호 동일  기 입차 skip
             parkInService.findOneByUuid(requestParkInDTO.uuid?: "-")?.let { parkInDTOs ->
@@ -270,27 +295,7 @@ class InoutResource (
                 }
             }
 
-            // 5. 입차 후방 카메라 동일 입차건 skip
-            if ((requestParkInDTO.uuid?: "").isEmpty()) {
-                // 후방 카메라 미인식 skip
-                if (requestParkInDTO.resultcode == "0" || requestParkInDTO.resultcode.toInt() >= 100) { return ResponseEntity.ok(CommonResult.data()) }
-                requestParkInDTO.isSecond = true
-                parkInService.getNoExitVehicleNoAndGateId(requestParkInDTO.vehicleNo, gate.gateId)?.let { ins ->
-                    if (ins.isNotEmpty()) {
-                        logger.warn{" 기 입차 차량번호:${requestParkInDTO.vehicleNo} skip "}
-                        return ResponseEntity.ok(CommonResult.data("Already in $requestParkInDTO.vehicleNo $requestParkInDTO.parkingtype"))
-                    }
 
-                }
-                parkInService.getLastByGate(gate.gateId)?.let {
-                    if (it.uuid?.isNotEmpty() == true) {
-                        if (DateUtil.diffSecs(requestParkInDTO.date, it.inDate!!) < 3) {
-                            requestParkInDTO.beforeParkIn = it
-                            requestParkInDTO.uuid = it.uuid
-                        }
-                    }
-                }
-            }
 
             val result = inoutService.parkIn(requestParkInDTO)
 
@@ -317,7 +322,7 @@ class InoutResource (
         }
     }
 
-    @RequestMapping(value = ["/inout/parkout"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/relay/parkOut"], method = [RequestMethod.POST])
     fun parkOut(@Valid @RequestBody requestParkOutDTO: RequestParkOutDTO) : ResponseEntity<CommonResult> {
         logger.warn {" ##### 출차 요청 START #####"}
         logger.warn {" 차량번호 ${requestParkOutDTO.vehicleNo} LPR시설정보 ${requestParkOutDTO.dtFacilitiesId} 입차시간 ${requestParkOutDTO.date} UUID ${requestParkOutDTO.uuid} OCR결과 ${requestParkOutDTO.resultcode}"  }

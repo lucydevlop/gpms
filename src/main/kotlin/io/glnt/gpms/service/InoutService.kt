@@ -691,11 +691,11 @@ open class InoutService(
         parkInQueryService.findByCriteria(ParkInCriteria(sn = sn))[0].let { parkInDTO ->
             val result = resParkInList(
                 type = DisplayMessageClass.IN,
-                parkinSn = parkInDTO.sn!!, vehicleNo = parkInDTO.vehicleNo, parkcartype = parkInDTO.parkcartype!!,
+                inSn = parkInDTO.sn!!, vehicleNo = parkInDTO.vehicleNo, parkCarType = parkInDTO.parkcartype!!,
                 inGateId = parkInDTO.gateId, inDate = parkInDTO.inDate!!,
-                ticketCorpName = parkInDTO.seasonTicketDTO?.corpName, memo = parkInDTO.memo,
+                corpName = parkInDTO.seasonTicketDTO?.corpName, memo = parkInDTO.memo,
                 inImgBase64Str = parkInDTO.image?.let { image -> image.substring(image.indexOf("/park")) },
-                parkoutSn = parkInDTO.outSn
+                outSn = parkInDTO.outSn
             )
             result.paymentAmount = inoutPaymentRepository.findByInSnAndResultAndDelYn(parkInDTO.sn!!, ResultType.SUCCESS, YN.N)?.let { payment ->
                 payment.sumBy { it.amount?: 0 }
@@ -705,16 +705,16 @@ open class InoutService(
 //                            if (it.outSn!! > 0L && it.outSn != null) {
             parkOutRepository.findByInSnAndDelYn(parkInDTO.sn!!, YN.N).ifPresent { out ->
                 result.type = DisplayMessageClass.OUT
-                result.parkoutSn = out.sn
+                result.outSn = out.sn
                 result.outDate = out.outDate
                 result.outGateId = out.gateId
-                result.parktime = out.parktime
-                result.parkfee = out.parkfee
-                result.payfee = out.payfee?: 0
-                result.discountfee = out.discountfee
+                result.parkTime = out.parktime
+                result.parkFee = out.parkfee
+                result.payFee = out.payfee?: 0
+                result.discountFee = out.discountfee
                 result.dayDiscountfee = out.dayDiscountfee
                 result.outImgBase64Str = out.image?.let { if (out.image!!.contains("/park")) out.image!!.substring(out.image!!.indexOf("/park")) else null }?: kotlin.run { null }
-                result.nonPayment = result.payfee!! - result.paymentAmount!!
+                result.nonPayment = result.payFee!! - result.paymentAmount!!
             }
             return result
         }
@@ -741,11 +741,11 @@ open class InoutService(
                         list.forEach { it ->
                             val result = resParkInList(
                                 type = if ((it.outSn?: -1) > 0) DisplayMessageClass.OUT else DisplayMessageClass.IN,
-                                parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
+                                inSn = it.sn!!, vehicleNo = it.vehicleNo, parkCarType = it.parkcartype!!,
                                 inGateId = it.gateId, inDate = it.inDate!!,
-                                ticketCorpName = it.seasonTicketDTO?.corpName, memo = it.memo,
+                                corpName = it.seasonTicketDTO?.corpName, memo = it.memo,
                                 inImgBase64Str = it.image?.let { image -> image.substring(image.indexOf("/park")) },
-                                parkoutSn = it.outSn
+                                outSn = it.outSn
                             )
                             result.paymentAmount = inoutPaymentRepository.findByInSnAndResultAndDelYn(it.sn!!, ResultType.SUCCESS, YN.N)?.let { payment ->
                                 payment.sumBy { it.amount?: 0 }
@@ -754,16 +754,16 @@ open class InoutService(
 //                            result.aplyDiscountClasses = discountService.searchInoutDiscount(it.sn!!) as ArrayList<InoutDiscount>?
 //                            if (it.outSn!! > 0L && it.outSn != null) {
                             parkOutRepository.findByInSnAndDelYn(it.sn!!, YN.N).ifPresent { out ->
-                                result.parkoutSn = out.sn
+                                result.outSn = out.sn
                                 result.outDate = out.outDate
                                 result.outGateId = out.gateId
-                                result.parktime = out.parktime
-                                result.parkfee = out.parkfee
-                                result.payfee = out.payfee?: 0
-                                result.discountfee = out.discountfee
+                                result.parkTime = out.parktime
+                                result.parkFee = out.parkfee
+                                result.payFee = out.payfee?: 0
+                                result.discountFee = out.discountfee
                                 result.dayDiscountfee = out.dayDiscountfee
                                 result.outImgBase64Str = out.image?.let { if (out.image!!.contains("/park")) out.image!!.substring(out.image!!.indexOf("/park")) else null }?: kotlin.run { null }
-                                result.nonPayment = result.payfee!! - result.paymentAmount!!
+                                result.nonPayment = result.payFee!! - result.paymentAmount!!
                             }
                             results.add(result)
                         }
@@ -789,17 +789,17 @@ open class InoutService(
                             results.add(
                                 resParkInList(
                                     type = DisplayMessageClass.OUT,
-                                    parkinSn = it.parkInDTO?.sn!!,
+                                    inSn = it.parkInDTO?.sn!!,
                                     vehicleNo = it.parkInDTO!!.vehicleNo,
-                                    parkcartype = it.parkInDTO!!.parkcartype!!,
+                                    parkCarType = it.parkInDTO!!.parkcartype!!,
                                     inGateId = it.parkInDTO!!.gateId,
                                     inDate = it.parkInDTO!!.inDate!!,
-                                    ticketCorpName = it.parkInDTO!!.seasonTicketDTO?.corpName,
-                                    parkoutSn = it.sn ,
+                                    corpName = it.parkInDTO!!.seasonTicketDTO?.corpName,
+                                    outSn = it.sn ,
                                     outDate = it.outDate,
                                     outGateId = it.gateId,
-                                    parktime = it.parktime,
-                                    parkfee = it.parkfee, payfee = it.payfee, discountfee = it.discountfee,
+                                    parkTime = it.parktime,
+                                    parkFee = it.parkfee, payFee = it.payfee, discountFee = it.discountfee,
                                     paymentAmount = paymentAmount,
                                     nonPayment = it.payfee!! - paymentAmount
 //                                    aplyDiscountClasses = discountService.searchInoutDiscount(it.parkInDTO?.sn!!) as ArrayList<InoutDiscount>?
@@ -958,20 +958,20 @@ open class InoutService(
             parkInRepository.findBySn(request)?.let { it ->
                 val result = resParkInList(
                     type = DisplayMessageClass.IN,
-                    parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
+                    inSn = it.sn!!, vehicleNo = it.vehicleNo, parkCarType = it.parkcartype!!,
                     inGateId = it.gateId, inDate = it.inDate!!, inImgBase64Str = it.image!!.substring(it.image!!.indexOf("/park")),
                     memo = it.memo
                 )
                 if (it.outSn!! > 0L || it.outSn != null) {
                     parkOutRepository.findBySn(it.outSn!!).ifPresent { out ->
                         result.type = DisplayMessageClass.OUT
-                        result.parkoutSn = out.sn
+                        result.outSn = out.sn
                         result.outDate = out.outDate
                         result.outGateId = out.gateId
-                        result.parktime = out.parktime
-                        result.parkfee = out.parkfee
-                        result.payfee = out.payfee
-                        result.discountfee = out.discountfee
+                        result.parkTime = out.parktime
+                        result.parkFee = out.parkfee
+                        result.payFee = out.payfee
+                        result.discountFee = out.discountfee
                     }
                 }
                 return CommonResult.data(result)
@@ -1045,12 +1045,12 @@ open class InoutService(
     fun updateInout(request: resParkInList): resParkInList? {
         logger.info { "updateInout request $request" }
         try {
-            parkInQueryService.findByCriteria(ParkInCriteria(sn = request.parkinSn)).let { parkIns ->
+            parkInQueryService.findByCriteria(ParkInCriteria(sn = request.inSn)).let { parkIns ->
                 parkIns.forEach { parkIn ->
                     parkIn.inDate = request.inDate
                     parkIn.gateId = request.inGateId?: parkIn.gateId
                     parkIn.vehicleNo = request.vehicleNo?: parkIn.vehicleNo
-                    parkIn.parkcartype = request.parkcartype
+                    parkIn.parkcartype = request.parkCarType
                     parkIn.memo = request.memo?: parkIn.memo
 
                     parkInService.save(parkIn)
@@ -1061,18 +1061,18 @@ open class InoutService(
                     }
 
                     request.outDate?.let {
-                        if ((request.parkoutSn?: 0) > 0) {
-                            request.parkoutSn?.let {
+                        if ((request.outSn?: 0) > 0) {
+                            request.outSn?.let {
                                 //기존 출차 데이터 update
                                 parkOutRepository.findBySn(it).ifPresent { parkOut ->
                                     parkOut.outDate = request.outDate
-                                    parkOut.parktime = request.parktime
+                                    parkOut.parktime = request.parkTime
                                     request.outGateId?.let { parkOut.gateId = request.outGateId }
-                                    request.parktime?.let { parkOut.parktime = request.parktime }
-                                    request.parkfee?.let { parkOut.parkfee = request.parkfee }
-                                    request.payfee?.let { parkOut.payfee = request.payfee }
+                                    request.parkTime?.let { parkOut.parktime = request.parkTime }
+                                    request.parkFee?.let { parkOut.parkfee = request.parkFee }
+                                    request.payFee?.let { parkOut.payfee = request.payFee }
                                     request.dayDiscountfee?.let { parkOut.dayDiscountfee = request.dayDiscountfee }
-                                    request.discountfee?.let { parkOut.discountfee = request.discountfee }
+                                    request.discountFee?.let { parkOut.discountfee = request.discountFee }
                                     parkOutRepository.saveAndFlush(parkOut)
                                 }
                             }?: run {
@@ -1080,7 +1080,7 @@ open class InoutService(
                             }
                         } else {
                             // 입차 기준으로 출차 데이터 확인
-                            val existIn = request.parkinSn?.let { it1 -> parkOutRepository.findByInSnAndDelYn(it1, YN.N).orElse(null) }
+                            val existIn = request.inSn?.let { it1 -> parkOutRepository.findByInSnAndDelYn(it1, YN.N).orElse(null) }
                             val sn = existIn?.sn
 
                             //신규 출차 데이터
@@ -1096,17 +1096,17 @@ open class InoutService(
                                 hour = DateUtil.nowTimeDetail.substring(0, 2),
                                 min = DateUtil.nowTimeDetail.substring(3, 5),
                                 outDate = request.outDate,
-                                parktime = request.parktime,
-                                parkfee = request.parkfee,
-                                payfee = request.payfee,
-                                discountfee = request.discountfee,
+                                parktime = request.parkTime,
+                                parkfee = request.parkFee,
+                                payfee = request.payFee,
+                                discountfee = request.discountFee,
                                 dayDiscountfee = request.dayDiscountfee,
                                 inSn = parkIn.sn,
                                 uuid = UUID.randomUUID().toString(),
                                 image = "null"
                             )
                             parkOutRepository.saveAndFlush(new)
-                            request.parkoutSn = new.sn
+                            request.outSn = new.sn
                         }
                     }
                 }
@@ -1141,22 +1141,22 @@ open class InoutService(
 
     fun calcInout(request: resParkInList): resParkInList {
         if (parkSiteInfoService.parkSite!!.saleType == SaleType.PAID) {
-            val price = feeCalculation.getCalcPayment(CalcType.CALC, request.inDate, request.outDate, VehicleType.SMALL, request.vehicleNo?: "",  0, request.parkinSn, request.addDiscountClasses, false)
+            val price = feeCalculation.getCalcPayment(CalcType.CALC, request.inDate, request.outDate, VehicleType.SMALL, request.vehicleNo?: "",  0, request.inSn, request.addDiscountClasses, false)
             logger.warn { "-------------------getCalcPayment Result -------------------" }
             logger.warn { "입차시간 : ${request.inDate} / 출차시간 : ${request.outDate} / 주차시간: ${price!!.parkTime}" }
             logger.warn { "총 요금 : ${price!!.orgTotalPrice} / 결제 요금 : ${price.totalPrice} / 할인 요금 : ${price.discountPrice} / 일최대할인요금 : ${price.dayilyMaxDiscount}" }
-            request.parktime = price!!.parkTime
-            request.parkfee = price.orgTotalPrice
-            request.payfee = price.totalPrice
-            request.discountfee = price.discountPrice
+            request.parkTime = price!!.parkTime
+            request.parkFee = price.orgTotalPrice
+            request.payFee = price.totalPrice
+            request.discountFee = price.discountPrice
             request.dayDiscountfee = price.dayilyMaxDiscount
         } else {
             request.paymentAmount = 0
             request.dayDiscountfee = 0
-            request.parktime = DateUtil.diffMins(request.inDate, request.outDate!!)
-            request.parkfee = 0
-            request.payfee = 0
-            request.discountfee = 0
+            request.parkTime = DateUtil.diffMins(request.inDate, request.outDate!!)
+            request.parkFee = 0
+            request.payFee = 0
+            request.discountFee = 0
         }
         return request
     }

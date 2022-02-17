@@ -37,7 +37,7 @@ data class CorpTicketClassDTO (
 
     var price: Long? = 0,
 
-    var extendYn: OnOff? = OnOff.OFF,
+    var extendYn: YN? = YN.N,
 
     var week: MutableSet<String>? = mutableSetOf(WeekType.ALL.toString()),
 

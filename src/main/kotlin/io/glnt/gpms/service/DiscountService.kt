@@ -370,7 +370,7 @@ class DiscountService(
             }
             if (discountClasses.isEmpty()) return 0
 
-            val apply =  discountClasses.maxOf { it.unitTime }
+            val apply =  discountClasses.maxOf { it.unit }
             result = ( totalPrice * apply ) / 100
         }
         return result
@@ -397,7 +397,7 @@ class DiscountService(
             }
             if (discountClasses.isEmpty()) return 0
 
-            val apply =  discountClasses.minOf { it.unitTime }
+            val apply =  discountClasses.minOf { it.unit }
             result = totalPrice - apply
         }
         return result
@@ -425,7 +425,7 @@ class DiscountService(
             }
             if (discountClasses.isEmpty()) return 0
 
-            result = discountClasses.sumOf { it.unitTime * (it.useCnt?: 0) }
+            result = discountClasses.sumOf { it.unit * (it.useCnt?: 0) }
 
             //result = apply
 

@@ -20,7 +20,7 @@ class DiscountClassMapper {
                     discountNm = dto.discountNm!!,
                     discountApplyType = dto.discountApplyType,
                     discountApplyRate = dto.discountApplyRate,
-                    unitTime = dto.unitTime,
+                    unit = dto.unit,
                     effectDate = dto.effectDate,
                     expireDate = dto.expireDate,
                     rcsUse = dto.rcsUse,

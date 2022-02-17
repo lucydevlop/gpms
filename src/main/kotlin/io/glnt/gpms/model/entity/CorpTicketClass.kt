@@ -59,7 +59,7 @@ data class CorpTicketClass (
 
     @Enumerated(EnumType.STRING)
     @Column(name = "extend_yn")
-    var extendYn: OnOff? = OnOff.OFF,
+    var extendYn: YN? = YN.N,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn")
@@ -75,7 +75,7 @@ data class CorpTicketClass (
     @Column(name = "week", columnDefinition = "json")
     var week: MutableSet<String>? = mutableSetOf(WeekType.ALL.toString()),
 
-): Auditable(), Serializable {
+    ): Auditable(), Serializable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

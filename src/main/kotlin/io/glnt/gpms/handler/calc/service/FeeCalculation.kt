@@ -677,7 +677,7 @@ class FeeCalculation(
         // 할인권 제외
         if (inSn != null) {
             discountClasses?.forEach { discount ->
-                discountItmes.add(ReqAddParkingDiscount(inSn = discount.inSn, discountClassSn = discount.discountClassSn, cnt = discount.cnt?: 0))
+                discountItmes.add(ReqAddParkingDiscount(inSn = discount.inSn, discountClassSn = discount.discountClassSn, cnt = discount.cnt))
             }
 
             discountItmes.let { items ->
@@ -690,7 +690,7 @@ class FeeCalculation(
 
                 items.forEach { item ->
                     val discountClass = discountClassService.findBySn(item.discountClassSn)
-                    var discountTime = discountClass.unitTime * item.cnt
+                    var discountTime = discountClass.unit * item.cnt
 
                     dailySplits!!.forEach { dailySplit ->
                         if (dailySplit.feeType == "BASIC" && (discountApply?.baseFeeInclude ?: YN.Y) == YN.N)  return@forEach

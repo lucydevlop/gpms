@@ -1,5 +1,6 @@
 package io.glnt.gpms.service
 
+import io.glnt.gpms.exception.CustomException
 import io.glnt.gpms.model.dto.entity.CorpDTO
 import io.glnt.gpms.model.dto.entity.CorpTicketDTO
 import io.glnt.gpms.model.dto.entity.CorpTicketHistoryDTO
@@ -87,6 +88,18 @@ class CorpService(
         }
 
         return corpMapper.toDTO(corp)
+    }
+
+    fun delete(sn: Long): CorpDTO? {
+        return corpRepository.findBySn(sn)?.let { corp ->
+            corp.delYn = YN.Y
+            corpRepository.save(corp)
+            userRepository.findUsersById(corp.corpId?: "")?.let { siteUser ->
+                siteUser.delYn = YN.Y
+                userRepository.save(siteUser)
+            }
+            corpMapper.toDTO(corp)
+        }?: kotlin.run { null }
     }
 
     fun getCorpTicketHistByTicketSn(ticketSn: Long): MutableList<CorpTicketHistoryDTO>? {
