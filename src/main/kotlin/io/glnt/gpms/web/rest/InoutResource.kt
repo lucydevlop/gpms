@@ -68,19 +68,37 @@ class InoutResource (
                   @RequestParam(name = "searchDateLabel", required = false) searchDateLabel: DisplayMessageClass,
                   @RequestParam(name = "vehicleNo", required = false) vehicleNo: String? = null,
                   @RequestParam(name = "parkCarType", required = false) parkCarType: String? = null,
-                  @RequestParam(name = "outSn", required = false) outSn: Long? = null
+                  @RequestParam(name = "outSn", required = false) outSn: Long? = null,
+                  @RequestParam(name = "pageSize", required = false) pageSize: Int = 20,
+                  @RequestParam(name = "page", required = false) page: Int = 0,
     ) : ResponseEntity<CommonResult> {
-        return CommonResult.returnResult(CommonResult.data(
-            inoutService.getAllParkLists(
-                reqSearchParkin(searchDateLabel = searchDateLabel,
-                fromDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                toDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                searchLabel = vehicleNo?.let { "CARNUM" },
-                searchText = vehicleNo,
-                parkcartype = parkCarType,
-                outSn = outSn
-            ))
-            ))
+        return CommonResult.returnResult(
+            CommonResult.dataWithTotal(
+                inoutService.getAllParkLists(
+                    reqSearchParkin(
+                        searchDateLabel = searchDateLabel,
+                        fromDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                        toDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                        searchLabel = vehicleNo?.let { "CARNUM" },
+                        searchText = vehicleNo,
+                        parkcartype = parkCarType,
+                        outSn = outSn,
+                        page = page-1,
+                        pageSize = pageSize)
+                )
+            ,inoutService.countAllParkLists(
+                    reqSearchParkin(
+                        searchDateLabel = searchDateLabel,
+                        fromDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                        toDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                        searchLabel = vehicleNo?.let { "CARNUM" },
+                        searchText = vehicleNo,
+                        parkcartype = parkCarType,
+                        outSn = outSn,
+                        page = page-1,
+                        pageSize = pageSize))
+            )
+        )
     }
 
     @RequestMapping(value=["/inout"], method = [RequestMethod.GET])
@@ -177,7 +195,7 @@ class InoutResource (
         return CommonResult.returnResult(rcsService.forcedExit(sn))
     }
 
-    @RequestMapping(value = ["/relay/parkIn"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/inout/parkin"], method = [RequestMethod.POST])
     fun parkIn(@Valid @RequestBody requestParkInDTO: reqAddParkIn) : ResponseEntity<CommonResult> {
         logger.warn {" ##### 입차 요청 START #####"}
         logger.warn {" 차량번호 ${requestParkInDTO.vehicleNo} LPR시설정보 ${requestParkInDTO.dtFacilitiesId} 입차시간 ${requestParkInDTO.date} UUID ${requestParkInDTO.uuid} OCR결과 ${requestParkInDTO.resultcode}"  }
@@ -322,7 +340,7 @@ class InoutResource (
         }
     }
 
-    @RequestMapping(value = ["/relay/parkOut"], method = [RequestMethod.POST])
+    @RequestMapping(value = ["/inout/parkout"], method = [RequestMethod.POST])
     fun parkOut(@Valid @RequestBody requestParkOutDTO: RequestParkOutDTO) : ResponseEntity<CommonResult> {
         logger.warn {" ##### 출차 요청 START #####"}
         logger.warn {" 차량번호 ${requestParkOutDTO.vehicleNo} LPR시설정보 ${requestParkOutDTO.dtFacilitiesId} 입차시간 ${requestParkOutDTO.date} UUID ${requestParkOutDTO.uuid} OCR결과 ${requestParkOutDTO.resultcode}"  }

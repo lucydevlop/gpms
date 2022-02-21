@@ -80,8 +80,8 @@ data class reqSearchParkin(
     @Enumerated(EnumType.STRING) var searchDateLabel: DisplayMessageClass? = null,
     @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd") var fromDate: LocalDate? = null,
     @JsonFormat( shape = JsonFormat.Shape.ANY, pattern = "yyyy-MM-dd") var toDate: LocalDate? = null,
-//    var pageSize: Long? = 10,
-//    var page: Int? = 1,
+    var pageSize: Int = 20,
+    var page: Int = 1,
     var gateId: String? = null,
     var parkcartype: String? = null,
     var outSn: Long? = null

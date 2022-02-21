@@ -32,6 +32,7 @@ import io.glnt.gpms.model.repository.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
@@ -720,6 +721,35 @@ open class InoutService(
         }
     }
 
+    fun countAllParkLists(request: reqSearchParkin): Long {
+        return when (request.searchDateLabel) {
+            DisplayMessageClass.IN -> {
+                val criteria = ParkInCriteria(
+                    sn = if (request.searchLabel == "INSN" && request.searchText != null) request.searchText!!.toLong() else null,
+                    vehicleNo = if (request.searchLabel == "CARNUM" && request.searchText != null) request.searchText!! else null,
+                    fromDate = request.fromDate,
+                    toDate = request.toDate,
+                    gateId = request.gateId,
+                    parkcartype = request.parkcartype,
+                    outSn = request.outSn
+                )
+                parkInQueryService.findByCriteria(criteria, PageRequest.of(request.page, request.pageSize)).totalElements
+            }
+            DisplayMessageClass.OUT -> {
+                val criteria = ParkOutCriteria(
+                    sn = if (request.searchLabel == "INSN" && request.searchText != null) request.searchText!!.toLong() else null,
+                    vehicleNo = if (request.searchLabel == "CARNUM" && request.searchText != null) request.searchText!! else null,
+                    fromDate = request.fromDate,
+                    toDate = request.toDate,
+                    gateId = request.gateId,
+                    parkcartype = request.parkcartype
+
+                )
+                parkOutQueryService.findByCriteria(criteria, PageRequest.of(request.page, request.pageSize)).totalElements
+            }
+            else -> 0
+        }
+    }
 
     @Transactional(readOnly = true)
     open fun getAllParkLists(request: reqSearchParkin): List<resParkInList>? {
@@ -737,13 +767,13 @@ open class InoutService(
                         parkcartype = request.parkcartype,
                         outSn = request.outSn
                     )
-                    parkInQueryService.findByCriteria(criteria).let { list ->
+                    parkInQueryService.findByCriteria(criteria, PageRequest.of(request.page, request.pageSize)).let { list ->
                         list.forEach { it ->
                             val result = resParkInList(
                                 type = if ((it.outSn?: -1) > 0) DisplayMessageClass.OUT else DisplayMessageClass.IN,
                                 inSn = it.sn!!, vehicleNo = it.vehicleNo, parkCarType = it.parkcartype!!,
                                 inGateId = it.gateId, inDate = it.inDate!!,
-                                corpName = it.seasonTicketDTO?.corpName, memo = it.memo,
+                                corpName = it.ticketSn?.let { ticketService.getBySn(it)?.corpName },
                                 inImgBase64Str = it.image?.let { image -> image.substring(image.indexOf("/park")) },
                                 outSn = it.outSn
                             )
