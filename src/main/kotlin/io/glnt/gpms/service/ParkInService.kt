@@ -27,6 +27,10 @@ class ParkInService(
         return parkInMapper.toDTO(inData)
     }
 
+    fun getLastByVehicleNoAndGateIdAndDate(vehicleNo: String, gateId: String, date: LocalDateTime): ParkIn? {
+        return parkInRepository.findTopByVehicleNoAndGateIdAndInDateGreaterThanEqualAndOutSnAndDelYnOrderByInDateDesc(vehicleNo, gateId, date, 0L, YN.N, )
+    }
+
     fun getLastVehicleNoByDate(vehicleNo: String, date: LocalDateTime): ParkIn? {
         return parkInRepository.findTopByVehicleNoAndOutSnAndDelYnAndInDateLessThanEqualOrderByInDateDesc(vehicleNo, 0L, YN.N, date)
     }
@@ -47,6 +51,4 @@ class ParkInService(
     fun getNoExitVehicleNoAndGateId(vehicleNo: String, gateId: String) : List<ParkIn>? {
         return parkInRepository.findByVehicleNoEndsWithAndOutSnAndGateIdAndDelYn(vehicleNo, 0, gateId, YN.N)
     }
-
-
 }

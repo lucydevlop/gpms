@@ -12,6 +12,7 @@ import io.glnt.gpms.handler.calc.service.FareRefService
 import io.glnt.gpms.handler.inout.model.reqAddParkIn
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.common.api.ExternalClient
+import io.glnt.gpms.common.utils.JSONUtil
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.model.criteria.InoutPaymentCriteria
@@ -68,19 +69,37 @@ class InoutResource (
                   @RequestParam(name = "searchDateLabel", required = false) searchDateLabel: DisplayMessageClass,
                   @RequestParam(name = "vehicleNo", required = false) vehicleNo: String? = null,
                   @RequestParam(name = "parkCarType", required = false) parkCarType: String? = null,
-                  @RequestParam(name = "outSn", required = false) outSn: Long? = null
-    ) : ResponseEntity<CommonResult> {
-        return CommonResult.returnResult(CommonResult.data(
-            inoutService.getAllParkLists(
-                reqSearchParkin(searchDateLabel = searchDateLabel,
-                fromDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                toDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                searchLabel = vehicleNo?.let { "CARNUM" },
-                searchText = vehicleNo,
-                parkcartype = parkCarType,
-                outSn = outSn
-            ))
-            ))
+                  @RequestParam(name = "outSn", required = false) outSn: Long? = null,
+                  @RequestParam(name = "size", required = false) size: Int = 20,
+                  @RequestParam(name = "page", required = false) page: Int = 0,
+                  ) : ResponseEntity<CommonResult> {
+        return CommonResult.returnResult(
+            CommonResult.dataWithTotal(
+                inoutService.getAllParkLists(
+                    reqSearchParkin(
+                        searchDateLabel = searchDateLabel,
+                        fromDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                        toDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                        searchLabel = vehicleNo?.let { "CARNUM" },
+                        searchText = vehicleNo,
+                        parkcartype = parkCarType,
+                        outSn = outSn,
+                        page = page,
+                        size = size)
+                )
+                ,inoutService.countAllParkLists(
+                    reqSearchParkin(
+                        searchDateLabel = searchDateLabel,
+                        fromDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                        toDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                        searchLabel = vehicleNo?.let { "CARNUM" },
+                        searchText = vehicleNo,
+                        parkcartype = parkCarType,
+                        outSn = outSn,
+                        page = page,
+                        size = size))
+            )
+        )
     }
 
     @RequestMapping(value=["/inout"], method = [RequestMethod.GET])
@@ -275,21 +294,22 @@ class InoutResource (
                 // 후방 카메라 미인식 skip
                 if (requestParkInDTO.resultcode == "0" || requestParkInDTO.resultcode.toInt() >= 100) { return ResponseEntity.ok(CommonResult.data()) }
                 requestParkInDTO.isSecond = true
-                parkInService.getNoExitVehicleNoAndGateId(requestParkInDTO.vehicleNo, gate.gateId)?.let { ins ->
-                    if (ins.isNotEmpty()) {
-                        logger.warn{" 기 입차 차량번호:${requestParkInDTO.vehicleNo} skip "}
-                        return ResponseEntity.ok(CommonResult.data("Already in $requestParkInDTO.vehicleNo $requestParkInDTO.parkingtype"))
-                    }
 
+                parkInService.getLastByVehicleNoAndGateIdAndDate(requestParkInDTO.vehicleNo, gate.gateId, requestParkInDTO.date.minusMinutes(10))?.let { exist ->
+                    logger.warn{" 기 입차 차량번호:${requestParkInDTO.vehicleNo} 시간 ${exist.inDate} skip "}
+                    return ResponseEntity.ok(CommonResult.data("Already in ${requestParkInDTO.vehicleNo} ${requestParkInDTO.date} 기입차시간 ${exist.inDate}"))
                 }
-                parkInService.getLastByGate(gate.gateId)?.let {
-                    if (it.uuid?.isNotEmpty() == true) {
-                        if (DateUtil.diffSecs(requestParkInDTO.date, it.inDate!!) < 3) {
-                            requestParkInDTO.beforeParkIn = it
-                            requestParkInDTO.uuid = it.uuid
-                        }
-                    }
-                }
+                // set uuid
+                requestParkInDTO.uuid = JSONUtil.generateRandomBasedUUID()
+
+//                parkInService.getLastByGate(gate.gateId)?.let {
+//                    if (it.uuid?.isNotEmpty() == true) {
+//                        if (DateUtil.diffSecs(requestParkInDTO.date, it.inDate!!) < 3) {
+//                            requestParkInDTO.beforeParkIn = it
+//                            requestParkInDTO.uuid = it.uuid
+//                        }
+//                    }
+//                }
             }
 
             val result = inoutService.parkIn(requestParkInDTO)

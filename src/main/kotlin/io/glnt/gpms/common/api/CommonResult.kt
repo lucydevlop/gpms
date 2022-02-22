@@ -15,6 +15,7 @@ class CommonResult {
     var code : Any? = 200
     var msg: String? = null
     var data: Any? = null
+    var total: Long? = 0
 
     companion object {
         fun data(message: String = "success"): CommonResult {
@@ -29,6 +30,15 @@ class CommonResult {
                 it.code = ResultCode.SUCCESS.getCode()
                 it.data = data
                 it.msg = message
+            }
+        }
+
+        fun dataWithTotal(data: Any?, total: Long?, message: String = "success"): CommonResult {
+            return CommonResult().also {
+                it.code = ResultCode.SUCCESS.getCode()
+                it.data = data
+                it.msg = message
+                it.total = total
             }
         }
 
