@@ -38,7 +38,7 @@ data class reqAddParkIn(
     var fileFullPath: String? = null,
     var recognitionResult: String? = null,
 
-    var isSecond: Boolean? = false,
+    var isBack: Boolean = false,
     var isEmergency: Boolean? = null,
 
     var beforeParkIn: ParkInDTO? = null

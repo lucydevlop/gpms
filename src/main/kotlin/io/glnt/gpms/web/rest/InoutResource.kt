@@ -280,7 +280,6 @@ class InoutResource (
                 if (parkInDTOs.isNotEmpty()) {
                     val parkInDTO = parkInDTOs.sortedByDescending { parkInDTO -> parkInDTO.inDate }[0]
                     requestParkInDTO.beforeParkIn = parkInDTO
-                    requestParkInDTO.isSecond = true
                     if (requestParkInDTO.resultcode == "0" || requestParkInDTO.resultcode.toInt() >= 100) { return ResponseEntity.ok(CommonResult.data()) }
                     if (parkInDTO.vehicleNo == requestParkInDTO.vehicleNo) {
                         logger.warn{" 기 입차 차량번호:${requestParkInDTO.vehicleNo} skip "}
@@ -293,7 +292,7 @@ class InoutResource (
             if ((requestParkInDTO.uuid?: "").isEmpty()) {
                 // 후방 카메라 미인식 skip
                 if (requestParkInDTO.resultcode == "0" || requestParkInDTO.resultcode.toInt() >= 100) { return ResponseEntity.ok(CommonResult.data()) }
-                requestParkInDTO.isSecond = true
+                requestParkInDTO.isBack = true
 
                 parkInService.getLastByVehicleNoAndGateIdAndDate(requestParkInDTO.vehicleNo, gate.gateId, requestParkInDTO.date.minusMinutes(10))?.let { exist ->
                     logger.warn{" 기 입차 차량번호:${requestParkInDTO.vehicleNo} 시간 ${exist.inDate} skip "}

@@ -233,11 +233,11 @@ open class InoutService(
 
                 //긴급차량인 경우 무조건 gate open
                 if (request.isEmergency!!) {
-                    inFacilityIF(parkingtype!!, vehicleNo, gate.gateId, true, isSecond?: false)
+                    inFacilityIF(parkingtype!!, vehicleNo, gate.gateId, true, isBack)
                 } else {
                     if (gate.takeAction != "PCC"){
                         val currentOpen = isOpenGate(GateDTO(gate), request.date, newData.parkcartype?: "NORMAL")
-                        inFacilityIF(parkingtype!!, vehicleNo, gate.gateId, (!beforeOpen && currentOpen), isSecond?: false)
+                        inFacilityIF(parkingtype!!, vehicleNo, gate.gateId, (!beforeOpen && currentOpen), isBack)
                     }
 
                     //todo 아파트너 입차 정보 전송
@@ -1294,15 +1294,15 @@ open class InoutService(
     }
 
 
-    fun inFacilityIF(parkCarType: String, vehicleNo: String, gateId: String, isOpen: Boolean, isSecond: Boolean) {
-        logger.warn { "## 입차 시설 연계 차량번호: $vehicleNo 입차 gate $gateId $parkCarType 오픈 $isOpen ##" }
+    fun inFacilityIF(parkCarType: String, vehicleNo: String, gateId: String, isOpen: Boolean, isBack: Boolean) {
+        logger.warn { "## 입차 시설 연계 차량번호: $vehicleNo 입차 gate $gateId $parkCarType 오픈 $isOpen 후방 $isBack ##" }
 
         if (parkCarType == "RESTRICTE" || parkCarType == "FULL") {
             logger.warn { "입차 차단 차량: $vehicleNo $parkCarType" }
             displayMessage(parkCarType, vehicleNo, "IN", gateId)
         } else {
             displayMessage(parkCarType, vehicleNo, "IN", gateId)
-            if (isOpen) {
+            if (isOpen && !isBack) {
                 relayClient.sendActionBreaker(gateId, "open")
             }
         }
