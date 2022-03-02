@@ -12,6 +12,7 @@ import io.glnt.gpms.handler.calc.service.FareRefService
 import io.glnt.gpms.handler.inout.model.reqAddParkIn
 import io.glnt.gpms.handler.parkinglot.service.ParkinglotService
 import io.glnt.gpms.common.api.ExternalClient
+import io.glnt.gpms.common.utils.JSONUtil
 import io.glnt.gpms.handler.inout.model.reqSearchParkin
 import io.glnt.gpms.handler.rcs.service.RcsService
 import io.glnt.gpms.model.criteria.InoutPaymentCriteria
@@ -69,9 +70,9 @@ class InoutResource (
                   @RequestParam(name = "vehicleNo", required = false) vehicleNo: String? = null,
                   @RequestParam(name = "parkCarType", required = false) parkCarType: String? = null,
                   @RequestParam(name = "outSn", required = false) outSn: Long? = null,
-                  @RequestParam(name = "pageSize", required = false) pageSize: Int = 20,
+                  @RequestParam(name = "size", required = false) size: Int = 20,
                   @RequestParam(name = "page", required = false) page: Int = 0,
-    ) : ResponseEntity<CommonResult> {
+                  ) : ResponseEntity<CommonResult> {
         return CommonResult.returnResult(
             CommonResult.dataWithTotal(
                 inoutService.getAllParkLists(
@@ -83,10 +84,10 @@ class InoutResource (
                         searchText = vehicleNo,
                         parkcartype = parkCarType,
                         outSn = outSn,
-                        page = page-1,
-                        pageSize = pageSize)
+                        page = page,
+                        size = size)
                 )
-            ,inoutService.countAllParkLists(
+                ,inoutService.countAllParkLists(
                     reqSearchParkin(
                         searchDateLabel = searchDateLabel,
                         fromDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
@@ -95,8 +96,8 @@ class InoutResource (
                         searchText = vehicleNo,
                         parkcartype = parkCarType,
                         outSn = outSn,
-                        page = page-1,
-                        pageSize = pageSize))
+                        page = page,
+                        size = size))
             )
         )
     }
@@ -304,7 +305,6 @@ class InoutResource (
                 if (parkInDTOs.isNotEmpty()) {
                     val parkInDTO = parkInDTOs.sortedByDescending { parkInDTO -> parkInDTO.inDate }[0]
                     requestParkInDTO.beforeParkIn = parkInDTO
-                    requestParkInDTO.isSecond = true
                     if (requestParkInDTO.resultcode == "0" || requestParkInDTO.resultcode.toInt() >= 100) { return ResponseEntity.ok(CommonResult.data()) }
                     if (parkInDTO.vehicleNo == requestParkInDTO.vehicleNo) {
                         logger.warn{" 기 입차 차량번호:${requestParkInDTO.vehicleNo} skip "}
@@ -313,7 +313,25 @@ class InoutResource (
                 }
             }
 
+            // 5. 입차 후방 카메라 동일 입차건 skip
+            if ((requestParkInDTO.uuid?: "").isEmpty()) {
+                // 후방 카메라 미인식 skip
+                if (requestParkInDTO.resultcode == "0" || requestParkInDTO.resultcode.toInt() >= 100) {
+                    return ResponseEntity.ok(CommonResult.data())
+                }
+                requestParkInDTO.isBack = true
 
+                parkInService.getLastByVehicleNoAndGateIdAndDate(
+                    requestParkInDTO.vehicleNo,
+                    gate.gateId,
+                    requestParkInDTO.date.minusMinutes(10)
+                )?.let { exist ->
+                    logger.warn { " 기 입차 차량번호:${requestParkInDTO.vehicleNo} 시간 ${exist.inDate} skip " }
+                    return ResponseEntity.ok(CommonResult.data("Already in ${requestParkInDTO.vehicleNo} ${requestParkInDTO.date} 기입차시간 ${exist.inDate}"))
+                }
+                // set uuid
+                requestParkInDTO.uuid = JSONUtil.generateRandomBasedUUID()
+            }
 
             val result = inoutService.parkIn(requestParkInDTO)
 

@@ -119,6 +119,7 @@ data class resParkInList(
     /* 출차 차량이미지 File (base64) */
     var outImgBase64Str: String? = null,
     var corpName: String? = null,
+    var ticketCorpName: String? = null,
     var memo: String? = null,
     var paymentAmount: Int? = 0,
     var dayDiscountfee: Int? = 0,

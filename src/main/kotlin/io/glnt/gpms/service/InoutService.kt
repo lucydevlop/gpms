@@ -233,11 +233,11 @@ open class InoutService(
 
                 //긴급차량인 경우 무조건 gate open
                 if (request.isEmergency!!) {
-                    inFacilityIF(parkingtype!!, vehicleNo, gate.gateId, true, isSecond?: false)
+                    inFacilityIF(parkingtype!!, vehicleNo, gate.gateId, true, isBack)
                 } else {
                     if (gate.takeAction != "PCC"){
                         val currentOpen = isOpenGate(GateDTO(gate), request.date, newData.parkcartype?: "NORMAL")
-                        inFacilityIF(if (currentOpen) parkingtype!! else "RESTRICTE", vehicleNo, gate.gateId, (!beforeOpen && currentOpen), isSecond?: false)
+                        inFacilityIF(parkingtype!!, vehicleNo, gate.gateId, (!beforeOpen && currentOpen), isBack)
                     }
 
                     //todo 아파트너 입차 정보 전송
@@ -733,7 +733,7 @@ open class InoutService(
                     parkcartype = request.parkcartype,
                     outSn = request.outSn
                 )
-                parkInQueryService.findByCriteria(criteria, PageRequest.of(request.page, request.pageSize)).totalElements
+                parkInQueryService.findByCriteria(criteria, PageRequest.of(request.page, request.size)).totalElements
             }
             DisplayMessageClass.OUT -> {
                 val criteria = ParkOutCriteria(
@@ -745,7 +745,7 @@ open class InoutService(
                     parkcartype = request.parkcartype
 
                 )
-                parkOutQueryService.findByCriteria(criteria, PageRequest.of(request.page, request.pageSize)).totalElements
+                parkOutQueryService.findByCriteria(criteria, PageRequest.of(request.page, request.size)).totalElements
             }
             else -> 0
         }
@@ -767,13 +767,14 @@ open class InoutService(
                         parkcartype = request.parkcartype,
                         outSn = request.outSn
                     )
-                    parkInQueryService.findByCriteria(criteria, PageRequest.of(request.page, request.pageSize)).let { list ->
-                        list.forEach { it ->
+                    parkInQueryService.findByCriteria(criteria, PageRequest.of(request.page, request.size)).let { list ->
+                    list.forEach { it ->
                             val result = resParkInList(
                                 type = if ((it.outSn?: -1) > 0) DisplayMessageClass.OUT else DisplayMessageClass.IN,
                                 inSn = it.sn!!, vehicleNo = it.vehicleNo, parkCarType = it.parkcartype!!,
                                 inGateId = it.gateId, inDate = it.inDate!!,
                                 corpName = it.ticketSn?.let { ticketService.getBySn(it)?.corpName },
+                                ticketCorpName = it.ticketSn?.let { ticketService.getBySn(it)?.corpName },
                                 inImgBase64Str = it.image?.let { image -> image.substring(image.indexOf("/park")) },
                                 outSn = it.outSn
                             )
@@ -1294,15 +1295,15 @@ open class InoutService(
     }
 
 
-    fun inFacilityIF(parkCarType: String, vehicleNo: String, gateId: String, isOpen: Boolean, isSecond: Boolean) {
-        logger.warn { "## 입차 시설 연계 차량번호: $vehicleNo 입차 gate $gateId $parkCarType 오픈 $isOpen ##" }
+    fun inFacilityIF(parkCarType: String, vehicleNo: String, gateId: String, isOpen: Boolean, isBack: Boolean) {
+        logger.warn { "## 입차 시설 연계 차량번호: $vehicleNo 입차 gate $gateId $parkCarType 오픈 $isOpen 후방 $isBack ##" }
 
         if (parkCarType == "RESTRICTE" || parkCarType == "FULL") {
             logger.warn { "입차 차단 차량: $vehicleNo $parkCarType" }
             displayMessage(parkCarType, vehicleNo, "IN", gateId)
         } else {
             displayMessage(parkCarType, vehicleNo, "IN", gateId)
-            if (isOpen) {
+            if (isOpen && !isBack) {
                 relayClient.sendActionBreaker(gateId, "open")
             }
         }

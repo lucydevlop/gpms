@@ -38,7 +38,7 @@ data class reqAddParkIn(
     var fileFullPath: String? = null,
     var recognitionResult: String? = null,
 
-    var isSecond: Boolean? = false,
+    var isBack: Boolean = false,
     var isEmergency: Boolean? = null,
 
     var beforeParkIn: ParkInDTO? = null
@@ -84,7 +84,8 @@ data class reqSearchParkin(
     var page: Int = 1,
     var gateId: String? = null,
     var parkcartype: String? = null,
-    var outSn: Long? = null
+    var outSn: Long? = null,
+    var size: Int = 20
 )
 
 data class reqUpdatePayment(
