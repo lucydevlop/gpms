@@ -32,6 +32,7 @@ import io.glnt.gpms.model.repository.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
@@ -232,11 +233,11 @@ open class InoutService(
 
                 //긴급차량인 경우 무조건 gate open
                 if (request.isEmergency!!) {
-                    inFacilityIF(parkingtype!!, vehicleNo, gate.gateId, true, isSecond?: false)
+                    inFacilityIF(parkingtype!!, vehicleNo, gate.gateId, true, isBack)
                 } else {
                     if (gate.takeAction != "PCC"){
                         val currentOpen = isOpenGate(GateDTO(gate), request.date, newData.parkcartype?: "NORMAL")
-                        inFacilityIF(parkingtype!!, vehicleNo, gate.gateId, (!beforeOpen && currentOpen), isSecond?: false)
+                        inFacilityIF(parkingtype!!, vehicleNo, gate.gateId, (!beforeOpen && currentOpen), isBack)
                     }
 
                     //todo 아파트너 입차 정보 전송
@@ -720,6 +721,35 @@ open class InoutService(
         }
     }
 
+    fun countAllParkLists(request: reqSearchParkin): Long {
+        return when (request.searchDateLabel) {
+            DisplayMessageClass.IN -> {
+                val criteria = ParkInCriteria(
+                    sn = if (request.searchLabel == "INSN" && request.searchText != null) request.searchText!!.toLong() else null,
+                    vehicleNo = if (request.searchLabel == "CARNUM" && request.searchText != null) request.searchText!! else null,
+                    fromDate = request.fromDate,
+                    toDate = request.toDate,
+                    gateId = request.gateId,
+                    parkcartype = request.parkcartype,
+                    outSn = request.outSn
+                )
+                parkInQueryService.findByCriteria(criteria, PageRequest.of(request.page, request.size)).totalElements
+            }
+            DisplayMessageClass.OUT -> {
+                val criteria = ParkOutCriteria(
+                    sn = if (request.searchLabel == "INSN" && request.searchText != null) request.searchText!!.toLong() else null,
+                    vehicleNo = if (request.searchLabel == "CARNUM" && request.searchText != null) request.searchText!! else null,
+                    fromDate = request.fromDate,
+                    toDate = request.toDate,
+                    gateId = request.gateId,
+                    parkcartype = request.parkcartype
+
+                )
+                parkOutQueryService.findByCriteria(criteria, PageRequest.of(request.page, request.size)).totalElements
+            }
+            else -> 0
+        }
+    }
 
     @Transactional(readOnly = true)
     open fun getAllParkLists(request: reqSearchParkin): List<resParkInList>? {
@@ -737,13 +767,13 @@ open class InoutService(
                         parkcartype = request.parkcartype,
                         outSn = request.outSn
                     )
-                    parkInQueryService.findByCriteria(criteria).let { list ->
-                        list.forEach { it ->
+                    parkInQueryService.findByCriteria(criteria, PageRequest.of(request.page, request.size)).let { list ->
+                    list.forEach { it ->
                             val result = resParkInList(
                                 type = if ((it.outSn?: -1) > 0) DisplayMessageClass.OUT else DisplayMessageClass.IN,
                                 parkinSn = it.sn!!, vehicleNo = it.vehicleNo, parkcartype = it.parkcartype!!,
                                 inGateId = it.gateId, inDate = it.inDate!!,
-                                ticketCorpName = it.seasonTicketDTO?.corpName, memo = it.memo,
+                                ticketCorpName = it.ticketSn?.let { ticketService.getBySn(it)?.corpName },
                                 inImgBase64Str = it.image?.let { image -> image.substring(image.indexOf("/park")) },
                                 parkoutSn = it.outSn
                             )
@@ -1264,15 +1294,15 @@ open class InoutService(
     }
 
 
-    fun inFacilityIF(parkCarType: String, vehicleNo: String, gateId: String, isOpen: Boolean, isSecond: Boolean) {
-        logger.warn { "## 입차 시설 연계 차량번호: $vehicleNo 입차 gate $gateId $parkCarType 오픈 $isOpen ##" }
+    fun inFacilityIF(parkCarType: String, vehicleNo: String, gateId: String, isOpen: Boolean, isBack: Boolean) {
+        logger.warn { "## 입차 시설 연계 차량번호: $vehicleNo 입차 gate $gateId $parkCarType 오픈 $isOpen 후방 $isBack ##" }
 
         if (parkCarType == "RESTRICTE" || parkCarType == "FULL") {
             logger.warn { "입차 차단 차량: $vehicleNo $parkCarType" }
             displayMessage(parkCarType, vehicleNo, "IN", gateId)
         } else {
             displayMessage(parkCarType, vehicleNo, "IN", gateId)
-            if (isOpen) {
+            if (isOpen && !isBack) {
                 relayClient.sendActionBreaker(gateId, "open")
             }
         }

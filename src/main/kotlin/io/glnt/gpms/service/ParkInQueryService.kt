@@ -9,6 +9,8 @@ import io.glnt.gpms.model.enums.YN
 import io.glnt.gpms.model.mapper.ParkInMapper
 import io.glnt.gpms.model.repository.ParkInRepository
 import mu.KLogging
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -28,6 +30,13 @@ class ParkInQueryService(
         logger.debug("parkin find by criteria : {}", criteria)
         val specification = createSpecification(criteria)
         return parkInRepository.findAll(specification).mapTo(mutableListOf(), parkInMapper::toDTO)
+    }
+
+    @Transactional(readOnly = true)
+    fun findByCriteria(criteria: ParkInCriteria?, pageable: Pageable): Page<ParkIn> {
+        logger.debug("parkin find by criteria : {}", criteria)
+        val specification = createSpecification(criteria)
+        return parkInRepository.findAll(specification, pageable)
     }
 
     private fun createSpecification(criteria: ParkInCriteria?): Specification<ParkIn> {

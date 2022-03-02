@@ -59,6 +59,10 @@ class TicketService(
         return seasonTicketMapper.toDTO(ticket)
     }
 
+    fun getBySn(sn: Long): SeasonTicketDTO? {
+        return seasonTicketRepository.findBySn(sn)?.let { seasonTicketMapper.toDTO(it) }
+    }
+
     fun getTicketByVehicleNoAndDate(vehicleNo: String, startDate: LocalDateTime, endDate: LocalDateTime): List<SeasonTicketDTO>? {
         return seasonTicketRepository.findByVehicleNoAndExpireDateGreaterThanEqualAndEffectDateLessThanEqualAndDelYn(vehicleNo, startDate, endDate,YN.N)
             ?.map(seasonTicketMapper::toDTO)
